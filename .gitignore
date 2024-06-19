@@ -1,3 +1,4 @@
+# Binaries
 *.o
 *.elf
 *.bin
@@ -6,10 +7,16 @@
 .mxproject
 *.out
 
-**/build/
+# Build folders
+**/build/*
+**/target/*
 **/Backup/*
 
+# IDE related folders
+**/.idea/*
 **/.vscode/*
-STM32Make.make
-Makefile
-**/__pycache__/**
+compile_commands.json
+**/.cache
+
+# Miscellaneous
+.DS_Store

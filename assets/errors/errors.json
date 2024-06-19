@@ -1,0 +1,10 @@
+{
+    "errors": [
+        {
+            "name": "POST",
+            "timeout": 0,
+            "description": "the Power On Self Test procedure failed",
+            "instances": 1
+        } 
+    ]
+}

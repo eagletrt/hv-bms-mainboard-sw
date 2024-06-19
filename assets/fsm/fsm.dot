@@ -1,0 +1,64 @@
+digraph "fsm" {
+    bgcolor="white"
+    layout="dot"
+    center=true
+    concentrate=false
+    // splines="ortho"
+
+    init [
+        style="filled"
+        color="#66ff66"
+        fillcolor="#c1ffc1"
+    ]
+    idle
+    flash
+    balancing
+    airn_check
+    precharge_check
+    airp_check
+    ts_on
+    fatal [
+        style="filled"
+        color="#ff6666"
+        fillcolor="#ffc1c1"
+    ]
+
+    init -> idle [label="start"]
+    init -> fatal [label="handler_fatal_error"]
+
+    idle -> idle
+    idle -> balancing [label="start_balancing"]
+    idle -> airn_check [label="close_airn"]
+    idle -> fatal [label="handler_fatal_error"]
+    idle -> flash [label="start_flash_procedure"]
+
+    flash -> flash
+    flash -> idle [label="stop_flash_procedure"]
+    flash -> fatal [label="handle_fatal_error"]
+
+    balancing -> balancing
+    balancing -> idle [label="stop_balancing"]
+    balancing -> fatal [label="handle_fatal_error"]
+
+    airn_check -> airn_check
+    airn_check -> idle [label="ts_off"]
+    airn_check -> precharge_check [label="start_precharge"]
+    airn_check -> fatal [label="handle_fatal_error"]
+
+    precharge_check -> precharge_check
+    precharge_check -> idle [label="ts_off"]
+    precharge_check -> airp_check [label="close_airp"]
+    precharge_check -> fatal [label="handle_fatal_error"]
+
+    airp_check -> airp_check
+    airp_check -> idle [label="ts_off"]
+    airp_check -> ts_on [label="ts_on"]
+    airp_check -> fatal [label="handle_fatal_error"]
+
+    ts_on -> ts_on
+    ts_on -> idle [label="ts_off"]
+    ts_on -> fatal [label="handle_fatal_error"]
+
+    fatal -> fatal
+    fatal -> flash [label="start_flash_procedure"]
+}
