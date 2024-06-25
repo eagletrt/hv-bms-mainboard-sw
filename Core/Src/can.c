@@ -41,11 +41,11 @@ void MX_CAN1_Init(void)
 
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 16;
+  hcan1.Init.Prescaler = 3;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
@@ -57,7 +57,27 @@ void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
-
+  /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+      as the combination of: 
+      STDID + RTR + IDE + 4 most significant bits of EXTID
+  */
+  CAN_FilterTypeDef filter = {
+      .FilterActivation = CAN_FILTER_ENABLE,
+      .FilterBank = 14,
+      .FilterFIFOAssignment = CAN_FILTER_FIFO0,
+      .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+      .FilterIdLow = 0, // Take all ids from 0
+      .FilterMaskIdHigh = 0,
+      .FilterMaskIdLow = 0,
+      .FilterMode = CAN_FILTERMODE_IDMASK,
+      .FilterScale = CAN_FILTERSCALE_16BIT,
+      .SlaveStartFilterBank = 14
+  };
+  
+  // Enable filters and start CAN
+  HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
+  HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
+  HAL_CAN_Start(&HCAN_PRIMARY);
   /* USER CODE END CAN1_Init 2 */
 
 }
@@ -73,11 +93,11 @@ void MX_CAN2_Init(void)
 
   /* USER CODE END CAN2_Init 1 */
   hcan2.Instance = CAN2;
-  hcan2.Init.Prescaler = 16;
+  hcan2.Init.Prescaler = 3;
   hcan2.Init.Mode = CAN_MODE_NORMAL;
   hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan2.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan2.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan2.Init.TimeSeg1 = CAN_BS1_12TQ;
+  hcan2.Init.TimeSeg2 = CAN_BS2_2TQ;
   hcan2.Init.TimeTriggeredMode = DISABLE;
   hcan2.Init.AutoBusOff = DISABLE;
   hcan2.Init.AutoWakeUp = DISABLE;
@@ -89,7 +109,27 @@ void MX_CAN2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN2_Init 2 */
-
+  /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+      as the combination of: 
+      STDID + RTR + IDE + 4 most significant bits of EXTID
+  */
+  CAN_FilterTypeDef filter = {
+      .FilterActivation = CAN_FILTER_ENABLE,
+      .FilterBank = 0,
+      .FilterFIFOAssignment = CAN_FILTER_FIFO1,
+      .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+      .FilterIdLow = 0, // Take all ids from 0
+      .FilterMaskIdHigh = 0,
+      .FilterMaskIdLow = 0,
+      .FilterMode = CAN_FILTERMODE_IDMASK,
+      .FilterScale = CAN_FILTERSCALE_16BIT,
+      .SlaveStartFilterBank = 14
+  };
+  
+  // Enable filters and start CAN
+  HAL_CAN_ConfigFilter(&HCAN_BMS, &filter);
+  HAL_CAN_ActivateNotification(&HCAN_BMS, CAN_IT_ERROR | CAN_IT_RX_FIFO1_MSG_PENDING);
+  HAL_CAN_Start(&HCAN_BMS);
   /* USER CODE END CAN2_Init 2 */
 
 }
@@ -123,6 +163,9 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /* CAN1 interrupt Init */
+    HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
   /* USER CODE BEGIN CAN1_MspInit 1 */
 
   /* USER CODE END CAN1_MspInit 1 */
@@ -151,6 +194,9 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+    /* CAN2 interrupt Init */
+    HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspInit 1 */
 
   /* USER CODE END CAN2_MspInit 1 */
@@ -177,6 +223,8 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11|GPIO_PIN_12);
 
+    /* CAN1 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
   /* USER CODE BEGIN CAN1_MspDeInit 1 */
 
   /* USER CODE END CAN1_MspDeInit 1 */
@@ -199,6 +247,8 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
     */
     HAL_GPIO_DeInit(GPIOB, ISOCAN_RX_Pin|ISOCAN_TX_Pin);
 
+    /* CAN2 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspDeInit 1 */
 
   /* USER CODE END CAN2_MspDeInit 1 */
@@ -233,7 +283,7 @@ CAN_HandleTypeDef * _can_get_peripheral_from_network(CanNetwork network) {
  * 
  * @return int32_t The frame type or negative error code
  */
-int32_t _can_get_frame_type_from_index(CanFrameType type) {
+int32_t _can_get_rtr_from_frame_type(CanFrameType type) {
     switch (type) {
         case CAN_FRAME_TYPE_DATA:
             return CAN_RTR_DATA;
@@ -247,12 +297,12 @@ int32_t _can_get_frame_type_from_index(CanFrameType type) {
 /**
  * @brief Get the canFrameType enum value from the CAN TxFrameType
  *
- * @param index The CAN frame type value
+ * @param rtr The CAN frame type value
  * 
  * @return CanFrameType The frame type enum value or negative error code
  */
-CanFrameType _can_get_index_from_frame_type(uint32_t index) {
-    switch (index) {
+CanFrameType _can_get_frame_type_from_rtr(uint32_t rtr) {
+    switch (rtr) {
         case CAN_RTR_DATA:
             return CAN_FRAME_TYPE_DATA;
         case CAN_RTR_REMOTE:
@@ -285,7 +335,7 @@ CanCommReturnCode can_send(
         return CAN_COMM_INVALID_NETWORK;
 
     // Get and check the frame type
-    int32_t type = _can_get_frame_type_from_index(frame_type);
+    int32_t type = _can_get_rtr_from_frame_type(frame_type);
     if (type < 0)
         return CAN_COMM_INVALID_FRAME_TYPE;
  
@@ -306,6 +356,59 @@ CanCommReturnCode can_send(
     return CAN_COMM_OK;
 }
 
+
 // TODO: Define CAN RX callbacks
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan) {
+    if (hcan->Instance != HCAN_PRIMARY.Instance)
+        return;
+
+    CAN_RxHeaderTypeDef header;
+    uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, data) != HAL_OK)
+        Error_Handler();
+
+    // Ignore extended IDs
+    if (header.IDE == CAN_ID_EXT)
+        return;
+
+    CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
+    if (frame_type < 0)
+        return;
+
+    can_comm_rx_add(
+        CAN_NETWORK_PRIMARY,
+        bms_index_from_id(header.StdId),
+        frame_type,
+        data,
+        header.DLC
+    );
+
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+    if (hcan->Instance != HCAN_BMS.Instance)
+        return;
+
+    CAN_RxHeaderTypeDef header;
+    uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &header, data) != HAL_OK)
+        Error_Handler();
+
+    // Ignore extended IDs
+    if (header.IDE == CAN_ID_EXT)
+        return;
+
+    CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
+    if (frame_type < 0)
+        return;
+
+    can_comm_rx_add(
+        CAN_NETWORK_BMS,
+        bms_index_from_id(header.StdId),
+        frame_type,
+        data,
+        header.DLC
+    );
+}
 
 /* USER CODE END 1 */

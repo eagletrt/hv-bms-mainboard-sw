@@ -17,6 +17,10 @@ Functions and types have been generated with prefix "fsm_"
 
 /*** USER CODE BEGIN MACROS ***/
 
+#include <string.h>
+
+#include "can-comm.h"
+
 /*** USER CODE END MACROS ***/
 
 
@@ -56,6 +60,13 @@ fsm_event_data_t * fsm_fired_event = NULL;
 
 /*** USER CODE BEGIN GLOBALS ***/
 
+static struct {
+    fsm_state_t fsm_state;
+    primary_hv_flash_response_converted_t flash_can_payload;
+} hfsm = {
+    .fsm_state = FSM_STATE_INIT
+};
+
 /*** USER CODE END GLOBALS ***/
 
 
@@ -92,6 +103,10 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_INIT ***/
+
+  // Initialize the FSM handler
+  memset(&hfsm, 0U, sizeof(hfsm));
+  hfsm.fsm_state = FSM_STATE_INIT;
   
   /*** USER CODE END DO_INIT ***/
   
