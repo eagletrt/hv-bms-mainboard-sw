@@ -22,6 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "can-comm.h"
+
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -204,5 +206,106 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+ * @brief Get the pointer to the CAN handler from the corresponding canlib network
+ *
+ * @param network The canlib network
+ *
+ * @return CAN_HandleTypeDef * A pointer to the CAN handler or NULL if the network
+ * does not corresponds to any valid handler
+ */
+CAN_HandleTypeDef * _can_get_peripheral_from_network(CanNetwork network) {
+    switch (network) {
+        case CAN_NETWORK_BMS:
+            return &HCAN_BMS;
+        case CAN_NETWORK_PRIMARY:
+            return &HCAN_PRIMARY;
+        default:
+            return NULL;
+    }
+}
+
+/**
+ * @brief Get CAN TxFrameType value from the CanFrameType enum
+ *
+ * @param type The frame type enum value
+ * 
+ * @return int32_t The frame type or negative error code
+ */
+int32_t _can_get_frame_type_from_index(CanFrameType type) {
+    switch (type) {
+        case CAN_FRAME_TYPE_DATA:
+            return CAN_RTR_DATA;
+        case CAN_FRAME_TYPE_REMOTE:
+            return CAN_RTR_REMOTE;
+        default:
+            return -1;
+    }
+}
+
+/**
+ * @brief Get the canFrameType enum value from the CAN TxFrameType
+ *
+ * @param index The CAN frame type value
+ * 
+ * @return CanFrameType The frame type enum value or negative error code
+ */
+CanFrameType _can_get_index_from_frame_type(uint32_t index) {
+    switch (index) {
+        case CAN_RTR_DATA:
+            return CAN_FRAME_TYPE_DATA;
+        case CAN_RTR_REMOTE:
+            return CAN_FRAME_TYPE_REMOTE;
+        default:
+            return -1;
+    }
+}
+
+// TODO: Return and check errors
+CanCommReturnCode can_send(
+    CanNetwork network,
+    can_id_t id,
+    CanFrameType frame_type,
+    const uint8_t * data,
+    size_t size)
+{
+    if (network >= CAN_NETWORK_COUNT)
+        return CAN_COMM_INVALID_NETWORK;
+    if (network == CAN_NETWORK_BMS && id >= bms_MESSAGE_COUNT)
+        return CAN_COMM_INVALID_INDEX;
+    if (network == CAN_NETWORK_PRIMARY && id >= primary_MESSAGE_COUNT)
+        return CAN_COMM_INVALID_INDEX;
+    if (size > CAN_COMM_MAX_PAYLOAD_BYTE_SIZE)
+        return CAN_COMM_INVALID_PAYLOAD_SIZE;
+
+    // Get and check the CAN handler
+    CAN_HandleTypeDef * hcan = _can_get_peripheral_from_network(network);
+    if (hcan == NULL)
+        return CAN_COMM_INVALID_NETWORK;
+
+    // Get and check the frame type
+    int32_t type = _can_get_frame_type_from_index(frame_type);
+    if (type < 0)
+        return CAN_COMM_INVALID_FRAME_TYPE;
+ 
+    // Setup transmission header
+    const CAN_TxHeaderTypeDef header = {
+        .StdId = id,
+        .IDE = CAN_ID_STD,
+        .RTR = type,
+        .DLC = size,
+        .ExtId = 0U,
+        .TransmitGlobalTime = DISABLE
+    };
+
+    // Send message
+    uint32_t mailbox = 0U;
+    if (HAL_CAN_AddTxMessage(hcan, &header, data, &mailbox) != HAL_OK)
+        return CAN_COMM_TRANSMISSION_ERROR;
+    return CAN_COMM_OK;
+}
+
+// TODO: Define CAN RX callbacks
 
 /* USER CODE END 1 */

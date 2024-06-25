@@ -19,6 +19,25 @@ Functions and types have been generated with prefix "fsm_"
 #include <stdbool.h>
 
 /*** USER CODE BEGIN MACROS ***/
+#include <stddef.h>
+
+#include "primary_network.h"
+
+/**
+ * @brief Definition of the possible events types
+ *
+ * @details The FSM_EVENT_TYPE_IGNORED should only be used for initialization purposes
+ * and it is not counted as part of the other events
+ *
+ * @details
+ *     - FSM_EVENT_TYPE_FLASH_REQUEST the request for the start of a flash procedure
+ *     - FSM_EVENT_TYPE_IGNORED event that should be ignored
+ */
+typedef enum {
+    FSM_EVENT_TYPE_FLASH_REQUEST,
+    FSM_EVENT_TYPE_COUNT,
+    FSM_EVENT_TYPE_IGNORED
+} FsmEventType;
 
 /*** USER CODE END MACROS ***/
 
@@ -34,7 +53,7 @@ typedef void fsm_state_data_t;
 typedef struct {
   
   /*** USER CODE BEGIN EVENT_DATA ***/
-  
+  FsmEventType type;
   /*** USER CODE END EVENT_DATA ***/
 
 } fsm_event_data_t;
@@ -135,7 +154,12 @@ extern transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STA
 fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data);
 
 /*** USER CODE BEGIN FUNCTIONS ***/
-
+/**
+ * @brief Get the current status of the FSM
+ *
+ * @return fsm_state_t The FSM status
+ */
+fsm_state_t fsm_get_status(void);
 /*** USER CODE END FUNCTIONS ***/
 
 #endif

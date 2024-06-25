@@ -247,6 +247,12 @@ flash: $(BUILD_DIR)/$(TARGET).bin
 	st-flash --flash=512k --reset write $< 0x08000000
 
 #######################################
+# Debug
+#######################################
+debug: $(BUILD_DIR)/$(TARGET).elf
+	$(PREFIX)gdb --eval-command="target extended-remote :3333" $<
+
+#######################################
 # dependencies
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
