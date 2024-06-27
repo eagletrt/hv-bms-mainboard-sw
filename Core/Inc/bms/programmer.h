@@ -11,6 +11,7 @@
 #define PROGRAMMER_H
 
 #include "primary_network.h"
+#include "bms_network.h"
 #include "mainboard-def.h"
 
 /**
@@ -43,6 +44,13 @@ ProgrammerReturnCode programmer_init(system_reset_callback_t reset);
  * @param payload A pointer to the canlib payload of the request
  */
 void programmer_flash_request_handle(primary_hv_flash_request_converted_t * payload);
+
+/**
+ * @brief Handle the received flash response from the cellboards
+ *
+ * @param payload A pointer to the canlib payload of the response
+ */
+void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t * payload);
 
 /**
  * @brief Handle the received actual flash command

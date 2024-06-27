@@ -20,6 +20,7 @@ Functions and types have been generated with prefix "fsm_"
 #include <string.h>
 
 #include "can-comm.h"
+#include "timebase.h"
 
 /*** USER CODE END MACROS ***/
 
@@ -129,7 +130,10 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_IDLE ***/
-  
+  (void)timebase_routine();
+
+  if (fsm_is_event_triggered() && fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
+      next_state = FSM_STATE_FLASH;
   /*** USER CODE END DO_IDLE ***/
   
   switch (next_state) {
@@ -336,7 +340,8 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
 void fsm_start(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START ***/
-  
+  can_comm_enable_all();
+  timebase_set_enable(true);  
   /*** USER CODE END START ***/
 }
 
@@ -355,8 +360,8 @@ void fsm_handler_fatal_error(fsm_state_data_t *data) {
 // 2. from fatal to flash
 void fsm_start_flash_procedure(fsm_state_data_t *data) {
   
-  /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/
-  
+  /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/ 
+
   /*** USER CODE END START_FLASH_PROCEDURE ***/
 }
 

@@ -114,9 +114,15 @@ int main(void)
 
   // Test AIR
   HAL_GPIO_WritePin(AIRP_OFF_GPIO_Port, AIRP_OFF_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(AIRN_OFF_GPIO_Port, AIRN_OFF_Pin, GPIO_PIN_SET);
 
   uint32_t t = HAL_GetTick();
   uint8_t check = true;
+
+  ADC_ChannelConfTypeDef config = {
+      .Channel = ADC_CHANNEL_4
+  };
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,17 +132,47 @@ int main(void)
         // uint8_t data[4] = { 1, 2, 3, 4 };
         // can_send(CAN_NETWORK_PRIMARY, 7U, CAN_FRAME_TYPE_DATA, data, 4U);
         
-        char msg[64] = { 0 };
-        sprintf(msg, "%d\r\n", HAL_GPIO_ReadPin(AIRP_OPEN_COM_GPIO_Port, AIRP_OPEN_COM_Pin));
+        char msg[256] = { 0 };
+        sprintf(msg, "AIRP: %d\r\n", HAL_GPIO_ReadPin(AIRP_OPEN_COM_GPIO_Port, AIRP_OPEN_COM_Pin));
         HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), 30U);
+
+        sprintf(msg, "PRECHARGE: %d\r\n", HAL_GPIO_ReadPin(PRECHARGE_OPEN_COM_GPIO_Port, PRECHARGE_OPEN_COM_Pin));
+        HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), 30U);
+
+        sprintf(msg, "AIRN: %d\r\n", HAL_GPIO_ReadPin(AIRN_OPEN_COM_GPIO_Port, AIRN_OPEN_COM_Pin));
+        HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), 30U);
+
+        // Plausible state 
+        sprintf(msg, "Plausible: %d\r\n", HAL_GPIO_ReadPin(PLAUSIBLE_STATE_GPIO_Port, PLAUSIBLE_STATE_Pin));
+        HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), 30U);
+
+        // Plausible state persisted
+        sprintf(msg, "Plausible persisted: %d\r\n", HAL_GPIO_ReadPin(PLAUSIBLE_STATE_PERSISTED_GPIO_Port, PLAUSIBLE_STATE_PERSISTED_Pin));
+        HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), 30U);
+
+        // RC (Analog)
+        // HAL_ADC_ConfigChannel(&hadc3, &config);
+        HAL_ADC_Start(&hadc3);
+        if(HAL_ADC_PollForConversion(&hadc3, 5) == HAL_OK) {
+            uint32_t raw = HAL_ADC_GetValue(&hadc3);
+	        float val = ((raw / 4096.f) * 3.3f);
+            sprintf(msg, "Plausible RC raw: %4lu\r\n", raw);
+            sprintf(msg + strlen(msg), "Plausible RC: %.3f\r\n", val);
+            HAL_UART_Transmit(&huart1, (uint8_t *)msg, strlen(msg), 30U);
+            HAL_ADC_Stop(&hadc3);
+        }
+        HAL_UART_Transmit(&huart1, (uint8_t *)"\r\n\033[H", 5U, 30U);
 
         if (check && HAL_GetTick() - t >= 4000) {
             HAL_GPIO_WritePin(AIRP_OFF_GPIO_Port, AIRP_OFF_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(AIRN_OFF_GPIO_Port, AIRN_OFF_Pin, GPIO_PIN_RESET);
             check = false;
         }
 
         HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-        HAL_Delay(300U);
+        HAL_Delay(400U);
+        HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
