@@ -77,7 +77,7 @@ void MX_SPI3_Init(void)
   hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi3.Init.NSS = SPI_NSS_SOFT;
-  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -110,7 +110,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     PB14     ------> SPI2_MISO
     PB15     ------> SPI2_MOSI
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15;
+    GPIO_InitStruct.Pin = SPI_EEPROM_SCK_Pin|SPI_EEPROM_MISO_Pin|SPI_EEPROM_MOSI_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -135,7 +135,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     PC11     ------> SPI3_MISO
     PC12     ------> SPI3_MOSI
     */
-    GPIO_InitStruct.Pin = SPI_MAX_SCK_Pin|SPI_MAX_MISO_Pin|SPI_MAX_MOSI_Pin;
+    GPIO_InitStruct.Pin = SPI_ADC_SCK_Pin|SPI_ADC_MISO_Pin|SPI_ADC_MOSI_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -164,7 +164,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     PB14     ------> SPI2_MISO
     PB15     ------> SPI2_MOSI
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15);
+    HAL_GPIO_DeInit(GPIOB, SPI_EEPROM_SCK_Pin|SPI_EEPROM_MISO_Pin|SPI_EEPROM_MOSI_Pin);
 
   /* USER CODE BEGIN SPI2_MspDeInit 1 */
 
@@ -183,7 +183,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     PC11     ------> SPI3_MISO
     PC12     ------> SPI3_MOSI
     */
-    HAL_GPIO_DeInit(GPIOC, SPI_MAX_SCK_Pin|SPI_MAX_MISO_Pin|SPI_MAX_MOSI_Pin);
+    HAL_GPIO_DeInit(GPIOC, SPI_ADC_SCK_Pin|SPI_ADC_MISO_Pin|SPI_ADC_MOSI_Pin);
 
   /* USER CODE BEGIN SPI3_MspDeInit 1 */
 
@@ -192,5 +192,77 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+SPI_HandleTypeDef * _spi_get_peripheral_from_network(SpiNetwork network) {
+    switch (network) {
+        case SPI_NETWORK_EEPROM:
+            return &HSPI_EEPROM;
+        case SPI_NETWORK_ADC:
+            return &HSPI_ADC;
+
+        default:
+            return NULL;
+    }
+}
+
+GPIO_TypeDef * _spi_get_port_from_network(SpiNetwork network) {
+    switch (network) {
+        case SPI_NETWORK_EEPROM:
+            return SPI_EEPROM_CS_GPIO_Port;
+        case SPI_NETWORK_ADC:
+            return SPI_ADC_CS_GPIO_Port;
+
+        default:
+            return NULL;
+    }
+}
+
+uint16_t _spi_get_pin_from_network(SpiNetwork network) {
+    switch (network) {
+        case SPI_NETWORK_EEPROM:
+            return SPI_EEPROM_CS_Pin;
+        case SPI_NETWORK_ADC:
+            return SPI_ADC_CS_Pin;
+
+        default:
+            return UINT16_MAX;
+    }
+}
+
+// TODO: Return error
+void spi_send(SpiNetwork network, uint8_t * data, size_t size) {
+    if (network >= SPI_NETWORK_COUNT)
+        return;
+
+    SPI_HandleTypeDef * hspi = _spi_get_peripheral_from_network(network);
+    GPIO_TypeDef * port = _spi_get_port_from_network(network);
+    uint16_t pin = _spi_get_pin_from_network(network);
+
+    // Send data
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
+    HAL_SPI_Transmit(hspi, data, size, size * 5U);
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
+}
+
+void spi_send_receive(
+    SpiNetwork network,
+    uint8_t * data,
+    uint8_t * out,
+    size_t size,
+    size_t out_size)
+{
+    if (network >= SPI_NETWORK_COUNT)
+        return;
+
+    SPI_HandleTypeDef * hspi = _spi_get_peripheral_from_network(network);
+    GPIO_TypeDef * port = _spi_get_port_from_network(network);
+    uint16_t pin = _spi_get_pin_from_network(network);
+
+    // Send and receive data
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
+    HAL_SPI_Transmit(hspi, data, size, size * 5U);
+    HAL_SPI_Receive(hspi, out, out_size, out_size * 5U);
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
+}
 
 /* USER CODE END 1 */

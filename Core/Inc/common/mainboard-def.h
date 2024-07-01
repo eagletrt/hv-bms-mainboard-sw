@@ -10,6 +10,7 @@
 #define MAINBOARD_DEF_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 /**
  * @brief No operation
@@ -146,6 +147,77 @@
 
 /** @} */
 
+/*** ######################### ENUMS DEFINITIONS ######################### ***/
+
+/**
+ * @defgroups enums
+ * @brief Definition of different enumerations used to give meaning to integer values
+ * {@
+ */
+
+/**
+ * @brief Definition of the cellboard indices
+ * 
+ * @details Each cellboard is numbered from 0 to n where n is the last cellboard
+ * The real cellboard order is not guaranteed to match this order
+ *
+ * @details A mainboard identifier is added for utility purposes but it is not included
+ * in the cellboard id count
+ */
+typedef enum {
+    CELLBOARD_ID_0 = 0U,
+    CELLBOARD_ID_1,
+    CELLBOARD_ID_2,
+    CELLBOARD_ID_3,
+    CELLBOARD_ID_4,
+    CELLBOARD_ID_5,
+    CELLBOARD_ID_COUNT,
+    MAINBOARD_ID
+} CellboardId;
+
+/**
+ * @brief Type definition for a SPI network
+ *
+ * @details
+ *     - SPI_NETWORK_EEPROM the network connected to an EEPROM
+ *     - SPI_NETWORK_ADC the network connected to an external ADC
+ */
+typedef enum {
+    SPI_NETWORK_EEPROM = 0U,
+    SPI_NETWORK_ADC,
+    SPI_NETWORK_COUNT
+} SpiNetwork;
+
+/**
+ * @brief Definition of different CAN networks
+ *
+ * @details
+ *     - CAN_NETWORK_BMS the internal network between mainboard and cellboards
+ *     - CAN_NETWORK_PRIMARY the main network where all the important message are sent
+ *     - CAN_NETWORK_SECONDARY network dedicated to sensor and other measuring devices
+ */
+typedef enum {
+    CAN_NETWORK_BMS,
+    CAN_NETWORK_PRIMARY,
+    CAN_NETWORK_SECONDARY,
+    CAN_NETWORK_COUNT
+} CanNetwork;
+
+/**
+ * @brief Definition of possible CAN frame types
+ *
+ * @details
+ *     - CAN_FRAME_TYPE_DATA the CAN frame that contains data
+ *     - CAN_FRAME_TYPE_REMOTE the CAN frame used to request a data transmission from another node in the network
+ */
+typedef enum {
+    CAN_FRAME_TYPE_DATA,
+    CAN_FRAME_TYPE_REMOTE,
+    CAN_FRAME_TYPE_COUNT
+} CanFrameType;
+
+/** @} */
+
 /*** ######################### TYPE DEFINITIONS ########################## ***/
 
 /**
@@ -208,63 +280,31 @@ typedef void (* interrupt_critical_section_enter_t)(void);
 /** @brief Function callback used to exit a critical section */
 typedef void (* interrupt_critical_section_exit_t)(void);
 
-/** @} */
-
-/*** ######################### ENUMS DEFINITIONS ######################### ***/
-
 /**
- * @defgroups enums
- * @brief Definition of different enumerations used to give meaning to integer values
- * {@
- */
-
-/**
- * @brief Definition of the cellboard indices
- * 
- * @details Each cellboard is numbered from 0 to n where n is the last cellboard
- * The real cellboard order is not guaranteed to match this order
+ * @brief Type definition for the callback used to send data via SPI
  *
- * @details A mainboard identifier is added for utility purposes but it is not included
- * in the cellboard id count
+ * @param network The SPI network to select
+ * @param data A pointer to the data to send
+ * @param size The length of data in bytes
  */
-typedef enum {
-    CELLBOARD_ID_0 = 0U,
-    CELLBOARD_ID_1,
-    CELLBOARD_ID_2,
-    CELLBOARD_ID_3,
-    CELLBOARD_ID_4,
-    CELLBOARD_ID_5,
-    CELLBOARD_ID_COUNT,
-    MAINBOARD_ID
-} CellboardId;
+typedef void (* spi_send_callback_t)(SpiNetwork network, uint8_t * data, size_t size);
 
 /**
- * @brief Definition of different CAN networks
+ * @brief Type definition for the callback used to send and receive data via SPI
  *
- * @details
- *     - CAN_NETWORK_BMS the internal network between mainboard and cellboards
- *     - CAN_NETWORK_PRIMARY the main network where all the important message are sent
- *     - CAN_NETWORK_SECONDARY network dedicated to sensor and other measuring devices
+ * @param network The SPI network to select
+ * @param data A pointer to the data to send
+ * @param out[out] A pointer to the array where the received data is stored
+ * @param size The length of data in bytes
+ * @param out_size The number of bytes that should be received
  */
-typedef enum {
-    CAN_NETWORK_BMS,
-    CAN_NETWORK_PRIMARY,
-    CAN_NETWORK_SECONDARY,
-    CAN_NETWORK_COUNT
-} CanNetwork;
-
-/**
- * @brief Definition of possible CAN frame types
- *
- * @details
- *     - CAN_FRAME_TYPE_DATA the CAN frame that contains data
- *     - CAN_FRAME_TYPE_REMOTE the CAN frame used to request a data transmission from another node in the network
- */
-typedef enum {
-    CAN_FRAME_TYPE_DATA,
-    CAN_FRAME_TYPE_REMOTE,
-    CAN_FRAME_TYPE_COUNT
-} CanFrameType;
+typedef void (* spi_send_receive_callback_t)(
+    SpiNetwork network,
+    uint8_t * data,
+    uint8_t * out,
+    size_t size,
+    size_t out_size
+);
 
 /** @} */
 

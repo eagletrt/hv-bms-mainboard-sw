@@ -57,8 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SPARE_1_Pin GPIO_PIN_2
-#define SPARE_1_GPIO_Port GPIOE
+#define HANDCART_CONNECTED_Pin GPIO_PIN_2
+#define HANDCART_CONNECTED_GPIO_Port GPIOE
 #define SPARE_2_Pin GPIO_PIN_3
 #define SPARE_2_GPIO_Port GPIOE
 #define SPARE_3_Pin GPIO_PIN_4
@@ -143,12 +143,18 @@ void Error_Handler(void);
 #define SEG7_S7_GPIO_Port GPIOE
 #define SEG7_DP_Pin GPIO_PIN_15
 #define SEG7_DP_GPIO_Port GPIOE
-#define ISOCAN_RX_Pin GPIO_PIN_12
-#define ISOCAN_RX_GPIO_Port GPIOB
-#define ISOCAN_TX_Pin GPIO_PIN_13
-#define ISOCAN_TX_GPIO_Port GPIOB
-#define CS_EEPROM_Pin GPIO_PIN_8
-#define CS_EEPROM_GPIO_Port GPIOD
+#define SPI_EEPROM_SCK_Pin GPIO_PIN_10
+#define SPI_EEPROM_SCK_GPIO_Port GPIOB
+#define CAN_BMS_RX_Pin GPIO_PIN_12
+#define CAN_BMS_RX_GPIO_Port GPIOB
+#define CAN_BMS_TX_Pin GPIO_PIN_13
+#define CAN_BMS_TX_GPIO_Port GPIOB
+#define SPI_EEPROM_MISO_Pin GPIO_PIN_14
+#define SPI_EEPROM_MISO_GPIO_Port GPIOB
+#define SPI_EEPROM_MOSI_Pin GPIO_PIN_15
+#define SPI_EEPROM_MOSI_GPIO_Port GPIOB
+#define SPI_EEPROM_CS_Pin GPIO_PIN_8
+#define SPI_EEPROM_CS_GPIO_Port GPIOD
 #define HOLD_EEPROM_Pin GPIO_PIN_9
 #define HOLD_EEPROM_GPIO_Port GPIOD
 #define IMD_PWM_Pin GPIO_PIN_12
@@ -167,16 +173,20 @@ void Error_Handler(void);
 #define AIRP_OFF_GPIO_Port GPIOG
 #define BUZZER_Pin GPIO_PIN_8
 #define BUZZER_GPIO_Port GPIOA
-#define SPI_MAX_CS_Pin GPIO_PIN_15
-#define SPI_MAX_CS_GPIO_Port GPIOA
-#define SPI_MAX_SCK_Pin GPIO_PIN_10
-#define SPI_MAX_SCK_GPIO_Port GPIOC
-#define SPI_MAX_MISO_Pin GPIO_PIN_11
-#define SPI_MAX_MISO_GPIO_Port GPIOC
-#define SPI_MAX_MOSI_Pin GPIO_PIN_12
-#define SPI_MAX_MOSI_GPIO_Port GPIOC
-#define MAX_IT_Pin GPIO_PIN_0
-#define MAX_IT_GPIO_Port GPIOD
+#define CAN_PRIMARY_RX_Pin GPIO_PIN_11
+#define CAN_PRIMARY_RX_GPIO_Port GPIOA
+#define CAN_PRIMARY_TX_Pin GPIO_PIN_12
+#define CAN_PRIMARY_TX_GPIO_Port GPIOA
+#define SPI_ADC_CS_Pin GPIO_PIN_15
+#define SPI_ADC_CS_GPIO_Port GPIOA
+#define SPI_ADC_SCK_Pin GPIO_PIN_10
+#define SPI_ADC_SCK_GPIO_Port GPIOC
+#define SPI_ADC_MISO_Pin GPIO_PIN_11
+#define SPI_ADC_MISO_GPIO_Port GPIOC
+#define SPI_ADC_MOSI_Pin GPIO_PIN_12
+#define SPI_ADC_MOSI_GPIO_Port GPIOC
+#define SPI_ADC_INT_Pin GPIO_PIN_0
+#define SPI_ADC_INT_GPIO_Port GPIOD
 #define EXT_FAULT_LATCHED_Pin GPIO_PIN_1
 #define EXT_FAULT_LATCHED_GPIO_Port GPIOD
 #define IMD_FAULT_LATCHED_Pin GPIO_PIN_2

@@ -21,6 +21,7 @@ Functions and types have been generated with prefix "fsm_"
 
 #include "can-comm.h"
 #include "timebase.h"
+#include "programmer.h"
 
 /*** USER CODE END MACROS ***/
 
@@ -182,6 +183,10 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_FLASH ***/
+
+  ProgrammerReturnCode code = programmer_routine();
+  if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
+      next_state = FSM_STATE_IDLE;
   
   /*** USER CODE END DO_FLASH ***/
   

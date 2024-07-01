@@ -55,7 +55,7 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, SPARE_1_Pin|SPARE_2_Pin|SPARE_3_Pin|SPARE_4_Pin
+  HAL_GPIO_WritePin(GPIOE, HANDCART_CONNECTED_Pin|SPARE_2_Pin|SPARE_3_Pin|SPARE_4_Pin
                           |SPARE_5_Pin|SEG7_S1_Pin|SEG7_S2_Pin|SEG7_S3_Pin
                           |SEG7_S4_Pin|SEG7_S5_Pin|SEG7_S6_Pin|SEG7_S7_Pin
                           |SEG7_DP_Pin, GPIO_PIN_RESET);
@@ -67,14 +67,14 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOF, SPARE_9_Pin|SPARE_10_Pin|SPARE_11_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, CS_EEPROM_Pin|HOLD_EEPROM_Pin|LED_2_Pin|LED_1_Pin
-                          |MAX_IT_Pin|SPARE_13_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, SPI_EEPROM_CS_Pin|HOLD_EEPROM_Pin|LED_2_Pin|LED_1_Pin
+                          |SPI_ADC_INT_Pin|SPARE_13_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, BMS_OK_Pin|PRECHARGE_Pin|AIRN_OFF_Pin|AIRP_OFF_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPI_MAX_CS_GPIO_Port, SPI_MAX_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SPI_ADC_CS_GPIO_Port, SPI_ADC_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SPARE_12_Pin|SPARE_14_Pin|SPARE_15_Pin|SPARE_16_Pin, GPIO_PIN_RESET);
@@ -83,7 +83,7 @@ void MX_GPIO_Init(void)
                            PEPin PEPin PEPin PEPin
                            PEPin PEPin PEPin PEPin
                            PEPin */
-  GPIO_InitStruct.Pin = SPARE_1_Pin|SPARE_2_Pin|SPARE_3_Pin|SPARE_4_Pin
+  GPIO_InitStruct.Pin = HANDCART_CONNECTED_Pin|SPARE_2_Pin|SPARE_3_Pin|SPARE_4_Pin
                           |SPARE_5_Pin|SEG7_S1_Pin|SEG7_S2_Pin|SEG7_S3_Pin
                           |SEG7_S4_Pin|SEG7_S5_Pin|SEG7_S6_Pin|SEG7_S7_Pin
                           |SEG7_DP_Pin;
@@ -108,8 +108,8 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                            PDPin PDPin */
-  GPIO_InitStruct.Pin = CS_EEPROM_Pin|HOLD_EEPROM_Pin|LED_2_Pin|LED_1_Pin
-                          |MAX_IT_Pin|SPARE_13_Pin;
+  GPIO_InitStruct.Pin = SPI_EEPROM_CS_Pin|HOLD_EEPROM_Pin|LED_2_Pin|LED_1_Pin
+                          |SPI_ADC_INT_Pin|SPARE_13_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -123,11 +123,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = SPI_MAX_CS_Pin;
+  GPIO_InitStruct.Pin = SPI_ADC_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(SPI_MAX_CS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(SPI_ADC_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                            PDPin */
@@ -167,5 +167,45 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+
+GPIO_TypeDef * _gpio_get_port_from_led_id(LedId led) {
+    switch (led) {
+        case LED_1:
+            return LED_1_GPIO_Port;
+        case LED_2:
+            return LED_2_GPIO_Port;
+        default:
+            return NULL;
+    }
+}
+
+int16_t _gpio_get_pin_from_led_id(LedId led) {
+    switch (led) {
+        case LED_1:
+            return LED_1_Pin;
+        case LED_2:
+            return LED_2_Pin;
+        default:
+            return -1;
+    }
+}
+
+void gpio_led_set_state(LedId led, LedStatus state) {
+    if (led >= LED_COUNT)
+        return;
+
+    GPIO_TypeDef * port = _gpio_get_port_from_led_id(led);
+    int16_t pin = _gpio_get_pin_from_led_id(led);
+    HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
+}
+
+void gpio_led_toggle_state(LedId led) {
+    if (led >= LED_COUNT)
+        return;
+
+    GPIO_TypeDef * port = _gpio_get_port_from_led_id(led);
+    int16_t pin = _gpio_get_pin_from_led_id(led);
+    HAL_GPIO_TogglePin(port, pin);
+}
 
 /* USER CODE END 2 */

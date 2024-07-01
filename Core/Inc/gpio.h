@@ -30,6 +30,8 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
+#include "led.h"
+
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
@@ -39,6 +41,21 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+/**
+ * @brief Set the state of a LED
+ *
+ * @param led The LED to select
+ * @param state The new state of the LED to set
+ */
+void gpio_led_set_state(LedId led, LedStatus state);
+
+/**
+ * @brief Toggle the state of a LED
+ *
+ * @param led The LED to select
+ */
+void gpio_led_toggle_state(LedId led);
 
 /* USER CODE END Prototypes */
 
