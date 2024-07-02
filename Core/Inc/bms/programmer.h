@@ -14,6 +14,12 @@
 #include "bms_network.h"
 #include "mainboard-def.h"
 
+/** @brief The programmer flash timeout in ms */
+#define PROGRAMMER_FLASH_TIMEOUT ((milliseconds_t)(1000U))
+
+/** @brief Cellboard ready bit mask */
+#define PROGRAMMER_CELLBOARD_READY_MASK (0x3FU)
+
 /**
  * @brief Return code for the programmer module functions 
  *

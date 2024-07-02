@@ -2,7 +2,7 @@
 ADC1.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_0
 ADC1.Channel-1\#ChannelRegularConversion=ADC_CHANNEL_1
 ADC1.Channel-2\#ChannelRegularConversion=ADC_CHANNEL_2
-ADC1.DiscontinuousConvMode=ENABLE
+ADC1.DiscontinuousConvMode=DISABLE
 ADC1.IPParameters=Rank-0\#ChannelRegularConversion,master,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,NbrOfConversionFlag,Rank-1\#ChannelRegularConversion,Channel-1\#ChannelRegularConversion,SamplingTime-1\#ChannelRegularConversion,Rank-2\#ChannelRegularConversion,Channel-2\#ChannelRegularConversion,SamplingTime-2\#ChannelRegularConversion,NbrOfConversion,DiscontinuousConvMode
 ADC1.NbrOfConversion=3
 ADC1.NbrOfConversionFlag=1

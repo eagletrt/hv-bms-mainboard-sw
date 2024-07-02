@@ -32,6 +32,18 @@
  */
 #define MAX22530_VALUE_TO_MILLIVOLT(val) ((millivolt_t)((val) * (MAX22530_VREF / 4095.f)))
 
+
+/** @brief Total number of bytes of a read/write command */
+#define MAX22530_COMMAND_BYTE_SIZE (3U)
+#define MAX22530_COMMAND_CRC_BYTE_SIZE (4U)
+
+/** @brief Total number of bytes of a burst read command */
+#define MAX22530_BURST_BYTE_SIZE (11U)
+#define MAX22530_BURST_CRC_BYTE_SIZE (12U)
+
+/** @brief Type definition for an ADC register address */
+typedef uint8_t max22530_address_t;
+
 /** @brief Type definition for the ADC id and revision code */
 typedef int8_t max22530_id_t;
 typedef int8_t max22530_revision_t;

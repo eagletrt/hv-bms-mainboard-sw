@@ -15,6 +15,7 @@
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 #include "watchdog.h"
+#include "tasks.h"
 
 /**
  * @brief Convert the time in ms to ticks
@@ -58,6 +59,28 @@ typedef enum {
     TIMEBASE_WATCHDOG_NOT_REGISTERED,
     TIMEBASE_WATCHDOG_UNAVAILABLE
 } TimebaseReturnCode;
+
+/**
+ * @brief Definition of a scheduled task that has to be executed at a certain time
+ *
+ * @param t The time in which the task should be executed
+ * @param task A pointer to the task to run
+ */
+typedef struct {
+    ticks_t t;
+    Task * task;
+} TimebaseScheduledTask;
+
+/**
+ * @brief Definition of a scheduled watchdog
+ *
+ * @param t The time in which the watchdog should timeout
+ * @param watchdog A pointer to the watchdog handler structure
+ */
+typedef struct {
+    ticks_t t;
+    Watchdog * watchdog;
+} TimebaseScheduledWatchdog;
 
 #ifdef CONF_TIMEBASE_MODULE_ENABLE
 

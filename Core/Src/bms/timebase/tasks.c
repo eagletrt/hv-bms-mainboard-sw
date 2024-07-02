@@ -16,15 +16,12 @@
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
-/** @brief Convert a task name to the corresponding TasksId name */
-#define TASKS_NAME_TO_ID(NAME) (TASKS_ID_##NAME)
-
 /**
  * @brief Tasks hanlder struct
  *
  * @param tasks The array of tasks
  */
-static struct {
+_STATIC struct {
     Task tasks[TASKS_COUNT];
 } htasks;
 
@@ -93,18 +90,18 @@ tasks_callback tasks_get_callback(TasksId id) {
 
 #ifdef CONF_TASKS_STRINGS_ENABLE
 
-static char * tasks_module_name = "tasks";
+_STATIC char * tasks_module_name = "tasks";
 
-static char * tasks_return_code_name[] = {
+_STATIC char * tasks_return_code_name[] = {
     [TASKS_OK] = "ok"
 };
 
-static char * tasks_return_code_descritpion[] = {
+_STATIC char * tasks_return_code_descritpion[] = {
     [TASKS_OK] = "executed successfully"
 };
 
 #define TASKS_X(NAME, START, INTERVAL, EXEC) [TASKS_NAME_TO_ID(NAME)] = #NAME,
-static char * tasks_id_name[] = {
+_STATIC char * tasks_id_name[] = {
     TASKS_X_LIST
 };
 #undef TASKS_X

@@ -28,6 +28,35 @@
  */
 #define MAINBOARD_UNUSED(_) ((void)(_))
 
+/**
+ * @brief Type definition for the static attribute 
+ *
+ * @details Can be used to test if pisseria is doing fetenderi
+ * @details Can be used to disable static functions for unit testing
+ */
+#ifndef _STATIC
+#define _STATIC static
+#endif  // _STATIC
+
+/**
+ * @brief Type definition for the inline attribute 
+ *
+ * @details Can be used to disable inlining functions for unit testing
+ */
+#ifndef _STATIC_INLINE
+#define _STATIC_INLINE static inline
+#endif  // _STATIC_INLINE
+
+/**
+ * @brief Type definition for the volatile attribute 
+ *
+ * @details Can be used to disable volatile variables for unit testing
+ */
+#ifndef _VOLATILE
+#define _VOLATILE volatile
+#endif  // _VOLATILE
+
+
 /*** ######################### CONSTANTS ################################# ***/
 
 /**
@@ -258,7 +287,7 @@ typedef uint32_t microseconds_t;
 typedef uint16_t raw_temp_t;
 
 /** @brief Temperature value in °C */
-typedef float temp_t;
+typedef float celsius_t;
 
 /**
  * @brief Raw voltage value

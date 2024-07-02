@@ -12,17 +12,6 @@
 
 #ifdef CONF_MAX22530_MODULE_ENABLE
 
-/** @brief Total number of bytes of a read/write command */
-#define MAX22530_COMMAND_BYTE_SIZE (3U)
-#define MAX22530_COMMAND_CRC_BYTE_SIZE (4U)
-
-/** @brief Total number of bytes of a burst read command */
-#define MAX22530_BURST_BYTE_SIZE (11U)
-#define MAX22530_BURST_CRC_BYTE_SIZE (12U)
-
-/** @brief Type definition for an ADC register address */
-typedef uint8_t max22530_address_t;
-
 /**
  * @brief Write to the ADC registers
  *
@@ -171,16 +160,16 @@ Max22530ReturnCode max22530_read_channels_all(
 
 #ifdef CON_MAX22530_STRINGS_ENABLE
 
-static char * max22530_module_name = "max22530";
+_STATIC char * max22530_module_name = "max22530";
 
-static char * max22530_return_code_name[] = {
+_STATIC char * max22530_return_code_name[] = {
     [MAX22530_OK] = "ok",
     [MAX22530_NULL_POINTER] = "null pointer"
 };
 
-static char * max22530_return_code_description[] = {
-    [MAX22530_OK] = "executed succefullty",
-    [MAX22530_NULL_POINTER] = "attempte to dereference a NULL pointer"
+_STATIC char * max22530_return_code_description[] = {
+    [MAX22530_OK] = "executed succefully",
+    [MAX22530_NULL_POINTER] = "attempt to dereference a NULL pointer"
 };
 
 #endif // CON_MAX22530_STRINGS_ENABLE

@@ -30,6 +30,71 @@
 #define CAN_COMM_TX_BUFFER_BYTE_SIZE (16U)
 #define CAN_COMM_RX_BUFFER_BYTE_SIZE (16U)
 
+/** @brief Mask for the bits that defines if the CAN module is enabled or not */
+#define CAN_COMM_ENABLED_ALL_MASK \
+    ( \
+        (1U << CAN_COMM_RX_ENABLE_BIT) | \
+        (1U << CAN_COMM_TX_ENABLE_BIT) \
+    )
+
+/**
+ * @brief Enable a single bit of the internal flag
+ *
+ * @param FLAG The internal flag
+ * @param BIT The bit of the flag to set
+ */
+#define CAN_COMM_ENABLE(FLAG, BIT) ((FLAG) = MAINBOARD_BIT_SET(FLAG, BIT))
+/**
+ * @brief Disable a single bit of the internal flag
+ *
+ * @param FLAG The internal flag
+ * @param BIT The bit of the flag to reset
+ */
+#define CAN_COMM_DISABLE(FLAG, BIT) ((FLAG) = MAINBOARD_BIT_RESET(FLAG, BIT))
+/**
+ * @brief Toggle a single bit of the internal flag
+ *
+ * @param FLAG The internal flag
+ * @param BIT The bit of the flag to flip
+ */
+#define CAN_COMM_TOGGLE(FLAG, BIT) ((FLAG) = MAINBOARD_BIT_TOGGLE(FLAG, BIT))
+/**
+ * @brief Check if a specific bit of the internal flag is set
+ *
+ * @param FLAG The internal flag
+ * @param BIT The bit of the flag to check
+ *
+ * @return bool True if the bit is set, false otherwise
+ */
+#define CAN_COMM_IS_ENABLED(FLAG, BIT) MAINBOARD_BIT_GET(FLAG, BIT)
+
+/**
+ * @brief Enable all the bits of the internal flag
+ *
+ * @param FLAG The internal flag
+ */
+#define CAN_COMM_ENABLE_ALL(FLAG) ((FLAG) |= CAN_COMM_ENABLED_ALL_MASK)
+/**
+ * @brief Disable all the bits of the internal flag
+ *
+ * @param FLAG The internal flag
+ */
+#define CAN_COMM_DISABLE_ALL(FLAG) ((FLAG) &= ~CAN_COMM_ENABLED_ALL_MASK)
+/**
+ * @brief Toggle all the bits of the internal flag
+ *
+ * @param FLAG The internal flag
+ */
+#define CAN_COMM_TOGGLE_ALL(FLAG) ((FLAG) ^= CAN_COMM_ENABLED_ALL_MASK)
+/**
+ * @brief Check if all the bits of the internal flag are set
+ *
+ * @param FLAG The internal flag
+ *
+ * @return bool True if all the bits are set, false otherwise
+ */
+#define CAN_COMM_IS_ENABLED_ALL(FLAG) (((FLAG) & CAN_COMM_ENABLED_ALL_MASK) == CAN_COMM_ENABLED_ALL_MASK)
+
 /**
  * @brief Return code for the CAN communication module functions
  *
@@ -129,6 +194,10 @@ typedef CanCommReturnCode (* can_comm_transmit_callback_t)(
  */
 typedef void (* can_comm_canlib_payload_handle_callback)(void * payload);
 
+/** @brief Type definitions for the canlib device functions */
+typedef int (* id_from_index_t)(int);
+typedef int (* serialize_from_id_t)(void *, uint16_t, uint8_t *);
+typedef void (* deserialize_from_id_t)(device_t *, uint16_t, uint8_t *);
 
 #ifdef CONF_CAN_COMM_MODULE_ENABLE
 

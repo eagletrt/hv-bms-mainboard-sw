@@ -11,6 +11,8 @@
  *
  * @details To use the functions inside this file define the TASKS_IMPLEMENTATION macro
  */
+#ifndef TASKS_H
+#define TASKS_H
 
 #include <stddef.h>
 
@@ -44,6 +46,9 @@
     TASKS_X(SEND_CELLBOARD_3_VERSION, 3U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_3_version) \
     TASKS_X(SEND_CELLBOARD_4_VERSION, 4U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_4_version) \
     TASKS_X(SEND_CELLBOARD_5_VERSION, 5U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_5_version)
+
+/** @brief Convert a task name to the corresponding TasksId name */
+#define TASKS_NAME_TO_ID(NAME) (TASKS_ID_##NAME)
 
 /**
  * @brief Enumeration of tasks
@@ -145,3 +150,5 @@ tasks_callback tasks_get_callback(TasksId id);
 #define tasks_get_callback(id) (NULL)
 
 #endif // CONF_TASKS_MODULE_ENABLE
+
+#endif // TASKS_H

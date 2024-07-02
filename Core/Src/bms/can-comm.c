@@ -20,76 +20,6 @@
 
 #ifdef CONF_CAN_COMM_MODULE_ENABLE
 
-/** @brief Mask for the bits that defines if the CAN module is enabled or not */
-#define CAN_COMM_ENABLED_ALL_MASK \
-    ( \
-        (1U << CAN_COMM_RX_ENABLE_BIT) | \
-        (1U << CAN_COMM_TX_ENABLE_BIT) \
-    )
-
-/**
- * @brief Enable a single bit of the internal flag
- *
- * @param FLAG The internal flag
- * @param BIT The bit of the flag to set
- */
-#define CAN_COMM_ENABLE(FLAG, BIT) ((FLAG) = MAINBOARD_BIT_SET(FLAG, BIT))
-/**
- * @brief Disable a single bit of the internal flag
- *
- * @param FLAG The internal flag
- * @param BIT The bit of the flag to reset
- */
-#define CAN_COMM_DISABLE(FLAG, BIT) ((FLAG) = MAINBOARD_BIT_RESET(FLAG, BIT))
-/**
- * @brief Toggle a single bit of the internal flag
- *
- * @param FLAG The internal flag
- * @param BIT The bit of the flag to flip
- */
-#define CAN_COMM_TOGGLE(FLAG, BIT) ((FLAG) = MAINBOARD_BIT_TOGGLE(FLAG, BIT))
-/**
- * @brief Check if a specific bit of the internal flag is set
- *
- * @param FLAG The internal flag
- * @param BIT The bit of the flag to check
- *
- * @return bool True if the bit is set, false otherwise
- */
-#define CAN_COMM_IS_ENABLED(FLAG, BIT) MAINBOARD_BIT_GET(FLAG, BIT)
-
-/**
- * @brief Enable all the bits of the internal flag
- *
- * @param FLAG The internal flag
- */
-#define CAN_COMM_ENABLE_ALL(FLAG) ((FLAG) |= CAN_COMM_ENABLED_ALL_MASK)
-/**
- * @brief Disable all the bits of the internal flag
- *
- * @param FLAG The internal flag
- */
-#define CAN_COMM_DISABLE_ALL(FLAG) ((FLAG) &= ~CAN_COMM_ENABLED_ALL_MASK)
-/**
- * @brief Toggle all the bits of the internal flag
- *
- * @param FLAG The internal flag
- */
-#define CAN_COMM_TOGGLE_ALL(FLAG) ((FLAG) ^= CAN_COMM_ENABLED_ALL_MASK)
-/**
- * @brief Check if all the bits of the internal flag are set
- *
- * @param FLAG The internal flag
- *
- * @return bool True if all the bits are set, false otherwise
- */
-#define CAN_COMM_IS_ENABLED_ALL(FLAG) (((FLAG) & CAN_COMM_ENABLED_ALL_MASK) == CAN_COMM_ENABLED_ALL_MASK)
-
-/** @brief Type definitions for the canlib device functions */
-typedef int (* id_from_index_t)(int);
-typedef int (* serialize_from_id_t)(void *, uint16_t, uint8_t *);
-typedef void (* deserialize_from_id_t)(device_t *, uint16_t, uint8_t *);
-
 /**
  * @brief CAN manager handler structure
  *
@@ -103,7 +33,7 @@ typedef void (* deserialize_from_id_t)(device_t *, uint16_t, uint8_t *);
  * @param rx_raw The reception raw data of the message
  * @param rx_conv The reception converted data of the message
  */
-static struct CanCommHandler  {
+_STATIC struct CanCommHandler  {
     bit_flag8_t enabled;
     RingBuffer(CanMessage, CAN_COMM_TX_BUFFER_BYTE_SIZE) tx_buf;
     RingBuffer(CanMessage, CAN_COMM_RX_BUFFER_BYTE_SIZE) rx_buf;
@@ -121,6 +51,8 @@ void _can_comm_canlib_payload_handle_dummy(void * _) { }
 
 can_comm_canlib_payload_handle_callback _can_comm_bms_payload_handle(can_index_t index) {
     switch (index) {
+        case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:
+            
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
             return (can_comm_canlib_payload_handle_callback)programmer_cellboard_flash_response_handle;
         default:
@@ -400,9 +332,9 @@ CanCommReturnCode can_comm_routine(void) {
 
 #ifdef CONF_CAN_COMM_STRINGS_ENABLE
 
-static char * can_comm_module_name = "can communication";
+_STATIC char * can_comm_module_name = "can communication";
 
-static char * can_comm_return_code_name[] = {
+_STATIC char * can_comm_return_code_name[] = {
     [CAN_COMM_OK] = "ok",
     [CAN_COMM_NULL_POINTER] = "null pointer",
     [CAN_COMM_DISABLED] = "disabled",
@@ -414,7 +346,7 @@ static char * can_comm_return_code_name[] = {
     [CAN_COMM_TRANSMISSION_ERROR] = "transmission error"
 };
 
-static char * can_comm_return_code_description[] = {
+_STATIC char * can_comm_return_code_description[] = {
     [CAN_COMM_OK] = "executed succesfully",
     [CAN_COMM_NULL_POINTER] = "attempt to dereference a null pointer"
     [CAN_COMM_DISABLED] = "the can manager is not enabled"

@@ -18,7 +18,7 @@
  * @param mainboard_version_payload The payload of the canlib message containing the mainboard version
  * @param cellboard_version_payload The payloads of the canlib message containing the cellboards version
  */
-static struct {
+_STATIC struct {
     seconds_t build_time;
 
     primary_hv_mainboard_version_converted_t mainboard_version_payload;
