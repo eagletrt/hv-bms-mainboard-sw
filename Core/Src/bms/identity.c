@@ -50,7 +50,7 @@ seconds_t identity_get_build_time(void) {
     return hidentity.build_time;
 }
 
-primary_hv_mainboard_version_converted_t * identity_get_can_payload(size_t * byte_size) {
+primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payload(size_t * byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hidentity.mainboard_version_payload);
 
