@@ -110,8 +110,6 @@ void test_max22530_write_cmd()
 }
 
 
-
-
 void test_max22530_read_cmd_size(){
     _max22530_read(&handler, 0xAB);
     TEST_ASSERT_EQUAL_size_t(1, send_receive_params.size);
@@ -174,9 +172,38 @@ void test_max22530_burst_out(){
 }
 
 
+void test_max22530_init_null_handler(){
+    TEST_ASSERT_EQUAL(MAX22530_NULL_POINTER, max22530_init(NULL, handler.send, handler.send_receive));
+}
+void test_max22530_init_null_send(){
+    Max22530Handler test_handler;
+    TEST_ASSERT_EQUAL(MAX22530_NULL_POINTER, max22530_init(&test_handler, NULL, handler.send_receive));
+}
+void test_max22530_init_null_send_receive(){
+    Max22530Handler test_handler;
+    TEST_ASSERT_EQUAL(MAX22530_NULL_POINTER, max22530_init(&test_handler, handler.send, NULL));
+}
+void test_max22530_init_ok(){
+    Max22530Handler test_handler;
+    TEST_ASSERT_EQUAL(MAX22530_OK, max22530_init(&test_handler, handler.send, handler.send_receive));
+}
+void test_max22530_init(){
+    Max22530Handler test_handler;
+    max22530_init(&test_handler, handler.send, handler.send_receive);
+    TEST_ASSERT_EQUAL_MEMORY(&handler, &test_handler, sizeof(Max22530Handler));
+}
+void test_max22530_init_retval(){
+    Max22530Handler test_handler;
+    max22530_init(&test_handler, handler.send, handler.send_receive);
+    
+    uint8_t expected[3] = {0x52, 0x00, 0x06};
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, send_params.data, 3);
+}
+
 int main()
 {
     UNITY_BEGIN();
+
     RUN_TEST(test_max22530_write_ok);
     RUN_TEST(test_max22530_write_cmd_size);
     RUN_TEST(test_max22530_write_cmd);
@@ -194,7 +221,12 @@ int main()
     RUN_TEST(test_max22530_burst_resp);
     RUN_TEST(test_max22530_burst_out);
 
-    
-    
+    RUN_TEST(test_max22530_init_null_handler);
+    RUN_TEST(test_max22530_init_null_send);
+    RUN_TEST(test_max22530_init_null_send_receive);
+    RUN_TEST(test_max22530_init_ok);
+    RUN_TEST(test_max22530_init_retval);
+
+
     return UNITY_END();
 }
