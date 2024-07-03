@@ -50,10 +50,9 @@ seconds_t identity_get_build_time(void) {
     return hidentity.build_time;
 }
 
-primary_hv_mainboard_version_converted_t * identity_get_can_payload(size_t * byte_size) {
+primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payload(size_t * byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hidentity.mainboard_version_payload);
-
     return &hidentity.mainboard_version_payload;
 }
 
@@ -62,6 +61,5 @@ primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payloa
         return NULL;
     if (byte_size != NULL)
         *byte_size = sizeof(hidentity.cellboard_version_payload[0U]);
-
     return &hidentity.cellboard_version_payload[id];
 }

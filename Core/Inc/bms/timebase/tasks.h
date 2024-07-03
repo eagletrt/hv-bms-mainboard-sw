@@ -45,7 +45,8 @@
     TASKS_X(SEND_CELLBOARD_2_VERSION, 2U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_2_version) \
     TASKS_X(SEND_CELLBOARD_3_VERSION, 3U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_3_version) \
     TASKS_X(SEND_CELLBOARD_4_VERSION, 4U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_4_version) \
-    TASKS_X(SEND_CELLBOARD_5_VERSION, 5U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_5_version)
+    TASKS_X(SEND_CELLBOARD_5_VERSION, 5U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, _tasks_send_cellboard_5_version) \
+    TASKS_X(SEND_STATUS, 0U, PRIMARY_HV_STATUS_CYCLE_TIME_MS, _tasks_send_hv_status)
 
 /** @brief Convert a task name to the corresponding TasksId name */
 #define TASKS_NAME_TO_ID(NAME) (TASKS_ID_##NAME)

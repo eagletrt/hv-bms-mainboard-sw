@@ -21,6 +21,7 @@ Functions and types have been generated with prefix "fsm_"
 /*** USER CODE BEGIN MACROS ***/
 #include <stddef.h>
 
+#include "bms_network.h"
 #include "primary_network.h"
 
 /**
@@ -154,12 +155,30 @@ extern transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STA
 fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data);
 
 /*** USER CODE BEGIN FUNCTIONS ***/
+
 /**
  * @brief Get the current status of the FSM
  *
  * @return fsm_state_t The FSM status
  */
 fsm_state_t fsm_get_status(void);
+
+/**
+ * @brief Handle the received cellboard status
+ *
+ * @param payload A pointer to the canlib payload
+ */
+void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload);
+
+/**
+ * @brief Get a pointer to the CAN payload structure of the FSM status
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_status_converted_t* A pointer to the payload
+ */
+primary_hv_status_converted_t * fsm_get_can_payload(size_t * byte_size);
+
 /*** USER CODE END FUNCTIONS ***/
 
 #endif

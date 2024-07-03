@@ -22,8 +22,8 @@
  *     - LED_ON the led is turned on
  */
 typedef enum {
-    LED_OFF,
-    LED_ON
+    LED_STATUS_OFF,
+    LED_STATUS_ON
 } LedStatus;
 
 /**

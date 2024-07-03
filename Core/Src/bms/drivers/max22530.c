@@ -10,8 +10,6 @@
 
 #include <string.h>
 
-#ifdef CONF_MAX22530_MODULE_ENABLE
-
 /**
  * @brief Write to the ADC registers
  *
@@ -157,21 +155,3 @@ Max22530ReturnCode max22530_read_channels_all(
         *interrupt_status = data[MAX22530_CHANNEL_COUNT];
     return code;
 }
-
-#ifdef CON_MAX22530_STRINGS_ENABLE
-
-_STATIC char * max22530_module_name = "max22530";
-
-_STATIC char * max22530_return_code_name[] = {
-    [MAX22530_OK] = "ok",
-    [MAX22530_NULL_POINTER] = "null pointer"
-};
-
-_STATIC char * max22530_return_code_description[] = {
-    [MAX22530_OK] = "executed succefully",
-    [MAX22530_NULL_POINTER] = "attempt to dereference a NULL pointer"
-};
-
-#endif // CON_MAX22530_STRINGS_ENABLE
-
-#endif // CONF_MAX22530_MODULE_ENABLE

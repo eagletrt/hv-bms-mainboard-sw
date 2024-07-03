@@ -59,6 +59,7 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc3;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
+extern TIM_HandleTypeDef htim4;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -244,6 +245,20 @@ void CAN1_RX1_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM4 global interrupt.
+  */
+void TIM4_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM4_IRQn 0 */
+
+  /* USER CODE END TIM4_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim4);
+  /* USER CODE BEGIN TIM4_IRQn 1 */
+
+  /* USER CODE END TIM4_IRQn 1 */
+}
+
+/**
   * @brief This function handles CAN2 RX0 interrupt.
   */
 void CAN2_RX0_IRQHandler(void)
@@ -272,5 +287,17 @@ void CAN2_RX1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+static uint32_t primask;
+
+void it_cs_enter(void) {
+    primask = __get_PRIMASK();
+    __disable_irq();
+}
+
+void it_cs_exit(void) {
+    if (!primask)
+        __enable_irq();
+}
 
 /* USER CODE END 1 */

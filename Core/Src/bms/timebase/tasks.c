@@ -12,7 +12,7 @@
 #include "can-comm.h"
 #include "identity.h"
 #include "timebase.h"
-#include "watchdog.h"
+#include "fsm.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -44,6 +44,13 @@ void _tasks_send_cellboard_2_version(void) { _tasks_send_cellboard_version(CELLB
 void _tasks_send_cellboard_3_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_3); }
 void _tasks_send_cellboard_4_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_4); }
 void _tasks_send_cellboard_5_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_5); }
+
+/** @brief Send the mainboard and cellboard FSM status via CAN */
+void _tasks_send_hv_status(void) {
+    size_t byte_size;
+    uint8_t * payload = (uint8_t *)fsm_get_can_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)

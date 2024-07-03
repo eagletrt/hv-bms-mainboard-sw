@@ -51,10 +51,11 @@ void _can_comm_canlib_payload_handle_dummy(void * _) { }
 
 can_comm_canlib_payload_handle_callback _can_comm_bms_payload_handle(can_index_t index) {
     switch (index) {
-        case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:
-            
+        // case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
             return (can_comm_canlib_payload_handle_callback)programmer_cellboard_flash_response_handle;
+        case BMS_CELLBOARD_STATUS_INDEX:
+            return (can_comm_canlib_payload_handle_callback)fsm_cellboard_state_handle;
         default:
             return _can_comm_canlib_payload_handle_dummy;
     }
