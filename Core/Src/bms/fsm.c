@@ -494,6 +494,10 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
 
 /*** USER CODE BEGIN FUNCTIONS ***/
 
+fsm_state_t fsm_get_status(void) {
+    return hfsm.fsm_state;
+}
+
 /*** USER CODE END FUNCTIONS ***/
 
 #ifdef TEST_MAIN
