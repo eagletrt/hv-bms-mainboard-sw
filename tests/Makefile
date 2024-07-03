@@ -10,7 +10,7 @@ else
 	RUN = ./
 endif
 
-CFLAGS = -DSTM32F446xx -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+CFLAGS = -DSTM32F446xx -D_XOPEN_SOURCE -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
 INCLUDES = 	-I $(INC_DIR)/bms/ \
 			-I $(INC_DIR)/bms/timebase \
 			-I $(INC_DIR)/bms/errors \
