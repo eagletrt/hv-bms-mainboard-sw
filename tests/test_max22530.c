@@ -225,6 +225,7 @@ int main()
     RUN_TEST(test_max22530_init_null_send);
     RUN_TEST(test_max22530_init_null_send_receive);
     RUN_TEST(test_max22530_init_ok);
+    RUN_TEST(test_max22530_init);
     RUN_TEST(test_max22530_init_retval);
 
 
