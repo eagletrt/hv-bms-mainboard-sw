@@ -156,6 +156,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_IDLE ***/
   (void)timebase_routine();
+  (void)can_comm_routine();
 
   if (fsm_is_event_triggered() && fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
       next_state = FSM_STATE_FLASH;

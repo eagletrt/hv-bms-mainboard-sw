@@ -18,7 +18,7 @@
 typedef void (* imd_pwm_start_callback_t)(void);
 
 /**
- * @brief Type definition for the IMD module functions
+ * @brief Return code for the IMD module functions
  *
  * @details
  *     - IMD_OK the function executed succesfully

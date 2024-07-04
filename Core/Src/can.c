@@ -330,9 +330,7 @@ CanCommReturnCode can_send(
 {
     if (network >= CAN_NETWORK_COUNT)
         return CAN_COMM_INVALID_NETWORK;
-    if (network == CAN_NETWORK_BMS && id >= bms_MESSAGE_COUNT)
-        return CAN_COMM_INVALID_INDEX;
-    if (network == CAN_NETWORK_PRIMARY && id >= primary_MESSAGE_COUNT)
+    if (id > CAN_COMM_ID_MASK)
         return CAN_COMM_INVALID_INDEX;
     if (size > CAN_COMM_MAX_PAYLOAD_BYTE_SIZE)
         return CAN_COMM_INVALID_PAYLOAD_SIZE;

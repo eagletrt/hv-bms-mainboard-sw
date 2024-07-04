@@ -110,6 +110,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   MX_SPI3_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -123,6 +124,8 @@ int main(void)
    */
   HAL_GPIO_WritePin(BMS_OK_GPIO_Port, BMS_OK_Pin, GPIO_PIN_SET);
 
+  HAL_TIM_Base_Start_IT(&HTIM_TIMEBASE);
+
   fsm_state_t fsm_state = FSM_STATE_INIT;
 
   // Prepare data for the POST procedure
@@ -130,7 +133,8 @@ int main(void)
     .system_reset = system_reset,
     .can_send = can_send,
     .led_set = gpio_led_set_state,
-    .led_toggle = gpio_led_toggle_state
+    .led_toggle = gpio_led_toggle_state,
+    .imd_start = tim_start_pwm_imd
   };
 
   fsm_state = fsm_run_state(fsm_state, &init_data);
