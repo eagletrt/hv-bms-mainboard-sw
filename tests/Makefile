@@ -41,6 +41,7 @@ MICRO_LIB_DIR = $(LIB_DIR)/micro-libs
 BIN_DIR = bin
 
 BMS_DIR = ../Core/Src/bms
+BMS_SRCS = $(shell find $(BMS_DIR) -name "*.c")
 BMS_TARGETS = $(patsubst $(BMS_DIR)/%.c, %, $(shell find $(BMS_DIR) -name "*.c"))
 
 CMOCK = $(MICRO_LIB_DIR)/CMock/lib/cmock.rb
@@ -63,11 +64,12 @@ LIBS_TARGETS = 	blinky \
 			    bms_network \
 			    canlib_device \
 
-TARGETS = $(BMS_TARGETS) $(MOCKS_TARGETS) $(LIBS_TARGETS)
+TARGETS = $(notdir $(BMS_TARGETS) $(MOCKS_TARGETS) $(LIBS_TARGETS))
 TARGETS_OBJS = $(addprefix $(BIN_DIR)/, $(addsuffix .o, $(TARGETS))) $(PRIMARY_OBJS)
 
-all:
-	@echo $(LIB_DIR)/can/lib/primary
+TESTS = $(patsubst test_%.c, test_%, $(wildcard test_*.c))
+
+default: $(TESTS)
 
 ### FOLDERS CREATION ###
 
@@ -79,21 +81,29 @@ $(BIN_DIR):
 
 ### MOCKS GENERATION ###
 
-$(MOCKS_DST_DIR)/Mock%.c: $(MOCKS_INC_DIR)/%.h $(MOCKS_DST_DIR)
+.PRECIOUS: $(MOCKS_DST_DIR)/Mock%.c
+$(MOCKS_DST_DIR)/Mock%.c: $(MOCKS_INC_DIR)/%.h 
 	ruby $(CMOCK) -o$(MOCKS_CONF) $<
 
 ### MOCKS COMPILATION ###
 
+.PRECIOUS: $(BIN_DIR)/Mock%.o
 $(BIN_DIR)/Mock%.o: $(MOCKS_DST_DIR)/Mock%.c $(BIN_DIR)/cmock.o | $(BIN_DIR)
 	$(CC) -c $< -o $@ $(INCLUDES) -I$(MOCKS_DST_DIR) $(CFLAGS)
 
 ### BMS COMPILATION ###
 
+.PRECIOUS: $(BIN_DIR)/%.o
 $(BIN_DIR)/%.o: $(BMS_DIR)/%.c | $(BIN_DIR)
 	$(CC) -c $< -o $@ $(INCLUDES) $(CFLAGS)
 
-
 $(BIN_DIR)/%.o: $(BMS_DIR)/drivers/%.c | $(BIN_DIR)
+	$(CC) -c $< -o $@ $(INCLUDES) $(CFLAGS)
+
+$(BIN_DIR)/%.o: $(BMS_DIR)/timebase/%.c | $(BIN_DIR)
+	$(CC) -c $< -o $@ $(INCLUDES) $(CFLAGS)
+
+$(BIN_DIR)/%.o: $(BMS_DIR)/errors/%.c | $(BIN_DIR)
 	$(CC) -c $< -o $@ $(INCLUDES) $(CFLAGS)
 
 ### LIBS COMPILATION ###
@@ -119,6 +129,7 @@ $(BIN_DIR)/bms_network.o: | $(BIN_DIR)
 $(BIN_DIR)/canlib_device.o: | $(BIN_DIR)
 	$(CC) -c $(LIB_DIR)/can/lib/canlib_device.c $(INCLUDES) -o $(BIN_DIR)/canlib_device.o
 
+.PRECIOUS: $(BIN_DIR)/primary_%.o
 $(BIN_DIR)/primary_%.o: $(LIB_DIR)/can/lib/primary/primary_%.c | $(BIN_DIR)
 	$(CC) -c $< -o $@ $(INCLUDES) $(CFLAGS)
 
@@ -127,9 +138,16 @@ $(BIN_DIR)/primary_%.o: $(LIB_DIR)/can/lib/primary/primary_%.c | $(BIN_DIR)
 test_%: test_%.c $(TARGETS_OBJS) | $(BIN_DIR)
 	$(CC) $< $(CFLAGS) $(TARGETS_OBJS) -o $@ $(INCLUDES)
 
-clean:
-	rm -rf $(BIN_DIR) $(MOCKS_DST_DIR)
-
 ### RUN ###
+
 run_%: test_%
 	$(RUN)$<
+
+run_all: $(TESTS)
+	$(foreach test, $(TESTS), $(RUN)$(test);)
+
+### CLEAN ###
+
+clean:
+	rm -rf $(BIN_DIR) $(MOCKS_DST_DIR) $(TESTS)
+
