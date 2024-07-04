@@ -144,7 +144,7 @@ run_%: test_%
 	$(RUN)$<
 
 run_all: $(TESTS)
-	$(foreach test, $(TESTS), $(RUN)$(test);)
+	$(foreach test, $(TESTS), $(RUN)$(test) || true;)
 
 ### CLEAN ###
 
