@@ -40,6 +40,8 @@ extern TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN Private defines */
 
+#define HTIM_IMD htim4
+
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);
@@ -49,6 +51,11 @@ void MX_TIM4_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
+
+/**
+ * @brief Starts the timer with PWM for the IMD
+ */
+void tim_start_pwm_imd(void);
 
 /* USER CODE END Prototypes */
 

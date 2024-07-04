@@ -255,6 +255,10 @@ typedef enum {
  * {@
  */
 
+/** @brief Type definition for a percentage (from 0 to 100) */
+typedef int8_t percentage_t;
+typedef float precise_percentage_t;
+
 /** @brief Type definition for bit flags */
 typedef uint8_t bit_flag8_t;
 typedef uint16_t bit_flag16_t;
@@ -278,6 +282,11 @@ typedef uint32_t ticks_t;
 typedef uint32_t seconds_t;
 typedef uint32_t milliseconds_t;
 typedef uint32_t microseconds_t;
+
+/** @brief Type definition for the frequency */
+typedef float hertz_t;
+typedef float kilohertz_t;
+typedef float megahertz_t;
 
 /**
  * @brief Raw temperature value

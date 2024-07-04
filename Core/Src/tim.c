@@ -22,6 +22,12 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "timer_utils.h"
+
+#include "mainboard-def.h"
+
+#include "imd.h"
+
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -169,7 +175,7 @@ void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 899;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -370,5 +376,32 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+void tim_start_pwm_imd(void) {
+    // Start direct channel in interrupt mode
+    HAL_TIM_IC_Start_IT(&HTIM_IMD, TIM_CHANNEL_1);
+    // Start indirect channel (used for the frequency and duty cycle calculations)
+    HAL_TIM_IC_Start(&HTIM_IMD, TIM_CHANNEL_2);
+}
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef * htim) {
+    if (htim->Instance == HTIM_IMD.Instance && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+        /*
+         * The period count is the number of times the internal timer counter is
+         * incremented for the entire period of the signal
+         *
+         * The high count is the number of times the internal timer counter is
+         * incremented for the entire duration where the signal stays high
+         * inside the period
+         */
+        ticks_t period_count = 0U, high_count = 0U;
+
+        // Update IMD module data
+        if ((period_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1)) != 0U) {
+            high_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+            imd_update(TIM_GET_FREQ(htim), period_count, high_count);
+        }
+    }
+}
 
 /* USER CODE END 1 */
