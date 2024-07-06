@@ -150,7 +150,7 @@ Max22530ReturnCode max22530_read_channels_all(
     Max22530ReturnCode code = _max22530_burst(handler, filtered, data);
 
     // Copy data
-    memcpy(out, data, MAX22530_CHANNEL_COUNT);
+    memcpy(out, data, MAX22530_CHANNEL_COUNT * sizeof(data[0]));
     if (interrupt_status != NULL)
         *interrupt_status = data[MAX22530_CHANNEL_COUNT];
     return code;
