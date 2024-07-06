@@ -44,7 +44,7 @@ int16_t _max22530_read(Max22530Handler * handler, max22530_address_t address) {
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_COMMAND_BYTE_SIZE; ++i)
-        cmd[i] = 0xff;
+        cmd[i] = MAX22530_BYTE_UNUSED;
 
     handler->send_receive(SPI_NETWORK_ADC, cmd, &cmd[1U], 1U, MAX22530_COMMAND_BYTE_SIZE - 1U);
     return ((uint16_t)cmd[1U] << 8U) | cmd[2U];
@@ -70,12 +70,12 @@ Max22530ReturnCode _max22530_burst(Max22530Handler * handler, bool filtered, uin
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_BURST_BYTE_SIZE; ++i)
-        cmd[i] = 0xff;
+        cmd[i] = MAX22530_BYTE_UNUSED;
 
     handler->send_receive(SPI_NETWORK_ADC, cmd, &cmd[1U], 1U, MAX22530_BURST_BYTE_SIZE - 1U);
 
-    for (size_t i = 0U; i < MAX22530_CHANNEL_COUNT; ++i)
-        out[i] = ((cmd[i * 2U + 1U] & 0x0f) << 8U) | cmd[i * 2U + 2];
+    for (size_t i = 0U; i < MAX22530_CHANNEL_COUNT + 1U; ++i)
+        out[i] = ((cmd[i * 2U + 1U] & 0x0f) << 8U) | cmd[i * 2U + 2U];
     return MAX22530_OK;
 }
 
@@ -125,8 +125,8 @@ raw_volt_t max22530_read_channel(Max22530Handler * handler, Max22530Channel chan
 
     // Get the channel register address
     max22530_address_t address = filtered ?
-        MAX22530_REGISTER_ADC :
-        MAX22530_REGISTER_FILTERED_ADC;
+        MAX22530_REGISTER_FILTERED_ADC :
+        MAX22530_REGISTER_ADC;
     address += channel;
 
     // Get data
