@@ -4,12 +4,12 @@
  * https://github.com/eagletrt/micro-utils/tree/master/error-handler-generator
  *
  * Error_gen version 1.6.1
- * Generation date: 2024-06-19 22:25:31 +0200
+ * Generation date: 2024-07-08 18:24:11 +0200
  * Generated from: errors.json
  * With prefix: none
  * The error handler contains:
- *     - 1 error groups
- *     - 1 total error instances
+ *     - 2 error groups
+ *     - 2 total error instances
  ******************************************************************************/
 
 #ifndef ERROR_H
@@ -20,7 +20,7 @@
 #include <stddef.h>
 
 // Total number of error instances
-#define ERROR_INSTANCE_COUNT 1
+#define ERROR_INSTANCE_COUNT 2
 
 /**
  * @brief Set or reset an instance of an error based on a condition
@@ -40,9 +40,11 @@
  *
  * @details
  *     - ERROR_GROUP_POST the Power On Self Test procedure failed
+ *     - ERROR_GROUP_OVER_CURRENT no description
  */
 typedef enum {
     ERROR_GROUP_POST,
+    ERROR_GROUP_OVER_CURRENT,
     ERROR_GROUP_COUNT
 } ErrorGroup;
 

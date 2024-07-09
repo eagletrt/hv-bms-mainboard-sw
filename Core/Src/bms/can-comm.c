@@ -14,6 +14,7 @@
 #include "programmer.h"
 #include "watchdog.h"
 #include "timebase.h"
+#include "current.h"
 
 #include "ring-buffer.h"
 #include "canlib_device.h"
@@ -56,6 +57,8 @@ can_comm_canlib_payload_handle_callback _can_comm_bms_payload_handle(can_index_t
             return (can_comm_canlib_payload_handle_callback)programmer_cellboard_flash_response_handle;
         case BMS_CELLBOARD_STATUS_INDEX:
             return (can_comm_canlib_payload_handle_callback)fsm_cellboard_state_handle;
+        case BMS_IVT_MSG_RESULT_I_INDEX:
+            return (can_comm_canlib_payload_handle_callback)current_handle;
         default:
             return _can_comm_canlib_payload_handle_dummy;
     }
@@ -75,7 +78,6 @@ can_comm_canlib_payload_handle_callback _can_comm_payload_handle(CanNetwork netw
     switch (network) {
         case CAN_NETWORK_BMS:
             return _can_comm_bms_payload_handle(index);
-            break;
         case CAN_NETWORK_PRIMARY:
             return _can_comm_primary_payload_handle(index);
         default:

@@ -13,6 +13,7 @@
 #include "identity.h"
 #include "timebase.h"
 #include "fsm.h"
+#include "current.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -27,14 +28,14 @@ _STATIC struct {
 
 /** @brief Send the mainboard version info via CAN */
 void _tasks_send_mainboard_version(void) {
-    size_t byte_size;
+    size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)identity_get_mainboard_version_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_MAINBOARD_VERSION_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
 /** @brief Send the cellboard version info via CAN */
 void _tasks_send_cellboard_version(CellboardId id) {
-    size_t byte_size;
+    size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)identity_get_cellboard_version_payload(id, &byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLBOARD_VERSION_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
@@ -47,9 +48,16 @@ void _tasks_send_cellboard_5_version(void) { _tasks_send_cellboard_version(CELLB
 
 /** @brief Send the mainboard and cellboard FSM status via CAN */
 void _tasks_send_hv_status(void) {
-    size_t byte_size;
+    size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)fsm_get_can_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
+/** @brief Send the current via CAN */
+void _tasks_send_hv_current(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)current_get_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {
