@@ -31,13 +31,16 @@
  * @brief Enable or disable the internal modules of the project
  * {@
  */
+#define CONF_POST_MODULE_ENABLE
 #define CONF_CAN_COMM_MODULE_ENABLE
 #define CONF_TIMEBASE_MODULE_ENABLE
 #define CONF_TASKS_MODULE_ENABLE
 #define CONF_WATCHDOG_MODULE_ENABLE
 #define CONF_LED_MODULE_ENABLE
+#define CONF_DISPLAY_MODULE_ENABLE
 #define CONF_VOLT_MODULE_ENABLE
-#define CONF_MAX22530_MODULE_ENABLE
+#define CONF_CURRENT_MODULE_ENABLE
+#define CONF_IMD_MODULE_ENABLE
 
 /** @} */
 
@@ -48,13 +51,16 @@
  * @brief Add useful strings that can be printed to get more info
  * {@
  */
+// #define CONF_POST_STRINGS_ENABLE
 // #define CONF_CAN_COMM_STRINGS_ENABLE
 // #define CONF_TIMEBASE_STRINGS_ENABLE
 // #define CONF_TASKS_STRINGS_ENABLE
 // #define CONF_WATCHDOG_STRINGS_ENABLE
 // #define CONF_LED_STRINGS_ENABLE
+// #define CONF_DISPLAY_STRINGS_ENABLE
 // #define CONF_VOLT_STRINGS_ENABLE
-// #define CONF_MAX22530_STRINGS_ENABLE
+// #define CONF_CURRENT_STRINGS_ENABLE
+// #define CONF_IMD_STRINGS_ENABLE
 
 /** @} */
 

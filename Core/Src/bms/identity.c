@@ -18,7 +18,7 @@
  * @param mainboard_version_payload The payload of the canlib message containing the mainboard version
  * @param cellboard_version_payload The payloads of the canlib message containing the cellboards version
  */
-static struct {
+_STATIC struct {
     seconds_t build_time;
 
     primary_hv_mainboard_version_converted_t mainboard_version_payload;
@@ -53,7 +53,6 @@ seconds_t identity_get_build_time(void) {
 primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payload(size_t * byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hidentity.mainboard_version_payload);
-
     return &hidentity.mainboard_version_payload;
 }
 
@@ -62,6 +61,5 @@ primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payloa
         return NULL;
     if (byte_size != NULL)
         *byte_size = sizeof(hidentity.cellboard_version_payload[0U]);
-
     return &hidentity.cellboard_version_payload[id];
 }

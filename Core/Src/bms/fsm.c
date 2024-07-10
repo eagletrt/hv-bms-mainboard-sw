@@ -19,6 +19,7 @@ Functions and types have been generated with prefix "fsm_"
 
 #include <string.h>
 
+#include "post.h"
 #include "can-comm.h"
 #include "timebase.h"
 #include "programmer.h"
@@ -62,9 +63,15 @@ fsm_event_data_t * fsm_fired_event = NULL;
 
 /*** USER CODE BEGIN GLOBALS ***/
 
-static struct {
+_STATIC struct {
     fsm_state_t fsm_state;
+    fsm_event_data_t event;
+
+    // Canlib paylaods
+    primary_hv_status_converted_t status_can_payload;
     primary_hv_flash_response_converted_t flash_can_payload;
+
+    bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
 } hfsm = {
     .fsm_state = FSM_STATE_INIT
 };
@@ -73,12 +80,12 @@ static struct {
 
 
 // Function to check if an event has fired
-inline bool fsm_is_event_triggered() {
+bool fsm_is_event_triggered() {
     return fsm_fired_event != NULL;
 }
 
 // Function to trigger an event
-inline void fsm_event_trigger(fsm_event_data_t *event) {
+void fsm_event_trigger(fsm_event_data_t *event) {
     if (fsm_fired_event != NULL)
         return;
     fsm_fired_event = event ? event : &(fsm_event_data_t){};
@@ -109,7 +116,24 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
   // Initialize the FSM handler
   memset(&hfsm, 0U, sizeof(hfsm));
   hfsm.fsm_state = FSM_STATE_INIT;
+  hfsm.event.type = FSM_EVENT_TYPE_IGNORED;
+
+  // Run the Power-On Self Test
+  PostReturnCode code = (data == NULL) ?
+      POST_NULL_POINTER :
+      post_run(*(PostInitData *)data);
+
+  // Init canlib payloads
+  hfsm.flash_can_payload.ready = false;
   
+  switch (code) {
+      case POST_OK:
+          next_state = FSM_STATE_IDLE;
+          break;
+      default:
+          next_state = FSM_STATE_FATAL;
+          break;
+  }
   /*** USER CODE END DO_INIT ***/
   
   switch (next_state) {
@@ -132,6 +156,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_IDLE ***/
   (void)timebase_routine();
+  (void)can_comm_routine();
 
   if (fsm_is_event_triggered() && fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
       next_state = FSM_STATE_FLASH;
@@ -477,7 +502,7 @@ void fsm_ts_on(fsm_state_data_t *data) {
 fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN RUN_STATE ***/
-  
+  hfsm.fsm_state = cur_state; 
   /*** USER CODE END RUN_STATE ***/
 
   fsm_event_data_t *prev_ev = fsm_fired_event;
@@ -493,11 +518,29 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
 };
 
 /*** USER CODE BEGIN FUNCTIONS ***/
-
 fsm_state_t fsm_get_status(void) {
     return hfsm.fsm_state;
 }
 
+void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload) {
+    if (payload == NULL)
+        return;
+    hfsm.cellboard_status[payload->cellboard_id] = payload->status;
+}
+
+primary_hv_status_converted_t * fsm_get_can_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hfsm.status_can_payload);
+    // Copy mainboard and cellboard status
+    hfsm.status_can_payload.status = hfsm.fsm_state;
+    hfsm.status_can_payload.cellboard_0 = hfsm.cellboard_status[0];
+    hfsm.status_can_payload.cellboard_1 = hfsm.cellboard_status[1];
+    hfsm.status_can_payload.cellboard_2 = hfsm.cellboard_status[2];
+    hfsm.status_can_payload.cellboard_3 = hfsm.cellboard_status[3];
+    hfsm.status_can_payload.cellboard_4 = hfsm.cellboard_status[4];
+    hfsm.status_can_payload.cellboard_5 = hfsm.cellboard_status[5];
+    return &hfsm.status_can_payload;
+}
 /*** USER CODE END FUNCTIONS ***/
 
 #ifdef TEST_MAIN

@@ -10,8 +10,8 @@
 #define MAX22530_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "mainboard-conf.h"
 #include "mainboard-def.h"
 
 /** @brief Offset from the base address of the non-filtered ADC values of the filtered values */
@@ -31,6 +31,21 @@
  * @return millivolt_t The converted value in millivolt
  */
 #define MAX22530_VALUE_TO_MILLIVOLT(val) ((millivolt_t)((val) * (MAX22530_VREF / 4095.f)))
+
+
+/** @brief Total number of bytes of a read/write command */
+#define MAX22530_COMMAND_BYTE_SIZE (3U)
+#define MAX22530_COMMAND_CRC_BYTE_SIZE (4U)
+
+/** @brief Total number of bytes of a burst read command */
+#define MAX22530_BURST_BYTE_SIZE (11U)
+#define MAX22530_BURST_CRC_BYTE_SIZE (12U)
+
+/** @brief Value treated as unused and that is ignored if received by the chip */
+#define MAX22530_BYTE_UNUSED (0xff)
+
+/** @brief Type definition for an ADC register address */
+typedef uint8_t max22530_address_t;
 
 /** @brief Type definition for the ADC id and revision code */
 typedef int8_t max22530_id_t;
@@ -172,9 +187,6 @@ typedef struct {
     spi_send_receive_callback_t send_receive;
 } Max22530Handler;
 
-#define CONF_MAX22530_MODULE_ENABLE
-#ifdef CONF_MAX22530_MODULE_ENABLE
-
 /**
  * @brief Initialize the MAX22530 internal handler structure
  *
@@ -254,16 +266,5 @@ Max22530ReturnCode max22530_read_channels_all(
     raw_volt_t * out,
     uint16_t * interrupt_status
 );
-
-#else  // CONF_MAX22530_MODULE_ENABLE
-
-#define max22530_init(handler, send, send_receive) (MAX22530_OK)
-#define max22530_get_id(handler) (MAX22530_ID)
-#define max22530_get_power_on_reset(handler) (MAX22530_POWER_ON_RESET_OFF)
-#define max22530_get_revision(handler) (0x00)
-#define max22530_read_channel(handler, channel, filtered) (0U)
-#define max22530_read_channels_all(handler, channel, filtered, interrupt_status) (0U)
-
-#endif // CONF_MAX22530_MODULE_ENABLE
 
 #endif // MAX22530_H

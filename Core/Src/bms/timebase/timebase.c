@@ -12,31 +12,8 @@
 
 #include "bms_network.h"
 #include "min-heap.h"
-#include "tasks.h"
 
 #ifdef CONF_TIMEBASE_MODULE_ENABLE
-
-/**
- * @brief Definition of a scheduled task that has to be executed at a certain time
- *
- * @param t The time in which the task should be executed
- * @param task A pointer to the task to run
- */
-typedef struct {
-    ticks_t t;
-    Task * task;
-} TimebaseScheduledTask;
-
-/**
- * @brief Definition of a scheduled watchdog
- *
- * @param t The time in which the watchdog should timeout
- * @param watchdog A pointer to the watchdog handler structure
- */
-typedef struct {
-    ticks_t t;
-    Watchdog * watchdog;
-} TimebaseScheduledWatchdog;
 
 /**
  * @brief Timebase handler structure
@@ -47,7 +24,7 @@ typedef struct {
  * @param scheduled_tasks The heap of scheduled tasks that has to be executed
  * @param scheduled_watchdogs The heap of scheduled watchdogs that are currently running
  */
-static struct {
+_STATIC struct {
     bool enabled;
     milliseconds_t resolution; // in ms
     volatile ticks_t t;
@@ -119,7 +96,7 @@ TimebaseReturnCode timebase_init(milliseconds_t resolution_ms) {
     return TIMEBASE_OK;
 }
 
-inline void timebase_set_enable(bool enabled) {
+void timebase_set_enable(bool enabled) {
     htimebase.enabled = enabled;
 }
 
@@ -251,9 +228,9 @@ TimebaseReturnCode timebase_routine(void) {
 
 #ifdef CONF_TIMEBASE_STRINGS_ENABLE
 
-static char * timebase_module_name = "timebase";
+_STATIC char * timebase_module_name = "timebase";
 
-static char * timebase_return_code_name[] = {
+_STATIC char * timebase_return_code_name[] = {
     [TIMEBASE_OK] = "ok",
     [TIMEBASE_NULL_POINTER] = "null pointer",
     [TIMEBASE_DISABLED] = "disabled",
@@ -262,7 +239,7 @@ static char * timebase_return_code_name[] = {
     [TIMEBASE_WATCHDOG_UNAVAILABLE] = "watchdog unavailable"
 };
 
-static char * timebase_return_code_description[] = {
+_STATIC char * timebase_return_code_description[] = {
     [TIMEBASE_OK] = "executed successfully",
     [TIMEBASE_NULL_POINTER] = "attempt to dereference a null pointer",
     [TIMEBASE_DISABLE] = "the timebase is not enabled",

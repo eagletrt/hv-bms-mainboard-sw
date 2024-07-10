@@ -38,17 +38,29 @@ extern TIM_HandleTypeDef htim2;
 
 extern TIM_HandleTypeDef htim4;
 
+extern TIM_HandleTypeDef htim6;
+
 /* USER CODE BEGIN Private defines */
+
+/** @brief Aliases for the timer handler */
+#define HTIM_IMD htim4
+#define HTIM_TIMEBASE htim6
 
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);
 void MX_TIM2_Init(void);
 void MX_TIM4_Init(void);
+void MX_TIM6_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
+
+/**
+ * @brief Starts the timer with PWM for the IMD
+ */
+void tim_start_pwm_imd(void);
 
 /* USER CODE END Prototypes */
 

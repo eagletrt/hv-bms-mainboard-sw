@@ -4,12 +4,12 @@
  * https://github.com/eagletrt/micro-utils/tree/master/error-handler-generator
  *
  * Error_gen version 1.6.1
- * Generation date: 2024-06-19 22:25:31 +0200
+ * Generation date: 2024-07-08 18:24:11 +0200
  * Generated from: errors.json
  * With prefix: none
  * The error handler contains:
- *     - 1 error groups
- *     - 1 total error instances
+ *     - 2 error groups
+ *     - 2 total error instances
  ******************************************************************************/
 
 #include "error.h"
@@ -39,17 +39,21 @@ typedef struct _ErrorData {
 
 /** @brief Total number of instances for each group */
 static const uint16_t instances[] = {
-    [ERROR_GROUP_POST] = 1
+    [ERROR_GROUP_POST] = 1,
+    [ERROR_GROUP_OVER_CURRENT] = 1
 };
 /** @brief Error timeout for each group */
 static const uint16_t timeouts[] = {
-    [ERROR_GROUP_POST] = 0
+    [ERROR_GROUP_POST] = 0,
+    [ERROR_GROUP_OVER_CURRENT] = 20
 };
 
 /** @brief List of errors where the data is stored */
 static Error error_post_instances[1];
-static Error * errors[] = {    
-    [ERROR_GROUP_POST] = error_post_instances
+static Error error_over_current_instances[1];
+static Error * errors[] = {
+    [ERROR_GROUP_POST] = error_post_instances,
+    [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances
 };
 
 /** @brief Function declaration needed for the min heap */
@@ -239,6 +243,8 @@ void error_init(void (* cs_enter)(void), void (* cs_exit)(void)) {
 
     for (size_t i = 0; i < instances[ERROR_GROUP_POST]; ++i)
         error_post_instances[i].group = ERROR_GROUP_POST;
+    for (size_t i = 0; i < instances[ERROR_GROUP_OVER_CURRENT]; ++i)
+        error_over_current_instances[i].group = ERROR_GROUP_OVER_CURRENT;
 }
 size_t error_get_running(void) {
     return min_heap_size(&running_errors);

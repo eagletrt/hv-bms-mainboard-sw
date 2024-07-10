@@ -5,6 +5,12 @@
             "timeout": 0,
             "description": "the Power On Self Test procedure failed",
             "instances": 1
-        } 
+        },
+        {
+            "name": "OVER_CURRENT",
+            "timeout": 20,
+            "desription": "Too much current is flowing in/out from the pack",
+            "instances": 1
+        }
     ]
 }

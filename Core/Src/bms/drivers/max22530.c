@@ -10,19 +10,6 @@
 
 #include <string.h>
 
-#ifdef CONF_MAX22530_MODULE_ENABLE
-
-/** @brief Total number of bytes of a read/write command */
-#define MAX22530_COMMAND_BYTE_SIZE (3U)
-#define MAX22530_COMMAND_CRC_BYTE_SIZE (4U)
-
-/** @brief Total number of bytes of a burst read command */
-#define MAX22530_BURST_BYTE_SIZE (11U)
-#define MAX22530_BURST_CRC_BYTE_SIZE (12U)
-
-/** @brief Type definition for an ADC register address */
-typedef uint8_t max22530_address_t;
-
 /**
  * @brief Write to the ADC registers
  *
@@ -57,7 +44,7 @@ int16_t _max22530_read(Max22530Handler * handler, max22530_address_t address) {
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_COMMAND_BYTE_SIZE; ++i)
-        cmd[i] = 0xff;
+        cmd[i] = MAX22530_BYTE_UNUSED;
 
     handler->send_receive(SPI_NETWORK_ADC, cmd, &cmd[1U], 1U, MAX22530_COMMAND_BYTE_SIZE - 1U);
     return ((uint16_t)cmd[1U] << 8U) | cmd[2U];
@@ -83,12 +70,12 @@ Max22530ReturnCode _max22530_burst(Max22530Handler * handler, bool filtered, uin
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_BURST_BYTE_SIZE; ++i)
-        cmd[i] = 0xff;
+        cmd[i] = MAX22530_BYTE_UNUSED;
 
     handler->send_receive(SPI_NETWORK_ADC, cmd, &cmd[1U], 1U, MAX22530_BURST_BYTE_SIZE - 1U);
 
-    for (size_t i = 0U; i < MAX22530_CHANNEL_COUNT; ++i)
-        out[i] = ((cmd[i * 2U + 1U] & 0x0f) << 8U) | cmd[i * 2U + 2];
+    for (size_t i = 0U; i < MAX22530_CHANNEL_COUNT + 1U; ++i)
+        out[i] = ((cmd[i * 2U + 1U] & 0x0f) << 8U) | cmd[i * 2U + 2U];
     return MAX22530_OK;
 }
 
@@ -138,8 +125,8 @@ raw_volt_t max22530_read_channel(Max22530Handler * handler, Max22530Channel chan
 
     // Get the channel register address
     max22530_address_t address = filtered ?
-        MAX22530_REGISTER_ADC :
-        MAX22530_REGISTER_FILTERED_ADC;
+        MAX22530_REGISTER_FILTERED_ADC :
+        MAX22530_REGISTER_ADC;
     address += channel;
 
     // Get data
@@ -163,26 +150,8 @@ Max22530ReturnCode max22530_read_channels_all(
     Max22530ReturnCode code = _max22530_burst(handler, filtered, data);
 
     // Copy data
-    memcpy(out, data, MAX22530_CHANNEL_COUNT);
+    memcpy(out, data, MAX22530_CHANNEL_COUNT * sizeof(data[0]));
     if (interrupt_status != NULL)
         *interrupt_status = data[MAX22530_CHANNEL_COUNT];
     return code;
 }
-
-#ifdef CON_MAX22530_STRINGS_ENABLE
-
-static char * max22530_module_name = "max22530";
-
-static char * max22530_return_code_name[] = {
-    [MAX22530_OK] = "ok",
-    [MAX22530_NULL_POINTER] = "null pointer"
-};
-
-static char * max22530_return_code_description[] = {
-    [MAX22530_OK] = "executed succefullty",
-    [MAX22530_NULL_POINTER] = "attempte to dereference a NULL pointer"
-};
-
-#endif // CON_MAX22530_STRINGS_ENABLE
-
-#endif // CONF_MAX22530_MODULE_ENABLE

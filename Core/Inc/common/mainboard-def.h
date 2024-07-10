@@ -28,6 +28,35 @@
  */
 #define MAINBOARD_UNUSED(_) ((void)(_))
 
+/**
+ * @brief Type definition for the static attribute 
+ *
+ * @details Can be used to test if pisseria is doing fetenderi
+ * @details Can be used to disable static functions for unit testing
+ */
+#ifndef _STATIC
+#define _STATIC static
+#endif  // _STATIC
+
+/**
+ * @brief Type definition for the inline attribute 
+ *
+ * @details Can be used to disable inlining functions for unit testing
+ */
+#ifndef _STATIC_INLINE
+#define _STATIC_INLINE static inline
+#endif  // _STATIC_INLINE
+
+/**
+ * @brief Type definition for the volatile attribute 
+ *
+ * @details Can be used to disable volatile variables for unit testing
+ */
+#ifndef _VOLATILE
+#define _VOLATILE volatile
+#endif  // _VOLATILE
+
+
 /*** ######################### CONSTANTS ################################# ***/
 
 /**
@@ -226,6 +255,10 @@ typedef enum {
  * {@
  */
 
+/** @brief Type definition for a percentage (from 0 to 100) */
+typedef int8_t percentage_t;
+typedef float precise_percentage_t;
+
 /** @brief Type definition for bit flags */
 typedef uint8_t bit_flag8_t;
 typedef uint16_t bit_flag16_t;
@@ -250,6 +283,11 @@ typedef uint32_t seconds_t;
 typedef uint32_t milliseconds_t;
 typedef uint32_t microseconds_t;
 
+/** @brief Type definition for the frequency */
+typedef float hertz_t;
+typedef float kilohertz_t;
+typedef float megahertz_t;
+
 /**
  * @brief Raw temperature value
  * @details This type depends on the mechanism of acquisition of the temperatures
@@ -258,7 +296,7 @@ typedef uint32_t microseconds_t;
 typedef uint16_t raw_temp_t;
 
 /** @brief Temperature value in °C */
-typedef float temp_t;
+typedef float celsius_t;
 
 /**
  * @brief Raw voltage value
@@ -270,6 +308,16 @@ typedef uint16_t raw_volt_t;
 /** @brief Actual voltages */
 typedef float volt_t;
 typedef float millivolt_t;
+
+/**
+ * @brief Raw current value
+ * @details This type depends on the mechanism of acquisition of the current
+ */
+typedef int32_t raw_current_t;
+
+/** @brief Actual current */
+typedef float ampere_t;
+typedef float milliampere_t;
 
 /** @brief Function callback that resets the microcontroller */
 typedef void (* system_reset_callback_t)(void);

@@ -12,32 +12,30 @@
 #include "can-comm.h"
 #include "identity.h"
 #include "timebase.h"
-#include "watchdog.h"
+#include "fsm.h"
+#include "current.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
-
-/** @brief Convert a task name to the corresponding TasksId name */
-#define TASKS_NAME_TO_ID(NAME) (TASKS_ID_##NAME)
 
 /**
  * @brief Tasks hanlder struct
  *
  * @param tasks The array of tasks
  */
-static struct {
+_STATIC struct {
     Task tasks[TASKS_COUNT];
 } htasks;
 
 /** @brief Send the mainboard version info via CAN */
 void _tasks_send_mainboard_version(void) {
-    size_t byte_size;
+    size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)identity_get_mainboard_version_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_MAINBOARD_VERSION_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
 /** @brief Send the cellboard version info via CAN */
 void _tasks_send_cellboard_version(CellboardId id) {
-    size_t byte_size;
+    size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)identity_get_cellboard_version_payload(id, &byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLBOARD_VERSION_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
@@ -47,6 +45,20 @@ void _tasks_send_cellboard_2_version(void) { _tasks_send_cellboard_version(CELLB
 void _tasks_send_cellboard_3_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_3); }
 void _tasks_send_cellboard_4_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_4); }
 void _tasks_send_cellboard_5_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_5); }
+
+/** @brief Send the mainboard and cellboard FSM status via CAN */
+void _tasks_send_hv_status(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)fsm_get_can_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
+/** @brief Send the current via CAN */
+void _tasks_send_hv_current(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)current_get_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)
@@ -93,18 +105,18 @@ tasks_callback tasks_get_callback(TasksId id) {
 
 #ifdef CONF_TASKS_STRINGS_ENABLE
 
-static char * tasks_module_name = "tasks";
+_STATIC char * tasks_module_name = "tasks";
 
-static char * tasks_return_code_name[] = {
+_STATIC char * tasks_return_code_name[] = {
     [TASKS_OK] = "ok"
 };
 
-static char * tasks_return_code_descritpion[] = {
+_STATIC char * tasks_return_code_descritpion[] = {
     [TASKS_OK] = "executed successfully"
 };
 
 #define TASKS_X(NAME, START, INTERVAL, EXEC) [TASKS_NAME_TO_ID(NAME)] = #NAME,
-static char * tasks_id_name[] = {
+_STATIC char * tasks_id_name[] = {
     TASKS_X_LIST
 };
 #undef TASKS_X
