@@ -109,7 +109,7 @@ $(BIN_DIR)/%.o: $(BMS_DIR)/errors/%.c | $(BIN_DIR)
 ### LIBS COMPILATION ###
 
 $(BIN_DIR)/unity.o: | $(BIN_DIR)
-	$(CC) -c $(MICRO_LIB_DIR)/Unity/src/unity.c $(INCLUDES) -o $(BIN_DIR)/unity.o
+	$(CC) -c $(MICRO_LIB_DIR)/Unity/src/unity.c $(INCLUDES) -o $(BIN_DIR)/unity.o -DUNITY_OUTPUT_COLOR
 
 $(BIN_DIR)/cmock.o: | $(BIN_DIR)
 	$(CC) -c $(MICRO_LIB_DIR)/CMock/src/cmock.c $(INCLUDES) -o $(BIN_DIR)/cmock.o
