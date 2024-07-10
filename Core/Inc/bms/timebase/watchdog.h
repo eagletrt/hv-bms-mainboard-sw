@@ -39,7 +39,7 @@ typedef enum {
  * 
  * @details When the watchdog times-out it unregister itself from the timebase automatically
  */
-typedef void (* watchdog_timeout_callback)(void);
+typedef void (* watchdog_timeout_callback_t)(void);
 
 /**
  * @brief Definiton of the watchdog structure handler
@@ -53,7 +53,7 @@ typedef struct {
     bool running;
     bool timed_out;
     ticks_t timeout;
-    watchdog_timeout_callback expire;
+    watchdog_timeout_callback_t expire;
 } Watchdog;
 
 #ifdef CONF_WATCHDOG_MODULE_ENABLE
@@ -73,7 +73,7 @@ typedef struct {
 WatchdogReturnCode watchdog_init(
     Watchdog * watchdog,
     ticks_t timeout,
-    watchdog_timeout_callback expire
+    watchdog_timeout_callback_t expire
 );
 
 /**

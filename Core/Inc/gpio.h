@@ -31,6 +31,8 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 
 #include "led.h"
+#include "display.h"
+#include "pcu.h"
 
 /* USER CODE END Includes */
 
@@ -56,6 +58,36 @@ void gpio_led_set_state(LedId led, LedStatus state);
  * @param led The LED to select
  */
 void gpio_led_toggle_state(LedId led);
+
+/**
+ * @brief Set the state of a segment of the 7-segment display
+ *
+ * @param segment The segment to select
+ * @param state The new state of the segment to set
+ */
+void gpio_display_segment_set_state(DisplaySegment segment, DisplaySegmentStatus state);
+
+/**
+ * @brief Toggle the state of a segment of the 7-segment display
+ *
+ * @param segment The segment to select
+ */
+void gpio_display_segment_toggle_state(DisplaySegment segment);
+
+/**
+ * @brief Set the state of a pin controlled by the PCU
+ *
+ * @param pin The pin to select
+ * @parma state The new state of the pin to set
+ */
+void gpio_pcu_set_state(PcuPin pin, PcuPinStatus state);
+
+/**
+ * @brief Toggle the state of a pin controlled by the PCU
+ *
+ * @param pin The pin to select
+ */
+void gpio_pcu_toggle_state(PcuPin pin);
 
 /* USER CODE END Prototypes */
 

@@ -24,12 +24,12 @@ digraph "fsm" {
     ]
 
     init -> idle [label="start"]
-    init -> fatal [label="handler_fatal_error"]
+    init -> fatal [label="handle_fatal_error"]
 
     idle -> idle
     idle -> balancing [label="start_balancing"]
     idle -> airn_check [label="close_airn"]
-    idle -> fatal [label="handler_fatal_error"]
+    idle -> fatal [label="handle_fatal_error"]
     idle -> flash [label="start_flash_procedure"]
 
     flash -> flash

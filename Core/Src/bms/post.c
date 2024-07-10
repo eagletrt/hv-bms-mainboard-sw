@@ -35,6 +35,7 @@ PostReturnCode _post_modules_init(PostInitData * data) {
      * always OK or some assertion can be made (like for the NULL checks)
      */
     (void)timebase_init(1U);
+    (void)pcu_init(data->pcu_set, data->pcu_toggle);
     (void)volt_init();
     (void)current_init();
     (void)can_comm_init(data->can_send);
@@ -50,7 +51,9 @@ PostReturnCode post_run(PostInitData data) {
         data.can_send == NULL ||
         data.led_set == NULL ||
         data.led_toggle == NULL ||
-        data.imd_start == NULL)
+        data.imd_start == NULL ||
+        data.pcu_set == NULL ||
+        data.pcu_toggle == NULL)
         return POST_NULL_POINTER;
 
     PostReturnCode post_code = _post_modules_init(&data);

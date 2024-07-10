@@ -15,6 +15,7 @@
 #include "watchdog.h"
 #include "timebase.h"
 #include "current.h"
+#include "pcu.h"
 
 #include "ring-buffer.h"
 #include "canlib_device.h"
@@ -50,31 +51,35 @@ _STATIC struct CanCommHandler  {
 
 void _can_comm_canlib_payload_handle_dummy(void * _) { }
 
-can_comm_canlib_payload_handle_callback _can_comm_bms_payload_handle(can_index_t index) {
+can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(can_index_t index) {
     switch (index) {
         // case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
-            return (can_comm_canlib_payload_handle_callback)programmer_cellboard_flash_response_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_cellboard_flash_response_handle;
         case BMS_CELLBOARD_STATUS_INDEX:
-            return (can_comm_canlib_payload_handle_callback)fsm_cellboard_state_handle;
+            return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
         case BMS_IVT_MSG_RESULT_I_INDEX:
-            return (can_comm_canlib_payload_handle_callback)current_handle;
+            return (can_comm_canlib_payload_handle_callback_t)current_handle;
         default:
             return _can_comm_canlib_payload_handle_dummy;
     }
 
 }
-can_comm_canlib_payload_handle_callback _can_comm_primary_payload_handle(can_index_t index) {
+can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(can_index_t index) {
     switch (index) {
         case PRIMARY_HV_FLASH_REQUEST_INDEX:
-            return (can_comm_canlib_payload_handle_callback)programmer_flash_request_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_flash_request_handle;
         case PRIMARY_HV_FLASH_INDEX:
-            return (can_comm_canlib_payload_handle_callback)programmer_flash_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_flash_handle;
+        case PRIMARY_HV_SET_STATUS_ECU_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_ecu_handle;
+        case PRIMARY_HV_SET_STATUS_HANDCART_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_handcart_handle;
         default:
             return _can_comm_canlib_payload_handle_dummy;
     }
 }
-can_comm_canlib_payload_handle_callback _can_comm_payload_handle(CanNetwork network, can_index_t index) {
+can_comm_canlib_payload_handle_callback_t _can_comm_payload_handle(CanNetwork network, can_index_t index) {
     switch (network) {
         case CAN_NETWORK_BMS:
             return _can_comm_bms_payload_handle(index);
@@ -310,7 +315,7 @@ CanCommReturnCode can_comm_routine(void) {
         id_from_index_t id_from_index = bms_id_from_index;
         deserialize_from_id_t deserialize_from_id = bms_devices_deserialize_from_id;
 
-        if (tx_msg.network == CAN_NETWORK_PRIMARY) {
+        if (rx_msg.network == CAN_NETWORK_PRIMARY) {
             id_from_index = primary_id_from_index;
             deserialize_from_id = primary_devices_deserialize_from_id;
         }

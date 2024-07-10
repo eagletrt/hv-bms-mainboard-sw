@@ -383,7 +383,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan) {
 
     can_comm_rx_add(
         CAN_NETWORK_PRIMARY,
-        bms_index_from_id(header.StdId),
+        primary_index_from_id(header.StdId),
         frame_type,
         data,
         header.DLC

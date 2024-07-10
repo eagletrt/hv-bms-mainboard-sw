@@ -30,13 +30,13 @@ typedef enum {
  * @brief Definition of the LED identifier
  *
  * @details
- *     - LED_1 the first LED
- *     - LED_2 the second LED
+ *     - LED_ID_1 the first LED
+ *     - LED_ID_2 the second LED
  */
 typedef enum {
-    LED_1,
-    LED_2,
-    LED_COUNT
+    LED_ID_1,
+    LED_ID_2,
+    LED_ID_COUNT
 } LedId;
 
 /**

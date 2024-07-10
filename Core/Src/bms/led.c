@@ -8,8 +8,6 @@
 
 #include "led.h"
 
-#include "blinky.h"
-#include "mainboard-def.h"
 #include "identity.h"
 
 #ifdef CONF_LED_MODULE_ENABLE
@@ -19,9 +17,6 @@
  *
  * @param set A pointer to the function callback used to set the led state
  * @param toggle A pointer to the function callback used to toggle the led state
- * @param blinker The structure handler used to blink the LED
- * @param pattern The main blinking pattern
- * @param pattern_size The size of the pattern
  */
 _STATIC struct LedHandler {
     led_set_state_callback_t set;

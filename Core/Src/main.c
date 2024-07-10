@@ -124,17 +124,22 @@ int main(void)
    */
   HAL_GPIO_WritePin(BMS_OK_GPIO_Port, BMS_OK_Pin, GPIO_PIN_SET);
 
+  /**
+   * Start the timer used to increment the timebase internal counter
+   */
   HAL_TIM_Base_Start_IT(&HTIM_TIMEBASE);
 
   fsm_state_t fsm_state = FSM_STATE_INIT;
 
   // Prepare data for the POST procedure
   PostInitData init_data = {
-    .system_reset = system_reset,
-    .can_send = can_send,
-    .led_set = gpio_led_set_state,
-    .led_toggle = gpio_led_toggle_state,
-    .imd_start = tim_start_pwm_imd
+      .system_reset = system_reset,
+      .can_send = can_send,
+      .led_set = gpio_led_set_state,
+      .led_toggle = gpio_led_toggle_state,
+      .imd_start = tim_start_pwm_imd,
+      .pcu_set = gpio_pcu_set_state,
+      .pcu_toggle = gpio_pcu_toggle_state
   };
 
   fsm_state = fsm_run_state(fsm_state, &init_data);

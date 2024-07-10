@@ -168,43 +168,193 @@ void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 2 */
 
+/**
+ * @brief Get the LED GPIO port from its identifier
+ *
+ * @param led The led identifier
+ *
+ * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the id is not valid
+ */
 GPIO_TypeDef * _gpio_get_port_from_led_id(LedId led) {
     switch (led) {
-        case LED_1:
+        case LED_ID_1:
             return LED_1_GPIO_Port;
-        case LED_2:
+        case LED_ID_2:
             return LED_2_GPIO_Port;
         default:
             return NULL;
     }
 }
 
+/**
+ * @brief Get the LED GPIO pin from its identifier
+ *
+ * @param led The led identifier
+ *
+ * @return int16_t The GPIO pin, or -1 if the id is not valid
+ */
 int16_t _gpio_get_pin_from_led_id(LedId led) {
     switch (led) {
-        case LED_1:
+        case LED_ID_1:
             return LED_1_Pin;
-        case LED_2:
+        case LED_ID_2:
             return LED_2_Pin;
         default:
             return -1;
     }
 }
 
-void gpio_led_set_state(LedId led, LedStatus state) {
-    if (led >= LED_COUNT)
-        return;
+/**
+ * @brief Get the 7-segment display segment GPIO port from its identifier
+ *
+ * @param segment The segment identifier
+ *
+ * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the id is not valid
+ */
+GPIO_TypeDef * _gpio_get_port_from_display_segment(DisplaySegment segment) {
+    switch (segment) {
+        case DISPLAY_SEGMENT_TOP:
+            return SEG7_S1_GPIO_Port;
+        case DISPLAY_SEGMENT_TOP_RIGHT:
+            return SEG7_S2_GPIO_Port;
+        case DISPLAY_SEGMENT_TOP_LEFT:
+            return SEG7_S6_GPIO_Port;
+        case DISPLAY_SEGMENT_MIDDLE:
+            return SEG7_S7_GPIO_Port;
+        case DISPLAY_SEGMENT_BOTTOM:
+            return SEG7_S4_GPIO_Port;
+        case DISPLAY_SEGMENT_BOTTOM_RIGHT:
+            return SEG7_S3_GPIO_Port;
+        case DISPLAY_SEGMENT_BOTTOM_LEFT:
+            return SEG7_S5_GPIO_Port;
+        case DISPLAY_SEGMENT_DECIMAL_POINT:
+            return SEG7_DP_GPIO_Port; 
 
+        default:
+            return NULL;
+    }
+}
+
+/**
+ * @brief Get the 7-segment display segment GPIO pin from its identifier
+ *
+ * @param segment The segment identifier
+ *
+ * @return int16_t The GPIO pin, or -1 if the id is not valid
+ */
+int16_t _gpio_get_pin_from_display_segment(DisplaySegment segment) {
+    switch (segment) {
+        case DISPLAY_SEGMENT_TOP:
+            return SEG7_S1_Pin;
+        case DISPLAY_SEGMENT_TOP_RIGHT:
+            return SEG7_S2_Pin;
+        case DISPLAY_SEGMENT_TOP_LEFT:
+            return SEG7_S6_Pin;
+        case DISPLAY_SEGMENT_MIDDLE:
+            return SEG7_S7_Pin;
+        case DISPLAY_SEGMENT_BOTTOM:
+            return SEG7_S4_Pin;
+        case DISPLAY_SEGMENT_BOTTOM_RIGHT:
+            return SEG7_S3_Pin;
+        case DISPLAY_SEGMENT_BOTTOM_LEFT:
+            return SEG7_S5_Pin;
+        case DISPLAY_SEGMENT_DECIMAL_POINT:
+            return SEG7_DP_Pin; 
+
+        default:
+            return -1;
+    }
+}
+
+/**
+ * @brief Get the PCU pin GPIO port from its name
+ *
+ * @param pin The PCU pin name
+ *
+ * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the PCU pin is not valid
+ */
+GPIO_TypeDef * _gpio_get_port_from_pcu_pin(PcuPin pin) {
+    switch (pin) {
+        case PCU_PIN_AIR_NEGATIVE: 
+            return AIRN_OFF_GPIO_Port;
+        case PCU_PIN_AIR_POSITIVE: 
+            return AIRP_OFF_GPIO_Port;
+        case PCU_PIN_PRECHARGE: 
+            return PRECHARGE_GPIO_Port;
+        case PCU_PIN_AMS:
+            return BMS_OK_GPIO_Port;
+        default:
+            return NULL;
+    }
+}
+
+/**
+ * @brief Get the PCU GPIO pin from its name
+ *
+ * @param pin The PCU pin name
+ *
+ * @return int16_t The GPIO pin, or -1 if the PCU pin is not valid
+ */
+int16_t _gpio_get_pin_from_pcu_pin(PcuPin pin) {
+    switch (pin) {
+        case PCU_PIN_AIR_NEGATIVE: 
+            return AIRN_OFF_Pin;
+        case PCU_PIN_AIR_POSITIVE: 
+            return AIRP_OFF_Pin;
+        case PCU_PIN_PRECHARGE: 
+            return PRECHARGE_Pin;
+        case PCU_PIN_AMS:
+            return BMS_OK_Pin;
+        default:
+            return -1;
+    }
+}
+
+void gpio_led_set_state(LedId led, LedStatus state) {
+    if (led >= LED_ID_COUNT)
+        return;
     GPIO_TypeDef * port = _gpio_get_port_from_led_id(led);
     int16_t pin = _gpio_get_pin_from_led_id(led);
     HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
 }
 
 void gpio_led_toggle_state(LedId led) {
-    if (led >= LED_COUNT)
+    if (led >= LED_ID_COUNT)
         return;
-
     GPIO_TypeDef * port = _gpio_get_port_from_led_id(led);
     int16_t pin = _gpio_get_pin_from_led_id(led);
+    HAL_GPIO_TogglePin(port, pin);
+}
+
+void gpio_display_segment_set_state(DisplaySegment segment, DisplaySegmentStatus state) {
+    if (segment >= DISPLAY_SEGMENT_COUNT)
+        return;
+    GPIO_TypeDef * port = _gpio_get_port_from_display_segment(segment);
+    int16_t pin = _gpio_get_pin_from_display_segment(segment);
+    HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
+}
+
+void gpio_display_segment_toggle_state(DisplaySegment segment) {
+    if (segment >= DISPLAY_SEGMENT_COUNT)
+        return;
+    GPIO_TypeDef * port = _gpio_get_port_from_display_segment(segment);
+    int16_t pin = _gpio_get_pin_from_display_segment(segment);
+    HAL_GPIO_TogglePin(port, pin);
+}
+
+void gpio_pcu_set_state(PcuPin pcu_pin, PcuPinStatus state) {
+    if (pcu_pin >= PCU_PIN_COUNT)
+        return;
+    GPIO_TypeDef * port = _gpio_get_port_from_pcu_pin(pcu_pin);
+    uint16_t pin = _gpio_get_pin_from_pcu_pin(pcu_pin);
+    HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
+}
+
+void gpio_pcu_toggle_state(PcuPin pcu_pin) {
+    if (pcu_pin >= PCU_PIN_COUNT)
+        return;
+    GPIO_TypeDef * port = _gpio_get_port_from_pcu_pin(pcu_pin);
+    uint16_t pin = _gpio_get_pin_from_pcu_pin(pcu_pin);
     HAL_GPIO_TogglePin(port, pin);
 }
 
