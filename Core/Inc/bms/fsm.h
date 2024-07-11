@@ -24,6 +24,8 @@ Functions and types have been generated with prefix "fsm_"
 #include "bms_network.h"
 #include "primary_network.h"
 
+// TODO: Define feedback masks and expected values
+
 /**
  * @brief Definition of the possible events types
  *

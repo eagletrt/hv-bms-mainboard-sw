@@ -17,6 +17,7 @@
 #include "led.h"
 #include "imd.h"
 #include "pcu.h"
+#include "feedback.h"
 
 /**
  * @brief Return code for the post module functions
@@ -53,6 +54,8 @@ typedef struct {
     imd_pwm_start_callback_t imd_start;
     pcu_set_state_callback_t pcu_set;
     pcu_toggle_state_callback_t pcu_toggle;
+    feedback_read_digital_all_callback_t feedback_read_all;
+    feedback_start_analog_conversion_callback_t feedback_start_conversion;
 } PostInitData;
 
 #ifdef CONF_POST_MODULE_ENABLE

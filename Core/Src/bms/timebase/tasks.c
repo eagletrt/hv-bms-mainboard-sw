@@ -14,6 +14,7 @@
 #include "timebase.h"
 #include "fsm.h"
 #include "current.h"
+#include "feedback.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -58,6 +59,21 @@ void _tasks_send_hv_current(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)current_get_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
+/** @brief Update all the digital feedbacks */
+void _tasks_read_digital_feedbacks(void) {
+    (void)feedback_update_digital_feedback_all();
+}
+
+/** @brief Start the conversion of all the analog feedbacks */
+void _tasks_start_analog_conversion_feedbacks(void) {
+    (void)feedback_start_analog_conversion_all();
+}
+
+/** @brief Update all the feedbacks status */
+void _tasks_update_feedbacks_status(void) {
+    (void)feedback_update_status();
 }
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {

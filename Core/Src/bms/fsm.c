@@ -157,8 +157,10 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
           next_state = FSM_STATE_FLASH;
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON)
+      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
+          // TODO: Check feedbacks
           next_state = FSM_STATE_AIRN_CHECK;
+      }
   }
   /*** USER CODE END DO_IDLE ***/
   

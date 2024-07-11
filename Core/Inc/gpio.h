@@ -89,6 +89,13 @@ void gpio_pcu_set_state(PcuPin pin, PcuPinStatus state);
  */
 void gpio_pcu_toggle_state(PcuPin pin);
 
+/**
+ * @brief Read all the digital feedbacks in one go
+ *
+ * @return bit_flag32_t The state of the feedbacks as a bit flag
+ */
+bit_flag32_t gpio_feedback_read_all(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

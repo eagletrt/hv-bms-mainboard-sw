@@ -18,12 +18,12 @@
 /**
  * @brief Current handler structure
  *
- * @params current The raw current value
+ * @param current The raw current value
+ * @param can_payload The canlib payload used to send the current value via CAN
  */
 _STATIC struct {
     raw_current_t current;    
 
-    // TODO: Add current message to send via the primary network
     primary_hv_current_converted_t can_payload;
 } hcurrent;
 

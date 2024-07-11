@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "can.h"
 #include "dac.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -99,6 +100,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
@@ -139,7 +141,9 @@ int main(void)
       .led_toggle = gpio_led_toggle_state,
       .imd_start = tim_start_pwm_imd,
       .pcu_set = gpio_pcu_set_state,
-      .pcu_toggle = gpio_pcu_toggle_state
+      .pcu_toggle = gpio_pcu_toggle_state,
+      .feedback_read_all = gpio_feedback_read_all,
+      .feedback_start_conversion = adc_start_feedback_conversion
   };
 
   fsm_state = fsm_run_state(fsm_state, &init_data);

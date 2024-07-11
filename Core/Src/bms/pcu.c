@@ -35,27 +35,28 @@ _STATIC struct {
     Watchdog airp_watchdog;
 } hpcu;
 
+/** @brief Callback executed when the AIR- watchdog times out */
 void _pcu_airn_timeout(void) {
     // Send AIR- timeout event to the FSM
     hpcu.timeout_event.type = FSM_EVENT_TYPE_AIRN_TIMEOUT;
     fsm_event_trigger(&hpcu.timeout_event);
 }
 
-/**
- * @brief Callback executed when the precharge watchdog times out
- */
+/** @brief Callback executed when the precharge watchdog times out */
 void _pcu_precharge_timeout(void) {
     // Send precharge timeout event to the FSM
     hpcu.timeout_event.type = FSM_EVENT_TYPE_PRECHARGE_TIMEOUT;
     fsm_event_trigger(&hpcu.timeout_event);
 }
 
+/** @brief Callback executed when the AIR+ watchdog times out */
 void _pcu_airp_timeout(void) {
     // Send AIR+ timeout event to the FSM
     hpcu.timeout_event.type = FSM_EVENT_TYPE_AIRP_TIMEOUT;
     fsm_event_trigger(&hpcu.timeout_event);
 }
 
+/** @brief Initialize all the watchdogs */
 void _pcu_init_watchdogs(void) {
     milliseconds_t res = timebase_get_resolution();
     watchdog_init(
@@ -74,6 +75,7 @@ void _pcu_init_watchdogs(void) {
         _pcu_airp_timeout
     );
 }
+/** @brief Uninitialize all the watchdogs to be able to use them again */
 void _pcu_deinit_watchdogs(void) {
     watchdog_deinit(&hpcu.airn_watchdog);
     watchdog_deinit(&hpcu.precharge_watchdog);
@@ -95,6 +97,10 @@ PcuReturnCode pcu_init(pcu_set_state_callback_t set, pcu_toggle_state_callback_t
 }
 
 void pcu_reset_all(void) {
+    /*
+     * If a watchdog has timed-out, to use it again it needs to be uninitialized
+     * an then initialized again
+     */
     _pcu_deinit_watchdogs();
 
     // Set all pins to their default state
