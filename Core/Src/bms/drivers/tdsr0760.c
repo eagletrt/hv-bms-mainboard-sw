@@ -9,6 +9,7 @@
 #include "tdsr0760.h"
 
 #include <stddef.h>
+#include <string.h>
 
 Tdsr0760ReturnCode tdsr0760_init(Tdsr0760Handler * handler) {
     if (handler == NULL)

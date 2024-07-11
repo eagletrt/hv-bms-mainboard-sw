@@ -149,7 +149,8 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32F446xx
+-DSTM32F446xx \
+-D_XOPEN_SOURCE
 
 # Custom includes
 CUSTOM_INCLUDES = \
