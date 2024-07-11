@@ -158,8 +158,10 @@ DisplayReturnCode display_set_char(char cha, DisplaySegmentStatus decimal){
     case 'l':
         state = DISPLAY_CHAR_L;
         break;
-    case 'n':
     case 'N':
+        state = DISPLAY_CHAR_N;
+        break;
+    case 'n':
         state = DISPLAY_CHAR_n;
         break;
     case 'O':
@@ -174,17 +176,37 @@ DisplayReturnCode display_set_char(char cha, DisplaySegmentStatus decimal){
     case 'R':
         state = DISPLAY_CHAR_r;
         break;
+    case 't':
+    case 'T':
+        state = DISPLAY_CHAR_t;
+        break;
     case 'U':
         state = DISPLAY_CHAR_U;
         break;
     case 'u':
         state = DISPLAY_CHAR_u;
         break;
+    case 'y':
+    case 'Y':
+        state = DISPLAY_CHAR_y;
+        break;
+    case ' ':
+        state = DISPLAY_CHAR_space;
+        break;
+    case '.':
+        state = DISPLAY_CHAR_dot;
+        break;
+    case '-':
+        state = DISPLAY_CHAR_minus;
+        break;
+    case '_':
+        state = DISPLAY_CHAR_underscore;
+        break;
     default:
         return DISPLAY_INVALID_CHARACTER;
         break;
     }
-    return display_set_state((decimal == DISPLAY_SEGMENT_ON) << 7);
+    return display_set_state(state | ((decimal == DISPLAY_SEGMENT_ON) << 7));
 }
 
 
