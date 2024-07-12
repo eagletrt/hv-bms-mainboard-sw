@@ -36,6 +36,8 @@
 #include "fsm.h"
 #include "post.h"
 
+#include "stm32f4xx_it.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,6 +115,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SPI3_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -136,6 +139,10 @@ int main(void)
   // Prepare data for the POST procedure
   PostInitData init_data = {
       .system_reset = system_reset,
+      .cs_enter = it_cs_enter,
+      .cs_exit = it_cs_exit,
+      .error_update_timer = tim_update_error_timer,
+      .error_stop_timer = tim_stop_error_timer,
       .can_send = can_send,
       .led_set = gpio_led_set_state,
       .led_toggle = gpio_led_toggle_state,

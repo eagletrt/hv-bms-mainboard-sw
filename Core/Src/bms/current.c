@@ -34,9 +34,9 @@ _STATIC struct {
  * @param value The raw current value
  */
 _STATIC_INLINE void _current_check_value(raw_current_t value) {
-    ERROR_TOGGLE_IF(
+    ERROR_HANDLER_ERROR_TOGGLE_IF(
         value <= CURRENT_MIN_VALUE || value >= CURRENT_MAX_VALUE,
-        ERROR_GROUP_OVER_CURRENT,
+        ERROR_HANDLER_ERROR_GROUP_OVER_CURRENT,
         0U,
         timebase_get_time()
     );

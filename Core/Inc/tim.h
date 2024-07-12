@@ -40,11 +40,14 @@ extern TIM_HandleTypeDef htim4;
 
 extern TIM_HandleTypeDef htim6;
 
+extern TIM_HandleTypeDef htim7;
+
 /* USER CODE BEGIN Private defines */
 
 /** @brief Aliases for the timer handler */
 #define HTIM_IMD htim4
 #define HTIM_TIMEBASE htim6
+#define HTIM_ERROR htim7
 
 /* USER CODE END Private defines */
 
@@ -52,6 +55,7 @@ void MX_TIM1_Init(void);
 void MX_TIM2_Init(void);
 void MX_TIM4_Init(void);
 void MX_TIM6_Init(void);
+void MX_TIM7_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
@@ -61,6 +65,19 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
  * @brief Starts the timer with PWM for the IMD
  */
 void tim_start_pwm_imd(void);
+
+/**
+ * @brief Function used to update the error timer
+ *
+ * @param timestamp The time in which the error was set
+ * @param timeout The time after which the error should expire after it was set
+ */
+void tim_update_error_timer(uint32_t timestamp, uint16_t timeout);
+
+/**
+ * @brief Function used to stop the error timer
+ */
+void tim_stop_error_timer(void);
 
 /* USER CODE END Prototypes */
 

@@ -59,11 +59,28 @@ void CAN1_RX0_IRQHandler(void);
 void CAN1_RX1_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
+void TIM7_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
 void DMA2_Stream1_IRQHandler(void);
 void CAN2_RX0_IRQHandler(void);
 void CAN2_RX1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
+
+/**
+ * @brief Function used to enter a critical section of the code
+ * where concurrency can cause problems
+ *
+ * @details This function disables all interrupts to avoid concurrency
+ */
+void it_cs_enter(void);
+
+/**
+ * @brief Function used to exit a critical section of the code
+ * where concurrency can cause problems
+ *
+ * @details This function restore all interrupts status to avoid concurrency
+ */
+void it_cs_exit(void);
 
 /* USER CODE END EFP */
 

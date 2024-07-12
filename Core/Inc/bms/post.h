@@ -13,6 +13,7 @@
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 
+#include "error.h"
 #include "can-comm.h"
 #include "led.h"
 #include "imd.h"
@@ -39,6 +40,10 @@ typedef enum {
  * @brief Structure definition for the initial data that are needed by the POST module
  *
  * @param system_reset A pointer to a function that resets the microcontroller
+ * @param cs_enter A pointer to a function that should enter a critical section
+ * @param cs_exit A pointer to a function that should exit a critical section
+ * @param error_update_timer A pointer to a function that updates the error timer
+ * @param error_stop_timer A pointer to a function that stops the error timer
  * @param can_send A pointer to a function that can send data via the CAN bus
  * @param led_set A pointer to a function that sets the state of a LED
  * @param led_toggle A pointer to a function that toggles the state of a LED
@@ -48,6 +53,10 @@ typedef enum {
  */
 typedef struct {
     system_reset_callback_t system_reset;
+    interrupt_critical_section_enter_t cs_enter;
+    interrupt_critical_section_exit_t cs_exit;
+    error_update_timer_callback_t error_update_timer;
+    error_stop_timer_callback_t error_stop_timer;
     can_comm_transmit_callback_t can_send;
     led_set_state_callback_t led_set;
     led_toggle_state_callback_t led_toggle;
