@@ -9,6 +9,7 @@
 
 #include "post.h"
 
+#include "error.h"
 #include "identity.h"
 #include "programmer.h"
 #include "timebase.h"
@@ -28,6 +29,16 @@
  *     - POST_OK
  */
 PostReturnCode _post_modules_init(PostInitData * data) {
+    /*
+     * The error and identity initialization functions have to be executed
+     * before every other function to ensure the proper functionality
+     */
+    error_init(
+        data->cs_enter,
+        data->cs_exit,
+        data->error_update_timer,
+        data->error_stop_timer
+    );
     identity_init();
 
     /**
@@ -35,12 +46,14 @@ PostReturnCode _post_modules_init(PostInitData * data) {
      * always OK or some assertion can be made (like for the NULL checks)
      */
     (void)timebase_init(1U);
+    (void)pcu_init(data->pcu_set, data->pcu_toggle);
     (void)volt_init();
     (void)current_init();
     (void)can_comm_init(data->can_send);
     (void)programmer_init(data->system_reset);
     (void)led_init(data->led_set, data->led_toggle);
     (void)imd_init(data->imd_start);
+    (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
 
     return POST_OK;
 }
@@ -50,7 +63,11 @@ PostReturnCode post_run(PostInitData data) {
         data.can_send == NULL ||
         data.led_set == NULL ||
         data.led_toggle == NULL ||
-        data.imd_start == NULL)
+        data.imd_start == NULL ||
+        data.pcu_set == NULL ||
+        data.pcu_toggle == NULL ||
+        data.feedback_read_all == NULL ||
+        data.feedback_start_conversion == NULL)
         return POST_NULL_POINTER;
 
     PostReturnCode post_code = _post_modules_init(&data);

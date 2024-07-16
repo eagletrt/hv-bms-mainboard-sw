@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "can.h"
 #include "dac.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -34,6 +35,8 @@
 
 #include "fsm.h"
 #include "post.h"
+
+#include "stm32f4xx_it.h"
 
 /* USER CODE END Includes */
 
@@ -99,6 +102,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
@@ -111,6 +115,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SPI3_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -124,17 +129,28 @@ int main(void)
    */
   HAL_GPIO_WritePin(BMS_OK_GPIO_Port, BMS_OK_Pin, GPIO_PIN_SET);
 
+  /**
+   * Start the timer used to increment the timebase internal counter
+   */
   HAL_TIM_Base_Start_IT(&HTIM_TIMEBASE);
 
   fsm_state_t fsm_state = FSM_STATE_INIT;
 
   // Prepare data for the POST procedure
   PostInitData init_data = {
-    .system_reset = system_reset,
-    .can_send = can_send,
-    .led_set = gpio_led_set_state,
-    .led_toggle = gpio_led_toggle_state,
-    .imd_start = tim_start_pwm_imd
+      .system_reset = system_reset,
+      .cs_enter = it_cs_enter,
+      .cs_exit = it_cs_exit,
+      .error_update_timer = tim_update_error_timer,
+      .error_stop_timer = tim_stop_error_timer,
+      .can_send = can_send,
+      .led_set = gpio_led_set_state,
+      .led_toggle = gpio_led_toggle_state,
+      .imd_start = tim_start_pwm_imd,
+      .pcu_set = gpio_pcu_set_state,
+      .pcu_toggle = gpio_pcu_toggle_state,
+      .feedback_read_all = gpio_feedback_read_all,
+      .feedback_start_conversion = adc_start_feedback_conversion
   };
 
   fsm_state = fsm_run_state(fsm_state, &init_data);

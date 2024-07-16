@@ -38,7 +38,7 @@
 #define TIMEBASE_TICKS_TO_TIME(T, RES) ((milliseconds_t)((T) * (RES)))
 
 /** @brief Maximum number of watchdogs that can be handled simultaneously */
-#define TIMEBASE_RUNNING_WATCHDOG_COUNT (16U)
+#define TIMEBASE_RUNNING_WATCHDOG_COUNT (24U)
 
 /**
  * @brief Return code for the timebase module functions

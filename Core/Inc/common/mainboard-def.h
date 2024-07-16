@@ -174,6 +174,24 @@
         MAINBOARD_BIT_RESET(VAR, BIT) \
     )
 
+/**
+ * @brief Convert a value gathered from an ADC to a voltage in mV
+ *
+ * @param VALUE The raw value to convert
+ * @param VREF The voltage reference in mV
+ * @param RES The resolution of the ADC in bits
+ */
+#define MAINBOARD_ADC_VALUE_TO_MILLIVOLT(VALUE, VREF, RES) ((millivolt_t)(((VALUE) / (float)((1U << RES) - 1U)) * (VREF)))
+
+/**
+ * @brief Convert a voltage in mV to an ADC raw value
+ *
+ * @param VALUE The value to convert in mV
+ * @param VREF The voltage reference in mV
+ * @param RES The resolution of the ADC in bits
+ */
+#define MAINBOARD_MILLIVOLT_TO_ADC_VALUE(VALUE, VREF, RES) ((raw_volt_t)(((VALUE) / (float)(VREF)) * ((1U << RES) - 1U)))
+
 /** @} */
 
 /*** ######################### ENUMS DEFINITIONS ######################### ***/
@@ -258,6 +276,9 @@ typedef enum {
 /** @brief Type definition for a percentage (from 0 to 100) */
 typedef int8_t percentage_t;
 typedef float precise_percentage_t;
+
+/** @brief Type definition for bit positions */
+typedef size_t bit_pos_t;
 
 /** @brief Type definition for bit flags */
 typedef uint8_t bit_flag8_t;

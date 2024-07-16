@@ -28,6 +28,7 @@
 
 #include "imd.h"
 #include "timebase.h"
+#include "error-handler.h"
 
 /* USER CODE END 0 */
 
@@ -35,6 +36,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 
 /* TIM1 init function */
 void MX_TIM1_Init(void)
@@ -245,7 +247,7 @@ void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 89;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 1000;
+  htim6.Init.Period = 999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -260,6 +262,39 @@ void MX_TIM6_Init(void)
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
+}
+/* TIM7 init function */
+void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 0;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 65535;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
 
 }
 
@@ -329,6 +364,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE BEGIN TIM6_MspInit 1 */
 
   /* USER CODE END TIM6_MspInit 1 */
+  }
+  else if(tim_baseHandle->Instance==TIM7)
+  {
+  /* USER CODE BEGIN TIM7_MspInit 0 */
+
+  /* USER CODE END TIM7_MspInit 0 */
+    /* TIM7 clock enable */
+    __HAL_RCC_TIM7_CLK_ENABLE();
+
+    /* TIM7 interrupt Init */
+    HAL_NVIC_SetPriority(TIM7_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM7_IRQn);
+  /* USER CODE BEGIN TIM7_MspInit 1 */
+
+  /* USER CODE END TIM7_MspInit 1 */
   }
 }
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
@@ -444,6 +494,20 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
   /* USER CODE END TIM6_MspDeInit 1 */
   }
+  else if(tim_baseHandle->Instance==TIM7)
+  {
+  /* USER CODE BEGIN TIM7_MspDeInit 0 */
+
+  /* USER CODE END TIM7_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM7_CLK_DISABLE();
+
+    /* TIM7 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM7_IRQn);
+  /* USER CODE BEGIN TIM7_MspDeInit 1 */
+
+  /* USER CODE END TIM7_MspDeInit 1 */
+  }
 }
 
 /* USER CODE BEGIN 1 */
@@ -455,8 +519,30 @@ void tim_start_pwm_imd(void) {
     HAL_TIM_IC_Start(&HTIM_IMD, TIM_CHANNEL_2);
 }
 
+void tim_update_error_timer(uint32_t timestamp, uint16_t timeout) {  
+    HAL_TIM_Base_Stop_IT(&HTIM_ERROR);
+
+    // Calculate the delta between the current time and the expected expiration time
+    int32_t t = HAL_GetTick();
+    // Negative value are clamped to 0
+    int32_t dt = MAINBOARD_MAX(0, ((int32_t)timestamp - t) + (int32_t)timeout);
+
+    // Set timer to expire after the calculated delta time
+    __HAL_TIM_SET_COUNTER(&HTIM_ERROR, 0);
+    __HAL_TIM_SET_AUTORELOAD(&HTIM_ERROR, TIM_MS_TO_TICKS(&HTIM_ERROR, dt));
+    __HAL_TIM_CLEAR_FLAG(&HTIM_ERROR, TIM_IT_CC1);
+    HAL_TIM_Base_Start_IT(&HTIM_ERROR);
+}
+
+void tim_stop_error_timer(void) {
+    HAL_TIM_Base_Stop_IT(&HTIM_ERROR);
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim) {
-    if (htim->Instance == HTIM_TIMEBASE.Instance) {
+    if (htim->Instance == HTIM_ERROR.Instance) {
+        error_handler_error_expire();
+    }
+    else if (htim->Instance == HTIM_TIMEBASE.Instance) {
         timebase_inc_tick();
     }
 }

@@ -192,7 +192,7 @@ typedef CanCommReturnCode (* can_comm_transmit_callback_t)(
  *
  * @param payload A pointer to the converted canlib structure data
  */
-typedef void (* can_comm_canlib_payload_handle_callback)(void * payload);
+typedef void (* can_comm_canlib_payload_handle_callback_t)(void * payload);
 
 /** @brief Type definitions for the canlib device functions */
 typedef int (* id_from_index_t)(int);
