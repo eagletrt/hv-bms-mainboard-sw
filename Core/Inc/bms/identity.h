@@ -16,6 +16,20 @@
 #include "primary_network.h"
 
 /**
+ * @brief Identity module handler structure
+ *
+ * @param build_time The unix timestamp of the latest build time
+ * @param mainboard_version_payload The payload of the canlib message containing the mainboard version
+ * @param cellboard_version_payload The payloads of the canlib message containing the cellboards version
+ */
+typedef struct {
+    seconds_t build_time;
+
+    primary_hv_mainboard_version_converted_t mainboard_version_payload;
+    primary_hv_cellboard_version_converted_t cellboard_version_payload[CELLBOARD_ID_COUNT];
+} _IdentityHandler;
+
+/**
  * @brief Definition of the string containing the latest build time
  *
  * @details The build time string is in the following format %b %d %Y %H:%M:%S
