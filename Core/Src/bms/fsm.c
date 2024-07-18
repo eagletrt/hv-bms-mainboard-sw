@@ -60,18 +60,7 @@ transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STATES] = 
 fsm_event_data_t * fsm_fired_event = NULL;
 
 /*** USER CODE BEGIN GLOBALS ***/
-_STATIC struct {
-    fsm_state_t fsm_state;
-    fsm_event_data_t event;
-
-    // Canlib paylaods
-    primary_hv_status_converted_t status_can_payload;
-    primary_hv_flash_response_converted_t flash_can_payload;
-
-    bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
-} hfsm = {
-    .fsm_state = FSM_STATE_INIT
-};
+_STATIC _FsmHandler hfsm = {.fsm_state = FSM_STATE_INIT};
 /*** USER CODE END GLOBALS ***/
 
 

@@ -23,6 +23,7 @@ Functions and types have been generated with prefix "fsm_"
 
 #include "bms_network.h"
 #include "primary_network.h"
+#include "mainboard-def.h"
 
 // TODO: Define feedback masks and expected values
 
@@ -95,7 +96,16 @@ typedef fsm_state_t state_func_t(fsm_state_data_t *data);
 typedef void transition_func_t(fsm_state_data_t *data);
 
 /*** USER CODE BEGIN TYPES ***/
+typedef struct {
+    fsm_state_t fsm_state;
+    fsm_event_data_t event;
 
+    // Canlib paylaods
+    primary_hv_status_converted_t status_can_payload;
+    primary_hv_flash_response_converted_t flash_can_payload;
+
+    bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
+} _FsmHandler;
 /*** USER CODE END TYPES ***/
 
 // Functions to check and trigger an event
