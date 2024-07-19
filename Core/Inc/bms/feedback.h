@@ -55,7 +55,14 @@
 )
 
 /**
- * @brief
+ * @brief Feedbacks states needed when the miainboard is in the IDLE state
+ * and has to go to the AIRN_CHECK state
+ *
+ * @details The mask is used to select the feedbacks that have to be checked
+ * The high and low macros are the expected states for each feedback, for example if one
+ * feedback is put inside the high macro its value is expected to be logically high
+ * 
+ * @details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH \
     ( \
@@ -85,7 +92,14 @@
 #define FEEDBACK_IDLE_TO_AIRN_CHECK_MASK ((FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH) | (FEEDBACK_IDLE_TO_AIRN_CHECK_LOW))
 
 /**
- * @brief
+ * @brief Feedbacks states needed when the miainboard is in the AIRN_CHECK state
+ * and has to go to the PRECHARGE state
+ *
+ * @details The mask is used to select the feedbacks that have to be checked
+ * The high and low macros are the expected states for each feedback, for example if one
+ * feedback is put inside the high macro its value is expected to be logically high
+ * 
+ * @details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH \
     ( \
@@ -115,7 +129,14 @@
 #define FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK ((FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH) | (FEEDBACK_AIRN_CHECK_TO_PRECHARGE_LOW))
 
 /**
- * @brief
+ * @brief Feedbacks states needed when the miainboard is in the PRECHARGE state
+ * and has to go to the AIRP_CHECK state
+ *
+ * @details The mask is used to select the feedbacks that have to be checked
+ * The high and low macros are the expected states for each feedback, for example if one
+ * feedback is put inside the high macro its value is expected to be logically high
+ * 
+ * @details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH \
     ( \
@@ -145,7 +166,14 @@
 #define FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK ((FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH) | (FEEDBACK_PRECHARGE_TO_AIRP_CHECK_LOW))
 
 /**
- * @brief
+ * @brief Feedbacks states needed when the miainboard is in the AIRP_CHECK state
+ * and has to go to the TS_ON state
+ *
+ * @details The mask is used to select the feedbacks that have to be checked
+ * The high and low macros are the expected states for each feedback, for example if one
+ * feedback is put inside the high macro its value is expected to be logically high
+ * 
+ * @details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH \
     ( \
@@ -175,7 +203,13 @@
 #define FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK ((FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH) | (FEEDBACK_AIRP_CHECK_TO_TS_ON_LOW))
 
 /**
- * @brief 
+ * @brief Feedbacks states needed needed to keep the miainboard in the TS_ON state
+ *
+ * @details The mask is used to select the feedbacks that have to be checked
+ * The high and low macros are the expected states for each feedback, for example if one
+ * feedback is put inside the high macro its value is expected to be logically high
+ * 
+ * @details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_TS_ON_HIGH (FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH)
 #define FEEDBACK_TS_ON_LOW (FEEDBACK_AIRP_CHECK_TO_TS_ON_LOW)

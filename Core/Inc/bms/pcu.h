@@ -19,6 +19,8 @@
 #define PCU_PRECHARGE_TIMEOUT ((milliseconds_t)15000U)
 #define PCU_AIRP_TIMEOUT ((milliseconds_t)1000U)
 
+#define PCU_PRECHARGE_THRESHOLD_PERCENT ((precise_percentage_t)0.95f)
+
 /**
  * @brief Return code for the PCU module functions
  *
@@ -116,6 +118,13 @@ void pcu_precharge_stop_watchdog(void);
 /** @brief Activate or deactivate the AMS */
 void pcu_ams_activate(void);
 void pcu_ams_deactivate(void);
+
+/**
+ * @brief Check if the precharge has ended
+ *
+ * @return bool True if the precharge is completed, false otherwise
+ */
+bool pcu_is_precharge_complete(void);
 
 /**
  * @brief Handle the received set status message sent from the ECU

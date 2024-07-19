@@ -1,6 +1,6 @@
 /**
  * @file current.h
- * @date 2024-08-08
+ * @date 2024-06-08
  * @author Antonio Gelain [antonio.gelain2@gmail.com]
  *
  * @brief Current measurement and control
@@ -41,7 +41,7 @@
 #define CURRENT_MILLIAMPERE_TO_VALUE(value) ((raw_current_t)(value))
 
 /**
- * @brief Return code for the voltage module functions
+ * @brief Return code for the current module functions
  *
  * @details
  *     - CURRENT_OK the function executed succefully

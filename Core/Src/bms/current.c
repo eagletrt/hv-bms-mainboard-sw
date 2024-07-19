@@ -1,6 +1,6 @@
 /**
  * @file current.c
- * @date 2024-08-08
+ * @date 2024-06-08
  * @author Antonio Gelain [antonio.gelain2@gmail.com]
  *
  * @brief Current measurement and control

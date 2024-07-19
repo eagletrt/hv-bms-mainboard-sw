@@ -13,6 +13,7 @@
 #include "watchdog.h"
 #include "timebase.h"
 #include "fsm.h"
+#include "internal-voltage.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -155,6 +156,12 @@ void pcu_ams_activate(void) {
 }
 void pcu_ams_deactivate(void) {
     hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
+}
+
+bool pcu_is_precharge_complete(void) {
+    raw_volt_t ts = internal_voltage_get_ts();
+    raw_volt_t batt = internal_voltage_get_batt();
+    return (((float)ts * 100.f) / batt) >= PCU_PRECHARGE_THRESHOLD_PERCENT;
 }
 
 void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * payload) {
