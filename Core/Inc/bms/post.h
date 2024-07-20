@@ -19,6 +19,7 @@
 #include "imd.h"
 #include "pcu.h"
 #include "feedback.h"
+#include "display.h"
 
 /**
  * @brief Return code for the post module functions
@@ -50,6 +51,10 @@ typedef enum {
  * @param imd_start A pointer to a function that should start the IMD PWM measurements
  * @param pcu_set A pointer to a function that sets the state of a PCU pin
  * @param pcu_toggle A pointer to a function that toggles the state of a PCU pin
+ * @param feedback_read_all A pointer to a function that read all the digital feedbacks
+ * @param feedback_start_conversion A pointer to a function that starts the ADC conversion of the analog feedbacks
+ * @param display_set A pointer to a function that sets the state of a single segment of the 7-segment display
+ * @param display_toggle A pointer to a function that toggles the state a single segment of the 7-segment display
  */
 typedef struct {
     system_reset_callback_t system_reset;
@@ -65,6 +70,8 @@ typedef struct {
     pcu_toggle_state_callback_t pcu_toggle;
     feedback_read_digital_all_callback_t feedback_read_all;
     feedback_start_analog_conversion_callback_t feedback_start_conversion;
+    display_segment_set_state_callback_t display_set;
+    display_segment_toggle_state_callback_t display_toggle;
 } PostInitData;
 
 #ifdef CONF_POST_MODULE_ENABLE

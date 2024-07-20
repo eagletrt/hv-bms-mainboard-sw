@@ -75,7 +75,10 @@ DisplayReturnCode display_set_segment_all(bit_flag8_t bits){
         Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ?
             TDSR0760_SEGMENT_STATUS_ON :
             TDSR0760_SEGMENT_STATUS_OFF;
-        if (tdsr0760_set_segment(&hdisplay.tdsr0760, segment, status) != TDSR0760_OK)
+        Tdsr0760ReturnCode ret = tdsr0760_set_segment(&hdisplay.tdsr0760, segment, status);
+        if (ret == TDSR0760_OK)
+            hdisplay.set((DisplaySegment)segment, (DisplaySegmentStatus)status);
+        else
             code = DISPLAY_DRIVER_ERROR;
     }
     return code;

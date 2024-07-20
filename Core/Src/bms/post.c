@@ -54,6 +54,7 @@ PostReturnCode _post_modules_init(PostInitData * data) {
     (void)led_init(data->led_set, data->led_toggle);
     (void)imd_init(data->imd_start);
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
+    (void)display_init(data->display_set, data->display_toggle);
 
     return POST_OK;
 }
@@ -67,7 +68,9 @@ PostReturnCode post_run(PostInitData data) {
         data.pcu_set == NULL ||
         data.pcu_toggle == NULL ||
         data.feedback_read_all == NULL ||
-        data.feedback_start_conversion == NULL)
+        data.feedback_start_conversion == NULL ||
+        data.display_set == NULL ||
+        data.display_toggle == NULL)
         return POST_NULL_POINTER;
 
     PostReturnCode post_code = _post_modules_init(&data);
