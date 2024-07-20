@@ -304,7 +304,6 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
-  // TODO: Check if the precharge is complete
   else if (feedback_check_values(FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH) && pcu_is_precharge_complete())
       next_state = FSM_STATE_AIRP_CHECK;
  

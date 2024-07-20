@@ -143,7 +143,8 @@
  *
  * @return The value of the modified variable
  */
-#define MAINBOARD_BIT_RESET(VAR, BIT) (~((~(VAR)) | (1U << (BIT))))
+// #define MAINBOARD_BIT_RESET(VAR, BIT) (~((~(VAR)) | (1U << (BIT))))
+#define MAINBOARD_BIT_RESET(VAR, BIT) ((VAR) & (~(1U << (BIT))))
 
 /**
  * @brief Negate a specific bit of a variable

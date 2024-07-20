@@ -37,6 +37,8 @@ FeedbackId _feedback_get_id_from_digital_bit(FeedbackDigitalBit bit) {
             return FEEDBACK_ID_PRECHARGE_OPEN_MEC;
         case FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V:
             return FEEDBACK_ID_TS_LESS_THAN_60V;
+        case FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED:
+            return FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED;
         case FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE:
             return FEEDBACK_ID_PLAUSIBLE_STATE;
         case FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED:
@@ -97,11 +99,22 @@ FeedbackId _feedback_get_id_from_analog_index(FeedbackAnalogIndex index) {
 /**
  * @brief Get the status from an raw analog feedback value
  *
+ * @details The 3V3 feedback is the only feedback considered high if between
+ * the two thresholds, otherwise it is considered in the error state
+ *
  * @param index The index of the analog feedback
  *
  * @return FeedbackStatus The status of the feedback
  */
 FeedbackStatus _feedback_get_analog_status(FeedbackAnalogIndex index) {
+    // 3V3 probing is handled differently from the other feedbacks
+    if (index == FEEDBACK_ANALOG_INDEX_PROBING_3V3) {
+        if (hfeedback.analog[index] >= FEEDBACK_THRESHOLD_LOW &&
+            hfeedback.analog[index] <= FEEDBACK_THRESHOLD_HIGH)
+            return FEEDBACK_STATUS_HIGH;
+        return FEEDBACK_STATUS_ERROR;
+    }
+
     if (hfeedback.analog[index] >= FEEDBACK_THRESHOLD_HIGH)
         return FEEDBACK_STATUS_HIGH;
     if (hfeedback.analog[index] <= FEEDBACK_THRESHOLD_LOW)
@@ -143,8 +156,8 @@ FeedbackReturnCode feedback_update_status(void) {
     for (FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {
         FeedbackId id = _feedback_get_id_from_digital_bit(bit);
         hfeedback.status[id] = MAINBOARD_BIT_GET(hfeedback.digital, bit) ?
-            FEEDBACK_STATUS_LOW :
-            FEEDBACK_STATUS_HIGH;
+            FEEDBACK_STATUS_HIGH :
+            FEEDBACK_STATUS_LOW;
     }
 
     // Update the status of the analog feedback
@@ -153,6 +166,12 @@ FeedbackReturnCode feedback_update_status(void) {
         hfeedback.status[id] = _feedback_get_analog_status(i);
     }
     return FEEDBACK_OK;
+}
+
+FeedbackStatus feedback_get_status(FeedbackId id) {
+    if (id >= FEEDBACK_ID_COUNT)
+        return FEEDBACK_STATUS_ERROR;
+    return hfeedback.status[id];
 }
 
 bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value) {
@@ -185,6 +204,42 @@ _STATIC char * feedback_return_code_description[] = {
     [FEEDBACK_NULL_POINTER] = "attempt to dereference a null pointer",
     [FEEDBACK_INVALID_INDEX] = "the given index is not valid"
 };
+
+_STATIC char * feedback_id_name[] = {
+    [FEEDBACK_ID_AIRN_OPEN_COM] = "air- open com",
+    [FEEDBACK_ID_PRECHARGE_OPEN_COM] = "precharge open com",
+    [FEEDBACK_ID_AIRP_OPEN_COM] = "air+ open com", 
+    [FEEDBACK_ID_AIRN_OPEN_MEC] = "air- open mec",
+    [FEEDBACK_ID_PRECHARGE_OPEN_MEC] = "precharge open mec",
+    [FEEDBACK_ID_AIRP_OPEN_MEC] = "air+ open mec", 
+    [FEEDBACK_ID_SD_IMD_FB] = "imd shutdown",
+    [FEEDBACK_ID_SD_BMS_FB] = "bms shutdowm",
+    [FEEDBACK_ID_TS_LESS_THAN_60V] = "ts < 60V",
+    [FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED] = "plausible state persisted",
+    [FEEDBACK_ID_PLAUSIBLE_STATE] = "plausible state",
+    [FEEDBACK_ID_BMS_FAULT_COCKPIT_LED] = "bms fault cockpit led",
+    [FEEDBACK_ID_IMD_FAULT_COCKPIT_LED] = "imd fault cockpit led",
+    [FEEDBACK_ID_INDICATOR_CONNECTED] = "indicator connected",
+    [FEEDBACK_ID_LATCH_RESET] = "latch reset",
+    [FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED] = "plausible state latched",
+    [FEEDBACK_ID_BMS_FAULT_LATCHED] = "bms fault latched",
+    [FEEDBACK_ID_IMD_FAULT_LATCHED] = "imd fault latched",
+    [FEEDBACK_ID_EXT_FAULT_LATCHED] = "ext fault latched",
+    [FEEDBACK_ID_IMD_OK] = "imd ok",
+    [FEEDBACK_ID_PLAUSIBLE_STATE_RC] = "plausible state rc",
+    [FEEDBACK_ID_TSAL_GREEN] = "tsal green",
+    [FEEDBACK_ID_PROBING_3V3] = "probing 3V3",
+    [FEEDBACK_ID_SD_OUT] = "shutdown out",
+    [FEEDBACK_ID_SD_IN] = "shutdown in",
+    [FEEDBACK_ID_SD_END] = "shutdown end",
+    [FEEDBACK_ID_V5_MCU] = "MCU 5V"
+};
+
+const char * const feedback_get_feedback_id_name(FeedbackId id) {
+    if (id >= FEEDBACK_ID_COUNT)
+        return "";
+    return feedback_id_name[id];
+}
 
 #endif // CONF_FEEDBACK_STRINGS_ENABLE
 

@@ -258,9 +258,15 @@ typedef enum {
  *     - FEEDBACK_ID_BMS_FAULT_COCKPIT_LED
  *     - FEEDBACK_ID_IMD_FAULT_COCKPIT_LED
  *     - FEEDBACK_ID_IMD_OK The IMD is working correclty
- *     - FEEDBACK_ID_INDICATOR_CONNECTED
- *     - FEEDBACK_ID_LATCH_RESET
+ *     - FEEDBACK_ID_INDICATOR_CONNECTED Voltage indicator connected
+ *     - FEEDBACK_ID_LATCH_RESET All the latch are reset
  *     - FEEDBACK_ID_PLAUSIBLE_STATE_RC Plausible state of the feedbacks
+ *     - FEEDBACK_ID_TSAL_GREEN The TSAL is green
+ *     - FEEDBACK_ID_PROBING_3V3 Feedback on the 3.3V line (comes out of a divider so it should be around 1.6V)
+ *     - FEEDBACK_ID_SD_OUT
+ *     - FEEDBACK_ID_SD_IN
+ *     - FEEDBACK_ID_SD_END
+ *     - FEEDBACK_ID_V5_MCU
  */
 typedef enum {
     FEEDBACK_ID_AIRN_OPEN_COM,
@@ -342,6 +348,7 @@ typedef enum {
     FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM,
     FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC,
     FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V,
+    FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED,
     FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE,
     FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED,
     FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED,
@@ -460,6 +467,15 @@ FeedbackReturnCode feedback_update_analog_feedback(FeedbackAnalogIndex index, ra
 FeedbackReturnCode feedback_update_status(void);
 
 /**
+ * @brief Get the status of a single feedback
+ *
+ * @param id The identifier of the feedback
+ *
+ * @return FeedbackStatus The feedback status
+ */
+FeedbackStatus feedback_get_status(FeedbackId id);
+
+/**
  * @brief Check if the feedbacks specified in the mask are in the expected status
  * 
  * @param mask The mask used to select the feedbacks to check
@@ -469,6 +485,23 @@ FeedbackReturnCode feedback_update_status(void);
  */
 bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value);
 
+#ifdef CONF_FEEDBACK_STRINGS_ENABLE
+
+/**
+ * @brief Get the name of the corresponding feedback identifier
+ *
+ * @param id The feedback identifier
+ *
+ * @return cont char* A pointer to the name of the feedback id
+ */
+const char * const feedback_get_feedback_id_name(FeedbackId id);
+
+#else  // CONF_FEEDBACK_STRINGS_ENABLE
+
+#define feedback_get_feedback_id_name(id) ""
+
+#endif // CONF_FEEDBACK_STRINGS_ENABLE
+
 #else  // CONF_FEEDBACK_MODULE_ENABLE
 
 #define feedback_init(read_all, start_conversion) (FEEDBACK_OK)
@@ -476,6 +509,7 @@ bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value);
 #define feedback_start_analog_conversion_all() (FEEDBACK_OK)
 #define feedback_update_analog_conversion(index, value) (FEEDBACK_OK)
 #define feedback_update_status() (FEEDBACK_OK)
+#define feedback_get_status(id) (FEEDBACK_STATUS_ERROR)
 #define feedback_check_values(mask, value) (true)
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
