@@ -1,12 +1,15 @@
 /**
  * @file tdsr0760.c
  * @date 2024-07-04
+ * @author Ettore Beltrame [ettore.beltrame@studenti.unitn.com]
  * @author Antonio Gelain [antonio.gelain2@gmail.com]
  *
- * @brief Drivers for the TDSR0760 7-segment 1 digit display
+ * @brief 7-segment display handling functions
  */
 
 #include "display.h"
+
+#include <string.h>
 
 #ifdef CONF_DISPLAY_MODULE_ENABLE
 
@@ -18,6 +21,7 @@ DisplayReturnCode display_init(
 {
     if (set == NULL || toggle == NULL)
         return DISPLAY_NULL_POINTER;
+    memset(&hdisplay, 0U, sizeof(hdisplay));
     hdisplay.set = set;
     hdisplay.toggle = toggle;
     tdsr0760_init(&hdisplay.tdsr0760);
@@ -216,12 +220,16 @@ _STATIC char * display_module_name = "display";
 
 _STATIC char * display_return_code_name[] = {
     [DISPLAY_OK] = "ok",
-    [DISPLAY_NULL_POINTER] = "null pointer"
+    [DISPLAY_NULL_POINTER] = "null pointer",
+    [DISPLAY_INVALID_SEGMENT] = "invalid segment",
+    [DISPLAY_INVALID_CHARACTER] = "invalid character"
 };
 
 _STATIC char * display_return_code_description[] = {
     [DISPLAY_OK] = "executed succefully",
-    [DISPLAY_NULL_POINTER] = "attempt to dereference a null pointer"
+    [DISPLAY_NULL_POINTER] = "attempt to dereference a null pointer",
+    [DISPLAY_INVALID_SEGMENT] = "the selected segment does not exist",
+    [DISPLAY_INVALID_CHARACTER] = "the character cannot be displayed"
 };
 
 #endif // CONF_DISPLAY_STRINGS_ENABLE
