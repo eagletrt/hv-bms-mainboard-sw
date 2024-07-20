@@ -22,25 +22,31 @@
  *     - DISPLAY_OK the function executed succesfully
  *     - DISPLAY_NULL_POINTER a NULL pointer was given to a function
  *     - DISPLAY_INVALID_SEGMENT the given segment does not exist
+ *     - DISPLAY_INVALID_STATUS the given segment status is not valid
  *     - DISPLAY_INVALID_CHARACTER the given character does not exist
+ *     - DISPLAY_DRIVER_ERROR error caused by the display driver
  */
 typedef enum {
     DISPLAY_OK,
     DISPLAY_NULL_POINTER,
     DISPLAY_INVALID_SEGMENT,
+    DISPLAY_INVALID_STATUS,
     DISPLAY_INVALID_CHARACTER,
+    DISPLAY_DRIVER_ERROR
 } DisplayReturnCode;
 
 /**
  * @brief Type definition for the status of a display segment
  *
  * @details
- *     - DISPLAY_SEGMENT_OFF the segment is turned off
- *     - DISPLAY_SEGMENT_ON the segment is turned on
+ *     - DISPLAY_SEGMENT_STATUS_OFF the segment is turned off
+ *     - DISPLAY_SEGMENT_STATUS_ON the segment is turned on
+ *     - DISPLAY_SEGMENT_STATUS_UNKNOWN the segment status is unknown
  */
 typedef enum {
-    DISPLAY_SEGMENT_OFF = TDSR0760_SEGMENT_OFF,
-    DISPLAY_SEGMENT_ON = TDSR0760_SEGMENT_ON
+    DISPLAY_SEGMENT_STATUS_OFF = TDSR0760_SEGMENT_STATUS_OFF,
+    DISPLAY_SEGMENT_STATUS_ON = TDSR0760_SEGMENT_STATUS_ON,
+    DISPLAY_SEGMENT_STATUS_UNKNOWN = TDSR0760_SEGMENT_STATUS_UNKNOWN
 } DisplaySegmentStatus;
 
 /**
@@ -155,64 +161,90 @@ DisplayReturnCode display_init(
 );
 
 /**
+ * @brief Get the status of a single segment of the 7-segment display
+ *
+ * @param segment The segment to select
+ *
+ * @return DisplaySegmentStatus The current status of the display segment, or
+ * DISPLAY_SEGMENT_STATUS_UNKNOWN on error
+ */
+DisplaySegmentStatus display_get_segment(DisplaySegment segment);
+
+/**
  * @brief Set the status of a single segment of the 7-segment display
  *
  * @param segment The segment to select
- * @param state The new state to set
+ * @param state The state to set
  *
  * @return DisplayReturnCode
- *     - DISPLAY_OK
+ *     - DISPLAY_INVALID_SEGMENT the selected segment does not exists
+ *     - DISPLAY_INVALID_STATUS the given segment status is not valid
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_OK otherwise
  */
 DisplayReturnCode display_set_segment(DisplaySegment segment, DisplaySegmentStatus state);
 
 /**
- * @brief Set the status of all the segment of the 7-segment display
+ * @brief Set the status of a single segment of the 7-segment display
  *
- * @param state An uint8_t representing the state of the segments
- * 
- * @details LSB to MSB
- * TOP
- * TOP_RIGHT
- * TOP_LEFT
- * MIDDLE
- * BOTTOM
- * BOTTOM_RIGHT
- * BOTTOM_LEFT
- * DECIMAL_POINT
+ * @param segment The segment to select
+ * @param state The state to set
  *
  * @return DisplayReturnCode
- *     - DISPLAY_OK
+ *     - DISPLAY_INVALID_SEGMENT the selected segment does not exists
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_INVALID_STATUS the new segment status is not valid
+ *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_state(uint8_t state);
+DisplayReturnCode display_toggle_segment(DisplaySegment segment);
+
+/**
+ * @brief Set the status of all the segment of the 7-segment display
+ *
+ * @details The bit index of the bitflag is defined inside the DisplaySegment enum
+ *
+ * @param bits A bitflag where each bit represents a single segment
+ * 
+ * @return DisplayReturnCode
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_OK otherwise
+ */
+DisplayReturnCode display_set_segment_all(bit_flag8_t bits);
 
 /**
  * @brief Shows an hexadecimal digit on the 7-segment display
  *
- * @param num Number to show [0 - F]
- * @param decimal The new state of the decimal point
+ * @param digit A number from 0 to 15
  *
  * @return DisplayReturnCode
- *     - DISPLAY_OK
+ *     - DISPLAY_INVALID_CHARACTER if the given digit is greater than 15
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_number(uint8_t num, DisplaySegmentStatus decimal);
+DisplayReturnCode display_set_digit(uint8_t digit);
 
 /**
  * @brief Shows a character on the 7-segment display 
  *
- * @attention Only supports a subset of all characters
+ * @attention Only supports a small subset of all the ASCII characters
  * 
- * @param cha Character to show
- * @param decimal The new state of the decimal point
+ * @param character The character to show
  *
  * @return DisplayReturnCode
- *     - DISPLAY_OK
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_char(char cha, DisplaySegmentStatus decimal);
+DisplayReturnCode display_set_character(char character);
 
 #else  // CONF_DISPLAY_MODULE_ENABLE
 
 #define display_init(set, toggle) (DISPLAY_OK)
+#define display_get_segment(segment) (DISPLAY_SEGMENT_STATUS_UNKOWN)
 #define display_set_segment(segment, state) (DISPLAY_OK)
+#define display_toggle_segment(segment) (DISPLAY_OK)
+#define display_set_segment_all(bits) (DISPLAY_OK)
+#define display_set_digit(digit) (DISPLAY_OK)
+#define display_set_character(character) (DISPLAY_OK)
 
 #endif // CONF_DISPLAY_MODULE_ENABLE
 

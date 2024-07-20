@@ -27,12 +27,14 @@ typedef enum {
  * @brief Type definition for the status of a display segment
  *
  * @details
- *     - TDSR0760_SEGMENT_OFF the segment is turned off
- *     - TDSR0760_SEGMENT_ON the segment is turned on
+ *     - TDSR0760_SEGMENT_STATUS_OFF the segment is turned off
+ *     - TDSR0760_SEGMENT_STATUS_ON the segment is turned on
+ *     - TDSR0760_SEGMENT_STATUS_UNKNOWN the segment status is unkown
  */
 typedef enum {
-    TDSR0760_SEGMENT_OFF = 0,
-    TDSR0760_SEGMENT_ON,
+    TDSR0760_SEGMENT_STATUS_OFF = 0,
+    TDSR0760_SEGMENT_STATUS_ON,
+    TDSR0760_SEGMENT_STATUS_UNKNOWN,
 } Tdsr0760SegmentStatus;
 
 /**
@@ -84,6 +86,20 @@ typedef struct {
 Tdsr0760ReturnCode tdsr0760_init(Tdsr0760Handler * handler);
 
 /**
+ * @brief Get the status of a single segment
+ *
+ * @param handler A pointer to the 7-segment display handler structure
+ * @param segment The segment to select
+ *
+ * @return Tdsr0760SegmentStatus The current status of the segment, or
+ * TDSR0760_SEGMENT_STATUS_UNKOWN on error
+ */
+Tdsr0760SegmentStatus tdsr0760_get_segment(
+    Tdsr0760Handler * handler,
+    Tdsr0760Segment segment
+);
+
+/**
  * @brief Set the status of a single segment
  *
  * @param handler A pointer to the 7-segment display handler structure
@@ -91,12 +107,32 @@ Tdsr0760ReturnCode tdsr0760_init(Tdsr0760Handler * handler);
  * @param state The new status to set
  *
  * @return Tdsr0760ReturnCode
- *     - TDSR0760_OK
+ *     - TDSR0760_NULL_POINTER if any of the parameters is NULL
+ *     - TDSR0760_INVALID_SEGMENT if the selected segment does not exists
+ *     - TDSR0760_OK otherwise
  */
 Tdsr0760ReturnCode tdsr0760_set_segment(
     Tdsr0760Handler * handler,
     Tdsr0760Segment segment,
     Tdsr0760SegmentStatus state
+);
+
+/**
+ * @brief Toggle the status of a single segment
+ *
+ * @details If the status is unknown it is set to TDSR0760_SEGMENT_STATUS_ON
+ *
+ * @param handler A pointer to the 7-segment display handler structure
+ * @param segment The segment to select
+ *
+ * @return Tdsr0760ReturnCode
+ *     - TDSR0760_NULL_POINTER if any of the parameters is NULL
+ *     - TDSR0760_INVALID_SEGMENT if the selected segment does not exists
+ *     - TDSR0760_OK otherwise
+ */
+Tdsr0760ReturnCode tdsr0760_toggle_segment(
+    Tdsr0760Handler * handler,
+    Tdsr0760Segment segment
 );
 
 #endif  // TDSR0760_H
