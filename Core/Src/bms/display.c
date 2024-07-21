@@ -71,7 +71,7 @@ DisplayReturnCode display_toggle_segment(DisplaySegment segment) {
 
 DisplayReturnCode display_set_segment_all(bit_flag8_t bits){
     DisplayReturnCode code = DISPLAY_OK;
-    for (Tdsr0760Segment segment = 0U; segment < DISPLAY_SEGMENT_COUNT; ++segment) {
+    for (Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
         Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ?
             TDSR0760_SEGMENT_STATUS_ON :
             TDSR0760_SEGMENT_STATUS_OFF;
@@ -125,42 +125,39 @@ DisplayReturnCode display_set_character(char character) {
 
         // Uppercase characters
         case 'A': code = DISPLAY_CHARACTER_CODE_A_UPCASE; break;
-        case 'B': code = DISPLAY_CHARACTER_CODE_B_DOWNCASE; break;
         case 'C': code = DISPLAY_CHARACTER_CODE_C_UPCASE; break;
-        case 'D': code = DISPLAY_CHARACTER_CODE_D_DOWNCASE; break;
         case 'E': code = DISPLAY_CHARACTER_CODE_E_UPCASE; break;
         case 'F': code = DISPLAY_CHARACTER_CODE_F_UPCASE; break;
         case 'G': code = DISPLAY_CHARACTER_CODE_G_UPCASE; break;
         case 'H': code = DISPLAY_CHARACTER_CODE_H_UPCASE; break;
         case 'I': code = DISPLAY_CHARACTER_CODE_I_UPCASE; break;
         case 'J': code = DISPLAY_CHARACTER_CODE_J_UPCASE; break;
+        case 'K': code = DISPLAY_CHARACTER_CODE_K_UPCASE; break;
         case 'L': code = DISPLAY_CHARACTER_CODE_L_UPCASE; break;
-        case 'N': code = DISPLAY_CHARACTER_CODE_N_UPCASE; break;
-        case 'O': code = DISPLAY_CHARACTER_CODE_O_DOWNCASE; break;
+        case 'M': code = DISPLAY_CHARACTER_CODE_M_UPCASE; break;
         case 'P': code = DISPLAY_CHARACTER_CODE_P_UPCASE; break;
-        case 'R': code = DISPLAY_CHARACTER_CODE_R_DOWNCASE; break;
-        case 'T': code = DISPLAY_CHARACTER_CODE_T_DOWNCASE; break; 
+        case 'S': code = DISPLAY_CHARACTER_CODE_S_UPCASE; break;
         case 'U': code = DISPLAY_CHARACTER_CODE_U_UPCASE; break;
-        case 'Y': code = DISPLAY_CHARACTER_CODE_Y_DOWNCASE; break;
+        case 'V': code = DISPLAY_CHARACTER_CODE_V_UPCASE; break;
+        case 'W': code = DISPLAY_CHARACTER_CODE_W_UPCASE; break;
+        case 'X': code = DISPLAY_CHARACTER_CODE_X_UPCASE; break;
+        case 'Z': code = DISPLAY_CHARACTER_CODE_Z_UPCASE; break;
 
         // Lowercase characters
-        case 'a': code = DISPLAY_CHARACTER_CODE_A_UPCASE; break;
+        case 'a': code = DISPLAY_CHARACTER_CODE_A_DOWNCASE; break;
         case 'b': code = DISPLAY_CHARACTER_CODE_B_DOWNCASE; break;
         case 'c': code = DISPLAY_CHARACTER_CODE_C_DOWNCASE; break;
         case 'd': code = DISPLAY_CHARACTER_CODE_D_DOWNCASE; break;
-        case 'e': code = DISPLAY_CHARACTER_CODE_E_UPCASE; break;
-        case 'f': code = DISPLAY_CHARACTER_CODE_F_UPCASE; break;
-        case 'g': code = DISPLAY_CHARACTER_CODE_G_UPCASE; break;
         case 'h': code = DISPLAY_CHARACTER_CODE_H_DOWNCASE; break;
         case 'i': code = DISPLAY_CHARACTER_CODE_I_DOWNCASE; break;
-        case 'j': code = DISPLAY_CHARACTER_CODE_J_UPCASE; break;
-        case 'l': code = DISPLAY_CHARACTER_CODE_L_UPCASE; break;
+        case 'j': code = DISPLAY_CHARACTER_CODE_J_DOWNCASE; break;
         case 'n': code = DISPLAY_CHARACTER_CODE_N_DOWNCASE; break;
         case 'o': code = DISPLAY_CHARACTER_CODE_O_DOWNCASE; break;
-        case 'p': code = DISPLAY_CHARACTER_CODE_P_UPCASE; break;
+        case 'q': code = DISPLAY_CHARACTER_CODE_Q_DOWNCASE; break;
         case 'r': code = DISPLAY_CHARACTER_CODE_R_DOWNCASE; break;
         case 't': code = DISPLAY_CHARACTER_CODE_T_DOWNCASE; break;
         case 'u': code = DISPLAY_CHARACTER_CODE_U_DOWNCASE; break;
+        case 'x': code = DISPLAY_CHARACTER_CODE_X_DOWNCASE; break;
         case 'y': code = DISPLAY_CHARACTER_CODE_Y_DOWNCASE; break;
 
         // Symbols
