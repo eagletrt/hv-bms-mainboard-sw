@@ -106,7 +106,7 @@ void pcu_reset_all(void) {
 
     // Set all pins to their default state
     hpcu.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
-    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW);
+    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
     hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
     hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
 
@@ -141,10 +141,10 @@ void pcu_airp_stop_watchdog(void) {
 // TODO: Handler watchdog return codes
 void pcu_precharge_start(void) {
     watchdog_start(&hpcu.precharge_watchdog);
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
+    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW);
 }
 void pcu_precharge_stop(void) {
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW);
+    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
     watchdog_stop(&hpcu.precharge_watchdog);
 }
 void pcu_precharge_stop_watchdog(void) {

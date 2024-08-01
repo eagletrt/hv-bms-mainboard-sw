@@ -15,6 +15,7 @@
 #include "timebase.h"
 #include "volt.h"
 #include "current.h"
+#include "internal-voltage.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
@@ -55,6 +56,7 @@ PostReturnCode _post_modules_init(PostInitData * data) {
     (void)imd_init(data->imd_start);
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
     (void)display_init(data->display_set, data->display_toggle);
+    (void)internal_voltage_init(data->spi_send, data->spi_send_receive);
 
     return POST_OK;
 }
@@ -70,7 +72,9 @@ PostReturnCode post_run(PostInitData data) {
         data.feedback_read_all == NULL ||
         data.feedback_start_conversion == NULL ||
         data.display_set == NULL ||
-        data.display_toggle == NULL)
+        data.display_toggle == NULL ||
+        data.spi_send == NULL ||
+        data.spi_send_receive == NULL)
         return POST_NULL_POINTER;
 
     PostReturnCode post_code = _post_modules_init(&data);

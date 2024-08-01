@@ -358,11 +358,15 @@ void gpio_pcu_toggle_state(PcuPin pcu_pin) {
 }
 
 bit_flag32_t gpio_feedback_read_all(void) {
+    /*
+     * AIR- and AIR+ are swapped in the schematic, the issue is temporarily
+     * solved here by swapping the indices
+     */
     register bit_flag32_t feedbacks = 0U;
 
     // Read all pins
-    feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(AIRN_OPEN_COM_GPIO_Port, AIRN_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
-    feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(AIRP_OPEN_COM_GPIO_Port, AIRP_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
+    feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(AIRN_OPEN_COM_GPIO_Port, AIRN_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM); // This indices are swapped
+    feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(AIRP_OPEN_COM_GPIO_Port, AIRP_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM); // Read above
     feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(SD_IMD_FB_GPIO_Port, SD_IMD_FB_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_SD_IMD_FB);
     feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(SD_BMS_FB_GPIO_Port, SD_BMS_FB_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
     feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(PRECHARGE_OPEN_COM_GPIO_Port, PRECHARGE_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);

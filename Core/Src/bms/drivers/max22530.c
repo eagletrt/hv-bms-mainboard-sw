@@ -40,7 +40,7 @@ Max22530ReturnCode _max22530_write(Max22530Handler * handler, max22530_address_t
  */
 int16_t _max22530_read(Max22530Handler * handler, max22530_address_t address) {
     uint8_t cmd[MAX22530_COMMAND_BYTE_SIZE];
-    cmd[0U] = (address << 2U) | (MAX22530_COMMAND_WRITE << 1U) | (MAX22530_BURST_OFF);
+    cmd[0U] = (address << 2U) | (MAX22530_COMMAND_READ << 1U) | (MAX22530_BURST_OFF);
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_COMMAND_BYTE_SIZE; ++i)
@@ -66,7 +66,7 @@ Max22530ReturnCode _max22530_burst(Max22530Handler * handler, bool filtered, uin
         MAX22530_REGISTER_ADC;
 
     uint8_t cmd[MAX22530_BURST_BYTE_SIZE];
-    cmd[0U] = (address << 2U) | (MAX22530_COMMAND_WRITE << 1U) | (MAX22530_BURST_ON);
+    cmd[0U] = (address << 2U) | (MAX22530_COMMAND_READ << 1U) | (MAX22530_BURST_ON);
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_BURST_BYTE_SIZE; ++i)

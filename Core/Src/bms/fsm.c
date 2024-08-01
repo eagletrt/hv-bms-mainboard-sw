@@ -414,8 +414,6 @@ void fsm_start(fsm_state_data_t *data) {
 
   can_comm_enable_all();
   timebase_set_enable(true);
-
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END START ***/
 }
 
@@ -431,11 +429,8 @@ void fsm_start(fsm_state_data_t *data) {
 void fsm_handle_fatal_error(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
-
   // Activate the AMS
   pcu_ams_activate();
-
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END HANDLE_FATAL_ERROR ***/
 }
 
@@ -445,7 +440,6 @@ void fsm_handle_fatal_error(fsm_state_data_t *data) {
 void fsm_start_flash_procedure(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/ 
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END START_FLASH_PROCEDURE ***/
 }
 
@@ -454,7 +448,6 @@ void fsm_start_flash_procedure(fsm_state_data_t *data) {
 void fsm_start_balancing(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START_BALANCING ***/ 
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END START_BALANCING ***/
 }
 
@@ -465,8 +458,6 @@ void fsm_close_airn(fsm_state_data_t *data) {
   /*** USER CODE BEGIN CLOSE_AIRN ***/
   // Close the AIR-
   pcu_airn_close();
-
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END CLOSE_AIRN ***/
 }
 
@@ -475,7 +466,6 @@ void fsm_close_airn(fsm_state_data_t *data) {
 void fsm_stop_flash_procedure(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN STOP_FLASH_PROCEDURE ***/ 
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END STOP_FLASH_PROCEDURE ***/
 }
 
@@ -484,7 +474,6 @@ void fsm_stop_flash_procedure(fsm_state_data_t *data) {
 void fsm_stop_balancing(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN STOP_BALANCING ***/ 
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END STOP_BALANCING ***/
 }
 
@@ -497,8 +486,6 @@ void fsm_ts_off(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN TS_OFF ***/
   pcu_reset_all();
-  
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END TS_OFF ***/
 }
 
@@ -510,8 +497,6 @@ void fsm_start_precharge(fsm_state_data_t *data) {
   // Stop the AIR- watchdog and start the precharge
   pcu_airn_stop_watchdog();
   pcu_precharge_start();
-
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END START_PRECHARGE ***/
 }
 
@@ -523,8 +508,6 @@ void fsm_close_airp(fsm_state_data_t *data) {
   // Stop the precharge watchdog and close the AIR+
   pcu_precharge_stop_watchdog();
   pcu_airp_close();
-
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END CLOSE_AIRP ***/
 }
 
@@ -535,8 +518,6 @@ void fsm_ts_on(fsm_state_data_t *data) {
   /*** USER CODE BEGIN TS_ON ***/
   // Stop the AIR+ watchdog
   pcu_airp_stop_watchdog();
-  
-  display_set_digit(hfsm.fsm_state);
   /*** USER CODE END TS_ON ***/
 }
 
@@ -568,8 +549,10 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
     fsm_fired_event = NULL;
   if (new_state == FSM_NO_CHANGE) new_state = cur_state;
   transition_func_t *transition = fsm_transition_table[cur_state][new_state];
-  if (transition)
+  if (transition) {
+    display_set_digit(new_state);
     transition(data);
+  }
   return new_state;
 };
 

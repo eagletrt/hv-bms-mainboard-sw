@@ -239,9 +239,9 @@ void spi_send(SpiNetwork network, uint8_t * data, size_t size) {
     uint16_t pin = _spi_get_pin_from_network(network);
 
     // Send data
-    HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
-    HAL_SPI_Transmit(hspi, data, size, size * 5U);
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(hspi, data, size, size * 5U);
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
 }
 
 void spi_send_receive(
@@ -259,10 +259,10 @@ void spi_send_receive(
     uint16_t pin = _spi_get_pin_from_network(network);
 
     // Send and receive data
-    HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
     HAL_SPI_Transmit(hspi, data, size, size * 5U);
     HAL_SPI_Receive(hspi, out, out_size, out_size * 5U);
-    HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
 }
 
 /* USER CODE END 1 */

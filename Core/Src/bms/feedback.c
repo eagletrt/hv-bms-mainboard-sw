@@ -151,6 +151,18 @@ FeedbackReturnCode feedback_update_analog_feedback(FeedbackAnalogIndex index, ra
     return FEEDBACK_OK;
 }
 
+bool feedback_get_digital(FeedbackDigitalBit bit) {
+    if (bit >= FEEDBACK_DIGITAL_BIT_COUNT)
+        return false;
+    return MAINBOARD_BIT_GET(hfeedback.digital, bit);
+}
+
+raw_volt_t feedback_get_analog(FeedbackAnalogIndex index) {
+    if (index >= FEEDBACK_ANALOG_INDEX_COUNT)
+        return 0U;
+    return hfeedback.analog[index];
+}
+
 FeedbackReturnCode feedback_update_status(void) {
     // Update the status of the digital feedbacks
     for (FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {

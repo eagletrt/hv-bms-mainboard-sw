@@ -15,6 +15,7 @@
 #include "fsm.h"
 #include "current.h"
 #include "feedback.h"
+#include "internal-voltage.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -74,6 +75,11 @@ void _tasks_start_analog_conversion_feedbacks(void) {
 /** @brief Update all the feedbacks status */
 void _tasks_update_feedbacks_status(void) {
     (void)feedback_update_status();
+}
+
+/** @brief Start the internal voltages ADC conversion */
+void _tasks_start_internal_voltage_conversion(void) {
+    (void)internal_voltage_read_all();
 }
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {

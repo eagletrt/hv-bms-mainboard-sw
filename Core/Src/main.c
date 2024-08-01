@@ -152,7 +152,9 @@ int main(void)
       .feedback_read_all = gpio_feedback_read_all,
       .feedback_start_conversion = adc_start_feedback_conversion,
       .display_set = gpio_display_segment_set_state,
-      .display_toggle = gpio_display_segment_toggle_state
+      .display_toggle = gpio_display_segment_toggle_state,
+      .spi_send = spi_send,
+      .spi_send_receive = spi_send_receive
   };
 
   fsm_state = fsm_run_state(fsm_state, &init_data);

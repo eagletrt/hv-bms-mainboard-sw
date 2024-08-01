@@ -55,6 +55,8 @@ typedef enum {
  * @param feedback_start_conversion A pointer to a function that starts the ADC conversion of the analog feedbacks
  * @param display_set A pointer to a function that sets the state of a single segment of the 7-segment display
  * @param display_toggle A pointer to a function that toggles the state a single segment of the 7-segment display
+ * @param spi_send A pointer to a function that send data via an SPI network
+ * @param spi_send_receive A pointer to a function that send and receive data via an SPI network
  */
 typedef struct {
     system_reset_callback_t system_reset;
@@ -72,6 +74,8 @@ typedef struct {
     feedback_start_analog_conversion_callback_t feedback_start_conversion;
     display_segment_set_state_callback_t display_set;
     display_segment_toggle_state_callback_t display_toggle;
+    spi_send_callback_t spi_send;
+    spi_send_receive_callback_t spi_send_receive;
 } PostInitData;
 
 #ifdef CONF_POST_MODULE_ENABLE

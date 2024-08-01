@@ -75,6 +75,7 @@
         FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED | \
         FEEDBACK_BIT_INDICATOR_CONNECTED | \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED | \
+        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_OK | \
         FEEDBACK_BIT_TSAL_GREEN | \
         FEEDBACK_BIT_PROBING_3V3 | \
@@ -86,7 +87,6 @@
         FEEDBACK_BIT_AIRN_OPEN_COM | \
         FEEDBACK_BIT_PRECHARGE_OPEN_COM | \
         FEEDBACK_BIT_AIRP_OPEN_COM | \
-        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_FAULT_LATCHED \
     )
 #define FEEDBACK_IDLE_TO_AIRN_CHECK_MASK ((FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH) | (FEEDBACK_IDLE_TO_AIRN_CHECK_LOW))
@@ -108,9 +108,10 @@
         FEEDBACK_BIT_AIRP_OPEN_MEC | \
         FEEDBACK_BIT_TS_LESS_THAN_60V | \
         FEEDBACK_BIT_PLAUSIBLE_STATE_PERSISTED | \
-        FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED | \
         FEEDBACK_BIT_BMS_FAULT_COCKPIT_LED | \
+        FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED | \
         FEEDBACK_BIT_INDICATOR_CONNECTED | \
+        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED | \
         FEEDBACK_BIT_IMD_OK | \
         FEEDBACK_BIT_TSAL_GREEN | \
@@ -123,7 +124,6 @@
         FEEDBACK_BIT_PRECHARGE_OPEN_COM | \
         FEEDBACK_BIT_AIRP_OPEN_COM | \
         FEEDBACK_BIT_AIRN_OPEN_MEC | \
-        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_FAULT_LATCHED \
     )
 #define FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK ((FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH) | (FEEDBACK_AIRN_CHECK_TO_PRECHARGE_LOW))
@@ -148,6 +148,7 @@
         FEEDBACK_BIT_BMS_FAULT_COCKPIT_LED | \
         FEEDBACK_BIT_INDICATOR_CONNECTED | \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED | \
+        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_OK | \
         FEEDBACK_BIT_PROBING_3V3 | \
         FEEDBACK_BIT_SD_END | \
@@ -159,7 +160,6 @@
         FEEDBACK_BIT_AIRN_OPEN_MEC | \
         FEEDBACK_BIT_PRECHARGE_OPEN_MEC | \
         FEEDBACK_BIT_TS_LESS_THAN_60V | \
-        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_FAULT_LATCHED | \
         FEEDBACK_BIT_TSAL_GREEN \
     )
@@ -185,6 +185,7 @@
         FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED | \
         FEEDBACK_BIT_INDICATOR_CONNECTED | \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED | \
+        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_OK | \
         FEEDBACK_BIT_TSAL_GREEN | \
         FEEDBACK_BIT_PROBING_3V3 | \
@@ -197,7 +198,6 @@
         FEEDBACK_BIT_PRECHARGE_OPEN_MEC | \
         FEEDBACK_BIT_AIRP_OPEN_MEC | \
         FEEDBACK_BIT_TS_LESS_THAN_60V | \
-        FEEDBACK_BIT_BMS_FAULT_LATCHED | \
         FEEDBACK_BIT_IMD_FAULT_LATCHED \
     )
 #define FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK ((FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH) | (FEEDBACK_AIRP_CHECK_TO_TS_ON_LOW))
@@ -465,6 +465,24 @@ FeedbackReturnCode feedback_update_analog_feedback(FeedbackAnalogIndex index, ra
  *      - FEEDBACK_OK
  */
 FeedbackReturnCode feedback_update_status(void);
+
+/**
+ * @brief Get the value of a digital feedback
+ *
+ * @param bit The digital feedback to get the value from
+ *
+ * @return bool The value of the feedback
+ */
+bool feedback_get_digital(FeedbackDigitalBit bit);
+
+/**
+ * @brief Get the value of an analog feedback
+ *
+ * @param index The index of the analog feedback to get the value from
+ *
+ * @return raw_volt_t The raw value of the feedback
+ */
+raw_volt_t feedback_get_analog(FeedbackAnalogIndex index);
 
 /**
  * @brief Get the status of a single feedback

@@ -14,6 +14,9 @@
 
 #include "max22530.h"
 
+/** @brief The period with which internal voltages are updated */
+#define INTERNAL_VOLTAGE_CYCLE_TIME_MS ((milliseconds_t)8U)
+
 /**
  * @brief Return code for the internal voltage module functions
  *
@@ -99,6 +102,9 @@ raw_volt_t internal_voltage_get_batt(void);
 #else  // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
 #define internal_voltage_init(send, send_receive) (INTERNAL_VOLTAGE_OK)
+#define internal_voltage_read_all() (INTERNAL_VOLTAGE_OK)
+#define internal_voltage_get_ts() (0U)
+#define internal_voltage_get_batt() (0U)
 
 #endif // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
