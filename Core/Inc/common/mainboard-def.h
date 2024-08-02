@@ -68,6 +68,28 @@
 /** @brief Total number of cellboards */
 #define CELLBOARD_COUNT (CELLBOARD_ID_COUNT)
 
+/** @brief Total number of LTC chips of the cellboards */
+#define CELLBOARD_SEGMENT_LTC_COUNT (2U)
+#define CELLBOARD_LTC_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_LTC_COUNT))
+
+/** @brief Number of cells handled by the LTCs */
+#define CELLBOARD_SEGMENT_SERIES_PER_LTC_COUNT (12U)
+
+/** @brief Number of cells series of a single segment */
+#define CELLBOARD_SEGMENT_SERIES_COUNT ((CELLBOARD_SEGMENT_SERIES_PER_LTC_COUNT) * (CELLBOARD_SEGMENT_LTC_COUNT))
+/** @brief Total number of cells series */
+#define CELLBOARD_SERIES_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_SERIES_COUNT))
+
+/** @brief Number of cells parallels of a single segment */
+#define CELLBOARD_SEGMENT_PARALLELS_COUNT (3U)
+/** @brief Total number of cells parallels */
+#define CELLBOARD_PARALLELS_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_PARALLELS_COUNT))
+
+/** @brief Number of cells of a single segment */
+#define CELLBOARD_SEGMENT_CELLS_COUNT ((CELLBOARD_SEGMENT_SERIES_COUNT) * (CELLBOARD_SEGMENT_PARALLELS_COUNT))
+/** @brief Total number of cells series */
+#define CELLBOARD_CELLS_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_CELLS_COUNT))
+
 /** @} */
 
 /*** ######################### MACROS #################################### ***/

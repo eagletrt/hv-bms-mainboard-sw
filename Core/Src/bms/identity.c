@@ -42,7 +42,6 @@ void identity_init(void) {
     
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         hidentity.cellboard_version_payload[id].cellboard_id = id;
-        hidentity.cellboard_version_payload[id].canlib_build_time = CANLIB_BUILD_TIME;
     }
 }
 
@@ -62,4 +61,12 @@ primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payloa
     if (byte_size != NULL)
         *byte_size = sizeof(hidentity.cellboard_version_payload[0U]);
     return &hidentity.cellboard_version_payload[id];
+}
+
+void identity_cellboard_version_handle(bms_cellboard_version_converted_t * payload) {
+    if (payload == NULL || (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT)
+        return;
+    // Copy version data
+    hidentity.cellboard_version_payload[payload->cellboard_id].canlib_build_time = payload->canlib_build_time;
+    hidentity.cellboard_version_payload[payload->cellboard_id].component_build_time = payload->component_build_time;
 }

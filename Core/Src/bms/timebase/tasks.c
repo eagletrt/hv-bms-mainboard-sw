@@ -14,6 +14,7 @@
 #include "timebase.h"
 #include "fsm.h"
 #include "current.h"
+#include "volt.h"
 #include "feedback.h"
 #include "internal-voltage.h"
 
@@ -62,6 +63,12 @@ void _tasks_send_hv_current(void) {
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
+void _tasks_send_hv_cells_voltage(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
 /** @brief Update all the digital feedbacks */
 void _tasks_read_digital_feedbacks(void) {
     (void)feedback_update_digital_feedback_all();
@@ -87,8 +94,9 @@ TasksReturnCode tasks_init(milliseconds_t resolution) {
         resolution = 1U;
 
     // Initialize the tasks with the X macro
-#define TASKS_X(NAME, START, INTERVAL, EXEC) \
+#define TASKS_X(NAME, ENABLED, START, INTERVAL, EXEC) \
     do { \
+        htasks.tasks[TASKS_NAME_TO_ID(NAME)].enabled = (ENABLED); \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].id = TASKS_NAME_TO_ID(NAME); \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].start = (START); \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].interval = TIMEBASE_TIME_TO_TICKS(INTERVAL, resolution); \
@@ -99,6 +107,19 @@ TasksReturnCode tasks_init(milliseconds_t resolution) {
 #undef TASKS_X
 
     return TASKS_OK;
+}
+
+TasksReturnCode tasks_set_enable(TasksId id, bool enabled) {
+    if (id >= TASKS_ID_COUNT)
+        return TASKS_INVALID_ID;
+    htasks.tasks[id].enabled = enabled;
+    return TASKS_OK; 
+}
+
+bool tasks_is_enabled(TasksId id) {
+    if (id >= TASKS_ID_COUNT)
+        return false;
+    return htasks.tasks[id].enabled;
 }
 
 Task * tasks_get_task(TasksId id) {
@@ -130,11 +151,13 @@ tasks_callback tasks_get_callback(TasksId id) {
 _STATIC char * tasks_module_name = "tasks";
 
 _STATIC char * tasks_return_code_name[] = {
-    [TASKS_OK] = "ok"
+    [TASKS_OK] = "ok",
+    [TASKS_INVALID_ID] = "invalid id"
 };
 
 _STATIC char * tasks_return_code_descritpion[] = {
     [TASKS_OK] = "executed successfully"
+    [TASKS_INVALID_ID] = "the given identifier does not exists"
 };
 
 #define TASKS_X(NAME, START, INTERVAL, EXEC) [TASKS_NAME_TO_ID(NAME)] = #NAME,

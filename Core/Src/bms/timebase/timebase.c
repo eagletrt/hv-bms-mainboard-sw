@@ -203,7 +203,8 @@ TimebaseReturnCode timebase_routine(void) {
         // Copy ticks value to avoid inconsistencies caused by interrupts
         ticks_t t = htimebase.t;
         task.t = t + task.task->interval;
-        task.task->exec();
+        if (task.task->enabled)
+            task.task->exec();
 
         // If the interval is 0 do not insert again the task inside the heap (i.e. runs only once)
         if (task.task->interval > 0U)

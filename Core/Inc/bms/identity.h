@@ -14,6 +14,7 @@
 #include "mainboard-def.h"
 
 #include "primary_network.h"
+#include "bms_network.h"
 
 /**
  * @brief Definition of the string containing the latest build time
@@ -53,5 +54,12 @@ primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payloa
  * @return primary_hv_cellboard_version_converted_t* A pointer to the payload or NULL if the id is not valid
  */
 primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payload(CellboardId id, size_t * byte_size);
+
+/**
+ * @brief Handle the received cellboard version
+ *
+ * @param payload A pointer to the canlib payload
+ */
+void identity_cellboard_version_handle(bms_cellboard_version_converted_t * payload);
 
 #endif  // IDENTITY_H

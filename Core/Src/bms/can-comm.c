@@ -16,6 +16,8 @@
 #include "timebase.h"
 #include "current.h"
 #include "pcu.h"
+#include "identity.h"
+#include "volt.h"
 
 #include "ring-buffer.h"
 #include "canlib_device.h"
@@ -53,11 +55,14 @@ void _can_comm_canlib_payload_handle_dummy(void * _) { }
 
 can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(can_index_t index) {
     switch (index) {
-        // case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
+        case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
+            return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)programmer_cellboard_flash_response_handle;
         case BMS_CELLBOARD_STATUS_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
+        case BMS_CELLBOARD_VERSION_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)identity_cellboard_version_handle;
         case BMS_IVT_MSG_RESULT_I_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)current_handle;
         default:
