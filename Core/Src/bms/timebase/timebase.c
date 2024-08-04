@@ -203,6 +203,7 @@ TimebaseReturnCode timebase_routine(void) {
         // Copy ticks value to avoid inconsistencies caused by interrupts
         ticks_t t = htimebase.t;
         task.t = t + task.task->interval;
+        // TODO: Remove task from heap when disabled, and re-insert when re-enabled 
         if (task.task->enabled)
             task.task->exec();
 

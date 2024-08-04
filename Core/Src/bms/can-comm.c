@@ -18,6 +18,7 @@
 #include "pcu.h"
 #include "identity.h"
 #include "volt.h"
+#include "bal.h"
 
 #include "ring-buffer.h"
 #include "canlib_device.h"
@@ -80,6 +81,10 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(can_i
             return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_ecu_handle;
         case PRIMARY_HV_SET_STATUS_HANDCART_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_handcart_handle;
+        case PRIMARY_HV_SET_BALANCING_STATUS_STEERING_WHEEL_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_steering_wheel_handle;
+        case PRIMARY_HV_SET_BALANCING_STATUS_HANDCART_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_handcart_handle;
         default:
             return _can_comm_canlib_payload_handle_dummy;
     }

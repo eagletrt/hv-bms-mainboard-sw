@@ -39,6 +39,8 @@ Functions and types have been generated with prefix "fsm_"
  *     - FSM_EVENT_TYPE_AIRN_TIMEOUT the AIR- watchdog has timed out
  *     - FSM_EVENT_TYPE_PRECHARGE_TIMEOUT the precharge watchdog has timed out
  *     - FSM_EVENT_TYPE_AIRP_TIMEOUT the AIR+ watchdog has timed out
+ *     - FSM_EVENT_TYPE_BALANCING_START start the balancing procedure
+ *     - FSM_EVENT_TYPE_BALANCING_STOP stop the balancing procedure
  *     - FSM_EVENT_TYPE_IGNORED event that should be ignored
  */
 typedef enum {
@@ -48,6 +50,8 @@ typedef enum {
     FSM_EVENT_TYPE_AIRN_TIMEOUT,
     FSM_EVENT_TYPE_PRECHARGE_TIMEOUT,
     FSM_EVENT_TYPE_AIRP_TIMEOUT,
+    FSM_EVENT_TYPE_BALANCING_START,
+    FSM_EVENT_TYPE_BALANCING_STOP,
     FSM_EVENT_TYPE_COUNT,
     FSM_EVENT_TYPE_IGNORED
 } FsmEventType;

@@ -82,6 +82,27 @@ VoltReturnCode volt_init(void);
 const volt_matrix_t * volt_get_values(void);
 
 /**
+ * @brief Get the minimum cell voltage in the pack
+ *
+ * @return raw_volt_t The minimum voltage raw value
+ */
+raw_volt_t volt_get_min(void);
+
+/**
+ * @brief Get the maximum cell voltage in the pack
+ *
+ * @return raw_volt_t The maximum voltage raw value
+ */
+raw_volt_t volt_get_max(void);
+
+/**
+ * @brief Get the average cell voltage of the pack
+ *
+ * @return raw_volt_t The average voltage raw value
+ */
+float volt_get_avg(void);
+
+/**
  * @brief Hanle the received cellboard cells voltage
  *
  * @param payload A pointer to the canlib payload

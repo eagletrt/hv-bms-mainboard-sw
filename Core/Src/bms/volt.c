@@ -21,8 +21,8 @@
  *
  * @param voltages The array of raw cells voltages
  * @param can_payload The canlib payload of the cells voltages
- * @param cellboard_id
- * @param offset
+ * @param cellboard_id Cellboard identifier to set inside the payload
+ * @param offset Cell offset to set inside the payload
  */
 _STATIC struct {
     volt_matrix_t voltages;
@@ -60,6 +60,33 @@ VoltReturnCode volt_init(void) {
 
 const volt_matrix_t * volt_get_values(void) {
     return &hvolt.voltages;
+}
+
+raw_volt_t volt_get_min(void) {
+    raw_volt_t min = UINT16_MAX;
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+            min = MAINBOARD_MIN(hvolt.voltages[id][i], min);
+    }
+    return min;
+}
+
+raw_volt_t volt_get_max(void) {
+    raw_volt_t max = 0U;
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+            max = MAINBOARD_MAX(hvolt.voltages[id][i], max);
+    }
+    return max;
+}
+
+float volt_get_avg(void) {
+    float avg = 0U;
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+            avg += hvolt.voltages[id][i];
+    }
+    return avg / (CELLBOARD_SERIES_COUNT);
 }
 
 void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload) {

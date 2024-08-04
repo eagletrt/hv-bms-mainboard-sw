@@ -90,6 +90,30 @@
 /** @brief Total number of cells series */
 #define CELLBOARD_CELLS_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_CELLS_COUNT))
 
+
+/** @brief Number of temperatures that can be read at the same time from a single segment */
+#define CELLBOARD_SEGMENT_TEMP_CHANNEL_COUNT (3U)
+/** @brief Total number of temperatures that can be read at the same time */
+#define CELLBOARD_TEMP_CHANNEL_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_TEMP_CHANNEL_COUNT))
+
+/** @brief Number of temperatures sensors per channel of a single segment */
+#define CELLBOARD_SEGMENT_TEMP_SENSOR_PER_CHANNEL_COUNT (16U)
+/** @brief Total number of temperatures sensors per channel */
+#define CELLBOARD_TEMP_SENSOR_PER_CHANNEL_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_TEMP_SENSOR_PER_CHANNEL_COUNT))
+
+/** @brief Number of temperatures sensors per channel of a single segment */
+#define CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT ((CELLBOARD_SEGMENT_TEMP_CHANNEL_COUNT) * (CELLBOARD_SEGMENT_TEMP_SENSOR_PER_CHANNEL_COUNT))
+/** @brief Total number of temperatures sensors per channel */
+#define CELLBOARD_TEMP_SENSOR_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT))
+
+/** @brief Number of temperatures of the discharge resitors handled by the LTCs */
+#define CELLBOARD_SEGMENT_DISCHARGE_TEMP_PER_LTC_COUNT (5U)
+
+/** @brief Number of temperatures of the discharge resitors of a single segment */
+#define CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT (CELLBOARD_SEGMENT_DISCHARGE_TEMP_PER_LTC_COUNT)
+/** @brief Total number of temperatures of the discharge resistance that can be read at the same time from a single segment */
+#define CELLBOARD_DISCHARGE_TEMP_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT))
+
 /** @} */
 
 /*** ######################### MACROS #################################### ***/

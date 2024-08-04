@@ -23,6 +23,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "timebase.h"
 #include "programmer.h"
 #include "feedback.h"
+#include "bal.h"
 /*** USER CODE END MACROS ***/
 
 
@@ -162,6 +163,8 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
           if (feedback_check_values(FEEDBACK_IDLE_TO_AIRN_CHECK_MASK, FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH))
               next_state = FSM_STATE_AIRN_CHECK;
       }
+      else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_START)
+          next_state = FSM_STATE_BALANCING;
   }
   /*** USER CODE END DO_IDLE ***/
   
@@ -237,6 +240,13 @@ fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_BALANCING ***/
+  (void)timebase_routine();
+  (void)can_comm_routine();
+
+  if (fsm_is_event_triggered()) {
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)
+          next_state = FSM_STATE_IDLE;
+  }
   
   /*** USER CODE END DO_BALANCING ***/
   
@@ -448,6 +458,9 @@ void fsm_start_flash_procedure(fsm_state_data_t *data) {
 void fsm_start_balancing(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START_BALANCING ***/ 
+  // TODO: Handle watchog error
+  BalReturnCode code = bal_start();
+  MAINBOARD_UNUSED(code);
   /*** USER CODE END START_BALANCING ***/
 }
 
@@ -474,6 +487,7 @@ void fsm_stop_flash_procedure(fsm_state_data_t *data) {
 void fsm_stop_balancing(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN STOP_BALANCING ***/ 
+  (void)bal_stop();
   /*** USER CODE END STOP_BALANCING ***/
 }
 

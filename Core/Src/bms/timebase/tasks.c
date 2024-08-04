@@ -17,6 +17,7 @@
 #include "volt.h"
 #include "feedback.h"
 #include "internal-voltage.h"
+#include "bal.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -68,6 +69,18 @@ void _tasks_send_hv_cells_voltage(void) {
     uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
+
+void _tasks_send_cellboard_set_balancing_status(CellboardId id) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)bal_get_canlib_payload(id, &byte_size);
+    can_comm_tx_add(CAN_NETWORK_BMS, BMS_CELLBOARD_SET_BALANCING_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+}
+void _tasks_send_cellboard_0_set_balancing_status(void) { _tasks_send_cellboard_set_balancing_status(CELLBOARD_ID_0); }
+void _tasks_send_cellboard_1_set_balancing_status(void) { _tasks_send_cellboard_set_balancing_status(CELLBOARD_ID_1); }
+void _tasks_send_cellboard_2_set_balancing_status(void) { _tasks_send_cellboard_set_balancing_status(CELLBOARD_ID_2); }
+void _tasks_send_cellboard_3_set_balancing_status(void) { _tasks_send_cellboard_set_balancing_status(CELLBOARD_ID_3); }
+void _tasks_send_cellboard_4_set_balancing_status(void) { _tasks_send_cellboard_set_balancing_status(CELLBOARD_ID_4); }
+void _tasks_send_cellboard_5_set_balancing_status(void) { _tasks_send_cellboard_set_balancing_status(CELLBOARD_ID_5); }
 
 /** @brief Update all the digital feedbacks */
 void _tasks_read_digital_feedbacks(void) {

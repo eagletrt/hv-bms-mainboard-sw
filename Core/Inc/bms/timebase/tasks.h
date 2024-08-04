@@ -51,6 +51,12 @@
     TASKS_X(SEND_STATUS, true, 0U, PRIMARY_HV_STATUS_CYCLE_TIME_MS, _tasks_send_hv_status) \
     TASKS_X(SEND_CURRENT, true, 10U, PRIMARY_HV_CURRENT_CYCLE_TIME_MS, _tasks_send_hv_current) \
     TASKS_X(SEND_CELLS_VOLTAGE, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_CYCLE_TIME_MS, _tasks_send_hv_cells_voltage) \
+    TASKS_X(SEND_CELLBOARD_0_SET_BALANCING_STATUS, false, 0U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_0_set_balancing_status) \
+    TASKS_X(SEND_CELLBOARD_1_SET_BALANCING_STATUS, false, 1U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_1_set_balancing_status) \
+    TASKS_X(SEND_CELLBOARD_2_SET_BALANCING_STATUS, false, 2U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_2_set_balancing_status) \
+    TASKS_X(SEND_CELLBOARD_3_SET_BALANCING_STATUS, false, 3U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_3_set_balancing_status) \
+    TASKS_X(SEND_CELLBOARD_4_SET_BALANCING_STATUS, false, 4U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_4_set_balancing_status) \
+    TASKS_X(SEND_CELLBOARD_5_SET_BALANCING_STATUS, false, 5U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_5_set_balancing_status) \
     TASKS_X(READ_DIGITAL_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, _tasks_read_digital_feedbacks) \
     TASKS_X(START_ANALOG_CONVERSION_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, _tasks_start_analog_conversion_feedbacks) \
     TASKS_X(UPDATE_FEEDBACKS_STATUS, true, 2U, FEEDBACK_CYCLE_TIME_MS, _tasks_update_feedbacks_status) \
