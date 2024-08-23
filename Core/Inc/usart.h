@@ -30,6 +30,11 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
+
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
