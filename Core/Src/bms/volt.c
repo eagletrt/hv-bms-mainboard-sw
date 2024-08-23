@@ -115,10 +115,13 @@ primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_siz
     hvolt.can_payload.voltage_0 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset]) * 0.001f;
     hvolt.can_payload.voltage_1 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 1]) * 0.001f;
     hvolt.can_payload.voltage_2 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 2]) * 0.001f;
-    //hvolt.can_payload.voltage_3 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 3]) * 0.001f;
+    /**
+     * hvolt.can_payload.voltage_3 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 3]) * 0.001f; 
+     * @TODO: fix cantools's handling of non 2^n size for floating point values     
+     */
 
     // Upate indices
-    hvolt.offset += 3;
+    hvolt.offset += 3; /** @TODO: view above */
     if (hvolt.offset >= CELLBOARD_SEGMENT_SERIES_COUNT) {
         hvolt.offset = 0U;
         if (++hvolt.cellboard_id >= CELLBOARD_ID_COUNT)
