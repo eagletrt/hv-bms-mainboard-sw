@@ -42,6 +42,9 @@ void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
+void uart_log_ms(uint32_t ms, const char* fmt, ...);
+void uart_log(const char *fmt, ...);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
