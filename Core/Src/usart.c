@@ -133,10 +133,12 @@ void uart_log(const char *fmt, ...) {
 
     va_list args;
     va_start(args, fmt);
-    int size = vsnprintf(buffer, sizeof(buffer), fmt, args);
+    int size = vsnprintf(buffer, strlen(fmt)*3, fmt, args);
     va_end(args);
 
     HAL_UART_Transmit(&huart1, (uint8_t *)buffer, size, HAL_MAX_DELAY);
+
+    free(buffer);
 }
 
 /* USER CODE END 1 */
