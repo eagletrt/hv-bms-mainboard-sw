@@ -155,10 +155,16 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   (void)timebase_routine();
   (void)can_comm_routine();
 
+  /*
+   * EV 4.11.4
+   * Closing the SDC by any part defined in EV 6.1.2 must not 
+   * (re-)activate the TS. Additional action must be required.
+   */
+
   // Check for events
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
-          next_state = FSM_STATE_FLASH;
+          next_state = FSM_STATE_FLASH; 
       else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
           if (feedback_check_values(FEEDBACK_IDLE_TO_AIRN_CHECK_MASK, FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH))
               next_state = FSM_STATE_AIRN_CHECK;
