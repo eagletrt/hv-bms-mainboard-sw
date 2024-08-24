@@ -279,6 +279,16 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
+  /*
+   * If the shutdown circuit is opened, immediately go to the IDLE state
+   * to drop the voltage on the TS
+   */
+  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END))
+      next_state = FSM_STATE_IDLE;
+  /*
+   * Wait until every feedback inside the mask has the expected value
+   * If all the feedbacks are ok start the precharge
+   */
   else if (feedback_check_values(FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK, FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH))
       next_state = FSM_STATE_PRECHARGE_CHECK;
   
@@ -314,6 +324,16 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
+  /*
+   * If the shutdown circuit is opened, immediately go to the IDLE state
+   * to drop the voltage on the TS
+   */
+  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END))
+      next_state = FSM_STATE_IDLE;
+  /*
+   * Wait until every feedback inside the mask has the expected value and the precharge is complete
+   * If all the feedbacks are ok close the AIR+
+   */
   else if (feedback_check_values(FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH) && pcu_is_precharge_complete())
       next_state = FSM_STATE_AIRP_CHECK;
  
@@ -349,6 +369,16 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
+  /*
+   * If the shutdown circuit is opened, immediately go to the IDLE state
+   * to drop the voltage on the TS
+   */
+  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END))
+      next_state = FSM_STATE_IDLE;
+  /*
+   * Wait until every feedback inside the mask has the expected value
+   * If all the feedbacks are ok go to the TS on state
+   */
   else if (feedback_check_values(FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK, FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH))
       next_state = FSM_STATE_TS_ON;
 
