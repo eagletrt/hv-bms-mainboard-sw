@@ -35,12 +35,7 @@ PostReturnCode _post_modules_init(PostInitData * data) {
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
      */
-    error_init(
-        data->cs_enter,
-        data->cs_exit,
-        data->error_update_timer,
-        data->error_stop_timer
-    );
+    error_init();
     identity_init();
 
     /**

@@ -47,7 +47,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#include <string.h>
+#include "volt.h"
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -141,8 +142,8 @@ int main(void)
       .system_reset = system_reset,
       .cs_enter = it_cs_enter,
       .cs_exit = it_cs_exit,
-      .error_update_timer = tim_update_error_timer,
-      .error_stop_timer = tim_stop_error_timer,
+      // .error_update_timer = tim_update_error_timer,
+      // .error_stop_timer = tim_stop_error_timer,
       .can_send = can_send,
       .led_set = gpio_led_set_state,
       .led_toggle = gpio_led_toggle_state,
@@ -259,3 +260,5 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+

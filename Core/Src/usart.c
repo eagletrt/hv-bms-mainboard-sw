@@ -116,7 +116,7 @@ void uart_log_ms(uint32_t ms, const char* fmt, ...) {
 
     static uint32_t t = 0U;
 
-    if(HAL_GetTick()-t>=ms) {
+    if(HAL_GetTick() - t >= ms) {
 
         va_list args;
         va_start(args, fmt);

@@ -62,8 +62,8 @@ typedef struct {
     system_reset_callback_t system_reset;
     interrupt_critical_section_enter_t cs_enter;
     interrupt_critical_section_exit_t cs_exit;
-    error_update_timer_callback_t error_update_timer;
-    error_stop_timer_callback_t error_stop_timer;
+    // error_update_timer_callback_t error_update_timer;
+    // error_stop_timer_callback_t error_stop_timer;
     can_comm_transmit_callback_t can_send;
     led_set_state_callback_t led_set;
     led_toggle_state_callback_t led_toggle;

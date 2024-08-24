@@ -12,35 +12,56 @@
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
-_STATIC _ErrorHandler herror;
+_STATIC ErrorLibHandler herror;
 
-ErrorReturnCode error_init(
-    interrupt_critical_section_enter_t cs_enter,
-    interrupt_critical_section_exit_t cs_exit,
-    error_update_timer_callback_t update_timer,
-    error_stop_timer_callback_t stop_timer)
-{
-    if (cs_enter == NULL ||
-        cs_exit == NULL ||
-        update_timer == NULL ||
-        stop_timer == NULL)
-        return ERROR_NULL_POINTER;
-    memset(&herror, 0U, sizeof(herror));
+/** @brief Total number of instances for each group */
+const size_t instances[] = {
+    [ERROR_GROUP_POST] = ERROR_POST_INSTANCE_COUNT,
+    [ERROR_GROUP_OVER_CURRENT] = ERROR_OVER_CURRENT_INSTANCE_COUNT
+};
 
-    error_handler_error_init(cs_enter, cs_exit);
-    herror.update_timer = update_timer;
-    herror.stop_timer = stop_timer;
+/**
+ * @brief Error thresholds for each group
+ * 
+ * @details The values are arbitrary and shuold not be too much high 
+ */
+const size_t thresholds[] = {
+    [ERROR_GROUP_POST] = 1U,
+    [ERROR_GROUP_OVER_CURRENT] = 10U
+};
+
+int32_t error_post_instances[ERROR_POST_INSTANCE_COUNT];
+int32_t error_over_current_instances[ERROR_OVER_CURRENT_INSTANCE_COUNT];
+int32_t * errors[] = {
+    [ERROR_GROUP_POST] = error_post_instances,
+    [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances
+};
+
+ErrorReturnCode error_init(void) {
+    if (errorlib_init(&herror,
+        errors,
+        instances,
+        thresholds,
+        ERROR_GROUP_COUNT
+    ) != ERRORLIB_OK)
+        return ERROR_UNKNOWN;
     return ERROR_OK;
 }
 
-/* This function is defined inside the error-handler files and has to be implemented here */
-void error_handler_error_update_timer_callback(uint32_t timestamp, uint16_t timeout) {
-    herror.update_timer(timestamp, timeout);
+ErrorReturnCode error_set(ErrorGroup group, error_instance_t instance) {
+    if (errorlib_error_set(&herror, (errorlib_error_group_t)group, instance) != ERRORLIB_OK)
+        return ERROR_UNKNOWN;
+    return ERROR_OK;
 }
 
-/* This function is defined inside the error-handler files and has to be implemented here */
-void error_handler_error_stop_timer_callback(void) {
-    herror.stop_timer();
+ErrorReturnCode error_reset(ErrorGroup group, error_instance_t instance) {
+    if (errorlib_error_reset(&herror, (errorlib_error_group_t)group, instance) != ERRORLIB_OK)
+        return ERROR_UNKNOWN;
+    return ERROR_OK;
+}
+
+size_t error_get_expired(void) {
+    return errorlib_get_expired(&herror);
 }
 
 #ifdef CONF_ERROR_STRINGS_ENABLE

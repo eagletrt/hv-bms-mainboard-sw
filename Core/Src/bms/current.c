@@ -34,12 +34,12 @@ _STATIC struct {
  * @param value The raw current value
  */
 _STATIC_INLINE void _current_check_value(raw_current_t value) {
-    ERROR_HANDLER_ERROR_TOGGLE_IF(
-        value <= CURRENT_MIN_VALUE || value >= CURRENT_MAX_VALUE,
-        ERROR_HANDLER_ERROR_GROUP_OVER_CURRENT,
-        0U,
-        timebase_get_time()
-    );
+    if (value <= CURRENT_MIN_VALUE || value >= CURRENT_MAX_VALUE) {
+        error_set(ERROR_GROUP_OVER_CURRENT, 0U);
+    }
+    else {
+        error_reset(ERROR_GROUP_OVER_CURRENT, 0U);
+    }
 }
 
 CurrentReturnCode current_init(void) {

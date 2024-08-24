@@ -28,7 +28,7 @@
 
 #include "imd.h"
 #include "timebase.h"
-#include "error-handler.h"
+// #include "error-handler.h"
 
 /* USER CODE END 0 */
 
@@ -540,7 +540,7 @@ void tim_stop_error_timer(void) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef * htim) {
     if (htim->Instance == HTIM_ERROR.Instance) {
-        error_handler_error_expire();
+        // error_handler_error_expire();
     }
     else if (htim->Instance == HTIM_TIMEBASE.Instance) {
         timebase_inc_tick();

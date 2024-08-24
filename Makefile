@@ -48,6 +48,7 @@ ULIBS_DIR = $(LIB_DIR)/micro-libs
 -include $(ULIBS_DIR)/blinky/blinky.mk
 -include $(ULIBS_DIR)/ring-buffer/ring-buffer.mk
 -include $(ULIBS_DIR)/min-heap/min-heap.mk
+-include $(ULIBS_DIR)/errorlib/errorlib.mk
 
 ######################################
 # source
@@ -62,6 +63,7 @@ $(shell find $(CANLIB_DIR)/ivts -name "*.c") \
 $(BLINKY_C_SOURCES) \
 $(RING_BUFFER_C_SOURCES) \
 $(MIN_HEAP_C_SOURCES) \
+$(ERRORLIB_C_SOURCES) \
 $(ULIBS_DIR)/timer-utils/timer_utils.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c \
@@ -165,6 +167,7 @@ $(BLINKY_C_INCLUDE_DIRS_PREFIX) \
 $(BMS_MONITOR_C_INCLUDE_DIRS_PREFIX) \
 $(RING_BUFFER_C_INCLUDE_DIRS_PREFIX) \
 $(MIN_HEAP_C_INCLUDE_DIRS_PREFIX) \
+$(ERRORLIB_C_INCLUDE_DIRS_PREFIX) \
 -I$(ULIBS_DIR)/timer-utils
 
 
