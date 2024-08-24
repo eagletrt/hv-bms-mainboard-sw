@@ -152,10 +152,10 @@ void pcu_precharge_stop_watchdog(void) {
 }
 
 void pcu_ams_activate(void) {
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW);
+    hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_LOW);
 }
 void pcu_ams_deactivate(void) {
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
+    hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
 }
 
 bool pcu_is_precharge_complete(void) {
