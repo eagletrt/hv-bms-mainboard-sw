@@ -38,6 +38,14 @@ _STATIC struct {
  * @param value The raw voltage value
  */
 _STATIC_INLINE void _volt_check_value(raw_volt_t value) {
+
+    /*
+     * EV 5.8.7
+     * The AMS must switch off the TS via the SDC, if a critical voltage value
+     * according to the cell manufacturer’s datasheet or these rules
+     * persistently occurs for more than 500 ms      
+     */
+
     // TODO: Set errors
     // ERROR_TOGGLE_IF(
     //     value <= VOLT_MIN_VALUE,

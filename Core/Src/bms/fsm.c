@@ -313,7 +313,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_PRECHARGE_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
-  }
+  } 
   else if (feedback_check_values(FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH) && pcu_is_precharge_complete())
       next_state = FSM_STATE_AIRP_CHECK;
  
@@ -439,7 +439,15 @@ void fsm_start(fsm_state_data_t *data) {
 void fsm_handle_fatal_error(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
-  // Activate the AMS
+
+  /*
+   * EV 5.8.9
+   * A red indicator light in the cockpit that is easily visible from inside 
+   * and outside the cockpit even in bright sunlight and clearly marked with 
+   * the lettering “AMS” must light up if and only if the AMS opens the SDC. 
+   * It must stay illuminated until the error state has been manually reset
+   */
+
   pcu_ams_activate();
   /*** USER CODE END HANDLE_FATAL_ERROR ***/
 }

@@ -34,6 +34,12 @@ _STATIC struct {
  * @param value The raw current value
  */
 _STATIC_INLINE void _current_check_value(raw_current_t value) {
+    /*
+     * EV 5.8.7
+     * The AMS must switch off the TS via the SDC, if a critical current value
+     * according to the cell manufacturer’s datasheet or these rules
+     * persistently occurs for more than 500 ms      
+     */
     ERROR_HANDLER_ERROR_TOGGLE_IF(
         value <= CURRENT_MIN_VALUE || value >= CURRENT_MAX_VALUE,
         ERROR_HANDLER_ERROR_GROUP_OVER_CURRENT,

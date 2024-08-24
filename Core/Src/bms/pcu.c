@@ -161,6 +161,12 @@ void pcu_ams_deactivate(void) {
 bool pcu_is_precharge_complete(void) {
     raw_volt_t ts = internal_voltage_get_ts();
     raw_volt_t batt = internal_voltage_get_batt();
+    /*
+     * EV 5.7.1
+     * Ensures that the voltage at the vehicle side of the AIRs is pre-charged 
+     * to at least 95 % of the actual TS accumulator voltage before closing the 
+     * second AIR
+     */
     return (((float)ts * 100.f) / batt) >= PCU_PRECHARGE_THRESHOLD_PERCENT;
 }
 
