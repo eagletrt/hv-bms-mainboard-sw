@@ -29,11 +29,10 @@ BalReturnCode bal_init(void) {
     // Set default event
     hbal.event.type = FSM_EVENT_TYPE_IGNORED;
 
-    for (CellboardId id = 0U; id < CELLBOARD_ID_COUNT; ++id) {
-        hbal.can_payload[id].start = false;
-        hbal.can_payload[id].target = BAL_TARGET_MAX;
-        hbal.can_payload[id].threshold = BAL_THRESHOLD_MAX;
-    }
+    // Set default calib payload data
+    hbal.can_payload.start = false;
+    hbal.can_payload.target = BAL_TARGET_MAX;
+    hbal.can_payload.threshold = BAL_THRESHOLD_MAX;
 
     // Set default balancing parameters
     hbal.params.target = BAL_TARGET_MAX;
@@ -63,12 +62,7 @@ BalReturnCode bal_start(void) {
         return BAL_WATCHDOG_ERROR;
 
     // Start balancing task
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_0_SET_BALANCING_STATUS, true);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_1_SET_BALANCING_STATUS, true);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_2_SET_BALANCING_STATUS, true);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_3_SET_BALANCING_STATUS, true);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_4_SET_BALANCING_STATUS, true);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_5_SET_BALANCING_STATUS, true);
+    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_SET_BALANCING_STATUS, true);
     hbal.active = true;
     return BAL_OK;
 }
@@ -81,12 +75,7 @@ BalReturnCode bal_stop(void) {
     (void)watchdog_stop(&hbal.watchdog);
 
     // Stop balancing tasks
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_0_SET_BALANCING_STATUS, false);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_1_SET_BALANCING_STATUS, false);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_2_SET_BALANCING_STATUS, false);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_3_SET_BALANCING_STATUS, false);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_4_SET_BALANCING_STATUS, false);
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_5_SET_BALANCING_STATUS, false);
+    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_SET_BALANCING_STATUS, false);
     hbal.active = false;
     return BAL_OK;
 }
@@ -145,12 +134,13 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
     }
 }
 
-bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(CellboardId id, size_t * byte_size) {
-    if (id >= CELLBOARD_ID_COUNT)
-        return NULL;
+bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(size_t * byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hbal.can_payload[0U]);
-    return &hbal.can_payload[id];
+        *byte_size = sizeof(hbal.can_payload);
+    hbal.can_payload.start = hbal.active;
+    hbal.can_payload.target = hbal.params.target;
+    hbal.can_payload.threshold = hbal.params.threshold;
+    return &hbal.can_payload;
 }
 
 #endif // CONF_BALANCING_MODULE_ENABLE

@@ -77,7 +77,7 @@ typedef struct {
  */
 typedef struct {
     fsm_event_data_t event;
-    bms_cellboard_set_balancing_status_converted_t can_payload[CELLBOARD_COUNT];
+    bms_cellboard_set_balancing_status_converted_t can_payload;
     Watchdog watchdog;
 
     bool active;
@@ -135,12 +135,11 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
 /**
  * @brief Get a pointer to the canlib payload of the balancing module
  *
- * @param id The cellboard to get the payload from
  * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * @return bms_cellboard_set_balancing_status_converted_t* A pointer to the payload or NULL if the id is not valid
  */
-bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(CellboardId id, size_t * byte_size);
+bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(size_t * byte_size);
 
 #else  // CONF_BALANCING_MODULE_ENABLE
 
@@ -150,7 +149,7 @@ bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(Cellboar
 #define bal_stop() (BAL_OK)
 #define bal_set_balancing_state_from_steering_wheel_handle(payload) MAINBOARD_NOPE()
 #define bal_set_balancing_state_from_handcart_handle(payload) MAINBOARD_NOPE()
-#define bal_get_canlib_payload(id, byte_size) (NULL)
+#define bal_get_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_BALANCING_MODULE_ENABLE
 

@@ -27,7 +27,7 @@ const size_t instances[] = {
  */
 const size_t thresholds[] = {
     [ERROR_GROUP_POST] = 1U,
-    [ERROR_GROUP_OVER_CURRENT] = 10U
+    [ERROR_GROUP_OVER_CURRENT] = 3U
 };
 
 int32_t error_post_instances[ERROR_POST_INSTANCE_COUNT];

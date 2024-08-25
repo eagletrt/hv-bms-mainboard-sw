@@ -26,6 +26,7 @@ typedef errorlib_error_instance_t error_instance_t;
  * @details
  *     - ERROR_OK the function executed succesfully
  *     - ERROR_NULL_POINTER a NULL pointer was given to a function
+ *     - ERROR_UNKNOWN unknown error
  */
 typedef enum {
     ERROR_OK,
