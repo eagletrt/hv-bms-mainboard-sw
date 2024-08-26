@@ -35,7 +35,8 @@ PostReturnCode _post_modules_init(PostInitData * data) {
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
      */
-    error_init();
+    if (error_init() != ERROR_OK)
+        return POST_UNINITIALIZED;
     identity_init();
 
     /**
@@ -87,6 +88,7 @@ _STATIC char * post_module_name = "post";
 
 _STATIC char * post_return_code_name[] = {
     [POST_OK] = "ok",
+    [POST_UNINITIALIZED] = "uninitialized",
     [POST_INVALID_CELLBOARD_ID] = "invalid cellboard id",
     [POST_NULL_POINTER] = "null pointer",
     [POST_WATCHDOG_INVALID_MESSAGE] = "invalid watchdog message"
@@ -94,6 +96,7 @@ _STATIC char * post_return_code_name[] = {
 
 _STATIC char * post_return_code_description[] = {
     [POST_OK] = "executed successfully",
+    [POST_UNINITIALIZED] = "a module has not been initialized correctly",
     [POST_INVALID_CELLBOARD_ID] = "the given id does not correspond to any valid cellboard identifier",
     [POST_NULL_POINTER] = "attempt to dereference a null pointer",
     [POST_WATCHDOG_INVALID_MESSAGE] = "the watchdogs are using a non valid can message"

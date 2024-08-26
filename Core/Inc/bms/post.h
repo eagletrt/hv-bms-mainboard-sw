@@ -26,12 +26,14 @@
  *
  * @details
  *     - POST_OK the function executed succesfully
+ *     - POST_UNINITIALIZED a module has not been initialized correctly
  *     - POST_INVALID_CELLBOARD_ID invalid cellboard identifier
  *     - POST_NULL_POINTER a NULL pointer was given to a function
  *     - POST_WATCHDOG_INVALID_MESSAGE the watchdog are using an invalid message
  */
 typedef enum {
     POST_OK,
+    POST_UNINITIALIZED,
     POST_INVALID_CELLBOARD_ID,
     POST_NULL_POINTER,
     POST_WATCHDOG_INVALID_MESSAGE

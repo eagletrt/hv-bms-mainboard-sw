@@ -109,7 +109,7 @@ DisplayReturnCode display_set_digit(uint8_t digit) {
 }
 
 DisplayReturnCode display_set_character(char character) {
-    uint8_t code = DISPLAY_CHARACTER_CODE_SPACE;
+    DisplayCharacterCode code = DISPLAY_CHARACTER_CODE_SPACE;
     switch (character) {
         // Numbers
         case '0': code = DISPLAY_CHARACTER_CODE_0; break;
@@ -172,6 +172,18 @@ DisplayReturnCode display_set_character(char character) {
     return display_set_segment_all(code);
 }
 
+DisplayReturnCode display_run_animation(
+    const DisplaySegmentBit * animation,
+    size_t size,
+    ticks_t ticks_per_frame,
+    ticks_t t)
+{
+    if (animation == NULL)
+        return DISPLAY_NULL_POINTER;
+    // Display a step of the animation based on the current time
+    size_t i = (t / ticks_per_frame) % size;
+    return display_set_segment_all(animation[i]);
+}
 
 #ifdef CONF_DISPLAY_STRINGS_ENABLE
 

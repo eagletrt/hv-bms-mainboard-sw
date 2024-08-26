@@ -74,6 +74,28 @@ _STATIC struct {
 } hfsm = {
     .fsm_state = FSM_STATE_INIT
 };
+
+// 7-segment display animation for the IDLE state
+const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SIZE] = {
+    DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
+    DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM,
+    DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
+    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
+};
+
+// 7-segment display animation for the PRECHARGE state
+const DisplaySegmentBit fsm_precharge_display_animation[FSM_PRECHARGE_DISPLAY_ANIMATION_SIZE] = {
+    DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
+    DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_MIDDLE,
+    DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM,
+    DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_MIDDLE,
+    DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_TOP_LEFT,
+    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
+};
 /*** USER CODE END GLOBALS ***/
 
 
@@ -128,6 +150,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
           next_state = FSM_STATE_IDLE;
           break;
       default:
+          // TODO: Set post error
           next_state = FSM_STATE_FATAL;
           break;
   }
@@ -154,6 +177,12 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   /*** USER CODE BEGIN DO_IDLE ***/
   (void)timebase_routine();
   (void)can_comm_routine();
+  (void)display_run_animation(
+      fsm_idle_display_animation,
+      FSM_IDLE_DISPLAY_ANIMATION_SIZE,
+      100U,
+      timebase_get_tick()
+  );
 
   // Check for events
   if (fsm_is_event_triggered()) {
@@ -318,6 +347,12 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
   /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
   (void)timebase_routine();
   (void)can_comm_routine();
+  (void)display_run_animation(
+      fsm_precharge_display_animation,
+      FSM_PRECHARGE_DISPLAY_ANIMATION_SIZE,
+      100U,
+      timebase_get_tick()
+  );
 
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_PRECHARGE_TIMEOUT ||

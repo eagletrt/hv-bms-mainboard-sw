@@ -24,6 +24,10 @@ Functions and types have been generated with prefix "fsm_"
 #include "bms_network.h"
 #include "primary_network.h"
 
+// Size of the 7-segment display animations
+#define FSM_IDLE_DISPLAY_ANIMATION_SIZE (6U)
+#define FSM_PRECHARGE_DISPLAY_ANIMATION_SIZE (8U)
+
 // TODO: Define feedback masks and expected values
 
 /**

@@ -321,6 +321,26 @@ DisplayReturnCode display_set_digit(uint8_t digit);
  */
 DisplayReturnCode display_set_character(char character);
 
+/**
+ * @brief Run a single step of an animation on the 7-segment display
+ *
+ * @param animation A pointer to the array of frames of the display animation
+ * @param size The number of frames in the animation
+ * @param ticks_pre_frame The number of ticks per frame
+ * @param t The current number of ticks
+ *
+ * @return DisplayReturnCode
+ *     - DISPLAY_NULL_POINTER if the pointer to the animation is NULL
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_OK otherwise
+ */
+DisplayReturnCode display_run_animation(
+    const DisplaySegmentBit * animation,
+    size_t size,
+    ticks_t ticks_per_frame,
+    ticks_t t
+);
+
 #else  // CONF_DISPLAY_MODULE_ENABLE
 
 #define display_init(set, toggle) (DISPLAY_OK)
@@ -330,6 +350,7 @@ DisplayReturnCode display_set_character(char character);
 #define display_set_segment_all(bits) (DISPLAY_OK)
 #define display_set_digit(digit) (DISPLAY_OK)
 #define display_set_character(character) (DISPLAY_OK)
+#define display_run_animation(animation, size, ticks_per_frame, t) (DISPLAY_OK)
 
 #endif // CONF_DISPLAY_MODULE_ENABLE
 
