@@ -25,8 +25,9 @@ Functions and types have been generated with prefix "fsm_"
 #include "primary_network.h"
 
 // Size of the 7-segment display animations
-#define FSM_IDLE_DISPLAY_ANIMATION_SIZE (6U)
+#define FSM_IDLE_DISPLAY_ANIMATION_SIZE (10U)
 #define FSM_PRECHARGE_DISPLAY_ANIMATION_SIZE (8U)
+#define FSM_TS_ON_DISPLAY_ANIMATION_SIZE (6U)
 
 // TODO: Define feedback masks and expected values
 
@@ -194,7 +195,7 @@ void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload);
  *
  * @return primary_hv_status_converted_t* A pointer to the payload
  */
-primary_hv_status_converted_t * fsm_get_can_payload(size_t * byte_size);
+primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * byte_size);
 /*** USER CODE END FUNCTIONS ***/
 
 #endif

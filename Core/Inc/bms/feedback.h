@@ -14,6 +14,8 @@
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
+#include "primary_network.h"
+
 /** @brief Alias for the total number of feedbacks */
 #define FEEDBACK_COUNT (FEEDBACK_ID_COUNT)
 
@@ -22,6 +24,7 @@
 
 /** @brief Feedbacks reference voltage in mV */
 #define FEEDBACK_VREF ((millivolt_t)3300.f)
+#define FEEDBACK_SD_VREF ((millivolt_t)12000.f)
 
 /** @brief Feedbacks ADC resolution in bits */
 #define FEEDBACK_ADC_RESOLUTION (12U)
@@ -405,6 +408,8 @@ typedef enum {
  * @param digital The bit flag where each bit represent a specific feedback state
  * @param analog An array of raw voltages of the analog feedbacks
  * @param status An array of all the feedbacks current status
+ * @param status_can_payload The canlib payload of the feedbacks status
+ * @param digital_can_payload The canlib payload of the digital feedbacks values
  */
 typedef struct {
     feedback_read_digital_all_callback_t read_digital;
@@ -414,6 +419,11 @@ typedef struct {
     raw_volt_t analog[FEEDBACK_ANALOG_INDEX_COUNT];
 
     FeedbackStatus status[FEEDBACK_COUNT];
+
+    primary_hv_feedback_status_converted_t status_can_payload;
+    primary_hv_feedback_digital_converted_t digital_can_payload;
+    primary_hv_feedback_analog_converted_t analog_can_payload;
+    primary_hv_feedback_analog_sd_converted_t analog_sd_can_payload;
 } _FeedbackHandler;
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
@@ -503,6 +513,42 @@ FeedbackStatus feedback_get_status(FeedbackId id);
  */
 bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value);
 
+/**
+ * @brief Get a pointer to the CAN payload structure of the feedbacks status
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_feedback_status_converted_t* A pointer to the payload
+ */
+primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * byte_size);
+
+/**
+ * @brief Get a pointer to the CAN payload structure of the digital feedbacks values
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_feedback_digital_converted_t* A pointer to the payload
+ */
+primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * byte_size);
+
+/**
+ * @brief Get a pointer to the CAN payload structure of the analog feedbacks values
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_feedback_analog_converted_t* A pointer to the payload
+ */
+primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * byte_size);
+
+/**
+ * @brief Get a pointer to the CAN payload structure of the analog shutdown feedbacks values
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_feedback_analog_sd_converted_t* A pointer to the payload
+ */
+primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_t * byte_size);
+
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
 /**
@@ -529,6 +575,10 @@ const char * const feedback_get_feedback_id_name(FeedbackId id);
 #define feedback_update_status() (FEEDBACK_OK)
 #define feedback_get_status(id) (FEEDBACK_STATUS_ERROR)
 #define feedback_check_values(mask, value) (true)
+#define feedback_get_status_payload(byte_size) (NULL)
+#define feedback_get_digital_payload(byte_size) (NULL)
+#define feedback_get_analog_payload(byte_size) (NULL)
+#define feedback_get_analog_sd_payload(byte_size) (NULL)
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

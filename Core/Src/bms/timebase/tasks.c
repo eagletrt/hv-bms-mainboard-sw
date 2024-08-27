@@ -53,7 +53,7 @@ void _tasks_send_cellboard_5_version(void) { _tasks_send_cellboard_version(CELLB
 /** @brief Send the mainboard and cellboard FSM status via CAN */
 void _tasks_send_hv_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)fsm_get_can_payload(&byte_size);
+    uint8_t * payload = (uint8_t *)fsm_get_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
@@ -68,6 +68,29 @@ void _tasks_send_hv_cells_voltage(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
+void _tasks_send_hv_feedback_status(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)feedback_get_status_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+}
+
+void _tasks_send_hv_feedback_digital(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)feedback_get_digital_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_DIGITAL_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+}
+
+void _tasks_send_hv_feedback_analog(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)feedback_get_analog_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+}
+void _tasks_send_hv_feedback_analog_sd(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)feedback_get_analog_sd_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_SD_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
 void _tasks_send_cellboard_set_balancing_status(void) {

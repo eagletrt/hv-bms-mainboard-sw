@@ -201,6 +201,88 @@ bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value) {
     return true;
 }
 
+primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hfeedback.status_can_payload);
+    hfeedback.status_can_payload.airn_open_com = hfeedback.status[FEEDBACK_ID_AIRN_OPEN_COM];
+    hfeedback.status_can_payload.precharge_open_com = hfeedback.status[FEEDBACK_ID_PRECHARGE_OPEN_COM];
+    hfeedback.status_can_payload.airp_open_com = hfeedback.status[FEEDBACK_ID_AIRP_OPEN_COM];
+    hfeedback.status_can_payload.airn_open_mec = hfeedback.status[FEEDBACK_ID_AIRN_OPEN_MEC];
+    hfeedback.status_can_payload.precharge_open_mec = hfeedback.status[FEEDBACK_ID_PRECHARGE_OPEN_MEC];
+    hfeedback.status_can_payload.airp_open_mec = hfeedback.status[FEEDBACK_ID_AIRP_OPEN_MEC];
+    hfeedback.status_can_payload.sd_imd_fb = hfeedback.status[FEEDBACK_ID_SD_IMD_FB];
+    hfeedback.status_can_payload.sd_bms_fb = hfeedback.status[FEEDBACK_ID_SD_BMS_FB];
+    hfeedback.status_can_payload.ts_less_than_60v = hfeedback.status[FEEDBACK_ID_TS_LESS_THAN_60V];
+    hfeedback.status_can_payload.plausible_state_persisted = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED];
+    hfeedback.status_can_payload.plausible_state = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE];
+    hfeedback.status_can_payload.bms_fault_cockpit_led = hfeedback.status[FEEDBACK_ID_BMS_FAULT_COCKPIT_LED];
+    hfeedback.status_can_payload.imd_fault_cockpit_led = hfeedback.status[FEEDBACK_ID_IMD_FAULT_COCKPIT_LED];
+    hfeedback.status_can_payload.indicator_connected = hfeedback.status[FEEDBACK_ID_INDICATOR_CONNECTED];
+    hfeedback.status_can_payload.latch_reset = hfeedback.status[FEEDBACK_ID_LATCH_RESET];
+    hfeedback.status_can_payload.plausible_state_latched = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED];
+    hfeedback.status_can_payload.bms_fault_latched = hfeedback.status[FEEDBACK_ID_BMS_FAULT_LATCHED];
+    hfeedback.status_can_payload.imd_fault_latched = hfeedback.status[FEEDBACK_ID_IMD_FAULT_LATCHED];
+    hfeedback.status_can_payload.ext_fault_latched = hfeedback.status[FEEDBACK_ID_EXT_FAULT_LATCHED];
+    hfeedback.status_can_payload.imd_ok = hfeedback.status[FEEDBACK_ID_IMD_OK];
+    hfeedback.status_can_payload.plausible_state_rc = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_RC];
+    hfeedback.status_can_payload.tsal_green = hfeedback.status[FEEDBACK_ID_TSAL_GREEN];
+    hfeedback.status_can_payload.probing_3v3 = hfeedback.status[FEEDBACK_ID_PROBING_3V3];
+    hfeedback.status_can_payload.sd_out = hfeedback.status[FEEDBACK_ID_SD_OUT];
+    hfeedback.status_can_payload.sd_in = hfeedback.status[FEEDBACK_ID_SD_IN];
+    hfeedback.status_can_payload.sd_end = hfeedback.status[FEEDBACK_ID_SD_END];
+    hfeedback.status_can_payload.v5_mcu = hfeedback.status[FEEDBACK_ID_V5_MCU];
+    return &hfeedback.status_can_payload; 
+}
+
+primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hfeedback.status_can_payload);
+    hfeedback.digital_can_payload.digital_airn_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
+    hfeedback.digital_can_payload.digital_precharge_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);
+    hfeedback.digital_can_payload.digital_airp_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
+    hfeedback.digital_can_payload.digital_precharge_open_mec = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC);
+    hfeedback.digital_can_payload.digital_sd_imd_fb = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_IMD_FB);
+    hfeedback.digital_can_payload.digital_sd_bms_fb = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
+    hfeedback.digital_can_payload.digital_ts_less_than_60v = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V);
+    hfeedback.digital_can_payload.digital_plausible_state_persisted = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED);
+    hfeedback.digital_can_payload.digital_plausible_state = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE);
+    hfeedback.digital_can_payload.digital_bms_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
+    hfeedback.digital_can_payload.digital_imd_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
+    hfeedback.digital_can_payload.digital_indicator_connected = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED);
+    hfeedback.digital_can_payload.digital_latch_reset = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
+    hfeedback.digital_can_payload.digital_plausible_state_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_LATCHED);
+    hfeedback.digital_can_payload.digital_bms_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_imd_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_ext_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
+    return &hfeedback.digital_can_payload; 
+}
+
+primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hfeedback.status_can_payload);
+    // Raw voltages values are converted in volt
+    const float mv_to_v = 0.001f;
+    hfeedback.analog_can_payload.analog_airn_open_mec = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_can_payload.analog_airp_open_mec = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_can_payload.analog_imd_ok = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_IMD_OK], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_can_payload.analog_plausible_state_rc = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_can_payload.analog_tsal_green = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_can_payload.analog_probing_3v3 = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_PROBING_3V3], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_can_payload.analog_v5_mcu = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_V5_MCU], FEEDBACK_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    return &hfeedback.analog_can_payload; 
+}
+
+primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hfeedback.status_can_payload);
+    // Raw voltages values are converted in volt
+    const float mv_to_v = 0.001f;
+    hfeedback.analog_sd_can_payload.sd_out = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_OUT], FEEDBACK_SD_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_sd_can_payload.sd_in = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_IN], FEEDBACK_SD_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    hfeedback.analog_sd_can_payload.sd_end = MAINBOARD_ADC_VALUE_TO_MILLIVOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_END], FEEDBACK_SD_VREF, FEEDBACK_ADC_RESOLUTION) * mv_to_v;
+    return &hfeedback.analog_sd_can_payload; 
+}
+
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
 _STATIC char * feedback_module_name = "feedback";

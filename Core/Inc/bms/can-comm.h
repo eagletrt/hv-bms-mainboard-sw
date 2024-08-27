@@ -27,7 +27,7 @@
 #define CAN_COMM_EXT_ID_MASK (0x1FFFFFFFU)
 
 /** @brief Maximum number of CAN messages that can be saved inside the transmission and reception buffers */
-#define CAN_COMM_TX_BUFFER_BYTE_SIZE (16U)
+#define CAN_COMM_TX_BUFFER_BYTE_SIZE (64U)
 #define CAN_COMM_RX_BUFFER_BYTE_SIZE (64U)
 
 /** @brief Mask for the bits that defines if the CAN module is enabled or not */

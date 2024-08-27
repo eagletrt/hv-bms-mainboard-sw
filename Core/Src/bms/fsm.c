@@ -77,12 +77,16 @@ _STATIC struct {
 
 // 7-segment display animation for the IDLE state
 const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SIZE] = {
-    DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
+    DISPLAY_SEGMENT_BIT_TOP_LEFT,
+    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM,
+    DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
+    DISPLAY_SEGMENT_BIT_TOP_RIGHT,
     DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
     DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM,
     DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
     DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
-    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
 };
 
 // 7-segment display animation for the PRECHARGE state
@@ -94,6 +98,15 @@ const DisplaySegmentBit fsm_precharge_display_animation[FSM_PRECHARGE_DISPLAY_AN
     DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
     DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_MIDDLE,
     DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_TOP_LEFT,
+    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
+};
+
+const DisplaySegmentBit fsm_ts_on_display_animation[FSM_TS_ON_DISPLAY_ANIMATION_SIZE] = {
+    DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
+    DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM,
+    DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
 };
 /*** USER CODE END GLOBALS ***/
@@ -443,6 +456,12 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
   /*** USER CODE BEGIN DO_TS_ON ***/
   (void)timebase_routine();
   (void)can_comm_routine();
+  (void)display_run_animation(
+      fsm_ts_on_display_animation,
+      FSM_TS_ON_DISPLAY_ANIMATION_SIZE,
+      100U,
+      timebase_get_tick()
+  );
 
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
@@ -646,7 +665,7 @@ void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload) {
     hfsm.cellboard_status[payload->cellboard_id] = payload->status;
 }
 
-primary_hv_status_converted_t * fsm_get_can_payload(size_t * byte_size) {
+primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hfsm.status_can_payload);
     // Copy mainboard and cellboard status
