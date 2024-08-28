@@ -244,33 +244,34 @@ typedef enum {
     FEEDBACK_INVALID_INDEX
 } FeedbackReturnCode;
 
-/** @brief Type definition of the feedback identifiers
+/**
+ * @brief Type definition of the feedback identifiers
  *
  * @details
  *     - FEEDBACK_ID_AIRN_COM Opposite of the AIR- commanded state
  *     - FEEDBACK_ID_PRECHARGE_OPEN_COM Opposite of the PRECHARGE commanded state
  *     - FEEDBACK_ID_AIRP_COM Opposite of the AIR+ commanded state
- *     - FEEDBACK_ID_AIRN_MEC Status of the AIR-
- *     - FEEDBACK_ID_PRECHARGE_OPEN_MEC Status of the PRECHARGE
- *     - FEEDBACK_ID_AIRP_MEC Status of the AIR+
- *     - FEEDBACK_ID_SD_IMD_FB 
- *     - FEEDBACK_ID_SD_BMS_FB
- *     - FEEDBACK_ID_TS_LESS_THAN_60V Feedback on the TS+ voltage
- *     - FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED Plausible state of the feedbacks (Prefer this over the other two)
- *     - FEEDBACK_ID_PLAUSIBLE_STATE Plausible state of the feedbacks
- *     - FEEDBACK_ID_BMS_FAULT_COCKPIT_LED
- *     - FEEDBACK_ID_IMD_FAULT_COCKPIT_LED
- *     - FEEDBACK_ID_IMD_OK The IMD is working correclty
+ *     - FEEDBACK_ID_AIRN_MEC Mechanical status of the AIR-
+ *     - FEEDBACK_ID_PRECHARGE_OPEN_MEC Mechanical status of the PRECHARGE relay
+ *     - FEEDBACK_ID_AIRP_MEC Mechanical status of the AIR+
+ *     - FEEDBACK_ID_SD_IMD_FB Shutdown IMD node feedback
+ *     - FEEDBACK_ID_SD_BMS_FB Shutdown AMS node feedback
+ *     - FEEDBACK_ID_TS_LESS_THAN_60V Less than 60V on the Tractive System
+ *     - FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED Plausible state persisted value (Prefer this over the other two)
+ *     - FEEDBACK_ID_PLAUSIBLE_STATE Raw plausible state value
+ *     - FEEDBACK_ID_BMS_FAULT_COCKPIT_LED AMS cockpit LED status
+ *     - FEEDBACK_ID_IMD_FAULT_COCKPIT_LED IMD cockpit LED status
+ *     - FEEDBACK_ID_IMD_OK Status of the IMD
  *     - FEEDBACK_ID_INDICATOR_CONNECTED Voltage indicator connected
- *     - FEEDBACK_ID_LATCH_RESET All the latch are reset
- *     - FEEDBACK_ID_PLAUSIBLE_STATE_RC Plausible state of the feedbacks
- *     - FEEDBACK_ID_TSAL_GREEN The TSAL is green
- *     - FEEDBACK_ID_PROBING_3V3 Feedback on the 3.3V line (comes out of a divider so it should be around 1.6V)
- *     - FEEDBACK_ID_SD_OUT
- *     - FEEDBACK_ID_SD_IN
- *     - FEEDBACK_ID_SD_END
- *     - FEEDBACK_ID_V5_MCU
- *     - FEEDBACK_ID_UNKNOWN Feedback used for initialization purposes
+ *     - FEEDBACK_ID_LATCH_RESET All the latches are reset
+ *     - FEEDBACK_ID_PLAUSIBLE_STATE_RC Plausible state after the RC circuit
+ *     - FEEDBACK_ID_TSAL_GREEN Status of the TSAL
+ *     - FEEDBACK_ID_PROBING_3V3 Feedback on the 3V3 line (comes out of a divider so it should be around 1.6V)
+ *     - FEEDBACK_ID_SD_OUT Shutdown out
+ *     - FEEDBACK_ID_SD_IN Shutdown in
+ *     - FEEDBACK_ID_SD_END Shutdown end
+ *     - FEEDBACK_ID_V5_MCU Feedback on the 5V line
+ *     - FEEDBACK_ID_UNKNOWN Feedback used for initialization or as return value
  */
 typedef enum {
     FEEDBACK_ID_AIRN_OPEN_COM = 0,
@@ -304,10 +305,37 @@ typedef enum {
     FEEDBACK_ID_UNKNOWN
 } FeedbackId;
 
-/** @brief Type definition of the feedback identifiers
+/**
+ * @brief Type definition of the feedback bit representation
+ *
+ * @details Can be used to change or check bit flags, the feedback id is used as
+ * the position of the bit
  *
  * @details
- *     - FEEDBACK_ID_AIRN_COM 
+ *     - FEEDBACK_BIT_AIRN_COM Opposite of the AIR- commanded state
+ *     - FEEDBACK_BIT_PRECHARGE_OPEN_COM Opposite of the PRECHARGE commanded state
+ *     - FEEDBACK_BIT_AIRP_COM Opposite of the AIR+ commanded state
+ *     - FEEDBACK_BIT_AIRN_MEC Mechanical status of the AIR-
+ *     - FEEDBACK_BIT_PRECHARGE_OPEN_MEC Mechanical status of the PRECHARGE relay
+ *     - FEEDBACK_BIT_AIRP_MEC Mechanical status of the AIR+
+ *     - FEEDBACK_BIT_SD_IMD_FB Shutdown IMD node feedback
+ *     - FEEDBACK_BIT_SD_BMS_FB Shutdown AMS node feedback
+ *     - FEEDBACK_BIT_TS_LESS_THAN_60V Less than 60V on the Tractive System
+ *     - FEEDBACK_BIT_PLAUSIBLE_STATE_PERSISTED Plausible state persisted value (Prefer this over the other two)
+ *     - FEEDBACK_BIT_PLAUSIBLE_STATE Raw plausible state value
+ *     - FEEDBACK_BIT_BMS_FAULT_COCKPIT_LED AMS cockpit LED status
+ *     - FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED IMD cockpit LED status
+ *     - FEEDBACK_BIT_IMD_OK Status of the IMD
+ *     - FEEDBACK_BIT_INDICATOR_CONNECTED Voltage indicator connected
+ *     - FEEDBACK_BIT_LATCH_RESET All the latches are reset
+ *     - FEEDBACK_BIT_PLAUSIBLE_STATE_RC Plausible state after the RC circuit
+ *     - FEEDBACK_BIT_TSAL_GREEN Status of the TSAL
+ *     - FEEDBACK_BIT_PROBING_3V3 Feedback on the 3V3 line (comes out of a divider so it should be around 1.6V)
+ *     - FEEDBACK_BIT_SD_OUT Shutdown out
+ *     - FEEDBACK_BIT_SD_IN Shutdown in
+ *     - FEEDBACK_BIT_SD_END Shutdown end
+ *     - FEEDBACK_BIT_V5_MCU Feedback on the 5V line
+ *     - FEEDBACK_BIT_UNKNOWN Feedback used for initialization or as return value
  */
 typedef enum {
     FEEDBACK_BIT_AIRN_OPEN_COM = (1U << FEEDBACK_ID_AIRN_OPEN_COM),
@@ -343,7 +371,20 @@ typedef enum {
  * @brief Bit position of the digital feedbacks inside the bit flag
  *
  * @details
- *     - FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM
+ *     - FEEDBACK_DIGITAL_BIT_AIRN_COM Opposite of the AIR- commanded state
+ *     - FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM Opposite of the PRECHARGE commanded state
+ *     - FEEDBACK_DIGITAL_BIT_AIRP_COM Opposite of the AIR+ commanded state
+ *     - FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC Mechanical status of the PRECHARGE relay
+ *     - FEEDBACK_DIGITAL_BIT_SD_IMD_FB Shutdown IMD node feedback
+ *     - FEEDBACK_DIGITAL_BIT_SD_BMS_FB Shutdown AMS node feedback
+ *     - FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V Less than 60V on the Tractive System
+ *     - FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED Plausible state persisted value (Prefer this over the other two)
+ *     - FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE Raw plausible state value
+ *     - FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED AMS cockpit LED status
+ *     - FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED IMD cockpit LED status
+ *     - FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED Voltage indicator connected
+ *     - FEEDBACK_DIGITAL_BIT_LATCH_RESET All the latches are reset
+ *     - FEEDBACK_DIGITAL_BIT_UNKNOWN Feedback used for initialization or as return value
  */
 typedef enum {
     FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM = 0U,
@@ -371,7 +412,17 @@ typedef enum {
  * @brief Indices of the analog feedbacks
  *
  * @details
- *     - 
+ *     - FEEDBACK_ANALOG_INDEX_AIRN_MEC Mechanical status of the AIR-
+ *     - FEEDBACK_ANALOG_INDEX_AIRP_MEC Mechanical status of the AIR+
+ *     - FEEDBACK_ANALOG_INDEX_IMD_OK Status of the IMD
+ *     - FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC Plausible state after the RC circuit
+ *     - FEEDBACK_ANALOG_INDEX_TSAL_GREEN Status of the TSAL
+ *     - FEEDBACK_ANALOG_INDEX_PROBING_3V3 Feedback on the 3V3 line (comes out of a divider so it should be around 1.6V)
+ *     - FEEDBACK_ANALOG_INDEX_SD_OUT Shutdown out
+ *     - FEEDBACK_ANALOG_INDEX_SD_IN Shutdown in
+ *     - FEEDBACK_ANALOG_INDEX_SD_END Shutdown end
+ *     - FEEDBACK_ANALOG_INDEX_V5_MCU Feedback on the 5V line
+ *     - FEEDBACK_ANALOG_INDEX_UNKNOWN Feedback used for initialization or as return value
  */
 typedef enum {
     FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC = 0U,
