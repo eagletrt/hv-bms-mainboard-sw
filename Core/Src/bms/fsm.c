@@ -17,6 +17,7 @@ Functions and types have been generated with prefix "fsm_"
 
 /*** USER CODE BEGIN MACROS ***/
 #include <string.h>
+#include <math.h>
 
 #include "primary_network.h"
 
@@ -77,7 +78,7 @@ _STATIC struct {
     .fsm_state = FSM_STATE_INIT
 };
 
-// 7-segment display animation for the IDLE state
+// 7-segment display animation for various states
 const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SIZE] = {
     DISPLAY_SEGMENT_BIT_TOP_LEFT,
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
@@ -91,8 +92,16 @@ const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SI
     DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
 };
 
-// 7-segment display animation for the PRECHARGE state
-const DisplaySegmentBit fsm_precharge_display_animation[FSM_PRECHARGE_DISPLAY_ANIMATION_SIZE] = {
+const DisplaySegmentBit fsm_ts_on_display_animation[FSM_TS_ON_DISPLAY_ANIMATION_SIZE] = {
+    DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
+    DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM,
+    DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
+    DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
+    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
+};
+
+const DisplaySegmentBit fsm_balancing_display_animation[FSM_BALANCING_DISPLAY_ANIMATION_SIZE] = {
     DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
     DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_MIDDLE,
     DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
@@ -100,15 +109,6 @@ const DisplaySegmentBit fsm_precharge_display_animation[FSM_PRECHARGE_DISPLAY_AN
     DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
     DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_MIDDLE,
     DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_TOP_LEFT,
-    DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
-};
-
-const DisplaySegmentBit fsm_ts_on_display_animation[FSM_TS_ON_DISPLAY_ANIMATION_SIZE] = {
-    DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
-    DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
-    DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM,
-    DISPLAY_SEGMENT_BIT_BOTTOM | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
-    DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
 };
 /*** USER CODE END GLOBALS ***/
@@ -389,12 +389,10 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
   /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
   (void)timebase_routine();
   (void)can_comm_routine();
-  (void)display_run_animation(
-      fsm_precharge_display_animation,
-      FSM_PRECHARGE_DISPLAY_ANIMATION_SIZE,
-      100U,
-      timebase_get_tick()
-  );
+
+  // Display the precharge percentage from 0 to 10 (in hex)
+  percentage_t perc = floorf(pcu_get_precharge_percentage()) * 0.1;
+  (void)display_set_digit(perc);
 
   FeedbackId id = FEEDBACK_ID_UNKNOWN;
   if (fsm_is_event_triggered()) {

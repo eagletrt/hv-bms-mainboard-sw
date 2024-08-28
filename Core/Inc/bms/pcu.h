@@ -120,6 +120,13 @@ void pcu_ams_activate(void);
 void pcu_ams_deactivate(void);
 
 /**
+ * @brief Get the current percentage of the precharge from 0 to 100
+ *
+ * @return precise_percentage_t The precharge percentage
+ */
+precise_percentage_t pcu_get_precharge_percentage(void);
+
+/**
  * @brief Check if the precharge has ended
  *
  * @return bool True if the precharge is completed, false otherwise
@@ -151,6 +158,8 @@ void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted
 #define pcu_precharge_stop() CELLBOARD_NOPE()
 #define pcu_ams_activate() CELLBOARD_NOPE()
 #define pcu_ams_deactivate() CELLBOARD_NOPE()
+#define pcu_get_precharge_percentage() (0.f)
+#define pcu_is_precharge_complete() (false)
 #define pcu_set_state_from_ecu_handle(payload) CELLBOARD_NOPE()
 #define pcu_set_state_from_handcart_handle(payload) CELLBOARD_NOPE()
 

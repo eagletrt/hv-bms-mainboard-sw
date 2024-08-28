@@ -158,10 +158,14 @@ void pcu_ams_deactivate(void) {
     hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
 }
 
-bool pcu_is_precharge_complete(void) {
+precise_percentage_t pcu_get_precharge_percentage(void) {
     raw_volt_t ts = internal_voltage_get_ts();
     raw_volt_t batt = internal_voltage_get_batt();
-    return (((float)ts * 100.f) / batt) >= PCU_PRECHARGE_THRESHOLD_PERCENT;
+    return (((float)ts * 100.f) / batt);
+}
+
+bool pcu_is_precharge_complete(void) {
+    return pcu_get_precharge_percentage() >= PCU_PRECHARGE_THRESHOLD_PERCENT;
 }
 
 void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * payload) {
