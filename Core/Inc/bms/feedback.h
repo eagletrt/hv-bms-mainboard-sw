@@ -533,6 +533,24 @@ bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value, FeedbackId * o
 bool feedback_is_digital(FeedbackId id);
 
 /**
+ * @brief Get the feedback digital bit position from its identifier
+ *
+ * @param id The identifier of the feedback
+ *
+ * @return FeedbackDigitalBit The bit position of the digital feedback
+ */
+FeedbackDigitalBit feedback_get_digital_bit_from_id(FeedbackId id);
+
+/**
+ * @brief Get the feedback analog index from its identifier
+ *
+ * @param id The identifier of the feedback
+ *
+ * @return FeedbackAnalogIndex The index of the analog feedback
+ */
+FeedbackAnalogIndex feedback_get_analog_index_from_id(FeedbackId id);
+
+/**
  * @brief Get a pointer to the CAN payload structure of the feedbacks status
  *
  * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
@@ -607,6 +625,8 @@ const char * const feedback_get_feedback_id_name(FeedbackId id);
 #define feedback_check_values(mask, value, out) (true)
 #define feedback_get_status_payload(byte_size) (NULL)
 #define feedback_is_digital(id) (true)
+#define feedback_get_digital_bit_from_id(id) (FEEDBACK_DIGITAL_BIT_UNKNOWN)
+#define feedback_get_analog_index_from_id(id) (FEEDBACK_ANALOG_INDEX_UNKNOWN)
 #define feedback_get_digital_payload(byte_size) (NULL)
 #define feedback_get_analog_payload(byte_size) (NULL)
 #define feedback_get_analog_sd_payload(byte_size) (NULL)
