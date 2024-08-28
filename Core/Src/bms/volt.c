@@ -59,7 +59,9 @@ VoltReturnCode volt_init(void) {
      * Set the initial value of the voltages as maximum to avoid
      * problems during the balancing procedure
      */
-    memset(hvolt.voltages, VOLT_MAX_VALUE, sizeof(hvolt.voltages));
+    for (CellboardId id = 0U; id < CELLBOARD_ID_COUNT; ++id)
+        for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell)
+            hvolt.voltages[id][cell] = VOLT_MAX_VALUE;
     return VOLT_OK;
 }
 
@@ -95,17 +97,21 @@ float volt_get_avg(void) {
 }
 
 void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload) {
+    const size_t off = 3U;
     if (payload == NULL ||
         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-        payload->offset + 4U >= CELLBOARD_SEGMENT_SERIES_COUNT)
+        payload->offset + off >= CELLBOARD_SEGMENT_SERIES_COUNT)
         return;
     // Update voltages
     raw_volt_t * volts = hvolt.voltages[payload->cellboard_id];
-    volts[payload->offset] = payload->voltage_0;
-    volts[payload->offset + 1U] = payload->voltage_1;
-    volts[payload->offset + 2U] = payload->voltage_2;
-    volts[payload->offset + 3U] = payload->voltage_3; 
-    for (size_t i = 0U; i < 4U; ++i)
+    volts[payload->offset] = VOLT_VOLT_TO_VALUE(payload->voltage_0);
+    volts[payload->offset + 1U] = VOLT_VOLT_TO_VALUE(payload->voltage_1);
+    volts[payload->offset + 2U] = VOLT_VOLT_TO_VALUE(payload->voltage_2);
+    /*
+     * volts[payload->offset + 3U] = VOLT_VOLT_TO_VALUE(payload->voltage_3);
+     * TODO: fix cantools's handling of non 2^n size for floating point values     
+     */
+    for (size_t i = 0U; i < off; ++i)
         _volt_check_value(volts[i]);
 }
 
@@ -118,12 +124,12 @@ primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_siz
     hvolt.can_payload.cellboard_id = hvolt.cellboard_id;
     hvolt.can_payload.offset = hvolt.offset;
     // Voltages needs to be converted in volts to be sent
-    hvolt.can_payload.voltage_0 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset]) * 0.001f;
-    hvolt.can_payload.voltage_1 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 1]) * 0.001f;
-    hvolt.can_payload.voltage_2 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 2]) * 0.001f;
-    /**
+    hvolt.can_payload.voltage_0 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset]);
+    hvolt.can_payload.voltage_1 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 1]);
+    hvolt.can_payload.voltage_2 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 2]);
+    /*
      * hvolt.can_payload.voltage_3 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 3]) * 0.001f; 
-     * @TODO: fix cantools's handling of non 2^n size for floating point values     
+     * TODO: fix cantools's handling of non 2^n size for floating point values     
      */
 
     // Update indices

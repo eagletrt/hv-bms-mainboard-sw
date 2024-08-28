@@ -424,7 +424,7 @@ _STATIC char * feedback_id_name[] = {
     [FEEDBACK_ID_AIRP_OPEN_MEC] = "air+ open mec", 
     [FEEDBACK_ID_SD_IMD_FB] = "imd shutdown",
     [FEEDBACK_ID_SD_BMS_FB] = "bms shutdowm",
-    [FEEDBACK_ID_TS_LESS_THAN_60V] = "ts < 60V",
+    [FEEDBACK_ID_TS_LESS_THAN_60V] = "ts < 60v",
     [FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED] = "plausible state persisted",
     [FEEDBACK_ID_PLAUSIBLE_STATE] = "plausible state",
     [FEEDBACK_ID_BMS_FAULT_COCKPIT_LED] = "bms fault cockpit led",
@@ -438,11 +438,11 @@ _STATIC char * feedback_id_name[] = {
     [FEEDBACK_ID_IMD_OK] = "imd ok",
     [FEEDBACK_ID_PLAUSIBLE_STATE_RC] = "plausible state rc",
     [FEEDBACK_ID_TSAL_GREEN] = "tsal green",
-    [FEEDBACK_ID_PROBING_3V3] = "probing 3V3",
+    [FEEDBACK_ID_PROBING_3V3] = "probing 3v3",
     [FEEDBACK_ID_SD_OUT] = "shutdown out",
     [FEEDBACK_ID_SD_IN] = "shutdown in",
     [FEEDBACK_ID_SD_END] = "shutdown end",
-    [FEEDBACK_ID_V5_MCU] = "MCU 5V"
+    [FEEDBACK_ID_V5_MCU] = "mcu 5v"
 };
 
 const char * const feedback_get_feedback_id_name(FeedbackId id) {

@@ -299,6 +299,12 @@ fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
   /*** USER CODE BEGIN DO_BALANCING ***/
   (void)timebase_routine();
   (void)can_comm_routine();
+  (void)display_run_animation(
+      fsm_balancing_display_animation,
+      FSM_BALANCING_DISPLAY_ANIMATION_SIZE,
+      100U,
+      timebase_get_tick()
+  );
 
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)

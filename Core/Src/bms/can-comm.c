@@ -342,7 +342,7 @@ CanCommReturnCode can_comm_routine(void) {
             // TODO: Handle errors?
             _can_comm_payload_handle(rx_msg.network, rx_msg.index)(hcan_comm.rx_device.message);
         }
-        else {
+        else { 
             // TODO: Handler remote requests
         }
     }

@@ -89,7 +89,7 @@ void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing
 
     // Update data
     raw_volt_t target = volt_get_min();
-    raw_volt_t thr = VOLT_MILLIVOLT_TO_VALUE(payload->threshold);
+    raw_volt_t thr = VOLT_VOLT_TO_VALUE(payload->threshold);
     hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN, BAL_TARGET_MAX);
     hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN, BAL_THRESHOLD_MAX);
 
@@ -116,7 +116,7 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
 
     // Update data
     raw_volt_t target = volt_get_min();
-    raw_volt_t thr = VOLT_MILLIVOLT_TO_VALUE(payload->threshold);
+    raw_volt_t thr = VOLT_VOLT_TO_VALUE(payload->threshold);
     hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN, BAL_TARGET_MAX);
     hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN, BAL_THRESHOLD_MAX);
 
@@ -138,8 +138,8 @@ bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(size_t *
     if (byte_size != NULL)
         *byte_size = sizeof(hbal.can_payload);
     hbal.can_payload.start = hbal.active;
-    hbal.can_payload.target = hbal.params.target;
-    hbal.can_payload.threshold = hbal.params.threshold;
+    hbal.can_payload.target = VOLT_VALUE_TO_VOLT(hbal.params.target);
+    hbal.can_payload.threshold = VOLT_VALUE_TO_VOLT(hbal.params.threshold);
     return &hbal.can_payload;
 }
 
