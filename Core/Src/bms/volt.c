@@ -55,6 +55,11 @@ _STATIC_INLINE void _volt_check_value(raw_volt_t value) {
 
 VoltReturnCode volt_init(void) {
     memset(&hvolt, 0U, sizeof(hvolt));
+    /*
+     * Set the initial value of the voltages as maximum to avoid
+     * problems during the balancing procedure
+     */
+    memset(hvolt.voltages, VOLT_MAX_VALUE, sizeof(hvolt.voltages));
     return VOLT_OK;
 }
 

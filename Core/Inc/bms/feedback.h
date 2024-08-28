@@ -270,9 +270,10 @@ typedef enum {
  *     - FEEDBACK_ID_SD_IN
  *     - FEEDBACK_ID_SD_END
  *     - FEEDBACK_ID_V5_MCU
+ *     - FEEDBACK_ID_UNKNOWN Feedback used for initialization purposes
  */
 typedef enum {
-    FEEDBACK_ID_AIRN_OPEN_COM,
+    FEEDBACK_ID_AIRN_OPEN_COM = 0,
     FEEDBACK_ID_PRECHARGE_OPEN_COM,
     FEEDBACK_ID_AIRP_OPEN_COM, 
     FEEDBACK_ID_AIRN_OPEN_MEC,
@@ -299,7 +300,8 @@ typedef enum {
     FEEDBACK_ID_SD_IN,
     FEEDBACK_ID_SD_END,
     FEEDBACK_ID_V5_MCU,
-    FEEDBACK_ID_COUNT
+    FEEDBACK_ID_COUNT,
+    FEEDBACK_ID_UNKNOWN
 } FeedbackId;
 
 /** @brief Type definition of the feedback identifiers
@@ -361,7 +363,8 @@ typedef enum {
     FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED,
     FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED,
     FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED,
-    FEEDBACK_DIGITAL_BIT_COUNT
+    FEEDBACK_DIGITAL_BIT_COUNT,
+    FEEDBACK_DIGITAL_BIT_UNKNOWN
 } FeedbackDigitalBit;
 
 /**
@@ -381,7 +384,8 @@ typedef enum {
     FEEDBACK_ANALOG_INDEX_SD_IN,
     FEEDBACK_ANALOG_INDEX_SD_END,
     FEEDBACK_ANALOG_INDEX_V5_MCU,
-    FEEDBACK_ANALOG_INDEX_COUNT
+    FEEDBACK_ANALOG_INDEX_COUNT,
+    FEEDBACK_ANALOG_INDEX_UNKNOWN
 } FeedbackAnalogIndex;
 
 /**
@@ -410,6 +414,9 @@ typedef enum {
  * @param status An array of all the feedbacks current status
  * @param status_can_payload The canlib payload of the feedbacks status
  * @param digital_can_payload The canlib payload of the digital feedbacks values
+ * @param analog_can_payload The canlib payload of the analog feedbacks values
+ * @param analog_sd_can_payload The canlib payload of the analog shutdown feedbacks values
+ * @param enzomma_can_payload The canlib payload of the feedback that did not allow the BMS to go the TS ON state
  */
 typedef struct {
     feedback_read_digital_all_callback_t read_digital;
@@ -424,6 +431,7 @@ typedef struct {
     primary_hv_feedback_digital_converted_t digital_can_payload;
     primary_hv_feedback_analog_converted_t analog_can_payload;
     primary_hv_feedback_analog_sd_converted_t analog_sd_can_payload;
+    primary_hv_feedback_enzomma_converted_t enzomma_can_payload;
 } _FeedbackHandler;
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
@@ -508,10 +516,21 @@ FeedbackStatus feedback_get_status(FeedbackId id);
  * 
  * @param mask The mask used to select the feedbacks to check
  * @param value The expected values of the feedbacks
+ * @param out[out] The identifer of the feedback that does not match the expected value
+ * or FEEDBACK_ID_UNKNOWN if every feedback is ok (can be NULL)
  *
  * @return bool True if all the feedbacks match the expected value, false Otherwise
  */
-bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value);
+bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value, FeedbackId * out);
+
+/**
+ * @brief Check if a feedback is digital or analog given its identifier
+ *
+ * @param id The identifier of the feedback
+ *
+ * @return bool True if the feedback is digital, false otherwise
+ */
+bool feedback_is_digital(FeedbackId id);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the feedbacks status
@@ -549,6 +568,17 @@ primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * by
  */
 primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_t * byte_size);
 
+/**
+ * @brief Get a pointer to the CAN payload structure of the feedback that did not
+ * allow the BMS to go to the TS ON state
+ *
+ * @param id The identifier of the feedback
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_feedback_enzomma_converted_t* A pointer to the payload
+ */
+primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(FeedbackId id, size_t * byte_size);
+
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
 /**
@@ -574,11 +604,13 @@ const char * const feedback_get_feedback_id_name(FeedbackId id);
 #define feedback_update_analog_conversion(index, value) (FEEDBACK_OK)
 #define feedback_update_status() (FEEDBACK_OK)
 #define feedback_get_status(id) (FEEDBACK_STATUS_ERROR)
-#define feedback_check_values(mask, value) (true)
+#define feedback_check_values(mask, value, out) (true)
 #define feedback_get_status_payload(byte_size) (NULL)
+#define feedback_is_digital(id) (true)
 #define feedback_get_digital_payload(byte_size) (NULL)
 #define feedback_get_analog_payload(byte_size) (NULL)
 #define feedback_get_analog_sd_payload(byte_size) (NULL)
+#define feedback_get_enzomma_payload(id, byte_size) (NULL)
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

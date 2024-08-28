@@ -18,6 +18,8 @@ Functions and types have been generated with prefix "fsm_"
 /*** USER CODE BEGIN MACROS ***/
 #include <string.h>
 
+#include "primary_network.h"
+
 #include "post.h"
 #include "can-comm.h"
 #include "timebase.h"
@@ -202,8 +204,21 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
           next_state = FSM_STATE_FLASH;
       else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
-          if (feedback_check_values(FEEDBACK_IDLE_TO_AIRN_CHECK_MASK, FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH))
+          FeedbackId id = FEEDBACK_ID_UNKNOWN;
+          if (feedback_check_values(FEEDBACK_IDLE_TO_AIRN_CHECK_MASK, FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH, &id))
               next_state = FSM_STATE_AIRN_CHECK;
+          else {
+              // If there is a problem during the TS on procedure send info about the problematic feedback
+              size_t byte_size = 0U;
+              uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+              (void)can_comm_tx_add(
+                  CAN_NETWORK_PRIMARY,
+                  PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+                  CAN_FRAME_TYPE_DATA,
+                  payload,
+                  byte_size
+              );
+          }
       }
       else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_START)
           next_state = FSM_STATE_BALANCING;
@@ -316,6 +331,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
   (void)timebase_routine();
   (void)can_comm_routine();
 
+  FeedbackId id = FEEDBACK_ID_UNKNOWN;
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
@@ -325,14 +341,27 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END))
+  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END, &id))
       next_state = FSM_STATE_IDLE;
   /*
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok start the precharge
    */
-  else if (feedback_check_values(FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK, FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH))
+  else if (feedback_check_values(FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK, FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH, &id))
       next_state = FSM_STATE_PRECHARGE_CHECK;
+
+  // If there is a problem during the TS on procedure send info about the problematic feedback
+  if (next_state == FSM_STATE_IDLE) {
+      size_t byte_size = 0U;
+      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      (void)can_comm_tx_add(
+          CAN_NETWORK_PRIMARY,
+          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+          CAN_FRAME_TYPE_DATA,
+          payload,
+          byte_size
+      );
+  }
   
   /*** USER CODE END DO_AIRN_CHECK ***/
   
@@ -367,6 +396,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
       timebase_get_tick()
   );
 
+  FeedbackId id = FEEDBACK_ID_UNKNOWN;
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_PRECHARGE_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
@@ -376,14 +406,27 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END))
+  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END, &id))
       next_state = FSM_STATE_IDLE;
   /*
    * Wait until every feedback inside the mask has the expected value and the precharge is complete
    * If all the feedbacks are ok close the AIR+
    */
-  else if (feedback_check_values(FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH) && pcu_is_precharge_complete())
+  else if (feedback_check_values(FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH, &id) && pcu_is_precharge_complete())
       next_state = FSM_STATE_AIRP_CHECK;
+
+  // If there is a problem during the TS on procedure send info about the problematic feedback
+  if (next_state == FSM_STATE_IDLE) {
+      size_t byte_size = 0U;
+      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      (void)can_comm_tx_add(
+          CAN_NETWORK_PRIMARY,
+          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+          CAN_FRAME_TYPE_DATA,
+          payload,
+          byte_size
+      );
+  }
  
   /*** USER CODE END DO_PRECHARGE_CHECK ***/
   
@@ -412,6 +455,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
   (void)timebase_routine();
   (void)can_comm_routine();
   
+  FeedbackId id = FEEDBACK_ID_UNKNOWN;
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRP_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
@@ -421,14 +465,27 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END))
+  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END, &id))
       next_state = FSM_STATE_IDLE;
   /*
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok go to the TS on state
    */
-  else if (feedback_check_values(FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK, FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH))
+  else if (feedback_check_values(FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK, FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH, &id))
       next_state = FSM_STATE_TS_ON;
+
+  // If there is a problem during the TS on procedure send info about the problematic feedback
+  if (next_state == FSM_STATE_IDLE) {
+      size_t byte_size = 0U;
+      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      (void)can_comm_tx_add(
+          CAN_NETWORK_PRIMARY,
+          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+          CAN_FRAME_TYPE_DATA,
+          payload,
+          byte_size
+      );
+  }
 
   /*** USER CODE END DO_AIRP_CHECK ***/
   
@@ -463,13 +520,24 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
       timebase_get_tick()
   );
 
+  FeedbackId id = FEEDBACK_ID_UNKNOWN;
   if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
-  else if (!feedback_check_values(FEEDBACK_TS_ON_MASK, FEEDBACK_TS_ON_HIGH))
+  else if (!feedback_check_values(FEEDBACK_TS_ON_MASK, FEEDBACK_TS_ON_HIGH, &id)) {
+      // If there is a problem during the TS on procedure send info about the problematic feedback
+      size_t byte_size = 0U;
+      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      (void)can_comm_tx_add(
+          CAN_NETWORK_PRIMARY,
+          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+          CAN_FRAME_TYPE_DATA,
+          payload,
+          byte_size
+      );
       next_state = FSM_STATE_IDLE;
-
+  }
   /*** USER CODE END DO_TS_ON ***/
   
   switch (next_state) {

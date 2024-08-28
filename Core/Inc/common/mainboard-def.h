@@ -231,6 +231,15 @@
 #define MAINBOARD_ADC_VALUE_TO_MILLIVOLT(VALUE, VREF, RES) ((millivolt_t)(((VALUE) / (float)((1U << RES) - 1U)) * (VREF)))
 
 /**
+ * @brief Convert a value gathered from an ADC to a voltage in V
+ *
+ * @param VALUE The raw value to convert
+ * @param VREF The voltage reference in mV
+ * @param RES The resolution of the ADC in bits
+ */
+#define MAINBOARD_ADC_VALUE_TO_VOLT(VALUE, VREF, RES) ((volt_t)MAINBOARD_ADC_VALUE_TO_MILLIVOLT(VALUE, VREF, RES) * 0.001)
+
+/**
  * @brief Convert a voltage in mV to an ADC raw value
  *
  * @param VALUE The value to convert in mV
@@ -238,6 +247,15 @@
  * @param RES The resolution of the ADC in bits
  */
 #define MAINBOARD_MILLIVOLT_TO_ADC_VALUE(VALUE, VREF, RES) ((raw_volt_t)(((VALUE) / (float)(VREF)) * ((1U << RES) - 1U)))
+
+/**
+ * @brief Convert a voltage in V to an ADC raw value
+ *
+ * @param VALUE The value to convert in V
+ * @param VREF The voltage reference in mV
+ * @param RES The resolution of the ADC in bits
+ */
+#define MAINBOARD_ADC_VOLT_TO_VALUE(VALUE, VREF, RES) MAINBOARD_ADC_MILLIVOLT_TO_VALUE((VALUE) * 1000.f, VREF, RES)
 
 /** @} */
 
