@@ -102,6 +102,14 @@ primary_hv_current_converted_t * current_get_canlib_payload(size_t * byte_size);
  */
 raw_current_t current_get_current(void);
 
+/**
+ * @brief Get the calculated power value
+ *
+ * @return kilowatt_t The power in kilowatts
+ */
+kilowatt_t current_get_power(void);
+
+
 #else  // CONF_CURRENT_MODULE_ENABLE
 
 #define current_init() (CURRENT_OK)

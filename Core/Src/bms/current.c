@@ -12,6 +12,8 @@
 
 #include "timebase.h"
 #include "error.h"
+#include "internal-voltage.h"
+#include "volt.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
@@ -65,6 +67,10 @@ primary_hv_current_converted_t * current_get_canlib_payload(size_t * byte_size) 
 
 raw_current_t current_get_current(void) {
     return hcurrent.current;
+}
+
+kilowatt_t current_get_power(void) {
+    return CURRENT_VALUE_TO_AMPERE(hcurrent.current) * VOLT_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001f;
 }
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE

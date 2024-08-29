@@ -405,6 +405,10 @@ typedef int32_t raw_current_t;
 typedef float ampere_t;
 typedef float milliampere_t;
 
+/** @brief Actual power */
+typedef float watt_t;
+typedef float kilowatt_t;
+
 /** @brief Function callback that resets the microcontroller */
 typedef void (* system_reset_callback_t)(void);
 
