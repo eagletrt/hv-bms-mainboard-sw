@@ -316,14 +316,14 @@ primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * by
     hfeedback.status_can_payload.ts_less_than_60v = hfeedback.status[FEEDBACK_ID_TS_LESS_THAN_60V];
     hfeedback.status_can_payload.plausible_state_persisted = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED];
     hfeedback.status_can_payload.plausible_state = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE];
-    hfeedback.status_can_payload.bms_fault_cockpit_led = hfeedback.status[FEEDBACK_ID_BMS_FAULT_COCKPIT_LED];
-    hfeedback.status_can_payload.imd_fault_cockpit_led = hfeedback.status[FEEDBACK_ID_IMD_FAULT_COCKPIT_LED];
+    hfeedback.status_can_payload.not_bms_fault_cockpit_led = hfeedback.status[FEEDBACK_ID_BMS_FAULT_COCKPIT_LED];
+    hfeedback.status_can_payload.not_imd_fault_cockpit_led = hfeedback.status[FEEDBACK_ID_IMD_FAULT_COCKPIT_LED];
     hfeedback.status_can_payload.indicator_connected = hfeedback.status[FEEDBACK_ID_INDICATOR_CONNECTED];
-    hfeedback.status_can_payload.latch_reset = hfeedback.status[FEEDBACK_ID_LATCH_RESET];
+    hfeedback.status_can_payload.not_latch_reset = hfeedback.status[FEEDBACK_ID_LATCH_RESET];
     hfeedback.status_can_payload.plausible_state_latched = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED];
-    hfeedback.status_can_payload.bms_fault_latched = hfeedback.status[FEEDBACK_ID_BMS_FAULT_LATCHED];
-    hfeedback.status_can_payload.imd_fault_latched = hfeedback.status[FEEDBACK_ID_IMD_FAULT_LATCHED];
-    hfeedback.status_can_payload.ext_fault_latched = hfeedback.status[FEEDBACK_ID_EXT_FAULT_LATCHED];
+    hfeedback.status_can_payload.not_bms_fault_latched = hfeedback.status[FEEDBACK_ID_BMS_FAULT_LATCHED];
+    hfeedback.status_can_payload.not_imd_fault_latched = hfeedback.status[FEEDBACK_ID_IMD_FAULT_LATCHED];
+    hfeedback.status_can_payload.not_ext_fault_latched = hfeedback.status[FEEDBACK_ID_EXT_FAULT_LATCHED];
     hfeedback.status_can_payload.imd_ok = hfeedback.status[FEEDBACK_ID_IMD_OK];
     hfeedback.status_can_payload.plausible_state_rc = hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_RC];
     hfeedback.status_can_payload.tsal_green = hfeedback.status[FEEDBACK_ID_TSAL_GREEN];
@@ -347,14 +347,14 @@ primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * 
     hfeedback.digital_can_payload.digital_ts_less_than_60v = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V);
     hfeedback.digital_can_payload.digital_plausible_state_persisted = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED);
     hfeedback.digital_can_payload.digital_plausible_state = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE);
-    hfeedback.digital_can_payload.digital_bms_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
-    hfeedback.digital_can_payload.digital_imd_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
+    hfeedback.digital_can_payload.digital_not_bms_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
+    hfeedback.digital_can_payload.digital_not_imd_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
     hfeedback.digital_can_payload.digital_indicator_connected = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED);
-    hfeedback.digital_can_payload.digital_latch_reset = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
+    hfeedback.digital_can_payload.digital_not_latch_reset = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
     hfeedback.digital_can_payload.digital_plausible_state_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_LATCHED);
-    hfeedback.digital_can_payload.digital_bms_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
-    hfeedback.digital_can_payload.digital_imd_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
-    hfeedback.digital_can_payload.digital_ext_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_not_bms_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_not_imd_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_not_ext_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
     return &hfeedback.digital_can_payload; 
 }
 
