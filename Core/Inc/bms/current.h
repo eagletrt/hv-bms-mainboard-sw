@@ -69,6 +69,22 @@ typedef enum {
     CURRENT_OK
 } CurrentReturnCode;
 
+/**
+ * @brief Current handler structure
+ *
+ * @attention This structure should never be used outside of this file
+ *
+ * @param current The raw current value
+ * @param current_can_payload The canlib payload used to send the current value via CAN
+ * @param power_can_payload The canlib payload used to send the power value via CAN
+ */
+typedef struct {
+    raw_current_t current;    
+
+    primary_hv_current_converted_t current_can_payload;
+    primary_hv_power_converted_t power_can_payload;
+} _CurrentHandler;
+
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
 /**
@@ -87,15 +103,6 @@ CurrentReturnCode current_init(void);
 void current_handle(bms_ivt_msg_result_i_t * payload);
 
 /**
- * @brief Get a pointer to the CAN payload of the current
- * 
- * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * @return primary_hv_current_converted_t* A pointer to the payload
- */
-primary_hv_current_converted_t * current_get_canlib_payload(size_t * byte_size);
-
-/**
  * @brief Get the saved raw current value
  *
  * @return raw_current_t The current
@@ -109,12 +116,32 @@ raw_current_t current_get_current(void);
  */
 kilowatt_t current_get_power(void);
 
+/**
+ * @brief Get a pointer to the CAN payload of the current
+ * 
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_current_converted_t* A pointer to the payload
+ */
+primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * byte_size);
+
+/**
+ * @brief Get a pointer to the CAN payload of the power
+ * 
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_power_converted_t* A pointer to the payload
+ */
+primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * byte_size);
 
 #else  // CONF_CURRENT_MODULE_ENABLE
 
 #define current_init() (CURRENT_OK)
 #define current_handle(payload) CELLBOARD_NOPE()
-#define current_get_current() (0U)
+#define current_get_current() (0.f)
+#define current_get_power() (0.f)
+#define current_get_current_canlib_payload() (NULL)
+#define current_get_power_canlib_payload() (NULL)
 
 #endif // CONF_CURRENT_MODULE_ENABLE
 

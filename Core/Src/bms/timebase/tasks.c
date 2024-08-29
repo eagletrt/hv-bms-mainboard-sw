@@ -68,8 +68,15 @@ void _tasks_send_hv_balancing_status(void) {
 /** @brief Send the current via CAN */
 void _tasks_send_hv_current(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)current_get_canlib_payload(&byte_size);
+    uint8_t * payload = (uint8_t *)current_get_current_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
+/** @brief Send the power via CAN */
+void _tasks_send_hv_power(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)current_get_power_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_POWER_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);  
 }
 
 /** @brief Send the cells voltages via CAN */

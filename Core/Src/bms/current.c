@@ -17,18 +17,7 @@
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
-/**
- * @brief Current handler structure
- *
- * @param current The raw current value
- * @param can_payload The canlib payload used to send the current value via CAN
- */
-_STATIC struct {
-    raw_current_t current;    
-
-    primary_hv_current_converted_t can_payload;
-} hcurrent;
-
+_STATIC _CurrentHandler hcurrent;
 
 /**
  * @brief Check if the current values are in range otherwise set an error
@@ -56,21 +45,30 @@ void current_handle(bms_ivt_msg_result_i_t * payload) {
     _current_check_value(hcurrent.current);
 }
 
-primary_hv_current_converted_t * current_get_canlib_payload(size_t * byte_size) {
-    if (byte_size != NULL)
-        *byte_size = sizeof(hcurrent.can_payload);
-
-    // Save current value in A
-    hcurrent.can_payload.current = CURRENT_VALUE_TO_AMPERE(hcurrent.current);
-    return &hcurrent.can_payload;
-}
-
 raw_current_t current_get_current(void) {
     return hcurrent.current;
 }
 
 kilowatt_t current_get_power(void) {
     return CURRENT_VALUE_TO_AMPERE(hcurrent.current) * VOLT_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001f;
+}
+
+primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hcurrent.current_can_payload);
+
+    // Save current value in A
+    hcurrent.current_can_payload.current = CURRENT_VALUE_TO_AMPERE(hcurrent.current);
+    return &hcurrent.current_can_payload;
+}
+
+primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hcurrent.power_can_payload);
+
+    // Save current value in A
+    hcurrent.power_can_payload.current = CURRENT_VALUE_TO_AMPERE(hcurrent.current);
+    return &hcurrent.power_can_payload;
 }
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE

@@ -51,6 +51,7 @@
     TASKS_X(SEND_STATUS, true, 0U, PRIMARY_HV_STATUS_CYCLE_TIME_MS, _tasks_send_hv_status) \
     TASKS_X(SEND_BALANCING_STATUS, true, 0U, PRIMARY_HV_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_hv_balancing_status) \
     TASKS_X(SEND_CURRENT, true, 10U, PRIMARY_HV_CURRENT_CYCLE_TIME_MS, _tasks_send_hv_current) \
+    TASKS_X(SEND_POWER, true, 10U, PRIMARY_HV_POWER_CYCLE_TIME_MS, _tasks_send_hv_power) \
     TASKS_X(SEND_CELLS_VOLTAGE, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_CYCLE_TIME_MS, _tasks_send_hv_cells_voltage) \
     TASKS_X(SEND_FEEDBACK_STATUS, true, 10U, PRIMARY_HV_FEEDBACK_STATUS_CYCLE_TIME_MS, _tasks_send_hv_feedback_status) \
     TASKS_X(SEND_FEEDBACK_DIGITAL, true, 10U, PRIMARY_HV_FEEDBACK_DIGITAL_CYCLE_TIME_MS, _tasks_send_hv_feedback_digital) \
