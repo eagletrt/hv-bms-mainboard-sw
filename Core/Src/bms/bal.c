@@ -30,9 +30,9 @@ BalReturnCode bal_init(void) {
     hbal.event.type = FSM_EVENT_TYPE_IGNORED;
 
     // Set default calib payload data
-    hbal.can_payload.start = false;
-    hbal.can_payload.target = BAL_TARGET_MAX;
-    hbal.can_payload.threshold = BAL_THRESHOLD_MAX;
+    hbal.set_status_can_payload.start = false;
+    hbal.set_status_can_payload.target = BAL_TARGET_MAX;
+    hbal.set_status_can_payload.threshold = BAL_THRESHOLD_MAX;
 
     // Set default balancing parameters
     hbal.params.target = BAL_TARGET_MAX;
@@ -134,13 +134,51 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
     }
 }
 
-bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(size_t * byte_size) {
+void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t * payload) {
+    if (payload == NULL)
+        return;
+    // Forward balancing status info to the primary network
+    hbal.status_can_payload.status = (primary_hv_balancing_status_status)payload->status;
+    hbal.status_can_payload.cellboard_id = (primary_hv_balancing_status_cellboard_id)payload->cellboard_id;
+    hbal.status_can_payload.discharging_cell_0 = payload->discharging_cell_0;
+    hbal.status_can_payload.discharging_cell_1 = payload->discharging_cell_1;
+    hbal.status_can_payload.discharging_cell_2 = payload->discharging_cell_2;
+    hbal.status_can_payload.discharging_cell_3 = payload->discharging_cell_3;
+    hbal.status_can_payload.discharging_cell_4 = payload->discharging_cell_4;
+    hbal.status_can_payload.discharging_cell_5 = payload->discharging_cell_5;
+    hbal.status_can_payload.discharging_cell_6 = payload->discharging_cell_6;
+    hbal.status_can_payload.discharging_cell_7 = payload->discharging_cell_7;
+    hbal.status_can_payload.discharging_cell_8 = payload->discharging_cell_8;
+    hbal.status_can_payload.discharging_cell_9 = payload->discharging_cell_9;
+    hbal.status_can_payload.discharging_cell_10 = payload->discharging_cell_10;
+    hbal.status_can_payload.discharging_cell_11 = payload->discharging_cell_11;
+    hbal.status_can_payload.discharging_cell_12 = payload->discharging_cell_12;
+    hbal.status_can_payload.discharging_cell_13 = payload->discharging_cell_13;
+    hbal.status_can_payload.discharging_cell_14 = payload->discharging_cell_14;
+    hbal.status_can_payload.discharging_cell_15 = payload->discharging_cell_15;
+    hbal.status_can_payload.discharging_cell_16 = payload->discharging_cell_16;
+    hbal.status_can_payload.discharging_cell_17 = payload->discharging_cell_17;
+    hbal.status_can_payload.discharging_cell_18 = payload->discharging_cell_18;
+    hbal.status_can_payload.discharging_cell_19 = payload->discharging_cell_19;
+    hbal.status_can_payload.discharging_cell_20 = payload->discharging_cell_20;
+    hbal.status_can_payload.discharging_cell_21 = payload->discharging_cell_21;
+    hbal.status_can_payload.discharging_cell_22 = payload->discharging_cell_22;
+    hbal.status_can_payload.discharging_cell_23 = payload->discharging_cell_23;
+}
+
+bms_cellboard_set_balancing_status_converted_t * bal_get_set_status_canlib_payload(size_t * byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hbal.can_payload);
-    hbal.can_payload.start = hbal.active;
-    hbal.can_payload.target = VOLT_VALUE_TO_VOLT(hbal.params.target);
-    hbal.can_payload.threshold = VOLT_VALUE_TO_VOLT(hbal.params.threshold);
-    return &hbal.can_payload;
+        *byte_size = sizeof(hbal.set_status_can_payload);
+    hbal.set_status_can_payload.start = hbal.active;
+    hbal.set_status_can_payload.target = VOLT_VALUE_TO_VOLT(hbal.params.target);
+    hbal.set_status_can_payload.threshold = VOLT_VALUE_TO_VOLT(hbal.params.threshold);
+    return &hbal.set_status_can_payload;
+}
+
+primary_hv_balancing_status_converted_t * bal_get_status_canlib_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hbal.status_can_payload);
+    return &hbal.status_can_payload;
 }
 
 #endif // CONF_BALANCING_MODULE_ENABLE

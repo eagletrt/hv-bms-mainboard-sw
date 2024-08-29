@@ -58,6 +58,13 @@ void _tasks_send_hv_status(void) {
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
+/** @brief Send the BSM balancing status via CAN */
+void _tasks_send_hv_balancing_status(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)bal_get_status_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_BALANCING_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
 /** @brief Send the current via CAN */
 void _tasks_send_hv_current(void) {
     size_t byte_size = 0U;
@@ -65,45 +72,52 @@ void _tasks_send_hv_current(void) {
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
+/** @brief Send the cells voltages via CAN */
 void _tasks_send_hv_cells_voltage(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
+/** @brief Send the feedback status via CAN */
 void _tasks_send_hv_feedback_status(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)feedback_get_status_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
+/** @brief Send the digital feedbacks values via CAN */
 void _tasks_send_hv_feedback_digital(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)feedback_get_digital_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_DIGITAL_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
+/** @brief Send the analog feedbacks values via CAN */
 void _tasks_send_hv_feedback_analog(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)feedback_get_analog_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
+/** @brief Send the analog shutdown feedbacks values via CAN */
 void _tasks_send_hv_feedback_analog_sd(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)feedback_get_analog_sd_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_SD_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
+/** @brief Send the IMD status via CAN */
 void _tasks_send_hv_imd_status(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)imd_get_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_IMD_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
+/** @brief Send the set balancing status command via CAN */
 void _tasks_send_cellboard_set_balancing_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)bal_get_canlib_payload(&byte_size);
+    uint8_t * payload = (uint8_t *)bal_get_set_status_canlib_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_BMS, BMS_CELLBOARD_SET_BALANCING_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 

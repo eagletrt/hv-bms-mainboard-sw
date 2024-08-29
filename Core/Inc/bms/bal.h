@@ -70,14 +70,16 @@ typedef struct {
  * @attention This structure should not be used outside of this module
  *
  * @param event The FSM event data
- * @param can_payload The canlib payload of the balancing module
+ * @param set_status_can_payload The set balancing status message canlib payload
+ * @param status_can_payload The balancing status message canlib payload
  * @param watchdog The watchdog that stops the balancing procedure when timed out
  * @param active True if the balancing is active, false otherwise
  * @param params The balancing parameters
  */
 typedef struct {
     fsm_event_data_t event;
-    bms_cellboard_set_balancing_status_converted_t can_payload;
+    bms_cellboard_set_balancing_status_converted_t set_status_can_payload;
+    primary_hv_balancing_status_converted_t status_can_payload;
     Watchdog watchdog;
 
     bool active;
@@ -133,13 +135,29 @@ void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing
 void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t * payload);
 
 /**
- * @brief Get a pointer to the canlib payload of the balancing module
+ * @brief Handle the received balancing status message sent from the cellboards
+ *
+ * @param payload A pointer to the canlib paylod
+ */
+void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t * payload);
+
+/**
+ * @brief Get a pointer to the set balancing status message canlib payload
  *
  * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * @return bms_cellboard_set_balancing_status_converted_t* A pointer to the payload or NULL if the id is not valid
  */
-bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(size_t * byte_size);
+bms_cellboard_set_balancing_status_converted_t * bal_get_set_status_canlib_payload(size_t * byte_size);
+
+/**
+ * @brief Get a pointer to the balancing status message canlib payload
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_balancing_status_converted_t* A pointer to the payload or NULL if the id is not valid
+ */
+primary_hv_balancing_status_converted_t * bal_get_status_canlib_payload(size_t * byte_size);
 
 #else  // CONF_BALANCING_MODULE_ENABLE
 
@@ -149,7 +167,8 @@ bms_cellboard_set_balancing_status_converted_t * bal_get_canlib_payload(size_t *
 #define bal_stop() (BAL_OK)
 #define bal_set_balancing_state_from_steering_wheel_handle(payload) MAINBOARD_NOPE()
 #define bal_set_balancing_state_from_handcart_handle(payload) MAINBOARD_NOPE()
-#define bal_get_canlib_payload(byte_size) (NULL)
+#define bal_get_set_status_canlib_payload(byte_size) (NULL)
+#define bal_get_status_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_BALANCING_MODULE_ENABLE
 
