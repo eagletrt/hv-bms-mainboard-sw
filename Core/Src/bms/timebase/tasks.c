@@ -18,6 +18,7 @@
 #include "feedback.h"
 #include "internal-voltage.h"
 #include "bal.h"
+#include "imd.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -87,10 +88,17 @@ void _tasks_send_hv_feedback_analog(void) {
     uint8_t * payload = (uint8_t *)feedback_get_analog_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
+
 void _tasks_send_hv_feedback_analog_sd(void) {
     size_t byte_size = 0U;
     uint8_t * payload = (uint8_t *)feedback_get_analog_sd_payload(&byte_size);
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_SD_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+}
+
+void _tasks_send_hv_imd_status(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)imd_get_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_IMD_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
 }
 
 void _tasks_send_cellboard_set_balancing_status(void) {

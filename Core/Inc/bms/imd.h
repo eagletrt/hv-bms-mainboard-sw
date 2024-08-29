@@ -12,6 +12,8 @@
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
+#include "primary_network.h"
+
 #include "ir1553204.h"
 
 /** @brief Type definition for the callback function that should start the PWM measurements */
@@ -53,6 +55,23 @@ typedef enum {
     IMD_STATUS_EARTH_FAULT = IR1553204_STATUS_EARTH_FAULT,
     IMD_STATUS_COUNT = IR1553204_STATUS_COUNT
 } ImdStatus;
+
+/**
+ * @brief Type definition for the IMD handler structure
+ *
+ * @attention Do not use this struct outside this module
+ *
+ * @param start A pointer to the callback used to start the PWM to read from the IMD
+ * @param ir41153204 Handler structure of the IMD driver
+ * @param can_payload The canlib payload used to send the IMD status
+ */
+typedef struct {
+    imd_pwm_start_callback_t start;
+
+    Ir1553204Handler ir1153204;
+
+    primary_hv_imd_status_converted_t can_payload;
+} _ImdHandler;
 
 #ifdef CONF_IMD_MODULE_ENABLE
 
@@ -112,6 +131,15 @@ ImdReturnCode imd_update(
     ticks_t high_count
 );
 
+/**
+ * @brief Get a pointer to the CAN payload of the IMD
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_imd_status_converted_t* A pointer to the payload
+ */
+primary_hv_imd_status_converted_t * imd_get_canlib_payload(size_t * byte_size);
+
 #else  // CONF_IMD_MODULE_ENABLE
 
 #define imd_init(start) (IMD_OK)
@@ -120,6 +148,7 @@ ImdReturnCode imd_update(
 #define imd_get_period() (0U)
 #define imd_get_status() (IMD_STATUS_NORMAL)
 #define imd_update(source_frequency, period_count, high_count) (IMD_OK)
+#define imd_get_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_IMD_MODULE_ENABLE
 

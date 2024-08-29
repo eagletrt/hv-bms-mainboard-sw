@@ -9,14 +9,11 @@
 #include <string.h>
 
 #include "imd.h"
+#include "feedback.h"
 
 #ifdef CONF_IMD_MODULE_ENABLE
 
-_STATIC struct {
-    imd_pwm_start_callback_t start;
-
-    Ir1553204Handler ir1153204;
-} himd;
+_STATIC _ImdHandler himd;
 
 ImdReturnCode imd_init(imd_pwm_start_callback_t start) {
     memset(&himd, 0U, sizeof(himd));
@@ -54,6 +51,17 @@ ImdReturnCode imd_update(
     (void)ir1553204_set_frequency(&himd.ir1153204, frequency);
     (void)ir1553204_set_duty_cycle(&himd.ir1153204, duty_cycle);
     return IMD_OK;
+}
+
+primary_hv_imd_status_converted_t * imd_get_canlib_payload(size_t * byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(himd.can_payload);
+    himd.can_payload.status = (primary_hv_imd_status_status)imd_get_status();
+    himd.can_payload.frequency = imd_get_frequency();
+    himd.can_payload.duty_cycle = imd_get_duty_cycle();
+    himd.can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
+    himd.can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
+    return &himd.can_payload;
 }
 
 #ifdef CONF_IMD_STRINGS_ENABLE

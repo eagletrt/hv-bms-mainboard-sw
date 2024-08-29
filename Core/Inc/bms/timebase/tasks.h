@@ -55,6 +55,7 @@
     TASKS_X(SEND_FEEDBACK_DIGITAL, true, 10U, PRIMARY_HV_FEEDBACK_DIGITAL_CYCLE_TIME_MS, _tasks_send_hv_feedback_digital) \
     TASKS_X(SEND_FEEDBACK_ANALOG, true, 10U, PRIMARY_HV_FEEDBACK_ANALOG_CYCLE_TIME_MS, _tasks_send_hv_feedback_analog) \
     TASKS_X(SEND_FEEDBACK_ANALOG_SD, true, 10U, PRIMARY_HV_FEEDBACK_ANALOG_SD_CYCLE_TIME_MS, _tasks_send_hv_feedback_analog_sd) \
+    TASKS_X(SEND_IMD_STATUS, true, 0U, PRIMARY_HV_IMD_STATUS_CYCLE_TIME_MS, _tasks_send_hv_imd_status) \
     TASKS_X(SEND_CELLBOARD_SET_BALANCING_STATUS, false, 0U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, _tasks_send_cellboard_set_balancing_status) \
     TASKS_X(READ_DIGITAL_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, _tasks_read_digital_feedbacks) \
     TASKS_X(START_ANALOG_CONVERSION_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, _tasks_start_analog_conversion_feedbacks) \
