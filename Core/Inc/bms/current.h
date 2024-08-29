@@ -31,6 +31,16 @@
  * @return milliampere_t the converted current in milliampere
  */
 #define CURRENT_VALUE_TO_MILLIAMPERE(value) ((milliampere_t)(value))
+
+/**
+ * @brief Convert a raw current value to ampere
+ *
+ * @param value The value to convert
+ *
+ * @return ampere_t The converted current in A
+ */
+#define CURRENT_VALUE_TO_AMPERE(value) ((ampere_t)((value) * 0.001))
+
 /**
  * @brief Convert a current in milliampere to the raw current value
  *
@@ -39,6 +49,15 @@
  * @return raw_current_t The raw current value
  */
 #define CURRENT_MILLIAMPERE_TO_VALUE(value) ((raw_current_t)(value))
+
+/**
+ * @brief Convert a current in ampere to the raw current value
+ *
+ * @param value The value in ampere
+ *
+ * @return ampere_t The raw current value
+ */
+#define CURRENT_VALUE_TO_AMPERE(value) ((ampere_t)((value) * 1000.f))
 
 /**
  * @brief Return code for the current module functions

@@ -59,7 +59,7 @@ primary_hv_current_converted_t * current_get_canlib_payload(size_t * byte_size) 
         *byte_size = sizeof(hcurrent.can_payload);
 
     // Save current value in A
-    hcurrent.can_payload.current = CURRENT_VALUE_TO_MILLIAMPERE(hcurrent.current) * 0.001;
+    hcurrent.can_payload.current = CURRENT_VALUE_TO_AMPERE(hcurrent.current);
     return &hcurrent.can_payload;
 }
 
