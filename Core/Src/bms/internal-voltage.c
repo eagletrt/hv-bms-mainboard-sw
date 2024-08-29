@@ -10,6 +10,8 @@
 
 #include <string.h>
 
+#include "volt.h"
+
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
 _STATIC _InternalVoltageHandler hvolt;
@@ -41,8 +43,9 @@ raw_volt_t internal_voltage_get_batt(void) {
 primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hvolt.ts_voltage_can_payload);
-    // TODO: Send ts voltages values
-    // hvolt.ts_voltage_can_payload.ts = MAX22530_VALUE_TO_MILLIVOLT(internal_voltage_get_ts()) * 0.001;
+    hvolt.ts_voltage_can_payload.ts = INTERNAL_VOLTAGE_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001;
+    hvolt.ts_voltage_can_payload.pack = INTERNAL_VOLTAGE_VALUE_TO_VOLT(internal_voltage_get_batt()) * 0.001;
+    hvolt.ts_voltage_can_payload.cells_sum = volt_get_sum();
     return &hvolt.ts_voltage_can_payload;
 }
 

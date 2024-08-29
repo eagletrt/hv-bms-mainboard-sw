@@ -117,9 +117,16 @@ raw_volt_t volt_get_max(void);
 /**
  * @brief Get the average cell voltage of the pack
  *
- * @return raw_volt_t The average voltage raw value
+ * @return float The average voltage raw value
  */
 float volt_get_avg(void);
+
+/**
+ * @brief Get the sum of the cells voltages of the pack
+ *
+ * @return volt_t The cells voltages sum
+ */
+volt_t volt_get_sum(void);
 
 /**
  * @brief Hanle the received cellboard cells voltage
@@ -141,6 +148,10 @@ primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_siz
 
 #define volt_init() (VOLT_OK)
 #define volt_get_values() (NULL)
+#define volt_get_min() (VOLT_MAX_VALUE)
+#define volt_get_max() (VOLT_MAX_VALUE)
+#define volt_get_avg() (VOLT_MAX_VALUE)
+#define volt_get_sum() (VOLT_VALUE_TO_VOLT(VOLT_MAX_VALUE))
 #define volt_cells_voltage_handle(payload) MAINBOARD_NOPE()
 #define volt_get_canlib_payload(byte_size) (NULL)
 

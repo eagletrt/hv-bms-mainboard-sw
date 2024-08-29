@@ -19,6 +19,30 @@
 /** @brief The period with which internal voltages are updated */
 #define INTERNAL_VOLTAGE_CYCLE_TIME_MS ((milliseconds_t)8U)
 
+/** @brief Maximum allowed voltage difference between the pack voltage and the cells voltage sum in V */
+#define INTERNAL_VOLTAGE_MAX_DELTA ((volt_t)25.f)
+
+/** @brief Divider ratio of the internal voltages */
+#define INTERNAL_VOLTAGE_DIVIDER_RATIO (0.0032f)
+
+/**
+ * @brief Conversion from the raw voltage value to the voltage read from the ADC in V
+ *
+ * @param value The raw voltage value
+ *
+ * @return volt_t The converted value in V
+ */
+#define INTERNAL_VOLTAGE_VALUE_TO_ADC_VOLT(value) (MAX22530_VALUE_TO_MILLIVOLT(value) * 0.001f)
+
+/**
+ * @brief Conversion from the raw voltage value to voltage in V
+ *
+ * @param value The raw voltage value
+ *
+ * @return volt_t The converted value in V
+ */
+#define INTERNAL_VOLTAGE_VALUE_TO_VOLT(value) (INTERNAL_VOLTAGE_VALUE_TO_ADC_VOLT(value) / INTERNAL_VOLTAGE_DIVIDER_RATIO)
+
 /**
  * @brief Return code for the internal voltage module functions
  *

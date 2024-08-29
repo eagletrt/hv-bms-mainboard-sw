@@ -96,6 +96,15 @@ float volt_get_avg(void) {
     return avg / (CELLBOARD_SERIES_COUNT);
 }
 
+volt_t volt_get_sum(void) {
+    float sum = 0.f;
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+            sum += VOLT_VALUE_TO_VOLT(hvolt.voltages[id][i]);
+    }
+    return sum;
+}
+
 void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload) {
     const size_t off = 3U;
     if (payload == NULL ||

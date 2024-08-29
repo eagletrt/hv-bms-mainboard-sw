@@ -50,7 +50,7 @@ raw_current_t current_get_current(void) {
 }
 
 kilowatt_t current_get_power(void) {
-    return CURRENT_VALUE_TO_AMPERE(hcurrent.current) * VOLT_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001f;
+    return CURRENT_VALUE_TO_AMPERE(hcurrent.current) * INTERNAL_VOLTAGE_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001f;
 }
 
 primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * byte_size) {
