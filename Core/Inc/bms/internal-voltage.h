@@ -12,6 +12,8 @@
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
+#include "primary_network.h"
+
 #include "max22530.h"
 
 /** @brief The period with which internal voltages are updated */
@@ -53,11 +55,14 @@ typedef enum {
  *
  * @param max22530 Handler structure of the external ADC
  * @param data The raw data read from the channels of the ADC
+ * @param ts_voltage_can_payload The TS voltage info canlib payload
  */
 typedef struct {
     Max22530Handler max22530;
 
     raw_volt_t data[INTERNAL_VOLTAGE_CHANNEL_COUNT];
+
+    primary_hv_ts_voltage_converted_t ts_voltage_can_payload;
 } _InternalVoltageHandler;
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
@@ -99,12 +104,22 @@ raw_volt_t internal_voltage_get_ts(void);
  */
 raw_volt_t internal_voltage_get_batt(void);
 
+/**
+ * @brief Get a pointer to the CAN payload of the TS voltage info
+ * 
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_ts_voltage_converted_t* A pointer to the payload
+ */
+primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * byte_size);
+
 #else  // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
 #define internal_voltage_init(send, send_receive) (INTERNAL_VOLTAGE_OK)
 #define internal_voltage_read_all() (INTERNAL_VOLTAGE_OK)
 #define internal_voltage_get_ts() (0U)
 #define internal_voltage_get_batt() (0U)
+#define internal_voltage_get_ts_voltage_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 

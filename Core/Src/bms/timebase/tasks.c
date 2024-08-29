@@ -79,6 +79,13 @@ void _tasks_send_hv_power(void) {
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_POWER_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);  
 }
 
+/** @brief Send the Tractive System voltages info via CAN */
+void _tasks_send_hv_ts_voltage (void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)internal_voltage_get_ts_voltage_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_TS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
 /** @brief Send the cells voltages via CAN */
 void _tasks_send_hv_cells_voltage(void) {
     size_t byte_size = 0U;
