@@ -57,7 +57,7 @@
  *
  * @return ampere_t The raw current value
  */
-#define CURRENT_VALUE_TO_AMPERE(value) ((ampere_t)((value) * 1000.f))
+#define CURRENT_AMPERE_TO_VALUE(value) ((ampere_t)((value) * 1000.f))
 
 /**
  * @brief Return code for the current module functions
