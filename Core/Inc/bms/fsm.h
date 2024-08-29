@@ -24,6 +24,10 @@ Functions and types have been generated with prefix "fsm_"
 #include "bms_network.h"
 #include "primary_network.h"
 
+#include "mainboard-def.h"
+#include "mainboard-conf.h"
+
+// TODO: Move defines in separate file
 // Size of the 7-segment display animations
 #define FSM_IDLE_DISPLAY_ANIMATION_SIZE (10U)
 #define FSM_TS_ON_DISPLAY_ANIMATION_SIZE (6U)
@@ -60,6 +64,7 @@ typedef enum {
     FSM_EVENT_TYPE_COUNT,
     FSM_EVENT_TYPE_IGNORED
 } FsmEventType;
+
 /*** USER CODE END MACROS ***/
 
 // State data object
@@ -104,7 +109,27 @@ typedef fsm_state_t state_func_t(fsm_state_data_t *data);
 typedef void transition_func_t(fsm_state_data_t *data);
 
 /*** USER CODE BEGIN TYPES ***/
+/**
+ * @brief Type definition for the FSM handler structure
+ *
+ * @attention Do not use this structure outside of this module
+ *
+ * @param fsm_state The current state of the FSM
+ * @param event The event data
+ * @param status_can_payload The canlib payload for the status of the FSM
+ * @param flash_can_payload The canlib payload for the flash response
+ * @param cellboard_status The status of the cellboards
+ */
+typedef struct {
+    fsm_state_t fsm_state;
+    fsm_event_data_t event;
 
+    // Canlib paylaods
+    primary_hv_status_converted_t status_can_payload;
+    primary_hv_flash_response_converted_t flash_can_payload;
+
+    bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
+} _FsmHandler;
 /*** USER CODE END TYPES ***/
 
 // Functions to check and trigger an event

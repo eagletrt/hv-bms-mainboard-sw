@@ -28,6 +28,213 @@ DisplayReturnCode display_init(
     return DISPLAY_OK;
 }
 
+DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit) {
+    switch (digit) {
+        case 0U: return DISPLAY_CHARACTER_CODE_0;
+        case 1U: return DISPLAY_CHARACTER_CODE_1;
+        case 2U: return DISPLAY_CHARACTER_CODE_2;
+        case 3U: return DISPLAY_CHARACTER_CODE_3;
+        case 4U: return DISPLAY_CHARACTER_CODE_4;
+        case 5U: return DISPLAY_CHARACTER_CODE_5;
+        case 6U: return DISPLAY_CHARACTER_CODE_6;
+        case 7U: return DISPLAY_CHARACTER_CODE_7;
+        case 8U: return DISPLAY_CHARACTER_CODE_8;
+        case 9U: return DISPLAY_CHARACTER_CODE_9;
+        case 10U: return DISPLAY_CHARACTER_CODE_A_UPCASE;
+        case 11U: return DISPLAY_CHARACTER_CODE_B_DOWNCASE;
+        case 12U: return DISPLAY_CHARACTER_CODE_C_UPCASE;
+        case 13U: return DISPLAY_CHARACTER_CODE_D_DOWNCASE;
+        case 14U: return DISPLAY_CHARACTER_CODE_E_UPCASE;
+        case 15U: return DISPLAY_CHARACTER_CODE_F_UPCASE;
+        default: return DISPLAY_CHARACTER_CODE_SPACE;
+    }
+}
+
+DisplayCharacterCode display_get_code_from_character(
+    char c,
+    bool ignore_case,
+    bool prefer_upcase)
+{
+    switch (c) {
+        // Symbols
+        case ' ': return DISPLAY_CHARACTER_CODE_SPACE;
+        case '.': return DISPLAY_CHARACTER_CODE_DOT;
+        case '-': return DISPLAY_CHARACTER_CODE_HYPEN;
+        case '_': return DISPLAY_CHARACTER_CODE_UNDERSCORE;
+
+        // Numbers
+        case '0': return DISPLAY_CHARACTER_CODE_0;
+        case '1': return DISPLAY_CHARACTER_CODE_1;
+        case '2': return DISPLAY_CHARACTER_CODE_2;
+        case '3': return DISPLAY_CHARACTER_CODE_3;
+        case '4': return DISPLAY_CHARACTER_CODE_4;
+        case '5': return DISPLAY_CHARACTER_CODE_5;
+        case '6': return DISPLAY_CHARACTER_CODE_6;
+        case '7': return DISPLAY_CHARACTER_CODE_7;
+        case '8': return DISPLAY_CHARACTER_CODE_8;
+        case '9': return DISPLAY_CHARACTER_CODE_9;
+
+        // Upper case alphabet
+        case 'A':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_A_UPCASE;
+            return DISPLAY_CHARACTER_CODE_A_DOWNCASE;
+        case 'B':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_B_DOWNCASE;
+            break;
+        case 'C':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_C_UPCASE;
+            return DISPLAY_CHARACTER_CODE_C_DOWNCASE;
+        case 'D':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_D_DOWNCASE;
+            break;
+        case 'E': return DISPLAY_CHARACTER_CODE_E_UPCASE;
+        case 'F': return DISPLAY_CHARACTER_CODE_F_UPCASE;
+        case 'G': return DISPLAY_CHARACTER_CODE_G_UPCASE;
+        case 'H':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_H_UPCASE;
+            return DISPLAY_CHARACTER_CODE_H_DOWNCASE;
+        case 'I':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_I_UPCASE;
+            return DISPLAY_CHARACTER_CODE_I_DOWNCASE;
+        case 'J':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_J_UPCASE;
+            return DISPLAY_CHARACTER_CODE_J_DOWNCASE;
+        case 'K': return DISPLAY_CHARACTER_CODE_K_UPCASE;
+        case 'L': return DISPLAY_CHARACTER_CODE_L_UPCASE;
+        case 'M': return DISPLAY_CHARACTER_CODE_M_UPCASE;
+        case 'N':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_N_DOWNCASE;
+            break;
+        case 'O':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_O_DOWNCASE;
+            break;
+        case 'P': return DISPLAY_CHARACTER_CODE_P_UPCASE;
+        case 'Q':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_Q_DOWNCASE;
+            break;
+        case 'R':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_R_DOWNCASE;
+            break;
+        case 'S': return DISPLAY_CHARACTER_CODE_S_UPCASE;
+        case 'T':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_T_DOWNCASE;
+            break;
+        case 'U':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_U_UPCASE;
+            return DISPLAY_CHARACTER_CODE_U_DOWNCASE;
+        case 'V': return DISPLAY_CHARACTER_CODE_V_UPCASE;
+        case 'W': return DISPLAY_CHARACTER_CODE_W_UPCASE;
+        case 'X':
+            if (!ignore_case || prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_X_UPCASE;
+            return DISPLAY_CHARACTER_CODE_X_DOWNCASE;
+        case 'Y':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_Y_DOWNCASE;
+            break;
+        case 'Z': return DISPLAY_CHARACTER_CODE_Z_UPCASE;
+
+        // Lower case alphabet
+        case 'a':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_A_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_A_UPCASE;
+        case 'b': return DISPLAY_CHARACTER_CODE_B_DOWNCASE;
+        case 'c':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_C_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_C_UPCASE;
+        case 'd': return DISPLAY_CHARACTER_CODE_D_DOWNCASE;
+        case 'e':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_E_UPCASE;
+            break;
+        case 'f':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_F_UPCASE;
+            break;
+        case 'g':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_G_UPCASE;
+            break;
+        case 'h':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_H_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_H_UPCASE;
+        case 'i':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_I_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_I_UPCASE;
+        case 'j':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_J_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_J_UPCASE;
+        case 'k':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_K_UPCASE;
+            break;
+        case 'l':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_L_UPCASE;
+            break;
+        case 'm':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_M_UPCASE;
+            break;
+        case 'n': return DISPLAY_CHARACTER_CODE_N_DOWNCASE;
+        case 'o': return DISPLAY_CHARACTER_CODE_O_DOWNCASE;
+        case 'p':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_P_UPCASE;
+            break;
+        case 'q': return DISPLAY_CHARACTER_CODE_Q_DOWNCASE;
+        case 'r': return DISPLAY_CHARACTER_CODE_R_DOWNCASE;
+        case 's':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_S_UPCASE;
+            break;
+        case 't': return DISPLAY_CHARACTER_CODE_T_DOWNCASE;
+        case 'u':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_U_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_U_UPCASE;
+        case 'v':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_V_UPCASE;
+            break;
+        case 'w':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_W_UPCASE;
+            break;
+        case 'x':
+            if (!ignore_case || !prefer_upcase)
+                return DISPLAY_CHARACTER_CODE_X_DOWNCASE;
+            return DISPLAY_CHARACTER_CODE_X_UPCASE;
+        case 'y': return DISPLAY_CHARACTER_CODE_Y_DOWNCASE;
+        case 'z':
+            if (ignore_case)
+                return DISPLAY_CHARACTER_CODE_Z_UPCASE;
+            break;
+
+        default:
+            break;
+    }
+    return DISPLAY_CHARACTER_CODE_SPACE;
+}
+
 DisplaySegmentStatus display_get_segment(DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return DISPLAY_SEGMENT_STATUS_UNKNOWN;
@@ -87,88 +294,16 @@ DisplayReturnCode display_set_segment_all(bit_flag8_t bits){
 DisplayReturnCode display_set_digit(uint8_t digit) {
     if (digit > 0x0F)
         return DISPLAY_INVALID_CHARACTER;
-    const DisplayCharacterCode hex[] = {
-        DISPLAY_CHARACTER_CODE_0,
-        DISPLAY_CHARACTER_CODE_1,
-        DISPLAY_CHARACTER_CODE_2,
-        DISPLAY_CHARACTER_CODE_3,
-        DISPLAY_CHARACTER_CODE_4,
-        DISPLAY_CHARACTER_CODE_5,
-        DISPLAY_CHARACTER_CODE_6,
-        DISPLAY_CHARACTER_CODE_7,
-        DISPLAY_CHARACTER_CODE_8,
-        DISPLAY_CHARACTER_CODE_9,
-        DISPLAY_CHARACTER_CODE_A_UPCASE,
-        DISPLAY_CHARACTER_CODE_B_DOWNCASE,
-        DISPLAY_CHARACTER_CODE_C_UPCASE,
-        DISPLAY_CHARACTER_CODE_D_DOWNCASE,
-        DISPLAY_CHARACTER_CODE_E_UPCASE,
-        DISPLAY_CHARACTER_CODE_F_UPCASE
-    };
-    return display_set_segment_all(hex[digit]);
+    DisplayCharacterCode code = display_get_code_from_hex_digit(digit);
+    return display_set_segment_all(code);
 }
 
-DisplayReturnCode display_set_character(char character) {
-    DisplayCharacterCode code = DISPLAY_CHARACTER_CODE_SPACE;
-    switch (character) {
-        // Numbers
-        case '0': code = DISPLAY_CHARACTER_CODE_0; break;
-        case '1': code = DISPLAY_CHARACTER_CODE_1; break;
-        case '2': code = DISPLAY_CHARACTER_CODE_2; break;
-        case '3': code = DISPLAY_CHARACTER_CODE_3; break;
-        case '4': code = DISPLAY_CHARACTER_CODE_4; break;
-        case '5': code = DISPLAY_CHARACTER_CODE_5; break;
-        case '6': code = DISPLAY_CHARACTER_CODE_6; break;
-        case '7': code = DISPLAY_CHARACTER_CODE_7; break;
-        case '8': code = DISPLAY_CHARACTER_CODE_8; break;
-        case '9': code = DISPLAY_CHARACTER_CODE_9; break;
-
-        // Uppercase characters
-        case 'A': code = DISPLAY_CHARACTER_CODE_A_UPCASE; break;
-        case 'C': code = DISPLAY_CHARACTER_CODE_C_UPCASE; break;
-        case 'E': code = DISPLAY_CHARACTER_CODE_E_UPCASE; break;
-        case 'F': code = DISPLAY_CHARACTER_CODE_F_UPCASE; break;
-        case 'G': code = DISPLAY_CHARACTER_CODE_G_UPCASE; break;
-        case 'H': code = DISPLAY_CHARACTER_CODE_H_UPCASE; break;
-        case 'I': code = DISPLAY_CHARACTER_CODE_I_UPCASE; break;
-        case 'J': code = DISPLAY_CHARACTER_CODE_J_UPCASE; break;
-        case 'K': code = DISPLAY_CHARACTER_CODE_K_UPCASE; break;
-        case 'L': code = DISPLAY_CHARACTER_CODE_L_UPCASE; break;
-        case 'M': code = DISPLAY_CHARACTER_CODE_M_UPCASE; break;
-        case 'P': code = DISPLAY_CHARACTER_CODE_P_UPCASE; break;
-        case 'S': code = DISPLAY_CHARACTER_CODE_S_UPCASE; break;
-        case 'U': code = DISPLAY_CHARACTER_CODE_U_UPCASE; break;
-        case 'V': code = DISPLAY_CHARACTER_CODE_V_UPCASE; break;
-        case 'W': code = DISPLAY_CHARACTER_CODE_W_UPCASE; break;
-        case 'X': code = DISPLAY_CHARACTER_CODE_X_UPCASE; break;
-        case 'Z': code = DISPLAY_CHARACTER_CODE_Z_UPCASE; break;
-
-        // Lowercase characters
-        case 'a': code = DISPLAY_CHARACTER_CODE_A_DOWNCASE; break;
-        case 'b': code = DISPLAY_CHARACTER_CODE_B_DOWNCASE; break;
-        case 'c': code = DISPLAY_CHARACTER_CODE_C_DOWNCASE; break;
-        case 'd': code = DISPLAY_CHARACTER_CODE_D_DOWNCASE; break;
-        case 'h': code = DISPLAY_CHARACTER_CODE_H_DOWNCASE; break;
-        case 'i': code = DISPLAY_CHARACTER_CODE_I_DOWNCASE; break;
-        case 'j': code = DISPLAY_CHARACTER_CODE_J_DOWNCASE; break;
-        case 'n': code = DISPLAY_CHARACTER_CODE_N_DOWNCASE; break;
-        case 'o': code = DISPLAY_CHARACTER_CODE_O_DOWNCASE; break;
-        case 'q': code = DISPLAY_CHARACTER_CODE_Q_DOWNCASE; break;
-        case 'r': code = DISPLAY_CHARACTER_CODE_R_DOWNCASE; break;
-        case 't': code = DISPLAY_CHARACTER_CODE_T_DOWNCASE; break;
-        case 'u': code = DISPLAY_CHARACTER_CODE_U_DOWNCASE; break;
-        case 'x': code = DISPLAY_CHARACTER_CODE_X_DOWNCASE; break;
-        case 'y': code = DISPLAY_CHARACTER_CODE_Y_DOWNCASE; break;
-
-        // Symbols
-        case ' ': code = DISPLAY_CHARACTER_CODE_SPACE; break;
-        case '.': code = DISPLAY_CHARACTER_CODE_DOT; break;
-        case '-': code = DISPLAY_CHARACTER_CODE_HYPEN; break;
-        case '_': code = DISPLAY_CHARACTER_CODE_UNDERSCORE; break;
-
-        default:
-            return DISPLAY_INVALID_CHARACTER;
-    }
+DisplayReturnCode display_set_character(
+    char c,
+    bool ignore_case,
+    bool prefer_upcase)
+{
+    DisplayCharacterCode code = display_get_code_from_character(c, ignore_case, prefer_upcase);
     return display_set_segment_all(code);
 }
 
@@ -180,9 +315,36 @@ DisplayReturnCode display_run_animation(
 {
     if (animation == NULL)
         return DISPLAY_NULL_POINTER;
+    if (ticks_per_frame <= 0U)
+        ticks_per_frame = 1U;
     // Display a step of the animation based on the current time
-    size_t i = (t / ticks_per_frame) % size;
+    const size_t i = (t / ticks_per_frame) % size;
     return display_set_segment_all(animation[i]);
+}
+
+DisplayReturnCode display_run_animation_string(
+    const char * string,
+    size_t size,
+    ticks_t ticks_per_frame,
+    ticks_t t)
+{
+    if (string == NULL)
+        return DISPLAY_NULL_POINTER;
+    if (ticks_per_frame <= 0U)
+        ticks_per_frame = 1U;
+    // TODO: Add intraframe to make the animation smoother
+    // Calculate the number of intraframe based on directions
+    // const size_t intraframe_count = (dir == DISPLAY_DIRECTION_UP ||
+    //     dir == DISPLAY_DIRECTION_DOWN) ?
+    //     DISPLAY_INTRAFRAME_VERTICAL_COUNT :
+    //     DISPLAY_INTRAFRAME_HORIZONTAL_COUNT;
+
+    // Display a step of the animation based on the current time
+    const size_t frame = t / ticks_per_frame;
+    // const size_t intraframe = t / (ticks_per_frame / intraframe_count);
+    const size_t i = frame % size;
+    // const size_t j = intraframe % intraframe_count;
+    return display_set_character(string[i], true, true); 
 }
 
 #ifdef CONF_DISPLAY_STRINGS_ENABLE

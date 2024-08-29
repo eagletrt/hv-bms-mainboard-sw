@@ -65,19 +65,9 @@ transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STATES] = 
 fsm_event_data_t * fsm_fired_event = NULL;
 
 /*** USER CODE BEGIN GLOBALS ***/
-_STATIC struct {
-    fsm_state_t fsm_state;
-    fsm_event_data_t event;
+_STATIC _FsmHandler hfsm = { .fsm_state = FSM_STATE_INIT };
 
-    // Canlib paylaods
-    primary_hv_status_converted_t status_can_payload;
-    primary_hv_flash_response_converted_t flash_can_payload;
-
-    bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
-} hfsm = {
-    .fsm_state = FSM_STATE_INIT
-};
-
+// TODO: Move animation in separate file
 // 7-segment display animation for various states
 const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SIZE] = {
     DISPLAY_SEGMENT_BIT_TOP_LEFT,
@@ -111,6 +101,10 @@ const DisplaySegmentBit fsm_balancing_display_animation[FSM_BALANCING_DISPLAY_AN
     DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_TOP_LEFT,
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
 };
+
+void _fsm_set_status_timeout(void) {
+
+}
 /*** USER CODE END GLOBALS ***/
 
 
@@ -159,7 +153,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
 
   // Init canlib payloads
   hfsm.flash_can_payload.ready = false;
-  
+ 
   switch (code) {
       case POST_OK:
           next_state = FSM_STATE_IDLE;

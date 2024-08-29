@@ -168,6 +168,7 @@ bool pcu_is_precharge_complete(void) {
     return pcu_get_precharge_percentage() >= PCU_PRECHARGE_THRESHOLD_PERCENT;
 }
 
+// TODO: Add watchdog for the set state canlib message
 void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * payload) {
     if (payload == NULL)
         return;

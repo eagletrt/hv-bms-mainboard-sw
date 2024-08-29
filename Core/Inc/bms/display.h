@@ -10,10 +10,16 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include <stdbool.h>
+
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
 #include "tdsr0760.h"
+
+/** @brief Total number of intraframes of a display animation */
+#define DISPLAY_INTRAFRAME_VERTICAL_COUNT (5U)
+#define DISPLAY_INTRAFRAME_HORIZONTAL_COUNT (5U)
 
 /**
  * @brief Return code for the 7-segment display module function
@@ -63,7 +69,8 @@ typedef enum {
     DISPLAY_SEGMENT_BOTTOM_RIGHT = TDSR0760_SEGMENT_BOTTOM_RIGHT,
     DISPLAY_SEGMENT_BOTTOM_LEFT = TDSR0760_SEGMENT_BOTTOM_LEFT,
     DISPLAY_SEGMENT_DECIMAL_POINT = TDSR0760_SEGMENT_DECIMAL_POINT,
-    DISPLAY_SEGMENT_COUNT = TDSR0760_SEGMENT_COUNT
+    DISPLAY_SEGMENT_COUNT = TDSR0760_SEGMENT_COUNT,
+    DISPLAY_SEGMENT_INVALID
 } DisplaySegment;
 
 /**
@@ -213,7 +220,7 @@ typedef void (* display_segment_set_state_callback_t)(DisplaySegment segment, Di
 typedef void (* display_segment_toggle_state_callback_t)(DisplaySegment segment);
 
 /**
- * 7-segment display handler structure
+ * @brief 7-segment display handler structure
  * 
  * @attention Do not use this struct outside this module
  * 
@@ -244,6 +251,40 @@ DisplayReturnCode display_init(
     display_segment_set_state_callback_t set,
     display_segment_toggle_state_callback_t toggle
 );
+
+/**
+ * @brief Get the hexadecimal digit code of the display from a number
+ *
+ * @details The value range from 0 to 15 (0xF)
+ *
+ * @param digit The hexadecimal digit to get the code from
+ *
+ * @return DisplayCharacterCode The code corresponding to the digit or
+ * DISPLAY_CHARACTER_CODE_SPACE if not valid
+ */
+DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit);
+
+/**
+ * @brief Get the hexadecimal digit code of the display from a number
+ *
+ * @attention Only supports a small subset of all the ASCII characters
+ *
+ * @details If ignore case is set to false the prefer upcase flag is ignored
+ *
+ * @param c The character to get the code from
+ * @param ignore_case Flag used for case sensitive or insensitive characters
+ * @param prefer_upcase Flag used to prefer upper case or lower case codes if the
+ * code for the case sensitive character does not exists
+ *
+ * @return DisplayCharacterCode The code corresponding to the character or
+ * DISPLAY_CHARACTER_CODE_SPACE if not valid
+ */
+DisplayCharacterCode display_get_code_from_character(
+    char c,
+    bool ignore_case,
+    bool prefer_upcase
+);
+
 
 /**
  * @brief Get the status of a single segment of the 7-segment display
@@ -313,13 +354,20 @@ DisplayReturnCode display_set_digit(uint8_t digit);
  *
  * @attention Only supports a small subset of all the ASCII characters
  * 
- * @param character The character to show
+ * @param c The character to show
+ * @param ignore_case Flag used for case sensitive or insensitive characters
+ * @param prefer_upcase Flag used to prefer upper case or lower case codes if the
+ * code for the case sensitive character does not exists
  *
  * @return DisplayReturnCode
  *     - DISPLAY_DRIVER_ERROR error cause by the display driver
  *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_character(char character);
+DisplayReturnCode display_set_character(
+    char c,
+    bool ignore_case,
+    bool prefer_upcase
+);
 
 /**
  * @brief Run a single step of an animation on the 7-segment display
@@ -341,16 +389,40 @@ DisplayReturnCode display_run_animation(
     ticks_t t
 );
 
+/**
+ * @brief Run a single step of an animation that shows the character of a string
+ * on the 7-segment display
+ *
+ * @param string The string to display
+ * @param size The lenght of the string
+ * @param ticks_pre_frame The number of ticks per frame
+ * @param t The current number of ticks
+ *
+ * @return DisplayReturnCode
+ *     - DISPLAY_NULL_POINTER if the pointer to the animation is NULL
+ *     - DISPLAY_DRIVER_ERROR error cause by the display driver
+ *     - DISPLAY_OK otherwise
+ */
+DisplayReturnCode display_run_animation_string(
+    const char * string,
+    size_t size,
+    ticks_t ticks_per_frame,
+    ticks_t t
+);
+
 #else  // CONF_DISPLAY_MODULE_ENABLE
 
 #define display_init(set, toggle) (DISPLAY_OK)
+#define display_get_code_from_hex_digit(digit) (DISPLAY_CHARACTER_CODE_SPACE)
+#define display_get_code_from_character(c, ignore_case, prefer_upcase) (DISPLAY_CHARACTER_CODE_SPACE)
 #define display_get_segment(segment) (DISPLAY_SEGMENT_STATUS_UNKOWN)
 #define display_set_segment(segment, state) (DISPLAY_OK)
 #define display_toggle_segment(segment) (DISPLAY_OK)
 #define display_set_segment_all(bits) (DISPLAY_OK)
 #define display_set_digit(digit) (DISPLAY_OK)
-#define display_set_character(character) (DISPLAY_OK)
+#define display_set_character(c, ignore_case, prefer_upcase) (DISPLAY_OK)
 #define display_run_animation(animation, size, ticks_per_frame, t) (DISPLAY_OK)
+#define display_run_animation_string(string, size, ticks_per_frame, t) (DISPLAY_OK)
 
 #endif // CONF_DISPLAY_MODULE_ENABLE
 
