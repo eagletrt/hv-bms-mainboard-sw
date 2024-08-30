@@ -63,14 +63,14 @@ typedef enum {
  *
  * @param start A pointer to the callback used to start the PWM to read from the IMD
  * @param ir41153204 Handler structure of the IMD driver
- * @param can_payload The canlib payload used to send the IMD status
+ * @param imd_can_payload The canlib payload used to send the IMD status
  */
 typedef struct {
     imd_pwm_start_callback_t start;
 
     Ir1553204Handler ir1153204;
 
-    primary_hv_imd_status_converted_t can_payload;
+    primary_hv_imd_status_converted_t imd_can_payload;
 } _ImdHandler;
 
 #ifdef CONF_IMD_MODULE_ENABLE

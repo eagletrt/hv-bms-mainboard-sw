@@ -52,7 +52,7 @@ ProgrammerReturnCode programmer_init(system_reset_callback_t reset) {
 
     hprogrammer.reset = reset;
     hprogrammer.flash_event.type = FSM_EVENT_TYPE_FLASH_REQUEST;
-    hprogrammer.can_payload.ready = false;
+    hprogrammer.programmer_can_payload.ready = false;
 
     // Reset flash procedure data
     hprogrammer.target = MAINBOARD_ID;

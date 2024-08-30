@@ -89,14 +89,14 @@ typedef raw_volt_t volt_matrix_t[CELLBOARD_COUNT][CELLBOARD_SEGMENT_SERIES_COUNT
  * @warning This structure should never be used outside of this file
  *
  * @param voltages The array of raw cells voltages
- * @param can_payload The canlib payload of the cells voltages
+ * @param volt_can_payload The canlib payload of the cells voltages
  * @param cellboard_id Cellboard identifier to set inside the payload
  * @param offset Cell offset to set inside the payload
  */
 typedef struct {
     volt_matrix_t voltages;
 
-    primary_hv_cells_voltage_converted_t can_payload;
+    primary_hv_cells_voltage_converted_t volt_can_payload;
     CellboardId cellboard_id;
     size_t offset;
 } _VoltHandler;

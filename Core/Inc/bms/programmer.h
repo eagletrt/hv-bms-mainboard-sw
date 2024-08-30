@@ -45,7 +45,7 @@ typedef enum {
  *
  * @param reset A pointer to a function that resets the microcontroller
  * @param flash_event The FSM event data
- * @param can_payload The flash response canlib data
+ * @param programmer_can_payload The flash response canlib data
  * @param target The identifier of the cellboard(or mainboard) to flash
  * @param flash_request True if a flash request is received, false otherwise
  * @param flashing True if the cellboard is flashing, false otherwise
@@ -55,7 +55,7 @@ typedef enum {
 typedef struct {
     system_reset_callback_t reset;
     fsm_event_data_t flash_event;
-    primary_hv_flash_response_converted_t can_payload;
+    primary_hv_flash_response_converted_t programmer_can_payload;
 
     CellboardId target;
     bool flash_request;

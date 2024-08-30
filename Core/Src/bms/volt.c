@@ -112,18 +112,18 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload
 
 primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hvolt.can_payload);
+        *byte_size = sizeof(hvolt.volt_can_payload);
     raw_volt_t * volts = hvolt.voltages[hvolt.cellboard_id];
 
     // Set payload values
-    hvolt.can_payload.cellboard_id = hvolt.cellboard_id;
-    hvolt.can_payload.offset = hvolt.offset;
+    hvolt.volt_can_payload.cellboard_id = hvolt.cellboard_id;
+    hvolt.volt_can_payload.offset = hvolt.offset;
     // Voltages needs to be converted in volts to be sent
-    hvolt.can_payload.voltage_0 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset]);
-    hvolt.can_payload.voltage_1 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 1]);
-    hvolt.can_payload.voltage_2 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 2]);
+    hvolt.volt_can_payload.voltage_0 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset]);
+    hvolt.volt_can_payload.voltage_1 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 1]);
+    hvolt.volt_can_payload.voltage_2 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 2]);
     /*
-     * hvolt.can_payload.voltage_3 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 3]) * 0.001f; 
+     * hvolt.volt_can_payload.voltage_3 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 3]) * 0.001f; 
      * TODO: fix cantools's handling of non 2^n size for floating point values     
      */
 
@@ -134,7 +134,7 @@ primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_siz
         if (++hvolt.cellboard_id >= CELLBOARD_ID_COUNT)
             hvolt.cellboard_id = 0U;
     }
-    return &hvolt.can_payload;
+    return &hvolt.volt_can_payload;
 }
 
 #ifdef CONF_VOLTAGE_STRINGS_ENABLE

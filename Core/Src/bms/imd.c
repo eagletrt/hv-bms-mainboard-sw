@@ -55,13 +55,13 @@ ImdReturnCode imd_update(
 
 primary_hv_imd_status_converted_t * imd_get_canlib_payload(size_t * byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(himd.can_payload);
-    himd.can_payload.status = (primary_hv_imd_status_status)imd_get_status();
-    himd.can_payload.frequency = imd_get_frequency();
-    himd.can_payload.duty_cycle = imd_get_duty_cycle();
-    himd.can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
-    himd.can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
-    return &himd.can_payload;
+        *byte_size = sizeof(himd.imd_can_payload);
+    himd.imd_can_payload.status = (primary_hv_imd_status_status)imd_get_status();
+    himd.imd_can_payload.frequency = imd_get_frequency();
+    himd.imd_can_payload.duty_cycle = imd_get_duty_cycle();
+    himd.imd_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
+    himd.imd_can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
+    return &himd.imd_can_payload;
 }
 
 #ifdef CONF_IMD_STRINGS_ENABLE
