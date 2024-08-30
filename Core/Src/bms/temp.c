@@ -111,4 +111,22 @@ primary_hv_cells_temperature_converted_t * temp_get_temp_canlib_payload(size_t *
 
 }
 
+#ifdef CONF_TEMPERATURE_STRINGS_ENABLE
+
+_STATIC char * temp_module_name = "temperature";
+
+_STATIC char * temp_return_code_name[] = {
+    [TEMP_OK] = "ok",
+    [TEMP_NULL_POINTER] = "null pointer",
+    [TEMP_OUT_OF_BOUNDS] = "out of bounds"
+};
+
+_STATIC char * temp_return_code_description[] = {
+    [TEMP_OK] = "executed successfully",
+    [TEMP_NULL_POINTER] = "attempt to dereference a null pointer"
+    [TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+};
+
+#endif  //  CONF_TEMPERATURE_STRINGS_ENABLE
+
 #endif  //  CONF_TEMPERATURE_MODULE_ENABLE
