@@ -92,22 +92,24 @@ volt_t volt_get_sum(void) {
 }
 
 void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload) {
-    const size_t off = 3U;
+    const size_t size = 3U;
     if (payload == NULL ||
         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-        payload->offset + off >= CELLBOARD_SEGMENT_SERIES_COUNT)
+        payload->offset + size >= CELLBOARD_SEGMENT_SERIES_COUNT)
         return;
     // Update voltages
+    size_t offset = payload->offset;
     raw_volt_t * volts = hvolt.voltages[payload->cellboard_id];
-    volts[payload->offset] = VOLT_VOLT_TO_VALUE(payload->voltage_0);
-    volts[payload->offset + 1U] = VOLT_VOLT_TO_VALUE(payload->voltage_1);
-    volts[payload->offset + 2U] = VOLT_VOLT_TO_VALUE(payload->voltage_2);
+
+    volts[offset] = VOLT_VOLT_TO_VALUE(payload->voltage_0);
+    volts[offset + 1U] = VOLT_VOLT_TO_VALUE(payload->voltage_1);
+    volts[offset + 2U] = VOLT_VOLT_TO_VALUE(payload->voltage_2);
     /*
      * volts[payload->offset + 3U] = VOLT_VOLT_TO_VALUE(payload->voltage_3);
      * TODO: fix cantools's handling of non 2^n size for floating point values     
      */
-    for (size_t i = 0U; i < off; ++i)
-        _volt_check_value(volts[i]);
+    for (size_t i = 0U; i < size; ++i)
+        _volt_check_value(offset + volts[i]);
 }
 
 primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_size) {
