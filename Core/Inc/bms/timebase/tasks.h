@@ -54,6 +54,7 @@
     TASKS_X(SEND_POWER, true, 10U, PRIMARY_HV_POWER_CYCLE_TIME_MS, _tasks_send_hv_power) \
     TASKS_X(SEND_TS_VOLTAGE, true, 0U, PRIMARY_HV_TS_VOLTAGE_CYCLE_TIME_MS, _tasks_send_hv_ts_voltage) \
     TASKS_X(SEND_CELLS_VOLTAGE, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_CYCLE_TIME_MS, _tasks_send_hv_cells_voltage) \
+    TASKS_X(SEND_CELLS_TEMPERATURE, true, 10U, PRIMARY_HV_CELLS_TEMPERATURE_CYCLE_TIME_MS, _tasks_send_hv_cells_temperature) \
     TASKS_X(SEND_FEEDBACK_STATUS, true, 10U, PRIMARY_HV_FEEDBACK_STATUS_CYCLE_TIME_MS, _tasks_send_hv_feedback_status) \
     TASKS_X(SEND_FEEDBACK_DIGITAL, true, 10U, PRIMARY_HV_FEEDBACK_DIGITAL_CYCLE_TIME_MS, _tasks_send_hv_feedback_digital) \
     TASKS_X(SEND_FEEDBACK_ANALOG, true, 10U, PRIMARY_HV_FEEDBACK_ANALOG_CYCLE_TIME_MS, _tasks_send_hv_feedback_analog) \

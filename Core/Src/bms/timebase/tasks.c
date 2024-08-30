@@ -86,6 +86,13 @@ void _tasks_send_hv_cells_voltage(void) {
     can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
 }
 
+/** @brief Send the cells temperature via CAN */
+void _tasks_send_hv_cells_temperature(void) {
+    size_t byte_size = 0U;
+    uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
+    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_TEMPERATURE_INDEX , CAN_FRAME_TYPE_DATA, payload, byte_size);
+}
+
 /** @brief Send the feedback status via CAN */
 void _tasks_send_hv_feedback_status(void) {
     size_t byte_size = 0U;
