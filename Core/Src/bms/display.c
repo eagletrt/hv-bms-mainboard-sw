@@ -332,6 +332,7 @@ DisplayReturnCode display_run_animation_string(
         return DISPLAY_NULL_POINTER;
     if (ticks_per_frame <= 0U)
         ticks_per_frame = 1U;
+
     // TODO: Add intraframe to make the animation smoother
     // Calculate the number of intraframe based on directions
     // const size_t intraframe_count = (dir == DISPLAY_DIRECTION_UP ||

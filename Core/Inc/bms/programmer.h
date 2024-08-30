@@ -13,6 +13,10 @@
 #include "primary_network.h"
 #include "bms_network.h"
 #include "mainboard-def.h"
+#include "watchdog.h"
+#include "identity.h"
+#include "timebase.h"
+#include "fsm.h"
 
 /** @brief The programmer flash timeout in ms */
 #define PROGRAMMER_FLASH_TIMEOUT ((milliseconds_t)(1000U))
@@ -33,6 +37,39 @@ typedef enum {
     PROGRAMMER_BUSY,
     PROGRAMMER_TIMEOUT
 } ProgrammerReturnCode;
+
+/**
+ * @brief Programmer handler structure
+ *
+ * @warning This structure should never be used outside of this file
+ *
+ * @param reset A pointer to a function that resets the microcontroller
+ * @param flash_event The FSM event data
+ * @param can_payload The flash response canlib data
+ * @param target The identifier of the cellboard(or mainboard) to flash
+ * @param flash_request True if a flash request is received, false otherwise
+ * @param flashing True if the cellboard is flashing, false otherwise
+ * @param watchog The watchdog used for the flash procedure
+ * @param timeout True if the watchdog has timed-out, false otherwise
+ */
+typedef struct {
+    system_reset_callback_t reset;
+    fsm_event_data_t flash_event;
+    primary_hv_flash_response_converted_t can_payload;
+
+    CellboardId target;
+    bool flash_request;
+    bool flashing;
+    bool flash_stop;
+
+    // Bit flag where each bit represent a cellboard; if 1 the cellboard is ready
+    // for the flash procedure, otherwise the flash procedure cannot be started
+    bit_flag8_t cellboard_ready;
+
+    Watchdog watchdog;
+} _ProgrammerHandler;
+
+
 
 /**
  * @brief Intialize the internal programmer handler structure

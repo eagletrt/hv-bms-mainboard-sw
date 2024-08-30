@@ -14,16 +14,7 @@
 
 #ifdef CONF_LED_MODULE_ENABLE
 
-/**
- * @brief LED handler structure
- *
- * @param set A pointer to the function callback used to set the led state
- * @param toggle A pointer to the function callback used to toggle the led state
- */
-_STATIC struct LedHandler {
-    led_set_state_callback_t set;
-    led_toggle_state_callback_t toggle;
-} hled;
+_STATIC _LedHandler hled;
 
 LedReturnCode led_init(led_set_state_callback_t set, led_toggle_state_callback_t toggle) {
     if (set == NULL || toggle == NULL)

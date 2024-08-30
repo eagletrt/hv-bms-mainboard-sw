@@ -17,6 +17,8 @@
 /**
  * @brief Status of a single LED
  *
+ * @warning This structure should never be used outside of this file
+ *
  * @details
  *     - LED_OFF the led is turned off
  *     - LED_ON the led is turned on
@@ -70,6 +72,19 @@ typedef enum {
     LED_INVALID_ID,
     LED_INVALID_STATUS
 } LedReturnCode;
+
+/**
+ * @brief LED handler structure
+ *
+ * @warning This structure should never be used outside of this file
+ *
+ * @param set A pointer to the function callback used to set the led state
+ * @param toggle A pointer to the function callback used to toggle the led state
+ */
+typedef struct {
+    led_set_state_callback_t set;
+    led_toggle_state_callback_t toggle;
+} _LedHandler;
 
 #ifdef CONF_LED_MODULE_ENABLE 
 

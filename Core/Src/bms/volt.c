@@ -16,21 +16,7 @@
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 
-/**
- * @brief Voltages handler structure
- *
- * @param voltages The array of raw cells voltages
- * @param can_payload The canlib payload of the cells voltages
- * @param cellboard_id Cellboard identifier to set inside the payload
- * @param offset Cell offset to set inside the payload
- */
-_STATIC struct {
-    volt_matrix_t voltages;
-
-    primary_hv_cells_voltage_converted_t can_payload;
-    CellboardId cellboard_id;
-    size_t offset;
-} hvolt;
+_STATIC _VoltHandler hvolt;
 
 /**
  * @brief Check if the voltage values are in range otherwise set an error

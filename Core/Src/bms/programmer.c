@@ -12,39 +12,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "fsm.h"
-#include "identity.h"
-#include "timebase.h"
-#include "watchdog.h"
-
-/**
- * @brief Programmer handler structure
- *
- * @param reset A pointer to a function that resets the microcontroller
- * @param flash_event The FSM event data
- * @param can_payload The flash response canlib data
- * @param target The identifier of the cellboard(or mainboard) to flash
- * @param flash_request True if a flash request is received, false otherwise
- * @param flashing True if the cellboard is flashing, false otherwise
- * @param watchog The watchdog used for the flash procedure
- * @param timeout True if the watchdog has timed-out, false otherwise
- */
-_STATIC struct {
-    system_reset_callback_t reset;
-    fsm_event_data_t flash_event;
-    primary_hv_flash_response_converted_t can_payload;
-
-    CellboardId target;
-    bool flash_request;
-    bool flashing;
-    bool flash_stop;
-
-    // Bit flag where each bit represent a cellboard; if 1 the cellboard is ready
-    // for the flash procedure, otherwise the flash procedure cannot be started
-    bit_flag8_t cellboard_ready;
-
-    Watchdog watchdog;
-} hprogrammer;
+_STATIC _ProgrammerHandler hprogrammer;
 
 /**
  * @brief Check if all the cellboards are ready to start the flash procedure

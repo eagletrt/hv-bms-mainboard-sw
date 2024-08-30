@@ -115,6 +115,17 @@ typedef enum {
     TASKS_OK
 } TasksReturnCode;
 
+/**
+ * @brief Tasks hanlder struct
+ *
+ * @warning This structure should never be used outside of this file
+ *
+ * @param tasks The array of tasks
+ */
+typedef struct {
+    Task tasks[TASKS_COUNT];
+} _TaskHandler;
+
 #ifdef CONF_TASKS_MODULE_ENABLE
 
 /**

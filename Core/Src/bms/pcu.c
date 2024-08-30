@@ -10,31 +10,13 @@
 
 #include <string.h>
 
-#include "watchdog.h"
 #include "timebase.h"
 #include "fsm.h"
 #include "internal-voltage.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
-/**
- * @brief PCU handler structure
- *
- * @param set A pointer to the function callback used to set a PCU pin
- * @param toggle A pointer to the function callback used to toggle a PCU pin
- * @param precharge_watchdog Precharge watchdog
- */
-_STATIC struct {
-    pcu_set_state_callback_t set;
-    pcu_toggle_state_callback_t toggle;
-
-    fsm_event_data_t event;
-    fsm_event_data_t timeout_event;
-
-    Watchdog airn_watchdog;
-    Watchdog precharge_watchdog;
-    Watchdog airp_watchdog;
-} hpcu;
+_STATIC _PcuHandler hpcu;
 
 /** @brief Callback executed when the AIR- watchdog times out */
 void _pcu_airn_timeout(void) {

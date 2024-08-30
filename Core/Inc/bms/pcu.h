@@ -13,6 +13,7 @@
 #include "mainboard-conf.h"
 
 #include "fsm.h"
+#include "watchdog.h"
 
 /** @brief PCU pins timeouts in ms */
 #define PCU_AIRN_TIMEOUT ((milliseconds_t)1000U)
@@ -79,6 +80,27 @@ typedef void (* pcu_set_state_callback_t)(PcuPin pcu_pin, PcuPinStatus state);
  * @param pcu_pin The pin to select
  */
 typedef void (* pcu_toggle_state_callback_t)(PcuPin pcu_pin);
+
+/**
+ * @brief PCU handler structure
+ *
+ * @warning This structure should never be used outside of this file
+ *
+ * @param set A pointer to the function callback used to set a PCU pin
+ * @param toggle A pointer to the function callback used to toggle a PCU pin
+ * @param precharge_watchdog Precharge watchdog
+ */
+typedef struct {
+    pcu_set_state_callback_t set;
+    pcu_toggle_state_callback_t toggle;
+
+    fsm_event_data_t event;
+    fsm_event_data_t timeout_event;
+
+    Watchdog airn_watchdog;
+    Watchdog precharge_watchdog;
+    Watchdog airp_watchdog;
+} _PcuHandler;
 
 #ifdef CONF_PCU_MODULE_ENABLE
 

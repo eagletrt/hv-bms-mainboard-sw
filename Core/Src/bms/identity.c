@@ -11,20 +11,7 @@
 #include <time.h>
 #include <string.h>
 
-/**
- * @brief Identity module handler structure
- *
- * @param build_time The unix timestamp of the latest build time
- * @param mainboard_version_payload The payload of the canlib message containing the mainboard version
- * @param cellboard_version_payload The payloads of the canlib message containing the cellboards version
- */
-_STATIC struct {
-    seconds_t build_time;
-
-    primary_hv_mainboard_version_converted_t mainboard_version_payload;
-    primary_hv_cellboard_version_converted_t cellboard_version_payload[CELLBOARD_ID_COUNT];
-} hidentity;
-
+_STATIC _IdentityHandler hidentity;
 
 void identity_init(void) {
     memset(&hidentity, 0U, sizeof(hidentity));

@@ -16,6 +16,8 @@
 #include "mainboard-def.h"
 #include "watchdog.h"
 #include "tasks.h"
+#include "bms_network.h"
+#include "min-heap.h"
 
 /**
  * @brief Convert the time in ms to ticks
@@ -81,6 +83,27 @@ typedef struct {
     ticks_t t;
     Watchdog * watchdog;
 } TimebaseScheduledWatchdog;
+
+/**
+ * @brief Timebase handler structure
+ *
+ * @warning This structure should never be used outside of this file
+ *
+ * @param enabled True if the timebase is running, false otherwise
+ * @param resolution Number of ms that represent one tick
+ * @param t The current number of ticks
+ * @param scheduled_tasks The heap of scheduled tasks that has to be executed
+ * @param scheduled_watchdogs The heap of scheduled watchdogs that are currently running
+ */
+typedef struct {
+    bool enabled;
+    milliseconds_t resolution; // in ms
+    volatile ticks_t t;
+
+    MinHeap(TimebaseScheduledTask, TASKS_COUNT) scheduled_tasks;
+    MinHeap(TimebaseScheduledWatchdog, TIMEBASE_RUNNING_WATCHDOG_COUNT) scheduled_watchdogs;
+} _TimebaseHandler;
+
 
 #ifdef CONF_TIMEBASE_MODULE_ENABLE
 

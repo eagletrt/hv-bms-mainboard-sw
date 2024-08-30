@@ -22,14 +22,7 @@
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
-/**
- * @brief Tasks hanlder struct
- *
- * @param tasks The array of tasks
- */
-_STATIC struct {
-    Task tasks[TASKS_COUNT];
-} htasks;
+_STATIC _TaskHandler htasks;
 
 /** @brief Send the mainboard version info via CAN */
 void _tasks_send_mainboard_version(void) {

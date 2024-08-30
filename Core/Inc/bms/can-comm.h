@@ -19,6 +19,8 @@
 #include "primary_network.h"
 #include "bms_network.h"
 
+#include "ring-buffer.h"
+
 /** @brief Maximum number of bytes of the payload in a CAN message */
 #define CAN_COMM_MAX_PAYLOAD_BYTE_SIZE (8U)
 
@@ -184,6 +186,34 @@ typedef CanCommReturnCode (* can_comm_transmit_callback_t)(
     const uint8_t * data,
     size_t size
 );
+
+/**
+ * @brief CAN manager handler structure
+ *
+ * @warning This structure should never be used outside of this file
+ *
+ * @details The enabled bit flag 
+ *
+ * @param enabled Flag used to enable or disable the CAN communication
+ * @param tx_buf Transmission messages circular buffer
+ * @param rx_buf Reception messages circular buffer
+ * @param send A pointer to the callback used to send the data via CAN
+ * @param rx_device The reception canlib message handler
+ * @param rx_raw The reception raw data of the message
+ * @param rx_conv The reception converted data of the message
+ */
+typedef struct {
+    bit_flag8_t enabled;
+    RingBuffer(CanMessage, CAN_COMM_TX_BUFFER_BYTE_SIZE) tx_buf;
+    RingBuffer(CanMessage, CAN_COMM_RX_BUFFER_BYTE_SIZE) rx_buf;
+
+    can_comm_transmit_callback_t send;
+
+    // Canlib devices
+    device_t rx_device;
+    uint8_t rx_raw[bms_MAX_STRUCT_SIZE_RAW];
+    uint8_t rx_conv[bms_MAX_STRUCT_SIZE_CONVERSION];
+} _CanCommHandler;
 
 /**
  * @brief Handle the received CAN payload data

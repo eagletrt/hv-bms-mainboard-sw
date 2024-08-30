@@ -10,28 +10,9 @@
 
 #include <string.h>
 
-#include "bms_network.h"
-#include "min-heap.h"
-
 #ifdef CONF_TIMEBASE_MODULE_ENABLE
 
-/**
- * @brief Timebase handler structure
- *
- * @param enabled True if the timebase is running, false otherwise
- * @param resolution Number of ms that represent one tick
- * @param t The current number of ticks
- * @param scheduled_tasks The heap of scheduled tasks that has to be executed
- * @param scheduled_watchdogs The heap of scheduled watchdogs that are currently running
- */
-_STATIC struct {
-    bool enabled;
-    milliseconds_t resolution; // in ms
-    volatile ticks_t t;
-
-    MinHeap(TimebaseScheduledTask, TASKS_COUNT) scheduled_tasks;
-    MinHeap(TimebaseScheduledWatchdog, TIMEBASE_RUNNING_WATCHDOG_COUNT) scheduled_watchdogs;
-} htimebase;
+_STATIC _TimebaseHandler htimebase;
 
 int8_t _timebase_task_compare(void * a, void * b) {
     TimebaseScheduledTask * f = (TimebaseScheduledTask *)a;
