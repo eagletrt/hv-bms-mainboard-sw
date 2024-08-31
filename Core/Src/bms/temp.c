@@ -31,8 +31,7 @@ _STATIC size_t _temp_cell_position_index_map[] = {
  *
  * @return int32_t The cell phisical position if index is valid, otherwise -1
  */
-_STATIC_INLINE int32_t _temp_cell_position_from_index(CellboardId id, size_t offset) {
-    size_t index = id * TEMP_NUM_TEMP_CAN_MESSAGE  + offset;
+_STATIC_INLINE int32_t _temp_cell_position_from_index(size_t index) {
     if (index < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT)
         return _temp_cell_position_index_map[index];
     return -1;
@@ -122,13 +121,13 @@ primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_pay
     htemp.temp_can_payload.temperature_2 = temperatures[htemp.offset + 2];
     htemp.temp_can_payload.temperature_3 = temperatures[htemp.offset + 3];
 
-    htemp.temp_can_payload.temperature_id_0 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset);
-    htemp.temp_can_payload.temperature_id_1 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset + 1);
-    htemp.temp_can_payload.temperature_id_2 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset + 2);
-    htemp.temp_can_payload.temperature_id_3 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset + 3);
+    htemp.temp_can_payload.temperature_id_0 = _temp_cell_position_from_index(htemp.offset);
+    htemp.temp_can_payload.temperature_id_1 = _temp_cell_position_from_index(htemp.offset + 1);
+    htemp.temp_can_payload.temperature_id_2 = _temp_cell_position_from_index(htemp.offset + 2);
+    htemp.temp_can_payload.temperature_id_3 = _temp_cell_position_from_index(htemp.offset + 3);
 
     // Update indices
-    htemp.offset += 4U;
+    htemp.offset += TEMP_NUM_TEMP_CAN_MESSAGE;
     if (htemp.offset >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
         htemp.offset = 0U;
         if(++htemp.cellboard_id >= CELLBOARD_ID_COUNT)
