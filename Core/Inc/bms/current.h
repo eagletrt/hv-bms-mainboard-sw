@@ -20,6 +20,14 @@
 #define CURRENT_MAX_A (130.f)
 
 /**
+ * @brief Maximum allowed power in kW
+ *
+ * @details FS-Rules 2024 v1.1
+ *     Rule EV 2.2.1    The TS power at the outlet of the TSAC must not exceed 80 kW.
+ */
+#define CURRENT_MAX_POWER_KW (80.f)
+
+/**
  * @brief Return code for the current module functions
  *
  * @details

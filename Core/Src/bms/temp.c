@@ -10,18 +10,20 @@
 
 #include <string.h>
 
+#include "error.h"
+
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
 _STATIC _TempHandler htemp;
 
 // Array to map cells index in memory to phisical positions
 _STATIC size_t _temp_cell_position_index_map[] = {
-    63, 65, 15, 61,  6, 39, 46,  7, 
-    40, 31,  8, 41, 64, 36, 54,  1, 
-    51, 42, 32, 37, 55, 48, 52, 43, 
-    49, 38, 72,  2,  9, 44, 33, 67, 
-    45,  3, 10, 75, 34, 11, 57,  4, 
-    12, 70, 35, 13, 69,  5, 14, 73
+    63U, 65U, 15U, 61U,  6U, 39U, 46U,  7U, 
+    40U, 31U,  8U, 41U, 64U, 36U, 54U,  1U, 
+    51U, 42U, 32U, 37U, 55U, 48U, 52U, 43U, 
+    49U, 38U, 72U,  2U,  9U, 44U, 33U, 67U, 
+    45U,  3U, 10U, 75U, 34U, 11U, 57U,  4U, 
+    12U, 70U, 35U, 13U, 69U,  5U, 14U, 73U
 };
 
 /**
@@ -40,10 +42,18 @@ _STATIC_INLINE int32_t _temp_cell_position_from_index(size_t index) {
 /**
  * @brief Check if the temperature values are in range otherwise set an error
  *
- * @param value The celsius temperature value
+ * @param value The temperature value in °C
  */
-_STATIC_INLINE void _temp_check_value(celsius_t value) {
-    MAINBOARD_UNUSED(value);
+_STATIC_INLINE void _temp_check_value(const size_t index, const celsius_t value) {
+    if (value <= TEMP_MIN_C)
+        error_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
+    else
+        error_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
+
+    if (value >= TEMP_MAX_C)
+        error_set(ERROR_GROUP_OVER_TEMPERATURE, index);
+    else
+        error_reset(ERROR_GROUP_OVER_TEMPERATURE, index);
 }
 
 TempReturnCode temp_init(void) {
@@ -99,14 +109,12 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
     // Update temperatures
     const size_t offset = payload->offset;
     celsius_t * const temperatures = htemp.temperatures[payload->cellboard_id];
-
     temperatures[offset] = payload->temperature_0;
     temperatures[offset + 1U] = payload->temperature_1;
     temperatures[offset + 2U] = payload->temperature_2;
     temperatures[offset + 3U] = payload->temperature_3;
-
     for (size_t i = 0U; i < size; ++i)
-        _temp_check_value(temperatures[offset + i]);
+        _temp_check_value(offset + i, temperatures[offset + i]);
 }
 
 primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_payload(size_t * const byte_size) {

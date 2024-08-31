@@ -17,7 +17,13 @@ _STATIC ErrorLibHandler herror;
 /** @brief Total number of instances for each group */
 const size_t instances[] = {
     [ERROR_GROUP_POST] = ERROR_POST_INSTANCE_COUNT,
-    [ERROR_GROUP_OVER_CURRENT] = ERROR_OVER_CURRENT_INSTANCE_COUNT
+    [ERROR_GROUP_OVER_CURRENT] = ERROR_OVER_CURRENT_INSTANCE_COUNT,
+    [ERROR_GROUP_OVER_POWER] = ERROR_OVER_POWER_INSTANCE_COUNT,
+    [ERROR_GROUP_UNDER_VOLTAGE] = ERROR_UNDER_VOLTAGE_INSTANCE_COUNT,
+    [ERROR_GROUP_OVER_VOLTAGE] = ERROR_OVER_VOLTAGE_INSTANCE_COUNT,
+    [ERROR_GROUP_UNDER_TEMPERATURE] = ERROR_UNDER_TEMPERATURE_INSTANCE_COUNT,
+    [ERROR_GROUP_OVER_TEMPERATURE] = ERROR_OVER_TEMPERATURE_INSTANCE_COUNT,
+    [ERROR_GROUP_CAN_COMMUNICATION] = ERROR_CAN_COMMUNICATION_INSTANCE_COUNT
 };
 
 /**
@@ -27,14 +33,32 @@ const size_t instances[] = {
  */
 const size_t thresholds[] = {
     [ERROR_GROUP_POST] = 1U,
-    [ERROR_GROUP_OVER_CURRENT] = 3U
+    [ERROR_GROUP_OVER_CURRENT] = 2U,
+    [ERROR_GROUP_OVER_POWER] = 2U,
+    [ERROR_GROUP_UNDER_VOLTAGE] = 3U,
+    [ERROR_GROUP_OVER_VOLTAGE] = 3U,
+    [ERROR_GROUP_UNDER_TEMPERATURE] = 5U,
+    [ERROR_GROUP_OVER_TEMPERATURE] = 5U,
+    [ERROR_GROUP_CAN_COMMUNICATION] = 5U
 };
 
 int32_t error_post_instances[ERROR_POST_INSTANCE_COUNT];
 int32_t error_over_current_instances[ERROR_OVER_CURRENT_INSTANCE_COUNT];
+int32_t error_over_power_instances[ERROR_OVER_POWER_INSTANCE_COUNT];
+int32_t error_under_voltage_instances[ERROR_UNDER_VOLTAGE_INSTANCE_COUNT];
+int32_t error_over_voltage_instances[ERROR_OVER_VOLTAGE_INSTANCE_COUNT];
+int32_t error_under_temperature_instances[ERROR_UNDER_TEMPERATURE_INSTANCE_COUNT];
+int32_t error_over_temperature_instances[ERROR_OVER_TEMPERATURE_INSTANCE_COUNT];
+int32_t error_can_communication_instances[ERROR_CAN_COMMUNICATION_INSTANCE_COUNT];
 int32_t * errors[] = {
     [ERROR_GROUP_POST] = error_post_instances,
-    [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances
+    [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances,
+    [ERROR_GROUP_OVER_POWER] = error_over_power_instances,
+    [ERROR_GROUP_UNDER_VOLTAGE] = error_under_voltage_instances,
+    [ERROR_GROUP_OVER_VOLTAGE] = error_over_voltage_instances,
+    [ERROR_GROUP_UNDER_TEMPERATURE] = error_under_temperature_instances,
+    [ERROR_GROUP_OVER_TEMPERATURE] = error_over_temperature_instances,
+    [ERROR_GROUP_CAN_COMMUNICATION] = error_can_communication_instances
 };
 
 ErrorReturnCode error_init(void) {

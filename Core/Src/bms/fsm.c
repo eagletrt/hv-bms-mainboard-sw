@@ -155,7 +155,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
           next_state = FSM_STATE_IDLE;
           break;
       default:
-          // TODO: Set post error
+          error_set(ERROR_GROUP_POST, 0U);
           next_state = FSM_STATE_FATAL;
           break;
   }
@@ -191,8 +191,11 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
       timebase_get_tick()
   );
 
+  // Check for errors
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
   // Check for events
-  if (fsm_is_event_triggered()) {
+  else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
           next_state = FSM_STATE_FLASH;
       else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
@@ -246,6 +249,18 @@ fsm_state_t fsm_do_fatal(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN DO_FATAL ***/
   MAINBOARD_UNUSED(data); 
+
+  (void)timebase_routine();
+  (void)can_comm_routine();
+
+  const char * const fatal_display_animation = "E E EEE ";
+  (void)display_run_animation_string(
+      fatal_display_animation,
+      strlen(fatal_display_animation),
+      400U,
+      timebase_get_tick()
+  );
+
   /*** USER CODE END DO_FATAL ***/
   
   switch (next_state) {
@@ -271,8 +286,12 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
   MAINBOARD_UNUSED(data); 
 
   const ProgrammerReturnCode code = programmer_routine();
-  if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
+  // Check for errors
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
+  else if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
       next_state = FSM_STATE_IDLE;
+
   /*** USER CODE END DO_FLASH ***/
   
   switch (next_state) {
@@ -307,7 +326,9 @@ fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
       timebase_get_tick()
   );
 
-  if (fsm_is_event_triggered()) {
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
+  else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)
           next_state = FSM_STATE_IDLE;
   }
@@ -341,7 +362,9 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
   (void)can_comm_routine();
 
   FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (fsm_is_event_triggered()) {
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
+  else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
@@ -416,7 +439,9 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
   (void)display_set_digit(perc);
 
   FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (fsm_is_event_triggered()) {
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
+  else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_PRECHARGE_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
@@ -488,7 +513,9 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
   (void)can_comm_routine();
   
   FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (fsm_is_event_triggered()) {
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
+  else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRP_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
@@ -565,7 +592,9 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
   );
 
   FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (fsm_is_event_triggered()) {
+  if (error_get_expired() > 0)
+      next_state = FSM_STATE_FATAL;
+  else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }

@@ -19,6 +19,7 @@
 #include "identity.h"
 #include "volt.h"
 #include "bal.h"
+#include "error.h"
 
 #include "canlib_device.h"
 
@@ -26,10 +27,34 @@
 
 _STATIC _CanCommHandler hcan_comm;
 
-void _can_comm_canlib_payload_handle_dummy(void * _) {
-    MAINBOARD_UNUSED(_);
+/**
+ * @brief Get the CAN communication error instance from its network
+ *
+ * @param network The CAN network
+ *
+ * @return error_instance_t The error instance or 0 on error
+ */
+error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork network) {
+    switch (network) {
+        case CAN_NETWORK_BMS: 
+            return ERROR_CAN_COMMUNICATION_INSTANCE_BMS;
+        case CAN_NETWORK_PRIMARY: 
+            return ERROR_CAN_COMMUNICATION_INSTANCE_PRIMARY;
+        case CAN_NETWORK_SECONDARY:
+            return ERROR_CAN_COMMUNICATION_INSTANCE_SECONDARY;
+        default:
+            return 0U;
+    }
 }
 
+/**
+ * @brief Handle the message payload received from the BMS internal CAN network
+ *
+ * @param index The canlib index of the message
+ * 
+ * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
+ * or NULL if the index is not valid
+ */
 can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can_index_t index) {
     switch (index) {
         case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
@@ -45,11 +70,19 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
         case BMS_IVT_MSG_RESULT_I_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)current_handle;
         default:
-            return _can_comm_canlib_payload_handle_dummy;
+            return NULL;
     }
 
 }
 
+/**
+ * @brief Handle the message payload received from the primary CAN network of the car
+ *
+ * @param index The canlib index of the message
+ * 
+ * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
+ * or NULL if the index is not valid
+ */
 can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const can_index_t index) {
     switch (index) {
         case PRIMARY_HV_FLASH_REQUEST_INDEX:
@@ -65,10 +98,18 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
         case PRIMARY_HV_SET_BALANCING_STATUS_HANDCART_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_handcart_handle;
         default:
-            return _can_comm_canlib_payload_handle_dummy;
+            return NULL;
     }
 }
 
+/**
+ * @brief Handle the message payload received from a CAN network
+ *
+ * @param index The canlib index of the message
+ * 
+ * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
+ * or NULL if the index is not valid
+ */
 can_comm_canlib_payload_handle_callback_t _can_comm_payload_handle(const CanNetwork network, const can_index_t index) {
     switch (network) {
         case CAN_NETWORK_BMS:
@@ -76,7 +117,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_payload_handle(const CanNetw
         case CAN_NETWORK_PRIMARY:
             return _can_comm_primary_payload_handle(index);
         default:
-            return _can_comm_canlib_payload_handle_dummy;
+            return NULL;
     }
 }
 
@@ -89,7 +130,7 @@ CanCommReturnCode can_comm_init(const can_comm_transmit_callback_t send) {
 
     // Return values are ignored becuase the buffer addresses are always not NULL
     (void)ring_buffer_init(&hcan_comm.tx_buf, CanMessage, CAN_COMM_TX_BUFFER_BYTE_SIZE, NULL, NULL);
-    // TODO: Add callbacks to stop CAN reception interrupt during ring buffer operations
+    // TODO: Add callbacks to stop CAN reception interrupt during ring buffer operations?
     (void)ring_buffer_init(&hcan_comm.rx_buf, CanMessage, CAN_COMM_RX_BUFFER_BYTE_SIZE, NULL, NULL);
 
     // Initialize the canlib device
@@ -257,7 +298,6 @@ CanCommReturnCode can_comm_rx_add(
     return CAN_COMM_OK;
 }
 
-// TODO: Set error if CAN communication is not working
 CanCommReturnCode can_comm_routine(void) {
     if (!CAN_COMM_IS_ENABLED_ALL(hcan_comm.enabled))
         return CAN_COMM_DISABLED;
@@ -300,6 +340,12 @@ CanCommReturnCode can_comm_routine(void) {
             data,
             size
         );
+
+        // Set an error in case of problems with CAN communication
+        if (ret != CAN_COMM_OK)
+            error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+        else
+            error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
     }
     if (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_RX_ENABLE_BIT) &&
         ring_buffer_pop_front(&hcan_comm.rx_buf, &rx_msg) == RING_BUFFER_OK)
@@ -322,9 +368,14 @@ CanCommReturnCode can_comm_routine(void) {
             // Deserialize message
             deserialize_from_id(&hcan_comm.rx_device, can_id, rx_msg.payload.rx);
 
-            // TODO: Handle errors?
             can_comm_canlib_payload_handle_callback_t handle_payload = _can_comm_payload_handle(rx_msg.network, rx_msg.index);
-            handle_payload(hcan_comm.rx_device.message);
+            if (handle_payload == NULL) {
+                error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
+            }
+            else {
+                error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
+                handle_payload(hcan_comm.rx_device.message);
+            }
         }
         else { 
             // TODO: Handler remote requests
