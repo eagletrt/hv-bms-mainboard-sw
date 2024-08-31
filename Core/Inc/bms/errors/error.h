@@ -99,6 +99,7 @@ char * error_get_group_name_string(const ErrorGroup group);
 #define error_set(group, instance) (ERROR_OK)
 #define error_reset(group, instance) (ERROR_OK)
 #define error_get_expired() (0U)
+#define error_get_expired_info() ((ErrorInfo){ 0U })
 
 #endif // CONF_ERROR_MODULE_ENABLE
 
