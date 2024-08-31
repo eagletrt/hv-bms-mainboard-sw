@@ -19,6 +19,9 @@
 #define TEMP_MIN_C (-10.f)
 #define TEMP_MAX_C (60.f)
 
+/** @brief Number of temperatures sent in a single temp can message */
+#define TEMP_NUM_TEMP_CAN_MESSAGE (4)
+
 /**
  * @brief Return code for the temperature module functions
  *

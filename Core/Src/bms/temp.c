@@ -14,6 +14,30 @@
 
 _STATIC _TempHandler htemp;
 
+// Array to map cells index in memory to phisical positions
+_STATIC size_t _temp_cell_position_index_map[] = {
+    63, 65, 15, 61,  6, 39, 46,  7, 
+    40, 31,  8, 41, 64, 36, 54,  1, 
+    51, 42, 32, 37, 55, 48, 52, 43, 
+    49, 38, 72,  2,  9, 44, 33, 67, 
+    45,  3, 10, 75, 34, 11, 57,  4, 
+    12, 70, 35, 13, 69,  5, 14, 73
+};
+
+/**
+ * @brief Get the phisical cell position from its index in memory
+ *
+ * @param index The cell index in memory
+ *
+ * @return int32_t The cell phisical position if index is valid, otherwise -1
+ */
+_STATIC_INLINE int32_t _temp_cell_position_from_index(CellboardId id, size_t offset) {
+    size_t index = id * TEMP_NUM_TEMP_CAN_MESSAGE  + offset;
+    if (index < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT)
+        return _temp_cell_position_index_map[index];
+    return -1;
+}
+
 /**
  * @brief Check if the temperature values are in range otherwise set an error
  *
@@ -92,11 +116,16 @@ primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_pay
 
     const celsius_t * temperatures = htemp.temperatures[htemp.cellboard_id];
     htemp.temp_can_payload.cellboard_id = (primary_hv_cells_temperature_cellboard_id)htemp.cellboard_id;
-    htemp.temp_can_payload.offset = htemp.offset;
+
     htemp.temp_can_payload.temperature_0 = temperatures[htemp.offset];
     htemp.temp_can_payload.temperature_1 = temperatures[htemp.offset + 1];
     htemp.temp_can_payload.temperature_2 = temperatures[htemp.offset + 2];
     htemp.temp_can_payload.temperature_3 = temperatures[htemp.offset + 3];
+
+    htemp.temp_can_payload.temperature_id_0 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset);
+    htemp.temp_can_payload.temperature_id_1 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset + 1);
+    htemp.temp_can_payload.temperature_id_2 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset + 2);
+    htemp.temp_can_payload.temperature_id_3 = _temp_cell_position_from_index(htemp.cellboard_id, htemp.offset + 3);
 
     // Update indices
     htemp.offset += 4U;
