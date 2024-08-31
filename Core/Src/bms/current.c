@@ -9,6 +9,7 @@
 #include "current.h"
 
 #include <string.h>
+#include <math.h>
 
 #include "timebase.h"
 #include "error.h"
