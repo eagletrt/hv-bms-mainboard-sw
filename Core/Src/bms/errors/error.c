@@ -88,6 +88,10 @@ size_t error_get_expired(void) {
     return errorlib_get_expired(&herror);
 }
 
+ErrorInfo error_get_expired_info(void) {
+    return errorlib_get_expired_info(&herror);
+}
+
 #ifdef CONF_ERROR_STRINGS_ENABLE
 
 _STATIC char * error_module_name = "error";
@@ -95,11 +99,28 @@ _STATIC char * error_module_name = "error";
 _STATIC char * error_return_code_name[] = {
     [ERROR_OK] = "ok",
     [ERROR_NULL_POINTER] = "null pointer"
-}
+};
 
 _STATIC char * error_return_code_description[] = {
     [ERROR_OK] = "executed succesfully",
     [ERROR_NULL_POINTER] = "attempt to dereference a null pointer"
+};
+
+_STATIC char * error_group_name[] = {
+    [ERROR_GROUP_POST] = "post",
+    [ERROR_GROUP_OVER_CURRENT] = "over current",
+    [ERROR_GROUP_OVER_POWER] = "over power",
+    [ERROR_GROUP_UNDER_VOLTAGE] = "under voltage",
+    [ERROR_GROUP_OVER_VOLTAGE] = "over voltage",
+    [ERROR_GROUP_UNDER_TEMPERATURE] = "under temperature",
+    [ERROR_GROUP_OVER_TEMPERATURE] = "over temperature",
+    [ERROR_GROUP_CAN_COMMUNICATION] = "can communication"
+};
+
+char * error_get_group_name_string(const ErrorGroup group) {
+    if (group >= ERROR_GROUP_COUNT)
+        return "";
+    return error_group_name[group];
 }
 
 #endif // CONF_ERROR_STRINGS_ENABLE

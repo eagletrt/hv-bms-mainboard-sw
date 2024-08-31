@@ -81,6 +81,17 @@ ErrorReturnCode error_init(void);
 ErrorReturnCode error_set(const ErrorGroup group, const error_instance_t instance);
 ErrorReturnCode error_reset(const ErrorGroup group, const error_instance_t instance);
 size_t error_get_expired(void);
+ErrorInfo error_get_expired_info(void);
+
+#ifdef CONF_ERROR_STRINGS_ENABLE
+
+char * error_get_group_name_string(const ErrorGroup group);
+
+#else  // CONF_ERROR_STRINGS_ENABLE
+
+#define error_get_group_name_string(group) ("")
+
+#endif // CONF_ERROR_STRINGS_ENABLE
 
 #else  // CONF_ERROR_MODULE_ENABLE
 

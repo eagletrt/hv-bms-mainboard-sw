@@ -27,6 +27,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "programmer.h"
 #include "feedback.h"
 #include "bal.h"
+#include "error.h"
 /*** USER CODE END MACROS ***/
 
 
@@ -253,10 +254,13 @@ fsm_state_t fsm_do_fatal(fsm_state_data_t *data) {
   (void)timebase_routine();
   (void)can_comm_routine();
 
-  const char * const fatal_display_animation = "E E EEE ";
+  // TODO: Display error group name
+  // ErrorInfo info = error_get_expired_info();
+  // const char * const error_group_name = error_get_group_name_string(info.group);
+  const char * const display_animation = "E E EEEE ";
   (void)display_run_animation_string(
-      fatal_display_animation,
-      strlen(fatal_display_animation),
+      display_animation,
+      strlen(display_animation),
       400U,
       timebase_get_tick()
   );
