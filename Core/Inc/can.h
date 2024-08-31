@@ -69,11 +69,11 @@ void MX_CAN2_Init(void);
  *     - CAN_COMM_OK otherwise
  */
 CanCommReturnCode can_send(
-    CanNetwork network,
-    can_id_t id,
-    CanFrameType frame_type,
-    const uint8_t * data,
-    size_t size
+    const CanNetwork network,
+    const can_id_t id,
+    const CanFrameType frame_type,
+    const uint8_t * const data,
+    const size_t size
 );
 
 /* USER CODE END Prototypes */

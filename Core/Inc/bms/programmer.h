@@ -19,7 +19,7 @@
 #include "fsm.h"
 
 /** @brief The programmer flash timeout in ms */
-#define PROGRAMMER_FLASH_TIMEOUT ((milliseconds_t)(1000U))
+#define PROGRAMMER_FLASH_TIMEOUT_MS (1000U)
 
 /** @brief Cellboard ready bit mask */
 #define PROGRAMMER_CELLBOARD_READY_MASK (0x3FU)
@@ -39,7 +39,7 @@ typedef enum {
 } ProgrammerReturnCode;
 
 /**
- * @brief Programmer handler structure
+ * @brief Type definition for the programmer handler structure
  *
  * @warning This structure should never be used outside of this file
  *
@@ -69,8 +69,6 @@ typedef struct {
     Watchdog watchdog;
 } _ProgrammerHandler;
 
-
-
 /**
  * @brief Intialize the internal programmer handler structure
  *
@@ -79,28 +77,28 @@ typedef struct {
  * @return ProgrammerReturnCode
  *     - PROGRAMMER_OK
  */
-ProgrammerReturnCode programmer_init(system_reset_callback_t reset);
+ProgrammerReturnCode programmer_init(const system_reset_callback_t reset);
 
 /**
  * @brief Handle the received flash request
  *
  * @param payload A pointer to the canlib payload of the request
  */
-void programmer_flash_request_handle(primary_hv_flash_request_converted_t * payload);
+void programmer_flash_request_handle(primary_hv_flash_request_converted_t * const payload);
 
 /**
  * @brief Handle the received flash response from the cellboards
  *
  * @param payload A pointer to the canlib payload of the response
  */
-void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t * payload);
+void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t * const payload);
 
 /**
  * @brief Handle the received actual flash command
  *
  * @param payload A pointer to the canlib payload of the command
  */
-void programmer_flash_handle(primary_hv_flash_converted_t * payload);
+void programmer_flash_handle(primary_hv_flash_converted_t * const payload);
 
 /**
  * @brief Routine that should be called during the flash procedure

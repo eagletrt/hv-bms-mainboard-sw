@@ -15,6 +15,10 @@
 #include "primary_network.h"
 #include "bms_network.h"
 
+/** @brief Minimum and maximum allowed cell temperature in celsius */
+#define TEMP_MIN_C (-10.f)
+#define TEMP_MAX_C (60.f)
+
 /**
  * @brief Return code for the temperature module functions
  *
@@ -32,7 +36,7 @@ typedef enum {
 } TempReturnCode;
 
 /**
- * @brief Type definition for a matrix of celsius temperature values
+ * @brief Type definition for a matrix of cells temperatures in °C
  *
  * @details The matrix contains a row for each cellboard and every column contains
  * the i-th voltage of each segment
@@ -41,15 +45,18 @@ typedef celsius_t cells_temp_t[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_CO
 
 /**
  * @brief Type definition for the temperature module handler structure
+ *
+ * @param temperatures The array of temperatures in °C
+ * @param cellboard_id The cellboard identifier used when the canlib payload is sent
+ * @param offset An offset used when the canlib payload is sent
+ * @param temp_can_payload The canlib message payload for the cells temperatures
  */
 typedef struct {
     cells_temp_t temperatures;
 
-    primary_hv_cells_temperature_converted_t  temp_can_payload;
-
     CellboardId cellboard_id;
-    size_t offset;
-    
+    size_t offset; 
+    primary_hv_cells_temperature_converted_t temp_can_payload;
 } _TempHandler;
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
@@ -72,30 +79,37 @@ const cells_temp_t * temp_get_values(void);
 /**
  * @brief Get the minimum cell temperature in the pack
  *
- * @return raw_volt_t The minimum temperature celsius value
+ * @return celsius_t The minimum temperature value in °C
  */
 celsius_t temp_get_min(void);
 
 /**
  * @brief Get the maximum cell temperature in the pack
  *
- * @return raw_volt_t The maximum temperature celsius value
+ * @return celsius_t The maximum temperature value in °C
  */
 celsius_t temp_get_max(void);
 
 /**
- * @brief Get the average cell temperature of the pack
+ * @brief Get the sum of the cells temperatures of the pack
  *
- * @return float The average temperature celsius value
+ * @return celsius_t The sum of the temperatures in °C
  */
-celsius_t temp_get_avg(void;
+celsius_t temp_get_sum(void);
 
 /**
- * @brief Hanle the received cellboard cells temperature
+ * @brief Get the average cell temperature of the pack
+ *
+ * @return celsius_t The average temperature in °C
+ */
+celsius_t temp_get_avg(void);
+
+/**
+ * @brief Handle the received cellboard cells temperature
  *
  * @param payload A pointer to the canlib payload
  */
-void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t * payload);
+void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t * const payload);
 
 /**
  * @brief Get a pointer to the CAN payload of the cells temperature
@@ -104,7 +118,7 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
  *
  * @return primary_cellboard_cells_temperature_converted_t* A pointer to the payload
  */
-primary_hv_cells_temperature_converted_t * temp_get_temp_canlib_payload(size_t * byte_size);
+primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_payload(size_t * const byte_size);
 
 #else
 
@@ -114,7 +128,7 @@ primary_hv_cells_temperature_converted_t * temp_get_temp_canlib_payload(size_t *
 #define temp_get_max() (NULL)
 #define temp_get_avg() (NULL)
 #define temp_cells_temperature_handle(payload) MAINBOARD_NOPE()
-#define temp_get_temp_canlib_payload(byte_size) (NULL)
+#define temp_get_cells_temperature_canlib_payload(byte_size) (NULL)
 
 #endif  //  CONF_TEMPERATURE_MODULE_ENABLE
 

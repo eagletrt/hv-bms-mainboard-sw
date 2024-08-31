@@ -16,11 +16,12 @@
 #include "watchdog.h"
 
 /** @brief PCU pins timeouts in ms */
-#define PCU_AIRN_TIMEOUT ((milliseconds_t)1000U)
-#define PCU_PRECHARGE_TIMEOUT ((milliseconds_t)15000U)
-#define PCU_AIRP_TIMEOUT ((milliseconds_t)1000U)
+#define PCU_AIRN_TIMEOUT_MS (1000U)
+#define PCU_PRECHARGE_TIMEOUT_MS (15000U)
+#define PCU_AIRP_TIMEOUT_MS (1000U)
 
-#define PCU_PRECHARGE_THRESHOLD_PERCENT ((precise_percentage_t)0.95f)
+/** @brief Precharge threshold percentage */
+#define PCU_PRECHARGE_THRESHOLD_PERCENT (0.95f)
 
 /**
  * @brief Return code for the PCU module functions
@@ -72,14 +73,14 @@ typedef enum {
  * @param pcu_pin The pin to select
  * @param state The new state to set
  */
-typedef void (* pcu_set_state_callback_t)(PcuPin pcu_pin, PcuPinStatus state);
+typedef void (* pcu_set_state_callback_t)(const PcuPin pcu_pin, const PcuPinStatus state);
 
 /**
  * @brief Callback used to toggle the state of the PCU pin
  *
  * @param pcu_pin The pin to select
  */
-typedef void (* pcu_toggle_state_callback_t)(PcuPin pcu_pin);
+typedef void (* pcu_toggle_state_callback_t)(const PcuPin pcu_pin);
 
 /**
  * @brief PCU handler structure
@@ -114,7 +115,7 @@ typedef struct {
  *     - PCU_NULL_POINTER if the set or toggle callbacks are NULL
  *     - PCU_OK otherwise
  */
-PcuReturnCode pcu_init(pcu_set_state_callback_t set, pcu_toggle_state_callback_t toggle);
+PcuReturnCode pcu_init(const pcu_set_state_callback_t set, const pcu_toggle_state_callback_t toggle);
 
 /** @brief Reset all the pins to their initial states */
 void pcu_reset_all(void);
@@ -142,7 +143,7 @@ void pcu_ams_activate(void);
 void pcu_ams_deactivate(void);
 
 /**
- * @brief Get the current percentage of the precharge from 0 to 100
+ * @brief Get the current percentage of the precharge from 0 to 1
  *
  * @return precise_percentage_t The precharge percentage
  */
@@ -160,14 +161,14 @@ bool pcu_is_precharge_complete(void);
  *
  * @param payload A pointer to the canlib payload of the response
  */
-void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * payload);
+void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * const payload);
 
 /**
  * @brief Handle the received set status message sent from the handcart
  *
  * @param payload A pointer to the canlib payload of the response
  */
-void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t * payload);
+void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t * const payload);
 
 #else  // CONF_PCU_MODULE_ENABLE
 

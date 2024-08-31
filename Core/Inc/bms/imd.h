@@ -63,14 +63,14 @@ typedef enum {
  *
  * @param start A pointer to the callback used to start the PWM to read from the IMD
  * @param ir41153204 Handler structure of the IMD driver
- * @param imd_can_payload The canlib payload used to send the IMD status
+ * @param status_can_payload The canlib payload used to send the IMD status
  */
 typedef struct {
     imd_pwm_start_callback_t start;
 
     Ir1553204Handler ir1153204;
 
-    primary_hv_imd_status_converted_t imd_can_payload;
+    primary_hv_imd_status_converted_t status_can_payload;
 } _ImdHandler;
 
 #ifdef CONF_IMD_MODULE_ENABLE
@@ -84,12 +84,12 @@ typedef struct {
  *     - IMD_NULL_POINTER if any of the given parameter is NULL
  *     - IMD_OK otherwise
  */
-ImdReturnCode imd_init(imd_pwm_start_callback_t start);
+ImdReturnCode imd_init(const imd_pwm_start_callback_t start);
 
 /**
  * @brief Get the duty cycle percentage of the IMD signal
  *
- * @return precise_percentage_t The duty cycle percentage from 0 to 100, or 0 on error
+ * @return precise_percentage_t The duty cycle percentage from 0 to 1, or 0 on error
  */
 precise_percentage_t imd_get_duty_cycle(void);
 
@@ -126,9 +126,9 @@ ImdStatus imd_get_status(void);
  *     - IMD_OK otherwise
  */
 ImdReturnCode imd_update(
-    ticks_t source_frequency,
-    ticks_t period_count,
-    ticks_t high_count
+    const ticks_t source_frequency,
+    const ticks_t period_count,
+    const ticks_t high_count
 );
 
 /**
@@ -138,7 +138,7 @@ ImdReturnCode imd_update(
  *
  * @return primary_hv_imd_status_converted_t* A pointer to the payload
  */
-primary_hv_imd_status_converted_t * imd_get_canlib_payload(size_t * byte_size);
+primary_hv_imd_status_converted_t * imd_get_status_canlib_payload(size_t * const byte_size);
 
 #else  // CONF_IMD_MODULE_ENABLE
 
@@ -148,7 +148,7 @@ primary_hv_imd_status_converted_t * imd_get_canlib_payload(size_t * byte_size);
 #define imd_get_period() (0U)
 #define imd_get_status() (IMD_STATUS_NORMAL)
 #define imd_update(source_frequency, period_count, high_count) (IMD_OK)
-#define imd_get_canlib_payload(byte_size) (NULL)
+#define imd_get_status_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_IMD_MODULE_ENABLE
 

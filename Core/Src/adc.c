@@ -501,8 +501,8 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
 /* USER CODE BEGIN 1 */
 
-_STATIC raw_volt_t dma_data_1[ADC_FEEDBACK_1_COUNT];
-_STATIC raw_volt_t dma_data_2[ADC_FEEDBACK_2_COUNT];
+_STATIC _VOLATILE raw_volt_t dma_data_1[ADC_FEEDBACK_1_COUNT];
+_STATIC _VOLATILE raw_volt_t dma_data_2[ADC_FEEDBACK_2_COUNT];
 
 /**
  * @brief Get the feedback analog index from the first ADC channel index
@@ -574,7 +574,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef * hadc) {
         // Copy all feedbacks values
         for (size_t i = 0U; i < size; ++i) {
             index = _adc_get_index_from_adc_1_channel(channels[i]);
-            feedback_update_analog_feedback(index, dma_data_1[channels[i]]);
+            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[channels[i]], ADC_VREF, ADC_RESOLUTION);
+            feedback_update_analog_feedback(index, volt);
         }
     }
     else if (hadc->Instance == HADC_FEEDBACK_2.Instance) {
@@ -591,7 +592,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef * hadc) {
         // Copy all feedbacks values
         for (size_t i = 0U; i < size; ++i) {
             index = _adc_get_index_from_adc_2_channel(channels[i]);
-            feedback_update_analog_feedback(index, dma_data_2[channels[i]]);
+            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_2[channels[i]], ADC_VREF, ADC_RESOLUTION);
+            feedback_update_analog_feedback(index, volt);
         }
     }
 }

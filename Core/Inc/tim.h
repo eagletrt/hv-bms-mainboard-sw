@@ -72,7 +72,7 @@ void tim_start_pwm_imd(void);
  * @param timestamp The time in which the error was set
  * @param timeout The time after which the error should expire after it was set
  */
-void tim_update_error_timer(uint32_t timestamp, uint16_t timeout);
+void tim_update_error_timer(const uint32_t timestamp, const uint16_t timeout);
 
 /**
  * @brief Function used to stop the error timer

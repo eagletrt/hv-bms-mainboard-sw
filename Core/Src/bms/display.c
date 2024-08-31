@@ -15,10 +15,7 @@
 
 _STATIC _Display hdisplay;
 
-DisplayReturnCode display_init(
-    display_segment_set_state_callback_t set,
-    display_segment_toggle_state_callback_t toggle)
-{
+DisplayReturnCode display_init(const display_segment_set_state_callback_t set, const display_segment_toggle_state_callback_t toggle) {
     if (set == NULL || toggle == NULL)
         return DISPLAY_NULL_POINTER;
     memset(&hdisplay, 0U, sizeof(hdisplay));
@@ -28,7 +25,7 @@ DisplayReturnCode display_init(
     return DISPLAY_OK;
 }
 
-DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit) {
+DisplayCharacterCode display_get_code_from_hex_digit(const uint8_t digit) {
     switch (digit) {
         case 0U: return DISPLAY_CHARACTER_CODE_0;
         case 1U: return DISPLAY_CHARACTER_CODE_1;
@@ -51,9 +48,9 @@ DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit) {
 }
 
 DisplayCharacterCode display_get_code_from_character(
-    char c,
-    bool ignore_case,
-    bool prefer_upcase)
+    const char c,
+    const bool ignore_case,
+    const bool prefer_upcase)
 {
     switch (c) {
         // Symbols
@@ -235,18 +232,18 @@ DisplayCharacterCode display_get_code_from_character(
     return DISPLAY_CHARACTER_CODE_SPACE;
 }
 
-DisplaySegmentStatus display_get_segment(DisplaySegment segment) {
+DisplaySegmentStatus display_get_segment(const DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return DISPLAY_SEGMENT_STATUS_UNKNOWN;
     return (DisplaySegmentStatus)tdsr0760_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
 }
 
-DisplayReturnCode display_set_segment(DisplaySegment segment, DisplaySegmentStatus status) {
+DisplayReturnCode display_set_segment(const DisplaySegment segment, const DisplaySegmentStatus status) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return DISPLAY_INVALID_SEGMENT;
     if (status == DISPLAY_SEGMENT_STATUS_UNKNOWN)
         return DISPLAY_INVALID_STATUS;
-    Tdsr0760ReturnCode code = tdsr0760_set_segment(
+    const Tdsr0760ReturnCode code = tdsr0760_set_segment(
         &hdisplay.tdsr0760,
         (Tdsr0760Segment)segment,
         (Tdsr0760SegmentStatus)status
@@ -257,32 +254,30 @@ DisplayReturnCode display_set_segment(DisplaySegment segment, DisplaySegmentStat
     return DISPLAY_OK;
 }
 
-DisplayReturnCode display_toggle_segment(DisplaySegment segment) {
+DisplayReturnCode display_toggle_segment(const DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return DISPLAY_INVALID_SEGMENT;
-    Tdsr0760ReturnCode code = tdsr0760_toggle_segment(
-        &hdisplay.tdsr0760,
-        (Tdsr0760Segment)segment
-    );
+    const Tdsr0760ReturnCode code = tdsr0760_toggle_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
     if (code != TDSR0760_OK)
         return DISPLAY_DRIVER_ERROR;   
-    Tdsr0760SegmentStatus status = tdsr0760_get_segment(
-        &hdisplay.tdsr0760,
-        (Tdsr0760Segment) segment
-    );
+    const Tdsr0760SegmentStatus status = tdsr0760_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
     if (status == TDSR0760_SEGMENT_STATUS_UNKNOWN)
         return DISPLAY_INVALID_STATUS;
-    hdisplay.set(segment, (DisplaySegmentStatus)status);
+    hdisplay.set(segment, (const DisplaySegmentStatus)status);
     return DISPLAY_OK;
 }
 
-DisplayReturnCode display_set_segment_all(bit_flag8_t bits){
+DisplayReturnCode display_set_segment_all(const bit_flag8_t bits){
     DisplayReturnCode code = DISPLAY_OK;
     for (Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
-        Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ?
+        const Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ?
             TDSR0760_SEGMENT_STATUS_ON :
             TDSR0760_SEGMENT_STATUS_OFF;
-        Tdsr0760ReturnCode ret = tdsr0760_set_segment(&hdisplay.tdsr0760, segment, status);
+        const Tdsr0760ReturnCode ret = tdsr0760_set_segment(
+            &hdisplay.tdsr0760,
+            segment,
+            status
+        );
         if (ret == TDSR0760_OK)
             hdisplay.set((DisplaySegment)segment, (DisplaySegmentStatus)status);
         else
@@ -291,27 +286,27 @@ DisplayReturnCode display_set_segment_all(bit_flag8_t bits){
     return code;
 }
 
-DisplayReturnCode display_set_digit(uint8_t digit) {
+DisplayReturnCode display_set_digit(const uint8_t digit) {
     if (digit > 0x0F)
         return DISPLAY_INVALID_CHARACTER;
-    DisplayCharacterCode code = display_get_code_from_hex_digit(digit);
+    const DisplayCharacterCode code = display_get_code_from_hex_digit(digit);
     return display_set_segment_all(code);
 }
 
 DisplayReturnCode display_set_character(
-    char c,
-    bool ignore_case,
-    bool prefer_upcase)
+    const char c,
+    const bool ignore_case,
+    const bool prefer_upcase)
 {
-    DisplayCharacterCode code = display_get_code_from_character(c, ignore_case, prefer_upcase);
+    const DisplayCharacterCode code = display_get_code_from_character(c, ignore_case, prefer_upcase);
     return display_set_segment_all(code);
 }
 
 DisplayReturnCode display_run_animation(
-    const DisplaySegmentBit * animation,
-    size_t size,
+    const DisplaySegmentBit * const animation,
+    const size_t size,
     ticks_t ticks_per_frame,
-    ticks_t t)
+    const ticks_t t)
 {
     if (animation == NULL)
         return DISPLAY_NULL_POINTER;
@@ -323,10 +318,10 @@ DisplayReturnCode display_run_animation(
 }
 
 DisplayReturnCode display_run_animation_string(
-    const char * string,
-    size_t size,
+    const char * const string,
+    const size_t size,
     ticks_t ticks_per_frame,
-    ticks_t t)
+    const ticks_t t)
 {
     if (string == NULL)
         return DISPLAY_NULL_POINTER;

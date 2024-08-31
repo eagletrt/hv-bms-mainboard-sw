@@ -28,7 +28,7 @@ void _programmer_flash_timeout(void) {
     hprogrammer.flash_request = false;
     hprogrammer.flashing = false;
     hprogrammer.flash_stop = false;
-    hprogrammer.cellboard_ready = 0;
+    hprogrammer.cellboard_ready = 0U;
 }
 
 /** @brief Function called when the flash procedure is completed */
@@ -36,7 +36,7 @@ void _programmer_flash_stop(void) {
     hprogrammer.flash_request = false;
     hprogrammer.flashing = false;
     hprogrammer.flash_stop = true;
-    hprogrammer.cellboard_ready = 0;
+    hprogrammer.cellboard_ready = 0U;
 }
 
 /** @brief Resets all the flash flags */
@@ -44,10 +44,10 @@ void _programmer_flash_reset_flags(void) {
     hprogrammer.flash_request = false;
     hprogrammer.flashing = false;
     hprogrammer.flash_stop = false;
-    hprogrammer.cellboard_ready = 0;
+    hprogrammer.cellboard_ready = 0U;
 }
 
-ProgrammerReturnCode programmer_init(system_reset_callback_t reset) {
+ProgrammerReturnCode programmer_init(const system_reset_callback_t reset) {
     memset(&hprogrammer, 0U, sizeof(hprogrammer));
 
     hprogrammer.reset = reset;
@@ -61,25 +61,25 @@ ProgrammerReturnCode programmer_init(system_reset_callback_t reset) {
     // Initialize watchdogs
     (void)watchdog_init(
         &hprogrammer.watchdog,
-        TIMEBASE_TIME_TO_TICKS(PROGRAMMER_FLASH_TIMEOUT, timebase_get_resolution()),
+        TIMEBASE_TIME_TO_TICKS(PROGRAMMER_FLASH_TIMEOUT_MS, timebase_get_resolution()),
         _programmer_flash_timeout
     );
 
     return PROGRAMMER_OK;
 }
 
-void programmer_flash_request_handle(primary_hv_flash_request_converted_t * payload) {
+void programmer_flash_request_handle(primary_hv_flash_request_converted_t * const payload) {
     if (payload == NULL)
         return;
     if (hprogrammer.flash_request)
         return;
-    fsm_state_t status = fsm_get_status();
+    const fsm_state_t status = fsm_get_status();
     if (status != FSM_STATE_IDLE && status != FSM_STATE_FATAL)
         return;
 
     // TODO: Check the payload content
 
-    hprogrammer.target = payload->mainboard ? MAINBOARD_ID : payload->cellboard_id;
+    hprogrammer.target = payload->mainboard ? MAINBOARD_ID : (CellboardId)payload->cellboard_id;
     hprogrammer.flash_request = true;
     hprogrammer.flash_stop = false;
     hprogrammer.flashing = false;
@@ -90,7 +90,7 @@ void programmer_flash_request_handle(primary_hv_flash_request_converted_t * payl
     fsm_event_trigger(&hprogrammer.flash_event);
 }
 
-void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t * payload) {
+void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t * const payload) {
     if (payload == NULL)
         return;
     if (!hprogrammer.flash_request)
@@ -104,7 +104,7 @@ void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_con
     );
 }
 
-void programmer_flash_handle(primary_hv_flash_converted_t * payload) {
+void programmer_flash_handle(primary_hv_flash_converted_t * const payload) {
     if (payload == NULL)
         return;
     if (payload->start == hprogrammer.flashing)
@@ -130,11 +130,9 @@ ProgrammerReturnCode programmer_routine(void) {
     // Wait until all the cellboards are ready
     if (!_programmer_cellboard_ready_all())
         return PROGRAMMER_BUSY;
-
     // Reset the microcontroller if the mainboard is the target
     if (hprogrammer.target == MAINBOARD_ID)
         hprogrammer.reset();
-
     return PROGRAMMER_BUSY;
 }
 

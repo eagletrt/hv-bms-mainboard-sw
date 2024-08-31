@@ -15,49 +15,9 @@
 #include "bms_network.h"
 #include "primary_network.h"
 
-/** @brief Minimum and maximum allowed current value in mA */
-#define CURRENT_MIN_MILLIAMPERE ((milliampere_t)-22000.f)
-#define CURRENT_MAX_MILLIAMPERE ((milliampere_t)130000.f)
-
-/** @brief Minimum and maximum allowed current raw values */
-#define CURRENT_MIN_VALUE (CURRENT_MILLIAMPERE_TO_VALUE(CURRENT_MIN_MILLIAMPERE))
-#define CURRENT_MAX_VALUE (CURRENT_MILLIAMPERE_TO_VALUE(CURRENT_MAX_MILLIAMPERE))
-
-/**
- * @brief Convert a raw current value to milliampere
- *
- * @param value The value to convert
- *
- * @return milliampere_t the converted current in milliampere
- */
-#define CURRENT_VALUE_TO_MILLIAMPERE(value) ((milliampere_t)(value))
-
-/**
- * @brief Convert a raw current value to ampere
- *
- * @param value The value to convert
- *
- * @return ampere_t The converted current in A
- */
-#define CURRENT_VALUE_TO_AMPERE(value) ((ampere_t)((value) * 0.001))
-
-/**
- * @brief Convert a current in milliampere to the raw current value
- *
- * @param value The value in milliampere to convert
- *
- * @return raw_current_t The raw current value
- */
-#define CURRENT_MILLIAMPERE_TO_VALUE(value) ((raw_current_t)(value))
-
-/**
- * @brief Convert a current in ampere to the raw current value
- *
- * @param value The value in ampere
- *
- * @return ampere_t The raw current value
- */
-#define CURRENT_AMPERE_TO_VALUE(value) ((ampere_t)((value) * 1000.f))
+/** @brief Minimum and maximum allowed current value in A */
+#define CURRENT_MIN_A (-22.f)
+#define CURRENT_MAX_A (130.f)
 
 /**
  * @brief Return code for the current module functions
@@ -72,14 +32,14 @@ typedef enum {
 /**
  * @brief Current handler structure
  *
- * @attention This structure should never be used outside of this file
+ * @attention This structure should not be used outside of this module
  *
- * @param current The raw current value
+ * @param current The current value in A
  * @param current_can_payload The canlib payload used to send the current value via CAN
  * @param power_can_payload The canlib payload used to send the power value via CAN
  */
 typedef struct {
-    raw_current_t current;    
+    ampere_t current;    
 
     primary_hv_current_converted_t current_can_payload;
     primary_hv_power_converted_t power_can_payload;
@@ -100,19 +60,19 @@ CurrentReturnCode current_init(void);
  *
  * @param payload A pointer to the canlib payload of the response
  */
-void current_handle(bms_ivt_msg_result_i_t * payload);
+void current_handle(bms_ivt_msg_result_i_t * const payload);
 
 /**
- * @brief Get the saved raw current value
+ * @brief Get the supplied current in A
  *
- * @return raw_current_t The current
+ * @return ampere_t The current in A
  */
-raw_current_t current_get_current(void);
+ampere_t current_get_current(void);
 
 /**
- * @brief Get the calculated power value
+ * @brief Get the calculated power value in kW
  *
- * @return kilowatt_t The power in kilowatts
+ * @return kilowatt_t The power in kW
  */
 kilowatt_t current_get_power(void);
 
@@ -123,7 +83,7 @@ kilowatt_t current_get_power(void);
  *
  * @return primary_hv_current_converted_t* A pointer to the payload
  */
-primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * byte_size);
+primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * const byte_size);
 
 /**
  * @brief Get a pointer to the CAN payload of the power
@@ -132,7 +92,7 @@ primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * byt
  *
  * @return primary_hv_power_converted_t* A pointer to the payload
  */
-primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * byte_size);
+primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * const byte_size);
 
 #else  // CONF_CURRENT_MODULE_ENABLE
 
@@ -140,8 +100,8 @@ primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * byte_si
 #define current_handle(payload) CELLBOARD_NOPE()
 #define current_get_current() (0.f)
 #define current_get_power() (0.f)
-#define current_get_current_canlib_payload() (NULL)
-#define current_get_power_canlib_payload() (NULL)
+#define current_get_current_canlib_payload(byte_size) (NULL)
+#define current_get_power_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_CURRENT_MODULE_ENABLE
 

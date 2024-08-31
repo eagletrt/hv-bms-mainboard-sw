@@ -20,18 +20,20 @@
 /** @brief Identifier value for the MAX22530 */
 #define MAX22530_ID (0x00U)
 
-/** @brief Reference voltage of the chip */
+/** @brief Reference voltage of the ADC */
 #define MAX22530_VREF (1.8f)
 
+/** @brief ADC resolution in bits */
+#define MAX22530_RESOLUTION (12U)
+
 /**
- * @brief Convert the 12 bit ADC value to a voltage in millivolt
+ * @brief Convert the 12 bit ADC value to a voltage in V
  *
  * @param val The value to convert
  *
- * @return millivolt_t The converted value in millivolt
+ * @return volt_t The converted value in V
  */
-#define MAX22530_VALUE_TO_MILLIVOLT(val) ((millivolt_t)((val) * (MAX22530_VREF / 4095.f)))
-
+#define MAX22530_RAW_VALUE_TO_VOLT(value) MAINBOARD_ADC_RAW_VALUE_TO_VOLT(value, MAX22530_VREF, MAX22530_RESOLUTION)
 
 /** @brief Total number of bytes of a read/write command */
 #define MAX22530_COMMAND_BYTE_SIZE (3U)
@@ -77,7 +79,6 @@ typedef enum {
     MAX22530_SECTION_ADC_STATUS = 0x01U,
     MAX22530_SECTION_COMPARATOR_OUT = 0x09U,
     MAX22530_SECTION_CONTROL_STATUS = 0x11U,
-
     MAX22530_SECTION_COUNT = 4U
 } Max22530Section;
 
@@ -105,7 +106,6 @@ typedef enum {
     MAX22530_REGISTER_INTERRUPT_STATUS = MAX22530_REGISTER_COMPARATOR_OUTPUT_STATUS + 0x01U,
     MAX22530_REGISTER_INTERRUPT_ENABLE = MAX22530_REGISTER_INTERRUPT_STATUS + 0x01U,
     MAX22530_REGISTER_CONTROL = MAX22530_REGISTER_INTERRUPT_ENABLE + 0x01U,
-
     MAX22530_REGISTER_COUNT = 9U
 } Max22530Register;
 
@@ -202,9 +202,9 @@ typedef struct {
  *     - MAX22530_OK otherwise
  */
 Max22530ReturnCode max22530_init(
-    Max22530Handler * handler,
-    spi_send_callback_t send,
-    spi_send_receive_callback_t send_receive
+    Max22530Handler * const handler,
+    const spi_send_callback_t send,
+    const spi_send_receive_callback_t send_receive
 );
 
 /**
@@ -214,7 +214,7 @@ Max22530ReturnCode max22530_init(
  *
  * @return max22530_id_t The ADC identifier or -1 on error
  */
-max22530_id_t max22530_get_id(Max22530Handler * handler);
+max22530_id_t max22530_get_id(Max22530Handler * const handler);
 
 /**
  * @brief Get the power-on reset code
@@ -223,7 +223,7 @@ max22530_id_t max22530_get_id(Max22530Handler * handler);
  *
  * @return Max22530PowerOnReset The power-on reset code or -1 on error
  */
-Max22530PowerOnReset max22530_get_power_on_reset(Max22530Handler * handler);
+Max22530PowerOnReset max22530_get_power_on_reset(Max22530Handler * const handler);
 
 /**
  * @brief Get the revision code
@@ -232,7 +232,7 @@ Max22530PowerOnReset max22530_get_power_on_reset(Max22530Handler * handler);
  *
  * @return max22530_revision_t The revision code or -1 on error
  */
-max22530_revision_t max22530_get_revision(Max22530Handler * handler);
+max22530_revision_t max22530_get_revision(Max22530Handler * const handler);
 
 /**
  * @brief Read a single channel of the ADC
@@ -241,9 +241,13 @@ max22530_revision_t max22530_get_revision(Max22530Handler * handler);
  * @param channel The channel to read from
  * @param filtered Set to true to select the filtered channel
  *
- * @return raw_volt_t The raw value of the channel
+ * @return volt_t The voltage read from the channel in V
  */
-raw_volt_t max22530_read_channel(Max22530Handler * handler, Max22530Channel channel, bool filtered);
+volt_t max22530_read_channel(
+    Max22530Handler * const handler,
+    const Max22530Channel channel,
+    const bool filtered
+);
 
 /**
  * @brief Read all the channels of the ADC in a single command
@@ -261,10 +265,10 @@ raw_volt_t max22530_read_channel(Max22530Handler * handler, Max22530Channel chan
  *     - MAX22530_OK otherwise
  */
 Max22530ReturnCode max22530_read_channels_all(
-    Max22530Handler * handler,
-    bool filtered,
-    raw_volt_t * out,
-    uint16_t * interrupt_status
+    Max22530Handler * const handler,
+    const bool filtered,
+    volt_t * const out,
+    uint16_t * const interrupt_status
 );
 
 #endif // MAX22530_H

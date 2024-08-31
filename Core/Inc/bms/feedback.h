@@ -20,42 +20,40 @@
 #define FEEDBACK_COUNT (FEEDBACK_ID_COUNT)
 
 /** @brief The period with which feedbacks are updated */
-#define FEEDBACK_CYCLE_TIME_MS ((milliseconds_t)1U)
+#define FEEDBACK_CYCLE_TIME_MS (1U)
 
-/** @brief Feedbacks reference voltage in mV */
-#define FEEDBACK_VREF ((millivolt_t)3300.f)
-#define FEEDBACK_SD_VREF ((millivolt_t)12000.f)
-
-/** @brief Feedbacks ADC resolution in bits */
-#define FEEDBACK_ADC_RESOLUTION (12U)
+/** @brief Voltage reference for the 5V to the MCU and the ShutDown */
+#define FEEDBACK_VREF (3.3f)
+#define FEEDBACK_5V_VREF (5.f)
+#define FEEDBACK_SD_VREF (12.f)
 
 /**
- * @brief Thresholds for the analog feedbacks in mV
+ * @brief Thresholds for the analog feedbacks in V
  *
  * @details If the voltage of a feedback is greater than the HIGH threshold it is considered
  * as logically high, if it is lower than the LOW threshold is considered low otherwise
  * it is in an implausible state and considered as error
  */
-#define FEEDBACK_THRESHOLD_HIGH_MILLIVOLT ((millivolt_t)1900.f)
-#define FEEDBACK_THRESHOLD_LOW_MILLIVOLT ((millivolt_t)700.f)
+#define FEEDBACK_THRESHOLD_HIGH_V (1.9f)
+#define FEEDBACK_THRESHOLD_LOW_V (0.7f)
 
 /**
- * @brief Threshold for the analog feedbacks as raw values
+ * @brief Convert the feedback voltage to the 5V to MCU voltage in V
+ *
+ * @param value The feedback voltage
+ *
+ * @return volt_t The 5V voltage in V
  */
-#define FEEDBACK_THRESHOLD_HIGH ( \
-    MAINBOARD_MILLIVOLT_TO_ADC_VALUE( \
-        FEEDBACK_THRESHOLD_HIGH_MILLIVOLT, \
-        FEEDBACK_VREF, \
-        FEEDBACK_ADC_RESOLUTION \
-    ) \
-)
-#define FEEDBACK_THRESHOLD_LOW ( \
-    MAINBOARD_MILLIVOLT_TO_ADC_VALUE( \
-        FEEDBACK_THRESHOLD_LOW_MILLIVOLT, \
-        FEEDBACK_VREF, \
-        FEEDBACK_ADC_RESOLUTION \
-    ) \
-)
+#define FEEDBACK_VOLTAGE_TO_5V_VOLT(value) ((value) * FEEDBACK_5V_VREF / FEEDBACK_VREF)
+
+/**
+ * @brief Convert the feedback voltage to the shutdown voltage in V
+ *
+ * @param value The shutdown feedback voltage
+ *
+ * @return volt_t The shutdown feedback voltage in V
+ */
+#define FEEDBACK_VOLTAGE_TO_SD_VOLT(value) ((value) * FEEDBACK_SD_VREF / FEEDBACK_VREF)
 
 /**
  * @brief Feedbacks states needed when the miainboard is in the IDLE state
@@ -474,7 +472,7 @@ typedef struct {
     feedback_start_analog_conversion_callback_t start_conversion;
 
     bit_flag32_t digital; 
-    raw_volt_t analog[FEEDBACK_ANALOG_INDEX_COUNT];
+    volt_t analog[FEEDBACK_ANALOG_INDEX_COUNT];
 
     FeedbackStatus status[FEEDBACK_COUNT];
 
@@ -497,10 +495,7 @@ typedef struct {
  *     - FEEDBACK_NULL_POINTER if any of the parameters are NULL
  *     - FEEDBACK_OK otherwise
  */
-FeedbackReturnCode feedback_init(
-    feedback_read_digital_all_callback_t read_all,
-    feedback_start_analog_conversion_callback_t start_conversion
-);
+FeedbackReturnCode feedback_init(const feedback_read_digital_all_callback_t read_all, const feedback_start_analog_conversion_callback_t start_conversion);
 
 /**
  * @brief Update all the digital feedbacks
@@ -521,11 +516,14 @@ FeedbackReturnCode feedback_start_analog_conversion_all(void);
 /**
  * @brief Update a single value of the analog feedbacks
  *
+ * @param index The index of the analog feedback
+ * @param value The voltage value of the feedback in V
+ *
  * @return FeedbackReturnCode
  *     - FEEDBACK_INVALID_INDEX the given index is not valid
  *     - FEEDBACK_OK otherwise
  */
-FeedbackReturnCode feedback_update_analog_feedback(FeedbackAnalogIndex index, raw_volt_t value);
+FeedbackReturnCode feedback_update_analog_feedback(const FeedbackAnalogIndex index, const volt_t value);
 
 /**
  * @brief Update the status of all the feedbacks
@@ -542,16 +540,16 @@ FeedbackReturnCode feedback_update_status(void);
  *
  * @return bool The value of the feedback
  */
-bool feedback_get_digital(FeedbackDigitalBit bit);
+bool feedback_get_digital(const FeedbackDigitalBit bit);
 
 /**
  * @brief Get the value of an analog feedback
  *
  * @param index The index of the analog feedback to get the value from
  *
- * @return raw_volt_t The raw value of the feedback
+ * @return volt_t The feedbacks voltage values
  */
-raw_volt_t feedback_get_analog(FeedbackAnalogIndex index);
+volt_t feedback_get_analog(const FeedbackAnalogIndex index);
 
 /**
  * @brief Get the status of a single feedback
@@ -560,7 +558,7 @@ raw_volt_t feedback_get_analog(FeedbackAnalogIndex index);
  *
  * @return FeedbackStatus The feedback status
  */
-FeedbackStatus feedback_get_status(FeedbackId id);
+FeedbackStatus feedback_get_status(const FeedbackId id);
 
 /**
  * @brief Check if the feedbacks specified in the mask are in the expected status
@@ -570,9 +568,13 @@ FeedbackStatus feedback_get_status(FeedbackId id);
  * @param out[out] The identifer of the feedback that does not match the expected value
  * or FEEDBACK_ID_UNKNOWN if every feedback is ok (can be NULL)
  *
- * @return bool True if all the feedbacks match the expected value, false Otherwise
+ * @return bool True if all the feedbacks match the expected value, false otherwise
  */
-bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value, FeedbackId * out);
+bool feedback_check_values(
+    const bit_flag32_t mask,
+    const bit_flag32_t value,
+    FeedbackId * const out
+);
 
 /**
  * @brief Check if a feedback is digital or analog given its identifier
@@ -581,7 +583,7 @@ bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value, FeedbackId * o
  *
  * @return bool True if the feedback is digital, false otherwise
  */
-bool feedback_is_digital(FeedbackId id);
+bool feedback_is_digital(const FeedbackId id);
 
 /**
  * @brief Get the feedback digital bit position from its identifier
@@ -590,7 +592,7 @@ bool feedback_is_digital(FeedbackId id);
  *
  * @return FeedbackDigitalBit The bit position of the digital feedback
  */
-FeedbackDigitalBit feedback_get_digital_bit_from_id(FeedbackId id);
+FeedbackDigitalBit feedback_get_digital_bit_from_id(const FeedbackId id);
 
 /**
  * @brief Get the feedback analog index from its identifier
@@ -599,7 +601,7 @@ FeedbackDigitalBit feedback_get_digital_bit_from_id(FeedbackId id);
  *
  * @return FeedbackAnalogIndex The index of the analog feedback
  */
-FeedbackAnalogIndex feedback_get_analog_index_from_id(FeedbackId id);
+FeedbackAnalogIndex feedback_get_analog_index_from_id(const FeedbackId id);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the feedbacks status
@@ -608,7 +610,7 @@ FeedbackAnalogIndex feedback_get_analog_index_from_id(FeedbackId id);
  *
  * @return primary_hv_feedback_status_converted_t* A pointer to the payload
  */
-primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * byte_size);
+primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * const byte_size);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the digital feedbacks values
@@ -617,7 +619,7 @@ primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * by
  *
  * @return primary_hv_feedback_digital_converted_t* A pointer to the payload
  */
-primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * byte_size);
+primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * const byte_size);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the analog feedbacks values
@@ -626,7 +628,7 @@ primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * 
  *
  * @return primary_hv_feedback_analog_converted_t* A pointer to the payload
  */
-primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * byte_size);
+primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * const byte_size);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the analog shutdown feedbacks values
@@ -635,7 +637,7 @@ primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * by
  *
  * @return primary_hv_feedback_analog_sd_converted_t* A pointer to the payload
  */
-primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_t * byte_size);
+primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_t * const byte_size);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the feedback that did not
@@ -646,7 +648,7 @@ primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_
  *
  * @return primary_hv_feedback_enzomma_converted_t* A pointer to the payload
  */
-primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(FeedbackId id, size_t * byte_size);
+primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(const FeedbackId id, size_t * const byte_size);
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
@@ -657,7 +659,7 @@ primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(FeedbackI
  *
  * @return cont char* A pointer to the name of the feedback id
  */
-const char * const feedback_get_feedback_id_name(FeedbackId id);
+const char * const feedback_get_feedback_id_name(const FeedbackId id);
 
 #else  // CONF_FEEDBACK_STRINGS_ENABLE
 

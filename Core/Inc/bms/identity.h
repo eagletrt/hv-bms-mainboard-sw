@@ -59,7 +59,7 @@ seconds_t identity_get_build_time(void);
  *
  * @return primary_hv_mainboard_version_converted_t* A pointer to the payload
  */
-primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payload(size_t * byte_size);
+primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payload(size_t * const byte_size);
 
 /**
  * @brief Get a pointer to the canlib payload of the cellboard identity info
@@ -69,13 +69,13 @@ primary_hv_mainboard_version_converted_t * identity_get_mainboard_version_payloa
  *
  * @return primary_hv_cellboard_version_converted_t* A pointer to the payload or NULL if the id is not valid
  */
-primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payload(CellboardId id, size_t * byte_size);
+primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payload(const CellboardId id, size_t * const byte_size);
 
 /**
  * @brief Handle the received cellboard version
  *
  * @param payload A pointer to the canlib payload
  */
-void identity_cellboard_version_handle(bms_cellboard_version_converted_t * payload);
+void identity_cellboard_version_handle(bms_cellboard_version_converted_t * const payload);
 
 #endif  // IDENTITY_H

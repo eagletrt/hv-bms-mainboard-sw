@@ -519,13 +519,13 @@ void tim_start_pwm_imd(void) {
     HAL_TIM_IC_Start(&HTIM_IMD, TIM_CHANNEL_2);
 }
 
-void tim_update_error_timer(uint32_t timestamp, uint16_t timeout) {  
+void tim_update_error_timer(const uint32_t timestamp, const uint16_t timeout) {  
     HAL_TIM_Base_Stop_IT(&HTIM_ERROR);
 
     // Calculate the delta between the current time and the expected expiration time
-    int32_t t = HAL_GetTick();
+    const int32_t t = HAL_GetTick();
     // Negative value are clamped to 0
-    int32_t dt = MAINBOARD_MAX(0, ((int32_t)timestamp - t) + (int32_t)timeout);
+    const int32_t dt = MAINBOARD_MAX(0, ((int32_t)timestamp - t) + (int32_t)timeout);
 
     // Set timer to expire after the calculated delta time
     __HAL_TIM_SET_COUNTER(&HTIM_ERROR, 0);

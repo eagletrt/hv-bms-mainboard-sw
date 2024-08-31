@@ -41,20 +41,20 @@ void _pcu_airp_timeout(void) {
 
 /** @brief Initialize all the watchdogs */
 void _pcu_init_watchdogs(void) {
-    milliseconds_t res = timebase_get_resolution();
+    const milliseconds_t res = timebase_get_resolution();
     watchdog_init(
         &hpcu.airn_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_AIRN_TIMEOUT, res),
+        TIMEBASE_TIME_TO_TICKS(PCU_AIRN_TIMEOUT_MS, res),
         _pcu_airn_timeout
     );
     watchdog_init(
         &hpcu.precharge_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_PRECHARGE_TIMEOUT, res),
+        TIMEBASE_TIME_TO_TICKS(PCU_PRECHARGE_TIMEOUT_MS, res),
         _pcu_precharge_timeout
     );
     watchdog_init(
         &hpcu.airp_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT, res),
+        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, res),
         _pcu_airp_timeout
     );
 }
@@ -65,7 +65,7 @@ void _pcu_deinit_watchdogs(void) {
     watchdog_deinit(&hpcu.airp_watchdog);
 }
 
-PcuReturnCode pcu_init(pcu_set_state_callback_t set, pcu_toggle_state_callback_t toggle) {
+PcuReturnCode pcu_init(const pcu_set_state_callback_t set, const pcu_toggle_state_callback_t toggle) {
     if (set == NULL || toggle == NULL)
         return PCU_NULL_POINTER;
     memset(&hpcu, 0U, sizeof(hpcu));
@@ -141,9 +141,9 @@ void pcu_ams_deactivate(void) {
 }
 
 precise_percentage_t pcu_get_precharge_percentage(void) {
-    raw_volt_t ts = internal_voltage_get_ts();
-    raw_volt_t batt = internal_voltage_get_batt();
-    return (((float)ts * 100.f) / batt);
+    volt_t ts = internal_voltage_get_ts();
+    volt_t batt = internal_voltage_get_pack();
+    return ts / batt;
 }
 
 bool pcu_is_precharge_complete(void) {
@@ -151,7 +151,7 @@ bool pcu_is_precharge_complete(void) {
 }
 
 // TODO: Add watchdog for the set state canlib message
-void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * payload) {
+void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * const payload) {
     if (payload == NULL)
         return;
     hpcu.event.type = payload->status ?
@@ -160,7 +160,7 @@ void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * paylo
     fsm_event_trigger(&hpcu.event);
 }
 
-void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t * payload) {
+void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t * const payload) {
     if (payload == NULL)
         return;
     hpcu.event.type = payload->status ?

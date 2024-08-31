@@ -52,8 +52,8 @@ typedef enum {
  * @brief IR155-3204 handler structure definition
  *
  * @param start A pointer to the function callback used to start the PWM measurements
- * @param frequency The frequency of the signal
- * @param duty_cycle The duty cycle of the signal
+ * @param frequency The frequency of the signal in Hz
+ * @param duty_cycle The duty cycle of the signal in % from 0 to 1
  */
 typedef struct {
     hertz_t frequency;
@@ -67,16 +67,16 @@ typedef struct {
  * @param handler A pointer to the handler structure
  * @param start A pointer to the function callback that should start the PWM readings
  */
-Ir1553204ReturnCode ir1553204_init(Ir1553204Handler * handler);
+Ir1553204ReturnCode ir1553204_init(Ir1553204Handler * const handler);
 
 /**
  * @brief Get the duty cycle percentage of the last PWM measurement
  *
  * @param handler A pointer to the structure handler
  *
- * @return precise_percentage_t The duty cycle percentage from 0 to 100, or 0 on error
+ * @return precise_percentage_t The duty cycle percentage from 0 to 1, or 0 on error
  */
-precise_percentage_t ir1553204_get_duty_cycle(Ir1553204Handler * handler);
+precise_percentage_t ir1553204_get_duty_cycle(Ir1553204Handler * const handler);
 
 /**
  * @brief Set the duty cycle of the IMD
@@ -88,7 +88,7 @@ precise_percentage_t ir1553204_get_duty_cycle(Ir1553204Handler * handler);
  *     - IR1153204_NULL_POINTER if any of the parameters is NULL
  *     - IR1553204_OK otherwise
  */
-Ir1553204ReturnCode ir1553204_set_duty_cycle(Ir1553204Handler * handler, precise_percentage_t duty_cycle);
+Ir1553204ReturnCode ir1553204_set_duty_cycle(Ir1553204Handler * const handler, const precise_percentage_t duty_cycle);
 
 /**
  * @brief Get the frequency of the last PWM measurement
@@ -97,7 +97,7 @@ Ir1553204ReturnCode ir1553204_set_duty_cycle(Ir1553204Handler * handler, precise
  *
  * @return hertz_t The frequency in Hz, or 0 on error
  */
-hertz_t ir1553204_get_frequency(Ir1553204Handler * handler);
+hertz_t ir1553204_get_frequency(Ir1553204Handler * const handler);
 
 /**
  * @brief Set the frequency of the last PWM measurement
@@ -109,7 +109,7 @@ hertz_t ir1553204_get_frequency(Ir1553204Handler * handler);
  *     - IR1153204_NULL_POINTER if any of the parameters is NULL
  *     - IR1553204_OK otherwise
  */
-Ir1553204ReturnCode ir1553204_set_frequency(Ir1553204Handler * handler, hertz_t frequency);
+Ir1553204ReturnCode ir1553204_set_frequency(Ir1553204Handler * const handler, const hertz_t frequency);
 
 /**
  * @brief Get the period of the last PWM measurement
@@ -118,7 +118,7 @@ Ir1553204ReturnCode ir1553204_set_frequency(Ir1553204Handler * handler, hertz_t 
  *
  * @return milliseconds_t The period in ms, or 0 on error
  */
-milliseconds_t ir1553204_get_period(Ir1553204Handler * handler);
+milliseconds_t ir1553204_get_period(Ir1553204Handler * const handler);
 
 /**
  * @brief Get the status of the IR155-3204
@@ -127,6 +127,6 @@ milliseconds_t ir1553204_get_period(Ir1553204Handler * handler);
  *
  * @return Ir1553204Status The current status of the IR155-3204
  */
-Ir1553204Status ir1553204_get_status(Ir1553204Handler * handler);
+Ir1553204Status ir1553204_get_status(Ir1553204Handler * const handler);
 
 #endif  // IR1553204_H

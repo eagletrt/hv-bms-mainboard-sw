@@ -16,32 +16,23 @@
 
 #include "max22530.h"
 
-/** @brief The period with which internal voltages are updated */
-#define INTERNAL_VOLTAGE_CYCLE_TIME_MS ((milliseconds_t)8U)
+/** @brief The period with which internal voltages are updated in ms */
+#define INTERNAL_VOLTAGE_CYCLE_TIME_MS (8U)
 
 /** @brief Maximum allowed voltage difference between the pack voltage and the cells voltage sum in V */
-#define INTERNAL_VOLTAGE_MAX_DELTA ((volt_t)25.f)
+#define INTERNAL_VOLTAGE_MAX_DELTA_V (25.f)
 
 /** @brief Divider ratio of the internal voltages */
 #define INTERNAL_VOLTAGE_DIVIDER_RATIO (0.0032f)
 
 /**
- * @brief Conversion from the raw voltage value to the voltage read from the ADC in V
+ * @brief Conversion from the voltage read from the ADC to the real voltage in V
  *
- * @param value The raw voltage value
- *
- * @return volt_t The converted value in V
- */
-#define INTERNAL_VOLTAGE_VALUE_TO_ADC_VOLT(value) (MAX22530_VALUE_TO_MILLIVOLT(value) * 0.001f)
-
-/**
- * @brief Conversion from the raw voltage value to voltage in V
- *
- * @param value The raw voltage value
+ * @param value The voltage read from the ADC
  *
  * @return volt_t The converted value in V
  */
-#define INTERNAL_VOLTAGE_VALUE_TO_VOLT(value) (INTERNAL_VOLTAGE_VALUE_TO_ADC_VOLT(value) / INTERNAL_VOLTAGE_DIVIDER_RATIO)
+#define INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(value) (value / INTERNAL_VOLTAGE_DIVIDER_RATIO)
 
 /**
  * @brief Return code for the internal voltage module functions
@@ -60,13 +51,13 @@ typedef enum {
  *
  * @details
  *     - INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE The voltage of the TS
- *     - INTERNAL_VOLTAGE_CHANNEL_BATT_VOLTAGE The voltage of the pack
+ *     - INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE The voltage of the battery pack
  *     - INTERNAL_VOLTAGE_CHANNEL_IMD_TS_CONNECTED Feedback on the TS connection to the IMD
  *     - INTERNAL_VOLTAGE_CHANNEL_PRECHARGE_TEMPERATURE Temperature of the precharge resistors heatsink
  */
 typedef enum {
     INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE = MAX22530_CHANNEL_1,
-    INTERNAL_VOLTAGE_CHANNEL_BATT_VOLTAGE = MAX22530_CHANNEL_2,
+    INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE = MAX22530_CHANNEL_2,
     INTERNAL_VOLTAGE_CHANNEL_IMD_TS_CONNECTED = MAX22530_CHANNEL_3,
     INTERNAL_VOLTAGE_CHANNEL_PRECHARGE_TEMPERATURE = MAX22530_CHANNEL_4,
     INTERNAL_VOLTAGE_CHANNEL_COUNT = MAX22530_CHANNEL_COUNT
@@ -78,13 +69,15 @@ typedef enum {
  * @attention This structure should not be used outside of this module
  *
  * @param max22530 Handler structure of the external ADC
- * @param data The raw data read from the channels of the ADC
+ * @param ts The voltage of the Tractive System
+ * @param pack The voltage of the battery pack
  * @param ts_voltage_can_payload The TS voltage info canlib payload
  */
 typedef struct {
     Max22530Handler max22530;
 
-    raw_volt_t data[INTERNAL_VOLTAGE_CHANNEL_COUNT];
+    volt_t ts;
+    volt_t pack;
 
     primary_hv_ts_voltage_converted_t ts_voltage_can_payload;
 } _InternalVoltageHandler;
@@ -101,10 +94,7 @@ typedef struct {
  *     - INTERNAL_VOLTAGE_NULL_POINTER if any of the given parameters are NULL
  *     - INTERNAL_VOLTAGE_OK otherwise
  */
-InternalVoltageReturnCode internal_voltage_init(
-    spi_send_callback_t send,
-    spi_send_receive_callback_t send_receive
-);
+InternalVoltageReturnCode internal_voltage_init(const spi_send_callback_t send, const spi_send_receive_callback_t send_receive);
 
 /**
  * @brief Read all channels of the external ADC
@@ -115,18 +105,18 @@ InternalVoltageReturnCode internal_voltage_init(
 InternalVoltageReturnCode internal_voltage_read_all(void);
 
 /**
- * @brief Get the raw voltage of the TS
+ * @brief Get the voltage of the Tractive System in V
  *
- * @return raw_volt_t The raw voltage value
+ * @return volt_t The TS voltage in V
  */
-raw_volt_t internal_voltage_get_ts(void);
+volt_t internal_voltage_get_ts(void);
 
 /**
- * @brief Get the raw voltage of the battery pack
+ * @brief Get the voltage of the battery pack in V
  *
- * @return raw_volt_t The raw voltage value
+ * @return volt_t The battery pack voltage in V
  */
-raw_volt_t internal_voltage_get_batt(void);
+volt_t internal_voltage_get_pack(void);
 
 /**
  * @brief Get a pointer to the CAN payload of the TS voltage info
@@ -135,14 +125,14 @@ raw_volt_t internal_voltage_get_batt(void);
  *
  * @return primary_hv_ts_voltage_converted_t* A pointer to the payload
  */
-primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * byte_size);
+primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * const byte_size);
 
 #else  // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
 #define internal_voltage_init(send, send_receive) (INTERNAL_VOLTAGE_OK)
 #define internal_voltage_read_all() (INTERNAL_VOLTAGE_OK)
 #define internal_voltage_get_ts() (0U)
-#define internal_voltage_get_batt() (0U)
+#define internal_voltage_get_pack() (0U)
 #define internal_voltage_get_ts_voltage_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE

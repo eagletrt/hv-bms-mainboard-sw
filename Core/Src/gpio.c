@@ -174,7 +174,7 @@ void MX_GPIO_Init(void)
  *
  * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the id is not valid
  */
-GPIO_TypeDef * _gpio_get_port_from_led_id(LedId led) {
+GPIO_TypeDef * _gpio_get_port_from_led_id(const LedId led) {
     switch (led) {
         case LED_ID_1:
             return LED_1_GPIO_Port;
@@ -192,7 +192,7 @@ GPIO_TypeDef * _gpio_get_port_from_led_id(LedId led) {
  *
  * @return int16_t The GPIO pin, or -1 if the id is not valid
  */
-int16_t _gpio_get_pin_from_led_id(LedId led) {
+int16_t _gpio_get_pin_from_led_id(const LedId led) {
     switch (led) {
         case LED_ID_1:
             return LED_1_Pin;
@@ -210,7 +210,7 @@ int16_t _gpio_get_pin_from_led_id(LedId led) {
  *
  * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the id is not valid
  */
-GPIO_TypeDef * _gpio_get_port_from_display_segment(DisplaySegment segment) {
+GPIO_TypeDef * _gpio_get_port_from_display_segment(const DisplaySegment segment) {
     switch (segment) {
         case DISPLAY_SEGMENT_TOP:
             return SEG7_S1_GPIO_Port;
@@ -228,7 +228,6 @@ GPIO_TypeDef * _gpio_get_port_from_display_segment(DisplaySegment segment) {
             return SEG7_S5_GPIO_Port;
         case DISPLAY_SEGMENT_DECIMAL_POINT:
             return SEG7_DP_GPIO_Port; 
-
         default:
             return NULL;
     }
@@ -241,7 +240,7 @@ GPIO_TypeDef * _gpio_get_port_from_display_segment(DisplaySegment segment) {
  *
  * @return int16_t The GPIO pin, or -1 if the id is not valid
  */
-int16_t _gpio_get_pin_from_display_segment(DisplaySegment segment) {
+int16_t _gpio_get_pin_from_display_segment(const DisplaySegment segment) {
     switch (segment) {
         case DISPLAY_SEGMENT_TOP:
             return SEG7_S1_Pin;
@@ -259,7 +258,6 @@ int16_t _gpio_get_pin_from_display_segment(DisplaySegment segment) {
             return SEG7_S5_Pin;
         case DISPLAY_SEGMENT_DECIMAL_POINT:
             return SEG7_DP_Pin; 
-
         default:
             return -1;
     }
@@ -272,7 +270,7 @@ int16_t _gpio_get_pin_from_display_segment(DisplaySegment segment) {
  *
  * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the PCU pin is not valid
  */
-GPIO_TypeDef * _gpio_get_port_from_pcu_pin(PcuPin pin) {
+GPIO_TypeDef * _gpio_get_port_from_pcu_pin(const PcuPin pin) {
     switch (pin) {
         case PCU_PIN_AIR_NEGATIVE: 
             return AIRN_OFF_GPIO_Port;
@@ -294,7 +292,7 @@ GPIO_TypeDef * _gpio_get_port_from_pcu_pin(PcuPin pin) {
  *
  * @return int16_t The GPIO pin, or -1 if the PCU pin is not valid
  */
-int16_t _gpio_get_pin_from_pcu_pin(PcuPin pin) {
+int16_t _gpio_get_pin_from_pcu_pin(const PcuPin pin) {
     switch (pin) {
         case PCU_PIN_AIR_NEGATIVE: 
             return AIRN_OFF_Pin;
@@ -309,51 +307,51 @@ int16_t _gpio_get_pin_from_pcu_pin(PcuPin pin) {
     }
 }
 
-void gpio_led_set_state(LedId led, LedStatus state) {
+void gpio_led_set_state(const LedId led, const LedStatus state) {
     if (led >= LED_ID_COUNT)
         return;
-    GPIO_TypeDef * port = _gpio_get_port_from_led_id(led);
-    int16_t pin = _gpio_get_pin_from_led_id(led);
+    GPIO_TypeDef * const port = _gpio_get_port_from_led_id(led);
+    const int16_t pin = _gpio_get_pin_from_led_id(led);
     HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
 }
 
-void gpio_led_toggle_state(LedId led) {
+void gpio_led_toggle_state(const LedId led) {
     if (led >= LED_ID_COUNT)
         return;
-    GPIO_TypeDef * port = _gpio_get_port_from_led_id(led);
-    int16_t pin = _gpio_get_pin_from_led_id(led);
+    GPIO_TypeDef * const port = _gpio_get_port_from_led_id(led);
+    const int16_t pin = _gpio_get_pin_from_led_id(led);
     HAL_GPIO_TogglePin(port, pin);
 }
 
-void gpio_display_segment_set_state(DisplaySegment segment, DisplaySegmentStatus state) {
+void gpio_display_segment_set_state(const DisplaySegment segment, const DisplaySegmentStatus state) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return;
-    GPIO_TypeDef * port = _gpio_get_port_from_display_segment(segment);
-    int16_t pin = _gpio_get_pin_from_display_segment(segment);
+    GPIO_TypeDef * const port = _gpio_get_port_from_display_segment(segment);
+    const int16_t pin = _gpio_get_pin_from_display_segment(segment);
     HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
 }
 
-void gpio_display_segment_toggle_state(DisplaySegment segment) {
+void gpio_display_segment_toggle_state(const DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return;
-    GPIO_TypeDef * port = _gpio_get_port_from_display_segment(segment);
-    int16_t pin = _gpio_get_pin_from_display_segment(segment);
+    GPIO_TypeDef * const port = _gpio_get_port_from_display_segment(segment);
+    const int16_t pin = _gpio_get_pin_from_display_segment(segment);
     HAL_GPIO_TogglePin(port, pin);
 }
 
-void gpio_pcu_set_state(PcuPin pcu_pin, PcuPinStatus state) {
+void gpio_pcu_set_state(const PcuPin pcu_pin, const PcuPinStatus state) {
     if (pcu_pin >= PCU_PIN_COUNT)
         return;
-    GPIO_TypeDef * port = _gpio_get_port_from_pcu_pin(pcu_pin);
-    uint16_t pin = _gpio_get_pin_from_pcu_pin(pcu_pin);
+    GPIO_TypeDef * const port = _gpio_get_port_from_pcu_pin(pcu_pin);
+    const uint16_t pin = _gpio_get_pin_from_pcu_pin(pcu_pin);
     HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
 }
 
-void gpio_pcu_toggle_state(PcuPin pcu_pin) {
+void gpio_pcu_toggle_state(const PcuPin pcu_pin) {
     if (pcu_pin >= PCU_PIN_COUNT)
         return;
-    GPIO_TypeDef * port = _gpio_get_port_from_pcu_pin(pcu_pin);
-    uint16_t pin = _gpio_get_pin_from_pcu_pin(pcu_pin);
+    GPIO_TypeDef * const port = _gpio_get_port_from_pcu_pin(pcu_pin);
+    const uint16_t pin = _gpio_get_pin_from_pcu_pin(pcu_pin);
     HAL_GPIO_TogglePin(port, pin);
 }
 
@@ -363,7 +361,6 @@ bit_flag32_t gpio_feedback_read_all(void) {
      * solved here by swapping the indices
      */
     register bit_flag32_t feedbacks = 0U;
-
     // Read all pins
     feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(AIRN_OPEN_COM_GPIO_Port, AIRN_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM); // This indices are swapped
     feedbacks = MAINBOARD_BIT_TOGGLE_IF(feedbacks, HAL_GPIO_ReadPin(AIRP_OPEN_COM_GPIO_Port, AIRP_OPEN_COM_Pin) == GPIO_PIN_SET, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM); // Read above

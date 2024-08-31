@@ -222,40 +222,44 @@
     )
 
 /**
- * @brief Convert a value gathered from an ADC to a voltage in mV
- *
- * @param VALUE The raw value to convert
- * @param VREF The voltage reference in mV
- * @param RES The resolution of the ADC in bits
- */
-#define MAINBOARD_ADC_VALUE_TO_MILLIVOLT(VALUE, VREF, RES) ((millivolt_t)(((VALUE) / (float)((1U << RES) - 1U)) * (VREF)))
-
-/**
  * @brief Convert a value gathered from an ADC to a voltage in V
  *
  * @param VALUE The raw value to convert
- * @param VREF The voltage reference in mV
+ * @param VREF The voltage reference in V
  * @param RES The resolution of the ADC in bits
  */
-#define MAINBOARD_ADC_VALUE_TO_VOLT(VALUE, VREF, RES) ((volt_t)MAINBOARD_ADC_VALUE_TO_MILLIVOLT(VALUE, VREF, RES) * 0.001)
+#define MAINBOARD_ADC_RAW_VALUE_TO_VOLT(VALUE, VREF, RES) ((float)(VALUE) / ((1U << (RES)) - 1U) * (VREF))
 
 /**
- * @brief Convert a voltage in mV to an ADC raw value
+ * @brief Compile time assertion
  *
- * @param VALUE The value to convert in mV
- * @param VREF The voltage reference in mV
- * @param RES The resolution of the ADC in bits
+ * @details Useful for debugging, should be disabled when compiled for release
  */
-#define MAINBOARD_MILLIVOLT_TO_ADC_VALUE(VALUE, VREF, RES) ((raw_volt_t)(((VALUE) / (float)(VREF)) * ((1U << RES) - 1U)))
+#ifdef CONF_FULL_ASSERT_ENABLE
 
 /**
- * @brief Convert a voltage in V to an ADC raw value
+ * @brief Make an assertion about an expression
  *
- * @param VALUE The value to convert in V
- * @param VREF The voltage reference in mV
- * @param RES The resolution of the ADC in bits
+ * @details If the assertion fails a the cellboard_assert_failed function is
+ * called giving the file, line, date and time parameters to get better debug info
  */
-#define MAINBOARD_ADC_VOLT_TO_VALUE(VALUE, VREF, RES) MAINBOARD_ADC_MILLIVOLT_TO_VALUE((VALUE) * 1000.f, VREF, RES)
+#define MAINBOARD_ASSERT(expression) ((expression) ? \
+    MAINBOARD_NOPE() : \
+    mainboard_assert_failed(__FILE__, __LINE__))
+
+/**
+ * @brief Debug function called when an assertion fails
+ *
+ * @param file The file where the assert failed
+ * @param line The line where the assert failed
+ */
+void mainboard_assert_failed(const char * file, const int line);
+
+#else  // CONF_FULL_ASSERT_ENABLE
+
+#define MAINBOARD_ASSERT(expression) CELLBOARD_NOPE()
+
+#endif  // CONF_FULL_ASSERT_ENABLE
 
 /** @} */
 
@@ -319,10 +323,12 @@ typedef enum {
  * @brief Definition of possible CAN frame types
  *
  * @details
+ *     - CAN_FRAME_TYPE_INVALID the CAN frame type is not valid
  *     - CAN_FRAME_TYPE_DATA the CAN frame that contains data
  *     - CAN_FRAME_TYPE_REMOTE the CAN frame used to request a data transmission from another node in the network
  */
 typedef enum {
+    CAN_FRAME_TYPE_INVALID = -1,
     CAN_FRAME_TYPE_DATA,
     CAN_FRAME_TYPE_REMOTE,
     CAN_FRAME_TYPE_COUNT
@@ -340,6 +346,7 @@ typedef enum {
 
 /** @brief Type definition for a percentage (from 0 to 100) */
 typedef int8_t percentage_t;
+/** @brief Type definition for a percentage (from 0 to 1) */
 typedef float precise_percentage_t;
 
 /** @brief Type definition for bit positions */
@@ -425,7 +432,11 @@ typedef void (* interrupt_critical_section_exit_t)(void);
  * @param data A pointer to the data to send
  * @param size The length of data in bytes
  */
-typedef void (* spi_send_callback_t)(SpiNetwork network, uint8_t * data, size_t size);
+typedef void (* spi_send_callback_t)(
+    const SpiNetwork network,
+    uint8_t * const data,
+    const size_t size
+);
 
 /**
  * @brief Type definition for the callback used to send and receive data via SPI
@@ -437,11 +448,11 @@ typedef void (* spi_send_callback_t)(SpiNetwork network, uint8_t * data, size_t 
  * @param out_size The number of bytes that should be received
  */
 typedef void (* spi_send_receive_callback_t)(
-    SpiNetwork network,
-    uint8_t * data,
-    uint8_t * out,
-    size_t size,
-    size_t out_size
+    const SpiNetwork network,
+    uint8_t * const data,
+    uint8_t * const out,
+    const size_t size,
+    const size_t out_size
 );
 
 /** @} */

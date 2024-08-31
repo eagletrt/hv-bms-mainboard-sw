@@ -18,6 +18,7 @@
 #define ERROR_POST_INSTANCE_COUNT (1U)
 #define ERROR_OVER_CURRENT_INSTANCE_COUNT (1U)
 
+/** @brief Type redefinition for an error instance */
 typedef errorlib_error_instance_t error_instance_t;
 
 /**
@@ -53,8 +54,8 @@ typedef enum {
  * @brief Initialization of the internal error handler structure
  */
 ErrorReturnCode error_init(void);
-ErrorReturnCode error_set(ErrorGroup group, error_instance_t instance);
-ErrorReturnCode error_reset(ErrorGroup group, error_instance_t instance);
+ErrorReturnCode error_set(const ErrorGroup group, const error_instance_t instance);
+ErrorReturnCode error_reset(const ErrorGroup group, const error_instance_t instance);
 size_t error_get_expired(void);
 
 #else  // CONF_ERROR_MODULE_ENABLE

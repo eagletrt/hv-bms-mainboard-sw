@@ -101,10 +101,6 @@ const DisplaySegmentBit fsm_balancing_display_animation[FSM_BALANCING_DISPLAY_AN
     DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_TOP_LEFT,
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
 };
-
-void _fsm_set_status_timeout(void) {
-
-}
 /*** USER CODE END GLOBALS ***/
 
 
@@ -147,7 +143,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
   hfsm.event.type = FSM_EVENT_TYPE_IGNORED;
 
   // Run the Power-On Self Test
-  PostReturnCode code = (data == NULL) ?
+  const PostReturnCode code = (data == NULL) ?
       POST_NULL_POINTER :
       post_run(*(PostInitData *)data);
 
@@ -184,6 +180,8 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_IDLE ***/
+  MAINBOARD_UNUSED(data);
+
   (void)timebase_routine();
   (void)can_comm_routine();
   (void)display_run_animation(
@@ -199,12 +197,17 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
           next_state = FSM_STATE_FLASH;
       else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
           FeedbackId id = FEEDBACK_ID_UNKNOWN;
-          if (feedback_check_values(FEEDBACK_IDLE_TO_AIRN_CHECK_MASK, FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH, &id))
+          if (feedback_check_values(
+                  FEEDBACK_IDLE_TO_AIRN_CHECK_MASK,
+                  FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH,
+                  &id))
+          {
               next_state = FSM_STATE_AIRN_CHECK;
+          }
           else {
               // If there is a problem during the TS on procedure send info about the problematic feedback
               size_t byte_size = 0U;
-              uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+              uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
               (void)can_comm_tx_add(
                   CAN_NETWORK_PRIMARY,
                   PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -242,7 +245,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_FATAL ***/
-  
+  MAINBOARD_UNUSED(data); 
   /*** USER CODE END DO_FATAL ***/
   
   switch (next_state) {
@@ -265,7 +268,9 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_FLASH ***/
-  ProgrammerReturnCode code = programmer_routine();
+  MAINBOARD_UNUSED(data); 
+
+  const ProgrammerReturnCode code = programmer_routine();
   if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
       next_state = FSM_STATE_IDLE;
   /*** USER CODE END DO_FLASH ***/
@@ -291,6 +296,8 @@ fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_BALANCING ***/
+  MAINBOARD_UNUSED(data); 
+
   (void)timebase_routine();
   (void)can_comm_routine();
   (void)display_run_animation(
@@ -328,6 +335,8 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_AIRN_CHECK ***/
+  MAINBOARD_UNUSED(data); 
+
   (void)timebase_routine();
   (void)can_comm_routine();
 
@@ -341,19 +350,29 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END, &id))
+  else if (!feedback_check_values(
+      FEEDBACK_BIT_SD_END,
+      FEEDBACK_BIT_SD_END,
+      &id))
+  {
       next_state = FSM_STATE_IDLE;
+  }
   /*
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok start the precharge
    */
-  else if (feedback_check_values(FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK, FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH, &id))
+  else if (feedback_check_values(
+      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
+      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
+      &id))
+  {
       next_state = FSM_STATE_PRECHARGE_CHECK;
+  }
 
   // If there is a problem during the TS on procedure send info about the problematic feedback
   if (next_state == FSM_STATE_IDLE) {
       size_t byte_size = 0U;
-      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
       (void)can_comm_tx_add(
           CAN_NETWORK_PRIMARY,
           PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -387,11 +406,13 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
+  MAINBOARD_UNUSED(data); 
+
   (void)timebase_routine();
   (void)can_comm_routine();
 
   // Display the precharge percentage from 0 to 10 (in hex)
-  percentage_t perc = floorf(pcu_get_precharge_percentage()) * 0.1;
+  const percentage_t perc = (percentage_t)floorf(pcu_get_precharge_percentage() * 10.f);
   (void)display_set_digit(perc);
 
   FeedbackId id = FEEDBACK_ID_UNKNOWN;
@@ -404,19 +425,30 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END, &id))
+  else if (!feedback_check_values(
+      FEEDBACK_BIT_SD_END,
+      FEEDBACK_BIT_SD_END,
+      &id))
+  {
       next_state = FSM_STATE_IDLE;
+  }
   /*
    * Wait until every feedback inside the mask has the expected value and the precharge is complete
    * If all the feedbacks are ok close the AIR+
    */
-  else if (feedback_check_values(FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH, &id) && pcu_is_precharge_complete())
+  else if (feedback_check_values(
+      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
+      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
+      &id) &&
+      pcu_is_precharge_complete())
+  {
       next_state = FSM_STATE_AIRP_CHECK;
+  }
 
   // If there is a problem during the TS on procedure send info about the problematic feedback
   if (next_state == FSM_STATE_IDLE) {
       size_t byte_size = 0U;
-      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
       (void)can_comm_tx_add(
           CAN_NETWORK_PRIMARY,
           PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -450,6 +482,8 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_AIRP_CHECK ***/
+  MAINBOARD_UNUSED(data); 
+
   (void)timebase_routine();
   (void)can_comm_routine();
   
@@ -463,19 +497,29 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(FEEDBACK_BIT_SD_END, FEEDBACK_BIT_SD_END, &id))
+  else if (!feedback_check_values(
+      FEEDBACK_BIT_SD_END,
+      FEEDBACK_BIT_SD_END,
+      &id))
+  {
       next_state = FSM_STATE_IDLE;
+  }
   /*
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok go to the TS on state
    */
-  else if (feedback_check_values(FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK, FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH, &id))
+  else if (feedback_check_values(
+      FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
+      FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
+      &id))
+  {
       next_state = FSM_STATE_TS_ON;
+  }
 
   // If there is a problem during the TS on procedure send info about the problematic feedback
   if (next_state == FSM_STATE_IDLE) {
       size_t byte_size = 0U;
-      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
       (void)can_comm_tx_add(
           CAN_NETWORK_PRIMARY,
           PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -509,6 +553,8 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
   
   
   /*** USER CODE BEGIN DO_TS_ON ***/
+  MAINBOARD_UNUSED(data); 
+
   (void)timebase_routine();
   (void)can_comm_routine();
   (void)display_run_animation(
@@ -523,10 +569,14 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
-  else if (!feedback_check_values(FEEDBACK_TS_ON_MASK, FEEDBACK_TS_ON_HIGH, &id)) {
+  else if (!feedback_check_values(
+      FEEDBACK_TS_ON_MASK,
+      FEEDBACK_TS_ON_HIGH,
+      &id))
+  {
       // If there is a problem during the TS on procedure send info about the problematic feedback
       size_t byte_size = 0U;
-      uint8_t * payload = (uint8_t *)feedback_get_enzomma_payload(id, &byte_size);
+      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
       (void)can_comm_tx_add(
           CAN_NETWORK_PRIMARY,
           PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -570,6 +620,8 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
 void fsm_start(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START ***/
+  MAINBOARD_UNUSED(data); 
+
   pcu_reset_all();
 
   can_comm_enable_all();
@@ -589,6 +641,8 @@ void fsm_start(fsm_state_data_t *data) {
 void fsm_handle_fatal_error(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
+  MAINBOARD_UNUSED(data); 
+
   // Activate the AMS
   pcu_ams_activate();
   /*** USER CODE END HANDLE_FATAL_ERROR ***/
@@ -600,6 +654,7 @@ void fsm_handle_fatal_error(fsm_state_data_t *data) {
 void fsm_start_flash_procedure(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/ 
+  MAINBOARD_UNUSED(data); 
   /*** USER CODE END START_FLASH_PROCEDURE ***/
 }
 
@@ -608,6 +663,8 @@ void fsm_start_flash_procedure(fsm_state_data_t *data) {
 void fsm_start_balancing(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START_BALANCING ***/ 
+  MAINBOARD_UNUSED(data);
+
   // TODO: Handle watchog error
   BalReturnCode code = bal_start();
   MAINBOARD_UNUSED(code);
@@ -619,6 +676,8 @@ void fsm_start_balancing(fsm_state_data_t *data) {
 void fsm_close_airn(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN CLOSE_AIRN ***/
+  MAINBOARD_UNUSED(data);
+
   // Close the AIR-
   pcu_airn_close();
   /*** USER CODE END CLOSE_AIRN ***/
@@ -629,6 +688,7 @@ void fsm_close_airn(fsm_state_data_t *data) {
 void fsm_stop_flash_procedure(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN STOP_FLASH_PROCEDURE ***/ 
+  MAINBOARD_UNUSED(data); 
   /*** USER CODE END STOP_FLASH_PROCEDURE ***/
 }
 
@@ -637,6 +697,8 @@ void fsm_stop_flash_procedure(fsm_state_data_t *data) {
 void fsm_stop_balancing(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN STOP_BALANCING ***/ 
+  MAINBOARD_UNUSED(data); 
+
   (void)bal_stop();
   /*** USER CODE END STOP_BALANCING ***/
 }
@@ -649,6 +711,8 @@ void fsm_stop_balancing(fsm_state_data_t *data) {
 void fsm_ts_off(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN TS_OFF ***/
+  MAINBOARD_UNUSED(data); 
+
   pcu_reset_all();
   /*** USER CODE END TS_OFF ***/
 }
@@ -658,6 +722,8 @@ void fsm_ts_off(fsm_state_data_t *data) {
 void fsm_start_precharge(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START_PRECHARGE ***/
+  MAINBOARD_UNUSED(data); 
+
   // Stop the AIR- watchdog and start the precharge
   pcu_airn_stop_watchdog();
   pcu_precharge_start();
@@ -669,6 +735,8 @@ void fsm_start_precharge(fsm_state_data_t *data) {
 void fsm_close_airp(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN CLOSE_AIRP ***/
+  MAINBOARD_UNUSED(data); 
+
   // Stop the precharge watchdog and close the AIR+
   pcu_precharge_stop_watchdog();
   pcu_airp_close();
@@ -680,6 +748,8 @@ void fsm_close_airp(fsm_state_data_t *data) {
 void fsm_ts_on(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN TS_ON ***/
+  MAINBOARD_UNUSED(data); 
+
   // Stop the AIR+ watchdog
   pcu_airp_stop_watchdog();
   /*** USER CODE END TS_ON ***/
@@ -725,23 +795,23 @@ fsm_state_t fsm_get_status(void) {
     return hfsm.fsm_state;
 }
 
-void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload) {
+void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * const payload) {
     if (payload == NULL)
         return;
     hfsm.cellboard_status[payload->cellboard_id] = payload->status;
 }
 
-primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * byte_size) {
+primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hfsm.status_can_payload);
     // Copy mainboard and cellboard status
-    hfsm.status_can_payload.status = hfsm.fsm_state;
-    hfsm.status_can_payload.cellboard_0 = hfsm.cellboard_status[0];
-    hfsm.status_can_payload.cellboard_1 = hfsm.cellboard_status[1];
-    hfsm.status_can_payload.cellboard_2 = hfsm.cellboard_status[2];
-    hfsm.status_can_payload.cellboard_3 = hfsm.cellboard_status[3];
-    hfsm.status_can_payload.cellboard_4 = hfsm.cellboard_status[4];
-    hfsm.status_can_payload.cellboard_5 = hfsm.cellboard_status[5];
+    hfsm.status_can_payload.status = (primary_hv_status_status)hfsm.fsm_state;
+    hfsm.status_can_payload.cellboard_0 = (primary_hv_status_cellboard_0)hfsm.cellboard_status[0];
+    hfsm.status_can_payload.cellboard_1 = (primary_hv_status_cellboard_1)hfsm.cellboard_status[1];
+    hfsm.status_can_payload.cellboard_2 = (primary_hv_status_cellboard_2)hfsm.cellboard_status[2];
+    hfsm.status_can_payload.cellboard_3 = (primary_hv_status_cellboard_3)hfsm.cellboard_status[3];
+    hfsm.status_can_payload.cellboard_4 = (primary_hv_status_cellboard_4)hfsm.cellboard_status[4];
+    hfsm.status_can_payload.cellboard_5 = (primary_hv_status_cellboard_5)hfsm.cellboard_status[5];
     return &hfsm.status_can_payload;
 }
 /*** USER CODE END FUNCTIONS ***/

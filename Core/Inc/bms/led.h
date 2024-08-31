@@ -48,14 +48,14 @@ typedef enum {
  * @param led The LED to select
  * @param state The state to set the LED to
  */
-typedef void (* led_set_state_callback_t)(LedId led, LedStatus state);
+typedef void (* led_set_state_callback_t)(const LedId led, const LedStatus state);
 
 /**
  * @brief Callback used to toggle the state of the LED
  *
  * @param led The LED to select
  */
-typedef void (* led_toggle_state_callback_t)(LedId led);
+typedef void (* led_toggle_state_callback_t)(const LedId led);
 
 /**
  * @brief Return code for the LED module functions
@@ -100,7 +100,7 @@ typedef struct {
  *     - LED_NULL_POINTER if the set or toggle callbacks are NULL
  *     - LED_OK otherwise
  */
-LedReturnCode led_init(led_set_state_callback_t set, led_toggle_state_callback_t toggle);
+LedReturnCode led_init(const led_set_state_callback_t set, const led_toggle_state_callback_t toggle);
 
 /**
  * @brief Set the status of the selected LED
@@ -113,7 +113,7 @@ LedReturnCode led_init(led_set_state_callback_t set, led_toggle_state_callback_t
  *     - LED_INVALID_STATUS if the given status is not valid
  *     - LED_OK otherwise
  */
-LedReturnCode led_set_status(LedId id, LedStatus status);
+LedReturnCode led_set_status(const LedId id, const LedStatus status);
 
 /**
  * @brief Toggle the status of the selected LED
@@ -124,7 +124,7 @@ LedReturnCode led_set_status(LedId id, LedStatus status);
  *     - LED_INVALID_ID if the given identifier is not valid
  *     - LED_OK otherwise
  */
-LedReturnCode led_toggle_status(LedId id);
+LedReturnCode led_toggle_status(const LedId id);
 
 #else  // CONF_LED_MODULE_ENABLE 
 

@@ -40,6 +40,7 @@
 #define CONF_LED_MODULE_ENABLE
 #define CONF_DISPLAY_MODULE_ENABLE
 #define CONF_VOLTAGE_MODULE_ENABLE
+#define CONF_TEMPERATURE_MODULE_ENABLE
 #define CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 #define CONF_CURRENT_MODULE_ENABLE
 #define CONF_IMD_MODULE_ENABLE
@@ -65,12 +66,26 @@
 // #define CONF_LED_STRINGS_ENABLE
 // #define CONF_DISPLAY_STRINGS_ENABLE
 // #define CONF_VOLTAGE_STRINGS_ENABLE
+// #define CONF_TEMPERATURE_STRINGS_ENABLE
 // #define CONF_INTERNAL_VOLTAGE_STRINGS_ENABLE
 // #define CONF_CURRENT_STRINGS_ENABLE
 // #define CONF_IMD_STRINGS_ENABLE
 // #define CONF_FEEDBACK_STRINGS_ENABLE
 // #define CONF_ERROR_STRINGS_ENABLE
 // #define CONF_BALANCING_STRINGS_ENABLE
+
+/** @} */
+
+/*** ######################### DEBUG INFORMATION ####################### ***/
+
+/**
+ * @defgroup debug
+ * @brief Add useful debug utilities
+ * {@
+ */
+
+// Enable custom asserts
+#define CONF_FULL_ASSERT_ENABLE
 
 /** @} */
 

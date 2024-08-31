@@ -83,7 +83,7 @@ typedef struct {
  *     - TDSR0760_NULL_POINTER if any of the parameters is NULL
  *     - TDSR0760_OK otherwise
  */
-Tdsr0760ReturnCode tdsr0760_init(Tdsr0760Handler * handler);
+Tdsr0760ReturnCode tdsr0760_init(Tdsr0760Handler * const handler);
 
 /**
  * @brief Get the status of a single segment
@@ -94,10 +94,7 @@ Tdsr0760ReturnCode tdsr0760_init(Tdsr0760Handler * handler);
  * @return Tdsr0760SegmentStatus The current status of the segment, or
  * TDSR0760_SEGMENT_STATUS_UNKOWN on error
  */
-Tdsr0760SegmentStatus tdsr0760_get_segment(
-    Tdsr0760Handler * handler,
-    Tdsr0760Segment segment
-);
+Tdsr0760SegmentStatus tdsr0760_get_segment(Tdsr0760Handler * const handler, const Tdsr0760Segment segment);
 
 /**
  * @brief Set the status of a single segment
@@ -112,9 +109,9 @@ Tdsr0760SegmentStatus tdsr0760_get_segment(
  *     - TDSR0760_OK otherwise
  */
 Tdsr0760ReturnCode tdsr0760_set_segment(
-    Tdsr0760Handler * handler,
-    Tdsr0760Segment segment,
-    Tdsr0760SegmentStatus state
+    Tdsr0760Handler * const handler,
+    const Tdsr0760Segment segment,
+    const Tdsr0760SegmentStatus state
 );
 
 /**
@@ -130,9 +127,6 @@ Tdsr0760ReturnCode tdsr0760_set_segment(
  *     - TDSR0760_INVALID_SEGMENT if the selected segment does not exists
  *     - TDSR0760_OK otherwise
  */
-Tdsr0760ReturnCode tdsr0760_toggle_segment(
-    Tdsr0760Handler * handler,
-    Tdsr0760Segment segment
-);
+Tdsr0760ReturnCode tdsr0760_toggle_segment(Tdsr0760Handler * const handler, const Tdsr0760Segment segment);
 
 #endif  // TDSR0760_H

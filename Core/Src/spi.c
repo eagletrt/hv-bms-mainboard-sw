@@ -193,50 +193,51 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 
 /* USER CODE BEGIN 1 */
 
-SPI_HandleTypeDef * _spi_get_peripheral_from_network(SpiNetwork network) {
+SPI_HandleTypeDef * _spi_get_peripheral_from_network(const SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return &HSPI_EEPROM;
         case SPI_NETWORK_ADC:
             return &HSPI_ADC;
-
         default:
             return NULL;
     }
 }
 
-GPIO_TypeDef * _spi_get_port_from_network(SpiNetwork network) {
+GPIO_TypeDef * _spi_get_port_from_network(const SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return SPI_EEPROM_CS_GPIO_Port;
         case SPI_NETWORK_ADC:
             return SPI_ADC_CS_GPIO_Port;
-
         default:
             return NULL;
     }
 }
 
-uint16_t _spi_get_pin_from_network(SpiNetwork network) {
+uint16_t _spi_get_pin_from_network(const SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return SPI_EEPROM_CS_Pin;
         case SPI_NETWORK_ADC:
             return SPI_ADC_CS_Pin;
-
         default:
             return UINT16_MAX;
     }
 }
 
 // TODO: Return error
-void spi_send(SpiNetwork network, uint8_t * data, size_t size) {
+void spi_send(
+    const SpiNetwork network,
+    uint8_t * const data,
+    const size_t size)
+{
     if (network >= SPI_NETWORK_COUNT)
         return;
 
-    SPI_HandleTypeDef * hspi = _spi_get_peripheral_from_network(network);
-    GPIO_TypeDef * port = _spi_get_port_from_network(network);
-    uint16_t pin = _spi_get_pin_from_network(network);
+    SPI_HandleTypeDef * const hspi = _spi_get_peripheral_from_network(network);
+    GPIO_TypeDef * const port = _spi_get_port_from_network(network);
+    const uint16_t pin = _spi_get_pin_from_network(network);
 
     // Send data
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
@@ -245,18 +246,18 @@ void spi_send(SpiNetwork network, uint8_t * data, size_t size) {
 }
 
 void spi_send_receive(
-    SpiNetwork network,
-    uint8_t * data,
-    uint8_t * out,
-    size_t size,
-    size_t out_size)
+    const SpiNetwork network,
+    uint8_t * const data,
+    uint8_t * const out,
+    const size_t size,
+    const size_t out_size)
 {
     if (network >= SPI_NETWORK_COUNT)
         return;
 
-    SPI_HandleTypeDef * hspi = _spi_get_peripheral_from_network(network);
-    GPIO_TypeDef * port = _spi_get_port_from_network(network);
-    uint16_t pin = _spi_get_pin_from_network(network);
+    SPI_HandleTypeDef * const hspi = _spi_get_peripheral_from_network(network);
+    GPIO_TypeDef * const port = _spi_get_port_from_network(network);
+    const uint16_t pin = _spi_get_pin_from_network(network);
 
     // Send and receive data
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);

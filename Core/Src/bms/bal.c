@@ -31,17 +31,17 @@ BalReturnCode bal_init(void) {
 
     // Set default calib payload data
     hbal.set_status_can_payload.start = false;
-    hbal.set_status_can_payload.target = BAL_TARGET_MAX;
-    hbal.set_status_can_payload.threshold = BAL_THRESHOLD_MAX;
+    hbal.set_status_can_payload.target = BAL_TARGET_MAX_V;
+    hbal.set_status_can_payload.threshold = BAL_THRESHOLD_MAX_V;
 
     // Set default balancing parameters
-    hbal.params.target = BAL_TARGET_MAX;
-    hbal.params.threshold = BAL_THRESHOLD_MAX;
+    hbal.params.target = BAL_TARGET_MAX_V;
+    hbal.params.threshold = BAL_THRESHOLD_MAX_V;
 
     // Initialize main balancing watchdog
     (void)watchdog_init(
         &hbal.watchdog,
-        TIMEBASE_TIME_TO_TICKS(BAL_TIMEOUT, timebase_get_resolution()),
+        TIMEBASE_TIME_TO_TICKS(BAL_TIMEOUT_MS, timebase_get_resolution()),
         _bal_timeout
     );
     return BAL_OK;
@@ -57,7 +57,7 @@ BalReturnCode bal_start(void) {
         return BAL_OK;
 
     // Start watchdog
-    WatchdogReturnCode code = watchdog_restart(&hbal.watchdog);
+    const WatchdogReturnCode code = watchdog_restart(&hbal.watchdog);
     if (code == WATCHDOG_UNAVAILABLE)
         return BAL_WATCHDOG_ERROR;
 
@@ -80,7 +80,7 @@ BalReturnCode bal_stop(void) {
     return BAL_OK;
 }
 
-void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t * payload) {
+void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t * const payload) {
     if (payload == NULL)
         return;
     // Ignore stop command if not balancing
@@ -88,13 +88,13 @@ void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing
         return;
 
     // Update data
-    raw_volt_t target = volt_get_min();
-    raw_volt_t thr = VOLT_VOLT_TO_VALUE(payload->threshold);
-    hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN, BAL_TARGET_MAX);
-    hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN, BAL_THRESHOLD_MAX);
+    const volt_t target = volt_get_min();
+    const volt_t thr = payload->threshold;
+    hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN_V, BAL_TARGET_MAX_V);
+    hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN_V, BAL_THRESHOLD_MAX_V);
 
     // Reset watchdog for each new message
-    WatchdogReturnCode code = watchdog_reset(&hbal.watchdog);
+    const WatchdogReturnCode code = watchdog_reset(&hbal.watchdog);
     if (code == WATCHDOG_UNAVAILABLE)
         return;
 
@@ -107,7 +107,7 @@ void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing
     }
 }
 
-void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t * payload) {
+void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t * const payload) {
     if (payload == NULL)
         return;
     // Ignore stop command if not balancing
@@ -115,13 +115,13 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
         return;
 
     // Update data
-    raw_volt_t target = volt_get_min();
-    raw_volt_t thr = VOLT_VOLT_TO_VALUE(payload->threshold);
-    hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN, BAL_TARGET_MAX);
-    hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN, BAL_THRESHOLD_MAX);
+    const volt_t target = volt_get_min();
+    const volt_t thr = payload->threshold;
+    hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN_V, BAL_TARGET_MAX_V);
+    hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN_V, BAL_THRESHOLD_MAX_V);
 
     // Reset watchdog for each new message
-    WatchdogReturnCode code = watchdog_reset(&hbal.watchdog);
+    const WatchdogReturnCode code = watchdog_reset(&hbal.watchdog);
     if (code == WATCHDOG_UNAVAILABLE)
         return;
 
@@ -134,7 +134,7 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
     }
 }
 
-void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t * payload) {
+void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t * const payload) {
     if (payload == NULL)
         return;
     // Forward balancing status info to the primary network
@@ -166,16 +166,16 @@ void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_conver
     hbal.status_can_payload.discharging_cell_23 = payload->discharging_cell_23;
 }
 
-bms_cellboard_set_balancing_status_converted_t * bal_get_set_status_canlib_payload(size_t * byte_size) {
+bms_cellboard_set_balancing_status_converted_t * bal_get_set_status_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hbal.set_status_can_payload);
     hbal.set_status_can_payload.start = hbal.active;
-    hbal.set_status_can_payload.target = VOLT_VALUE_TO_VOLT(hbal.params.target);
-    hbal.set_status_can_payload.threshold = VOLT_VALUE_TO_VOLT(hbal.params.threshold);
+    hbal.set_status_can_payload.target = hbal.params.target;
+    hbal.set_status_can_payload.threshold = hbal.params.threshold;
     return &hbal.set_status_can_payload;
 }
 
-primary_hv_balancing_status_converted_t * bal_get_status_canlib_payload(size_t * byte_size) {
+primary_hv_balancing_status_converted_t * bal_get_status_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hbal.status_can_payload);
     return &hbal.status_can_payload;

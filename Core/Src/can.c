@@ -273,7 +273,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
  * @return CAN_HandleTypeDef * A pointer to the CAN handler or NULL if the network
  * does not corresponds to any valid handler
  */
-CAN_HandleTypeDef * _can_get_peripheral_from_network(CanNetwork network) {
+CAN_HandleTypeDef * _can_get_peripheral_from_network(const CanNetwork network) {
     switch (network) {
         case CAN_NETWORK_BMS:
             return &HCAN_BMS;
@@ -291,7 +291,7 @@ CAN_HandleTypeDef * _can_get_peripheral_from_network(CanNetwork network) {
  * 
  * @return int32_t The frame type or negative error code
  */
-int32_t _can_get_rtr_from_frame_type(CanFrameType type) {
+int32_t _can_get_rtr_from_frame_type(const CanFrameType type) {
     switch (type) {
         case CAN_FRAME_TYPE_DATA:
             return CAN_RTR_DATA;
@@ -309,24 +309,24 @@ int32_t _can_get_rtr_from_frame_type(CanFrameType type) {
  * 
  * @return CanFrameType The frame type enum value or negative error code
  */
-CanFrameType _can_get_frame_type_from_rtr(uint32_t rtr) {
+CanFrameType _can_get_frame_type_from_rtr(const uint32_t rtr) {
     switch (rtr) {
         case CAN_RTR_DATA:
             return CAN_FRAME_TYPE_DATA;
         case CAN_RTR_REMOTE:
             return CAN_FRAME_TYPE_REMOTE;
         default:
-            return -1;
+            return CAN_FRAME_TYPE_INVALID;
     }
 }
 
 // TODO: Return and check errors
 CanCommReturnCode can_send(
-    CanNetwork network,
-    can_id_t id,
-    CanFrameType frame_type,
-    const uint8_t * data,
-    size_t size)
+    const CanNetwork network,
+    const can_id_t id,
+    const CanFrameType frame_type,
+    const uint8_t * const data,
+    const size_t size)
 {
     if (network >= CAN_NETWORK_COUNT)
         return CAN_COMM_INVALID_NETWORK;
@@ -336,12 +336,12 @@ CanCommReturnCode can_send(
         return CAN_COMM_INVALID_PAYLOAD_SIZE;
 
     // Get and check the CAN handler
-    CAN_HandleTypeDef * hcan = _can_get_peripheral_from_network(network);
+    CAN_HandleTypeDef * const hcan = _can_get_peripheral_from_network(network);
     if (hcan == NULL)
         return CAN_COMM_INVALID_NETWORK;
 
     // Get and check the frame type
-    int32_t type = _can_get_rtr_from_frame_type(frame_type);
+    const int32_t type = _can_get_rtr_from_frame_type(frame_type);
     if (type < 0)
         return CAN_COMM_INVALID_FRAME_TYPE;
  
@@ -377,7 +377,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan) {
     if (header.IDE == CAN_ID_EXT)
         return;
 
-    CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
+    const CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
     if (frame_type < 0)
         return;
 
@@ -404,7 +404,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     if (header.IDE == CAN_ID_EXT)
         return;
 
-    CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
+    const CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
     if (frame_type < 0)
         return;
 

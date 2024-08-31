@@ -19,6 +19,7 @@
 #include "internal-voltage.h"
 #include "bal.h"
 #include "imd.h"
+#include "temp.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -27,15 +28,27 @@ _STATIC _TaskHandler htasks;
 /** @brief Send the mainboard version info via CAN */
 void _tasks_send_mainboard_version(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)identity_get_mainboard_version_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_MAINBOARD_VERSION_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)identity_get_mainboard_version_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_MAINBOARD_VERSION_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the cellboard version info via CAN */
 void _tasks_send_cellboard_version(CellboardId id) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)identity_get_cellboard_version_payload(id, &byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLBOARD_VERSION_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)identity_get_cellboard_version_payload(id, &byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_CELLBOARD_VERSION_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 void _tasks_send_cellboard_0_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_0); }
 void _tasks_send_cellboard_1_version(void) { _tasks_send_cellboard_version(CELLBOARD_ID_1); }
@@ -47,92 +60,170 @@ void _tasks_send_cellboard_5_version(void) { _tasks_send_cellboard_version(CELLB
 /** @brief Send the mainboard and cellboard FSM status via CAN */
 void _tasks_send_hv_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)fsm_get_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)fsm_get_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_STATUS_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the BSM balancing status via CAN */
 void _tasks_send_hv_balancing_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)bal_get_status_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_BALANCING_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)bal_get_status_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_BALANCING_STATUS_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the current via CAN */
 void _tasks_send_hv_current(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)current_get_current_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CURRENT_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)current_get_current_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_CURRENT_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the power via CAN */
 void _tasks_send_hv_power(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)current_get_power_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_POWER_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);  
+    uint8_t * const payload = (uint8_t * const)current_get_power_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_POWER_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );  
 }
 
 /** @brief Send the Tractive System voltages info via CAN */
 void _tasks_send_hv_ts_voltage (void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)internal_voltage_get_ts_voltage_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_TS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)internal_voltage_get_ts_voltage_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_TS_VOLTAGE_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the cells voltages via CAN */
 void _tasks_send_hv_cells_voltage(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_VOLTAGE_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)volt_get_cells_voltage_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_CELLS_VOLTAGE_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the cells temperature via CAN */
 void _tasks_send_hv_cells_temperature(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)volt_get_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_CELLS_TEMPERATURE_INDEX , CAN_FRAME_TYPE_DATA, payload, byte_size);
+    uint8_t * const payload = (uint8_t * const)temp_get_cells_temperature_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_CELLS_TEMPERATURE_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Send the feedback status via CAN */
 void _tasks_send_hv_feedback_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)feedback_get_status_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+    uint8_t * const payload = (uint8_t * const)feedback_get_status_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_FEEDBACK_STATUS_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    ); 
 }
 
 /** @brief Send the digital feedbacks values via CAN */
 void _tasks_send_hv_feedback_digital(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)feedback_get_digital_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_DIGITAL_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+    uint8_t * const payload = (uint8_t * const)feedback_get_digital_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_FEEDBACK_DIGITAL_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    ); 
 }
 
 /** @brief Send the analog feedbacks values via CAN */
 void _tasks_send_hv_feedback_analog(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)feedback_get_analog_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+    uint8_t * const payload = (uint8_t * const)feedback_get_analog_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_FEEDBACK_ANALOG_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    ); 
 }
 
 /** @brief Send the analog shutdown feedbacks values via CAN */
 void _tasks_send_hv_feedback_analog_sd(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)feedback_get_analog_sd_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_FEEDBACK_ANALOG_SD_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+    uint8_t * const payload = (uint8_t * const)feedback_get_analog_sd_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_FEEDBACK_ANALOG_SD_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    ); 
 }
 
 /** @brief Send the IMD status via CAN */
 void _tasks_send_hv_imd_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)imd_get_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_PRIMARY, PRIMARY_HV_IMD_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+    uint8_t * const payload = (uint8_t * const)imd_get_status_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_IMD_STATUS_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    ); 
 }
 
 /** @brief Send the set balancing status command via CAN */
 void _tasks_send_cellboard_set_balancing_status(void) {
     size_t byte_size = 0U;
-    uint8_t * payload = (uint8_t *)bal_get_set_status_canlib_payload(&byte_size);
-    can_comm_tx_add(CAN_NETWORK_BMS, BMS_CELLBOARD_SET_BALANCING_STATUS_INDEX, CAN_FRAME_TYPE_DATA, payload, byte_size); 
+    uint8_t * const payload = (uint8_t * const)bal_get_set_status_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_BMS,
+        BMS_CELLBOARD_SET_BALANCING_STATUS_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    ); 
 }
 
 /** @brief Update all the digital feedbacks */
@@ -175,38 +266,38 @@ TasksReturnCode tasks_init(milliseconds_t resolution) {
     return TASKS_OK;
 }
 
-TasksReturnCode tasks_set_enable(TasksId id, bool enabled) {
+TasksReturnCode tasks_set_enable(const TasksId id, const bool enabled) {
     if (id >= TASKS_ID_COUNT)
         return TASKS_INVALID_ID;
     htasks.tasks[id].enabled = enabled;
     return TASKS_OK; 
 }
 
-bool tasks_is_enabled(TasksId id) {
+bool tasks_is_enabled(const TasksId id) {
     if (id >= TASKS_ID_COUNT)
         return false;
     return htasks.tasks[id].enabled;
 }
 
-Task * tasks_get_task(TasksId id) {
+Task * tasks_get_task(const TasksId id) {
     if (id >= TASKS_ID_COUNT)
         return NULL;
     return &htasks.tasks[id];
 }
 
-ticks_t tasks_get_start(TasksId id) {
+ticks_t tasks_get_start(const TasksId id) {
     if (id >= TASKS_ID_COUNT)
         return 0U;
     return htasks.tasks[id].start;
 }
 
-ticks_t tasks_get_interval(TasksId id) {
+ticks_t tasks_get_interval(const TasksId id) {
     if (id >= TASKS_ID_COUNT)
         return 0U;
     return htasks.tasks[id].interval;
 }
 
-tasks_callback tasks_get_callback(TasksId id) {
+tasks_callback tasks_get_callback(const TasksId id) {
     if (id >= TASKS_ID_COUNT)
         return 0U;
     return htasks.tasks[id].exec;
@@ -221,7 +312,7 @@ _STATIC char * tasks_return_code_name[] = {
     [TASKS_INVALID_ID] = "invalid id"
 };
 
-_STATIC char * tasks_return_code_descritpion[] = {
+_STATIC char * tasks_return_code_description[] = {
     [TASKS_OK] = "executed successfully"
     [TASKS_INVALID_ID] = "the given identifier does not exists"
 };

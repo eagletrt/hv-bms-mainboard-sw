@@ -30,7 +30,7 @@
  * @return PostReturnCode
  *     - POST_OK
  */
-PostReturnCode _post_modules_init(PostInitData * data) {
+PostReturnCode _post_modules_init(const PostInitData * const data) {
     /*
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
@@ -59,7 +59,7 @@ PostReturnCode _post_modules_init(PostInitData * data) {
     return POST_OK;
 }
 
-PostReturnCode post_run(PostInitData data) {
+PostReturnCode post_run(const PostInitData data) {
     if (data.system_reset == NULL ||
         data.can_send == NULL ||
         data.led_set == NULL ||
@@ -75,7 +75,7 @@ PostReturnCode post_run(PostInitData data) {
         data.spi_send_receive == NULL)
         return POST_NULL_POINTER;
 
-    PostReturnCode post_code = _post_modules_init(&data);
+    const PostReturnCode post_code = _post_modules_init(&data);
 
     // TODO: Test that every peripheral is working
 

@@ -46,6 +46,12 @@ extern ADC_HandleTypeDef hadc3;
 #define ADC_FEEDBACK_1_COUNT (ADC_FEEDBACK_1_CHANNEL_INDEX_COUNT)
 #define ADC_FEEDBACK_2_COUNT (ADC_FEEDBACK_2_CHANNEL_INDEX_COUNT)
 
+/** @brief Feedbacks reference voltage in V */
+#define ADC_VREF (3.3f)
+
+/** @brief Feedbacks ADC resolution in bits */
+#define ADC_RESOLUTION (12U)
+
 /**
  * @brief Indices of the first ADC used for the feedbacks
  *
@@ -103,8 +109,6 @@ void MX_ADC3_Init(void);
 
 /** @brief Start the ADC conversions for the feedbacks acquisition */
 void adc_start_feedback_conversion(void);
-
-float adc_get(void);
 
 /* USER CODE END Prototypes */
 

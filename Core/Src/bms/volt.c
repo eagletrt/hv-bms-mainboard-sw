@@ -21,9 +21,10 @@ _STATIC _VoltHandler hvolt;
 /**
  * @brief Check if the voltage values are in range otherwise set an error
  *
- * @param value The raw voltage value
+ * @param value The voltage value in V
  */
-_STATIC_INLINE void _volt_check_value(raw_volt_t value) {
+_STATIC_INLINE void _volt_check_value(const volt_t value) {
+    MAINBOARD_UNUSED(value);
     // TODO: Set errors
     // ERROR_TOGGLE_IF(
     //     value <= VOLT_MIN_VALUE,
@@ -45,18 +46,18 @@ VoltReturnCode volt_init(void) {
      * Set the initial value of the voltages as maximum to avoid
      * problems during the balancing procedure
      */
-    for (CellboardId id = 0U; id < CELLBOARD_ID_COUNT; ++id)
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id)
         for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell)
-            hvolt.voltages[id][cell] = VOLT_MAX_VALUE;
+            hvolt.voltages[id][cell] = VOLT_MAX_V;
     return VOLT_OK;
 }
 
-const volt_matrix_t * volt_get_values(void) {
+const cells_voltage_t * volt_get_values(void) {
     return &hvolt.voltages;
 }
 
-raw_volt_t volt_get_min(void) {
-    raw_volt_t min = UINT16_MAX;
+volt_t volt_get_min(void) {
+    volt_t min = VOLT_MAX_V;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
             min = MAINBOARD_MIN(hvolt.voltages[id][i], min);
@@ -64,8 +65,8 @@ raw_volt_t volt_get_min(void) {
     return min;
 }
 
-raw_volt_t volt_get_max(void) {
-    raw_volt_t max = 0U;
+volt_t volt_get_max(void) {
+    volt_t max = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
             max = MAINBOARD_MAX(hvolt.voltages[id][i], max);
@@ -73,64 +74,48 @@ raw_volt_t volt_get_max(void) {
     return max;
 }
 
-float volt_get_avg(void) {
-    float avg = 0U;
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
-            avg += hvolt.voltages[id][i];
-    }
-    return avg / (CELLBOARD_SERIES_COUNT);
-}
-
 volt_t volt_get_sum(void) {
-    float sum = 0.f;
+    volt_t sum = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
-            sum += VOLT_VALUE_TO_VOLT(hvolt.voltages[id][i]);
+            sum += hvolt.voltages[id][i];
     }
     return sum;
 }
 
-void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload) {
+volt_t volt_get_avg(void) {
+    return volt_get_sum() / CELLBOARD_SERIES_COUNT;
+}
+
+void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const payload) {
     const size_t size = 3U;
     if (payload == NULL ||
         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
         payload->offset + size >= CELLBOARD_SEGMENT_SERIES_COUNT)
         return;
     // Update voltages
-    size_t offset = payload->offset;
-    raw_volt_t * volts = hvolt.voltages[payload->cellboard_id];
-
-    volts[offset] = VOLT_VOLT_TO_VALUE(payload->voltage_0);
-    volts[offset + 1U] = VOLT_VOLT_TO_VALUE(payload->voltage_1);
-    volts[offset + 2U] = VOLT_VOLT_TO_VALUE(payload->voltage_2);
-    /*
-     * volts[payload->offset + 3U] = VOLT_VOLT_TO_VALUE(payload->voltage_3);
-     * TODO: fix cantools's handling of non 2^n size for floating point values     
-     */
+    const size_t offset = payload->offset;
+    volt_t * volts = hvolt.voltages[payload->cellboard_id];
+    volts[offset] = payload->voltage_0;
+    volts[offset + 1U] = payload->voltage_1;
+    volts[offset + 2U] = payload->voltage_2;
     for (size_t i = 0U; i < size; ++i)
         _volt_check_value(offset + volts[i]);
 }
 
-primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_size) {
+primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hvolt.volt_can_payload);
-    raw_volt_t * volts = hvolt.voltages[hvolt.cellboard_id];
-
+    const volt_t * const volts = hvolt.voltages[hvolt.cellboard_id];
     // Set payload values
-    hvolt.volt_can_payload.cellboard_id = hvolt.cellboard_id;
+    hvolt.volt_can_payload.cellboard_id = (primary_hv_cells_voltage_cellboard_id)hvolt.cellboard_id;
     hvolt.volt_can_payload.offset = hvolt.offset;
-    // Voltages needs to be converted in volts to be sent
-    hvolt.volt_can_payload.voltage_0 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset]);
-    hvolt.volt_can_payload.voltage_1 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 1]);
-    hvolt.volt_can_payload.voltage_2 = VOLT_VALUE_TO_VOLT(volts[hvolt.offset + 2]);
-    /*
-     * hvolt.volt_can_payload.voltage_3 = VOLT_VALUE_TO_MILLIVOLT(volts[hvolt.offset + 3]) * 0.001f; 
-     * TODO: fix cantools's handling of non 2^n size for floating point values     
-     */
+    hvolt.volt_can_payload.voltage_0 = volts[hvolt.offset];
+    hvolt.volt_can_payload.voltage_1 = volts[hvolt.offset + 1];
+    hvolt.volt_can_payload.voltage_2 = volts[hvolt.offset + 2];
 
     // Update indices
-    hvolt.offset += 3; /** @TODO: view above */
+    hvolt.offset += 3;
     if (hvolt.offset >= CELLBOARD_SEGMENT_SERIES_COUNT) {
         hvolt.offset = 0U;
         if (++hvolt.cellboard_id >= CELLBOARD_ID_COUNT)

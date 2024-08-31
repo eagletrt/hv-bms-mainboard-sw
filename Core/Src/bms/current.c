@@ -24,8 +24,8 @@ _STATIC _CurrentHandler hcurrent;
  *
  * @param value The raw current value
  */
-_STATIC_INLINE void _current_check_value(raw_current_t value) {
-    if (value <= CURRENT_MIN_VALUE || value >= CURRENT_MAX_VALUE) {
+_STATIC_INLINE void _current_check_value(const ampere_t value) {
+    if (value <= CURRENT_MIN_A || value >= CURRENT_MAX_A) {
         error_set(ERROR_GROUP_OVER_CURRENT, 0U);
     }
     else {
@@ -38,36 +38,32 @@ CurrentReturnCode current_init(void) {
     return CURRENT_OK;
 }
 
-void current_handle(bms_ivt_msg_result_i_t * payload) {
+void current_handle(bms_ivt_msg_result_i_t * const payload) {
     if (payload == NULL)
         return;
     hcurrent.current = payload->ivt_result_i;
     _current_check_value(hcurrent.current);
 }
 
-raw_current_t current_get_current(void) {
+ampere_t current_get_current(void) {
     return hcurrent.current;
 }
 
 kilowatt_t current_get_power(void) {
-    return CURRENT_VALUE_TO_AMPERE(hcurrent.current) * INTERNAL_VOLTAGE_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001f;
+    return hcurrent.current * internal_voltage_get_ts();
 }
 
-primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * byte_size) {
+primary_hv_current_converted_t * current_get_current_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hcurrent.current_can_payload);
-
-    // Save current value in A
-    hcurrent.current_can_payload.current = CURRENT_VALUE_TO_AMPERE(hcurrent.current);
+    hcurrent.current_can_payload.current = hcurrent.current;
     return &hcurrent.current_can_payload;
 }
 
-primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * byte_size) {
+primary_hv_power_converted_t * current_get_power_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hcurrent.power_can_payload);
-
-    // Save current value in A
-    hcurrent.power_can_payload.current = CURRENT_VALUE_TO_AMPERE(hcurrent.current);
+    hcurrent.power_can_payload.power = current_get_power();
     return &hcurrent.power_can_payload;
 }
 

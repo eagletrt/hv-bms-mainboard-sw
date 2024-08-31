@@ -210,14 +210,14 @@ typedef enum {
  * @param segment The segment to select
  * @param state The new state to set
  */
-typedef void (* display_segment_set_state_callback_t)(DisplaySegment segment, DisplaySegmentStatus state);
+typedef void (* display_segment_set_state_callback_t)(const DisplaySegment segment, const DisplaySegmentStatus state);
 
 /**
  * @brief Type definition for a function callback that should toggle the state of the display segment
  *
  * @param segment The segment to select
  */
-typedef void (* display_segment_toggle_state_callback_t)(DisplaySegment segment);
+typedef void (* display_segment_toggle_state_callback_t)(const DisplaySegment segment);
 
 /**
  * @brief 7-segment display handler structure
@@ -247,10 +247,7 @@ typedef struct {
  *     - DISPLAY_NULL_POINTER if any of the given parameter is NULL
  *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_init(
-    display_segment_set_state_callback_t set,
-    display_segment_toggle_state_callback_t toggle
-);
+DisplayReturnCode display_init(const display_segment_set_state_callback_t set, const display_segment_toggle_state_callback_t toggle);
 
 /**
  * @brief Get the hexadecimal digit code of the display from a number
@@ -262,7 +259,7 @@ DisplayReturnCode display_init(
  * @return DisplayCharacterCode The code corresponding to the digit or
  * DISPLAY_CHARACTER_CODE_SPACE if not valid
  */
-DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit);
+DisplayCharacterCode display_get_code_from_hex_digit(const uint8_t digit);
 
 /**
  * @brief Get the hexadecimal digit code of the display from a number
@@ -280,9 +277,9 @@ DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit);
  * DISPLAY_CHARACTER_CODE_SPACE if not valid
  */
 DisplayCharacterCode display_get_code_from_character(
-    char c,
-    bool ignore_case,
-    bool prefer_upcase
+    const char c,
+    const bool ignore_case,
+    const bool prefer_upcase
 );
 
 
@@ -294,7 +291,7 @@ DisplayCharacterCode display_get_code_from_character(
  * @return DisplaySegmentStatus The current status of the display segment, or
  * DISPLAY_SEGMENT_STATUS_UNKNOWN on error
  */
-DisplaySegmentStatus display_get_segment(DisplaySegment segment);
+DisplaySegmentStatus display_get_segment(const DisplaySegment segment);
 
 /**
  * @brief Set the status of a single segment of the 7-segment display
@@ -308,7 +305,7 @@ DisplaySegmentStatus display_get_segment(DisplaySegment segment);
  *     - DISPLAY_DRIVER_ERROR error cause by the display driver
  *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_segment(DisplaySegment segment, DisplaySegmentStatus state);
+DisplayReturnCode display_set_segment(const DisplaySegment segment, const DisplaySegmentStatus state);
 
 /**
  * @brief Set the status of a single segment of the 7-segment display
@@ -322,7 +319,7 @@ DisplayReturnCode display_set_segment(DisplaySegment segment, DisplaySegmentStat
  *     - DISPLAY_INVALID_STATUS the new segment status is not valid
  *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_toggle_segment(DisplaySegment segment);
+DisplayReturnCode display_toggle_segment(const DisplaySegment segment);
 
 /**
  * @brief Set the status of all the segment of the 7-segment display
@@ -335,7 +332,7 @@ DisplayReturnCode display_toggle_segment(DisplaySegment segment);
  *     - DISPLAY_DRIVER_ERROR error cause by the display driver
  *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_segment_all(bit_flag8_t bits);
+DisplayReturnCode display_set_segment_all(const bit_flag8_t bits);
 
 /**
  * @brief Shows an hexadecimal digit on the 7-segment display
@@ -347,7 +344,7 @@ DisplayReturnCode display_set_segment_all(bit_flag8_t bits);
  *     - DISPLAY_DRIVER_ERROR error cause by the display driver
  *     - DISPLAY_OK otherwise
  */
-DisplayReturnCode display_set_digit(uint8_t digit);
+DisplayReturnCode display_set_digit(const uint8_t digit);
 
 /**
  * @brief Shows a character on the 7-segment display 
@@ -364,9 +361,9 @@ DisplayReturnCode display_set_digit(uint8_t digit);
  *     - DISPLAY_OK otherwise
  */
 DisplayReturnCode display_set_character(
-    char c,
-    bool ignore_case,
-    bool prefer_upcase
+    const char c,
+    const bool ignore_case,
+    const bool prefer_upcase
 );
 
 /**
@@ -383,10 +380,10 @@ DisplayReturnCode display_set_character(
  *     - DISPLAY_OK otherwise
  */
 DisplayReturnCode display_run_animation(
-    const DisplaySegmentBit * animation,
-    size_t size,
+    const DisplaySegmentBit * const animation,
+    const size_t size,
     ticks_t ticks_per_frame,
-    ticks_t t
+    const ticks_t t
 );
 
 /**
@@ -404,10 +401,10 @@ DisplayReturnCode display_run_animation(
  *     - DISPLAY_OK otherwise
  */
 DisplayReturnCode display_run_animation_string(
-    const char * string,
-    size_t size,
+    const char * const string,
+    const size_t size,
     ticks_t ticks_per_frame,
-    ticks_t t
+    const ticks_t t
 );
 
 #else  // CONF_DISPLAY_MODULE_ENABLE

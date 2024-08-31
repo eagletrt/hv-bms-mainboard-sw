@@ -26,9 +26,11 @@
 
 _STATIC _CanCommHandler hcan_comm;
 
-void _can_comm_canlib_payload_handle_dummy(void * _) { }
+void _can_comm_canlib_payload_handle_dummy(void * _) {
+    MAINBOARD_UNUSED(_);
+}
 
-can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(can_index_t index) {
+can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can_index_t index) {
     switch (index) {
         case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
             return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
@@ -47,7 +49,8 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(can_index
     }
 
 }
-can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(can_index_t index) {
+
+can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const can_index_t index) {
     switch (index) {
         case PRIMARY_HV_FLASH_REQUEST_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)programmer_flash_request_handle;
@@ -65,7 +68,8 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(can_i
             return _can_comm_canlib_payload_handle_dummy;
     }
 }
-can_comm_canlib_payload_handle_callback_t _can_comm_payload_handle(CanNetwork network, can_index_t index) {
+
+can_comm_canlib_payload_handle_callback_t _can_comm_payload_handle(const CanNetwork network, const can_index_t index) {
     switch (network) {
         case CAN_NETWORK_BMS:
             return _can_comm_bms_payload_handle(index);
@@ -76,7 +80,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_payload_handle(CanNetwork ne
     }
 }
 
-CanCommReturnCode can_comm_init(can_comm_transmit_callback_t send) {
+CanCommReturnCode can_comm_init(const can_comm_transmit_callback_t send) {
     if (send == NULL)
         return CAN_COMM_NULL_POINTER;
 
@@ -97,7 +101,6 @@ CanCommReturnCode can_comm_init(can_comm_transmit_callback_t send) {
         &hcan_comm.rx_conv,
         bms_MAX_STRUCT_SIZE_CONVERSION
     );
-
     return CAN_COMM_OK;
 }
 
@@ -113,30 +116,30 @@ bool can_comm_is_enabled_all(void) {
     return CAN_COMM_IS_ENABLED_ALL(hcan_comm.enabled);
 }
 
-void can_comm_enable(CanCommEnableBit bit) {
+void can_comm_enable(const CanCommEnableBit bit) {
     if (bit >= CAN_COMM_ENABLE_BIT_COUNT)
         return;
     CAN_COMM_ENABLE(hcan_comm.enabled, bit);
 }
 
-void can_comm_disable(CanCommEnableBit bit) {
+void can_comm_disable(const CanCommEnableBit bit) {
     if (bit >= CAN_COMM_ENABLE_BIT_COUNT)
         return;
     CAN_COMM_DISABLE(hcan_comm.enabled, bit);
 }
 
-bool can_comm_is_enabled(CanCommEnableBit bit) {
+bool can_comm_is_enabled(const CanCommEnableBit bit) {
     if (bit >= CAN_COMM_ENABLE_BIT_COUNT)
         return false;
     return CAN_COMM_IS_ENABLED(hcan_comm.enabled, bit);
 }
 
 CanCommReturnCode can_comm_send_immediate(
-    CanNetwork network,
-    can_index_t index,
-    CanFrameType frame_type,
-    uint8_t * data,
-    size_t size)
+    const CanNetwork network,
+    const can_index_t index,
+    const CanFrameType frame_type,
+    uint8_t * const data,
+    const size_t size)
 {
     if (!CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT))
         return CAN_COMM_DISABLED;
@@ -177,11 +180,11 @@ CanCommReturnCode can_comm_send_immediate(
 }
 
 CanCommReturnCode can_comm_tx_add(
-    CanNetwork network,
-    can_index_t index,
-    CanFrameType frame_type,
-    uint8_t * data,
-    size_t size)
+    const CanNetwork network,
+    const can_index_t index,
+    const CanFrameType frame_type,
+    uint8_t * const data,
+    const size_t size)
 {
     if (!CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT))
         return CAN_COMM_DISABLED;
@@ -217,11 +220,11 @@ CanCommReturnCode can_comm_tx_add(
 }
 
 CanCommReturnCode can_comm_rx_add(
-    CanNetwork network,
-    can_index_t index,
-    CanFrameType frame_type,
-    uint8_t * data,
-    size_t size)
+    const CanNetwork network,
+    const can_index_t index,
+    const CanFrameType frame_type,
+    uint8_t * const data,
+    const size_t size)
 {    
     if (!CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_RX_ENABLE_BIT))
         return CAN_COMM_DISABLED;
@@ -280,7 +283,11 @@ CanCommReturnCode can_comm_routine(void) {
 
         if (tx_msg.frame_type != CAN_FRAME_TYPE_REMOTE) {
             // Serialize message
-            size = serialize_from_id(tx_msg.payload.tx, can_id, data);
+            size = serialize_from_id(
+                tx_msg.payload.tx,
+                can_id,
+                data
+            );
             if (size < 0)
                 return CAN_COMM_CONVERSION_ERROR;
         }
@@ -316,7 +323,8 @@ CanCommReturnCode can_comm_routine(void) {
             deserialize_from_id(&hcan_comm.rx_device, can_id, rx_msg.payload.rx);
 
             // TODO: Handle errors?
-            _can_comm_payload_handle(rx_msg.network, rx_msg.index)(hcan_comm.rx_device.message);
+            can_comm_canlib_payload_handle_callback_t handle_payload = _can_comm_payload_handle(rx_msg.network, rx_msg.index);
+            handle_payload(hcan_comm.rx_device.message);
         }
         else { 
             // TODO: Handler remote requests

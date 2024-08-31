@@ -17,49 +17,9 @@
 #include "primary_network.h"
 #include "bms_network.h"
 
-/** @brief Minimum and maximum allowed cell voltage in millivolt */
-#define VOLT_MIN_MILLIVOLT ((millivolt_t)2800.f)
-#define VOLT_MAX_MILLIVOLT ((millivolt_t)4200.f)
-
-/** @brief Minimum and maximum allowed cell voltage raw values */
-#define VOLT_MIN_VALUE (VOLT_MILLIVOLT_TO_VALUE(VOLT_MIN_MILLIVOLT))
-#define VOLT_MAX_VALUE (VOLT_MILLIVOLT_TO_VALUE(VOLT_MAX_MILLIVOLT))
-
-/**
- * @brief Convert a raw voltage value to millivolt
- *
- * @param value The value to convert
- *
- * @return millivolt_t The converted voltage in millivolt
- */
-#define VOLT_VALUE_TO_MILLIVOLT(value) ((millivolt_t)((value) * 0.1f))
-
-/**
- * @brief Convert a raw voltage value to volt
- *
- * @param value The value to convert
- *
- * @return volt_t The converted voltage in volt
- */
-#define VOLT_VALUE_TO_VOLT(value) ((volt_t)(value * 0.0001f))
-
-/**
- * @brief Convert a voltage in millivolt to the raw voltage value
- *
- * @param value The value in millivolt to convert
- *
- * @return raw_volt_t The raw voltage value
- */
-#define VOLT_MILLIVOLT_TO_VALUE(value) ((raw_volt_t)((value) * 10.f))
-
-/**
- * @brief Convert a voltage in volt to the raw voltage value
- *
- * @param value The value in volt to convert
- *
- * @return raw_volt_t The raw voltage value
- */
-#define VOLT_VOLT_TO_VALUE(value) ((raw_volt_t)(value * 10000.f))
+/** @brief Minimum and maximum allowed cell voltage in V */
+#define VOLT_MIN_V (2.8f)
+#define VOLT_MAX_V (4.2f)
 
 /**
  * @brief Return code for the voltage module functions
@@ -76,25 +36,25 @@ typedef enum {
 } VoltReturnCode;
 
 /**
- * @brief Type definition for a matrix of raw voltage values
+ * @brief Type definition for a the matrix of cells voltages in V
  *
  * @details The matrix contains a row for each cellboard and every column contains
  * the i-th voltage of each segment
  */
-typedef raw_volt_t volt_matrix_t[CELLBOARD_COUNT][CELLBOARD_SEGMENT_SERIES_COUNT];
+typedef volt_t cells_voltage_t[CELLBOARD_COUNT][CELLBOARD_SEGMENT_SERIES_COUNT];
 
 /**
  * @brief Voltages handler structure
  *
  * @warning This structure should never be used outside of this file
  *
- * @param voltages The array of raw cells voltages
+ * @param voltages The array of cells voltages in V
  * @param volt_can_payload The canlib payload of the cells voltages
  * @param cellboard_id Cellboard identifier to set inside the payload
  * @param offset Cell offset to set inside the payload
  */
 typedef struct {
-    volt_matrix_t voltages;
+    cells_voltage_t voltages;
 
     primary_hv_cells_voltage_converted_t volt_can_payload;
     CellboardId cellboard_id;
@@ -112,32 +72,32 @@ typedef struct {
 VoltReturnCode volt_init(void);
 
 /**
- * @brief Get a pointer to the array where the voltage values are stored
+ * @brief Get a pointer to the array where the voltages are stored
  *
- * @return volt_matrix_t* The pointer to the array
+ * @return cells_voltage_t* The pointer to the array
  */
-const volt_matrix_t * volt_get_values(void);
+const cells_voltage_t * volt_get_values(void);
 
 /**
  * @brief Get the minimum cell voltage in the pack
  *
- * @return raw_volt_t The minimum voltage raw value
+ * @return volt_t The minimum voltage in V
  */
-raw_volt_t volt_get_min(void);
+volt_t volt_get_min(void);
 
 /**
  * @brief Get the maximum cell voltage in the pack
  *
- * @return raw_volt_t The maximum voltage raw value
+ * @return volt_t The maximum voltage in V
  */
-raw_volt_t volt_get_max(void);
+volt_t volt_get_max(void);
 
 /**
  * @brief Get the average cell voltage of the pack
  *
- * @return float The average voltage raw value
+ * @return volt_t The average voltage in V
  */
-float volt_get_avg(void);
+volt_t volt_get_avg(void);
 
 /**
  * @brief Get the sum of the cells voltages of the pack
@@ -147,11 +107,11 @@ float volt_get_avg(void);
 volt_t volt_get_sum(void);
 
 /**
- * @brief Hanle the received cellboard cells voltage
+ * @brief Handle the received cellboard cells voltage
  *
  * @param payload A pointer to the canlib payload
  */
-void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload);
+void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const payload);
 
 /**
  * @brief Get a pointer to the CAN payload of the cells voltages
@@ -160,7 +120,7 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * payload
  *
  * @return primary_cellboard_cells_voltage_converted_t* A pointer to the payload
  */
-primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_size);
+primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(size_t * const byte_size);
 
 #else  // CONF_VOLTAGE_MODULE_ENABLE
 
@@ -171,7 +131,7 @@ primary_hv_cells_voltage_converted_t * volt_get_canlib_payload(size_t * byte_siz
 #define volt_get_avg() (VOLT_MAX_VALUE)
 #define volt_get_sum() (VOLT_VALUE_TO_VOLT(VOLT_MAX_VALUE))
 #define volt_cells_voltage_handle(payload) MAINBOARD_NOPE()
-#define volt_get_canlib_payload(byte_size) (NULL)
+#define volt_get_cells_voltage_canlib_payload(byte_size) (NULL)
 
 #endif  // CONF_VOLTAGE_MODULE_ENABLE
 

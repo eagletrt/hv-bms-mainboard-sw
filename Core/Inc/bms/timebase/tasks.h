@@ -149,7 +149,7 @@ TasksReturnCode tasks_init(milliseconds_t resolution);
  *     - TASKS_INVALID_ID the given identifier does not exists
  *     - TASKS_OK otherwise
  */
-TasksReturnCode tasks_set_enable(TasksId id, bool enabled);
+TasksReturnCode tasks_set_enable(const TasksId id, const bool enabled);
 
 /**
  * @brief Check if a task is enabled or not
@@ -158,7 +158,7 @@ TasksReturnCode tasks_set_enable(TasksId id, bool enabled);
  *
  * @return True if the task is enabled, false otherwise
  */
-bool tasks_is_enabled(TasksId id);
+bool tasks_is_enabled(const TasksId id);
 
 /**
  * @brief Get a pointer to the tasks
@@ -167,7 +167,7 @@ bool tasks_is_enabled(TasksId id);
  *
  * @return Task* The pointer to the tasks or NULL if the id is not valid
  */
-Task * tasks_get_task(TasksId id);
+Task * tasks_get_task(const TasksId id);
 
 /**
  * @brief Get the start time of the task
@@ -176,7 +176,7 @@ Task * tasks_get_task(TasksId id);
  *
  * @return ticks_t The task start time or 0 if the id is not valid
  */
-ticks_t tasks_get_start(TasksId id);
+ticks_t tasks_get_start(const TasksId id);
 
 /**
  * @brief Get the interval time of the task
@@ -185,7 +185,7 @@ ticks_t tasks_get_start(TasksId id);
  *
  * @return ticks_t The task interval time or 0 if the id is not valid
  */
-ticks_t tasks_get_interval(TasksId id);
+ticks_t tasks_get_interval(const TasksId id);
 
 /**
  * @brief Get a pointer to the task callback
@@ -194,7 +194,7 @@ ticks_t tasks_get_interval(TasksId id);
  *
  * @return tasks_callback The task callback or NULL if the id is not valid
  */
-tasks_callback tasks_get_callback(TasksId id);
+tasks_callback tasks_get_callback(const TasksId id);
 
 #else  // CONF_TASKS_MODULE_ENABLE
 

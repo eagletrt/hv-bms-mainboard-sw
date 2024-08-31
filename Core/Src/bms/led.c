@@ -16,7 +16,7 @@
 
 _STATIC _LedHandler hled;
 
-LedReturnCode led_init(led_set_state_callback_t set, led_toggle_state_callback_t toggle) {
+LedReturnCode led_init(const led_set_state_callback_t set, const led_toggle_state_callback_t toggle) {
     if (set == NULL || toggle == NULL)
         return LED_NULL_POINTER;
     memset(&hled, 0U, sizeof(hled));
@@ -25,7 +25,7 @@ LedReturnCode led_init(led_set_state_callback_t set, led_toggle_state_callback_t
     return LED_OK;
 }
 
-LedReturnCode led_set_status(LedId id, LedStatus status) {
+LedReturnCode led_set_status(const LedId id, const LedStatus status) {
     if (id >= LED_ID_COUNT)
         return LED_INVALID_ID;
     if (status >= LED_STATUS_COUNT)
@@ -34,7 +34,7 @@ LedReturnCode led_set_status(LedId id, LedStatus status) {
     return LED_OK;
 }
 
-LedReturnCode led_toggle_status(LedId id) {
+LedReturnCode led_toggle_status(const LedId id) {
     if (id >= LED_ID_COUNT)
         return LED_INVALID_ID;
     hled.toggle(id);

@@ -211,7 +211,7 @@ fsm_state_t fsm_get_status(void);
  *
  * @param payload A pointer to the canlib payload
  */
-void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload);
+void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * const payload);
 
 /**
  * @brief Get a pointer to the CAN payload structure of the FSM status
@@ -220,7 +220,7 @@ void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * payload);
  *
  * @return primary_hv_status_converted_t* A pointer to the payload
  */
-primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * byte_size);
+primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * const byte_size);
 /*** USER CODE END FUNCTIONS ***/
 
 #endif

@@ -48,13 +48,13 @@ ErrorReturnCode error_init(void) {
     return ERROR_OK;
 }
 
-ErrorReturnCode error_set(ErrorGroup group, error_instance_t instance) {
+ErrorReturnCode error_set(const ErrorGroup group, const error_instance_t instance) {
     if (errorlib_error_set(&herror, (errorlib_error_group_t)group, instance) != ERRORLIB_OK)
         return ERROR_UNKNOWN;
     return ERROR_OK;
 }
 
-ErrorReturnCode error_reset(ErrorGroup group, error_instance_t instance) {
+ErrorReturnCode error_reset(const ErrorGroup group, const error_instance_t instance) {
     if (errorlib_error_reset(&herror, (errorlib_error_group_t)group, instance) != ERRORLIB_OK)
         return ERROR_UNKNOWN;
     return ERROR_OK;

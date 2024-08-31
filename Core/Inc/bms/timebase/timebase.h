@@ -27,7 +27,7 @@
  *
  * @return ticks_t The corresponing amount of ticks
  */
-#define TIMEBASE_TIME_TO_TICKS(T, RES) ((ticks_t)((T) / (RES)))
+#define TIMEBASE_TIME_TO_TICKS(T, RES) ((T) / (RES))
 
 /**
  * @brief Convert the ticks in ms
@@ -37,7 +37,7 @@
  *
  * @return milliseconds_t The corresponing amount of ms
  */
-#define TIMEBASE_TICKS_TO_TIME(T, RES) ((milliseconds_t)((T) * (RES)))
+#define TIMEBASE_TICKS_TO_TIME(T, RES) ((T) * (RES))
 
 /** @brief Maximum number of watchdogs that can be handled simultaneously */
 #define TIMEBASE_RUNNING_WATCHDOG_COUNT (24U)
@@ -87,7 +87,7 @@ typedef struct {
 /**
  * @brief Timebase handler structure
  *
- * @warning This structure should never be used outside of this file
+ * @attention This structure should never be used outside of this file
  *
  * @param enabled True if the timebase is running, false otherwise
  * @param resolution Number of ms that represent one tick
@@ -97,7 +97,7 @@ typedef struct {
  */
 typedef struct {
     bool enabled;
-    milliseconds_t resolution; // in ms
+    milliseconds_t resolution;
     volatile ticks_t t;
 
     MinHeap(TimebaseScheduledTask, TASKS_COUNT) scheduled_tasks;
@@ -116,14 +116,14 @@ typedef struct {
  *     - TIMEBASE_NULL_POINTER if a tasks is not implemented
  *     - TIMEBASE_OK otherwise
  */
-TimebaseReturnCode timebase_init(milliseconds_t resolution_ms);
+TimebaseReturnCode timebase_init(const milliseconds_t resolution_ms);
 
 /**
  * @brief Enable or disable the timebase
  *
  * @param enabled True to enable the timebase false to disable it
  */
-void timebase_set_enable(bool enabled);
+void timebase_set_enable(const bool enabled);
 
 /**
  * @brief Increment the internal timebase by one tick
@@ -168,7 +168,7 @@ milliseconds_t timebase_get_resolution(void);
  *     - TIMEBASE_WATCHDOG_UNAVAILABLE if the timebase can't handle the watchdog
  *     - TIMEBASE_OK otherwise
  */
-TimebaseReturnCode timebase_register_watchdog(Watchdog * watchdog);
+TimebaseReturnCode timebase_register_watchdog(Watchdog * const watchdog);
 
 /**
  * @brief Unregister a watchdog from the timebase
@@ -182,7 +182,7 @@ TimebaseReturnCode timebase_register_watchdog(Watchdog * watchdog);
  *     - TIMEBASE_WATCHDOG_NOT_REGISTERED the watchdog is not registered
  *     - TIMEBASE_OK otherwise
  */
-TimebaseReturnCode timebase_unregister_watchdog(Watchdog * handler);
+TimebaseReturnCode timebase_unregister_watchdog(Watchdog * const handler);
 
 /**
  * @brief Check if the watchdog is registered into the timebase
@@ -193,7 +193,7 @@ TimebaseReturnCode timebase_unregister_watchdog(Watchdog * handler);
  *
  * @return bool True if the watchdog is registered, false otherwise
  */
-bool timebase_is_registered_watchdog(Watchdog * watchdog);
+bool timebase_is_registered_watchdog(Watchdog * const watchdog);
 
 /**
  * @brief Update the registered watchdog
@@ -210,7 +210,7 @@ bool timebase_is_registered_watchdog(Watchdog * watchdog);
  *     - TIMEBASE_WATCHDOG_UNAVAILABLE if the watchdog can't be registered again
  *     - TIMEBASE_OK otherwise
  */
-TimebaseReturnCode timebase_update_watchdog(Watchdog * watchdog);
+TimebaseReturnCode timebase_update_watchdog(Watchdog * const watchdog);
 
 /**
  * @brief Routine that checks which functions shuold run during this

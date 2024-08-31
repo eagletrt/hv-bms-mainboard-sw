@@ -180,11 +180,11 @@ typedef struct {
  * @return CanCommReturnCode The return code value
  */
 typedef CanCommReturnCode (* can_comm_transmit_callback_t)(
-    CanNetwork network,
-    can_id_t id,
-    CanFrameType frame_type,
-    const uint8_t * data,
-    size_t size
+    const CanNetwork network,
+    const can_id_t id,
+    const CanFrameType frame_type,
+    const uint8_t * const data,
+    const size_t size
 );
 
 /**
@@ -222,7 +222,7 @@ typedef struct {
  *
  * @param payload A pointer to the converted canlib structure data
  */
-typedef void (* can_comm_canlib_payload_handle_callback_t)(void * payload);
+typedef void (* can_comm_canlib_payload_handle_callback_t)(void * const payload);
 
 /** @brief Type definitions for the canlib device functions */
 typedef int (* id_from_index_t)(int);
@@ -240,7 +240,7 @@ typedef void (* deserialize_from_id_t)(device_t *, uint16_t, uint8_t *);
  *     - CAN_COMM_NULL_POINTER a NULL pointer was given as parameter
  *     - CAN_COMM_OK otherwise
  */
-CanCommReturnCode can_comm_init(can_comm_transmit_callback_t send);
+CanCommReturnCode can_comm_init(const can_comm_transmit_callback_t send);
 
 /** @brief Enable the CAN manager */
 void can_comm_enable_all(void);
@@ -260,14 +260,14 @@ bool can_comm_is_enabled_all(void);
  *
  * @param bit The bit to enable
  */
-void can_comm_enable(CanCommEnableBit bit);
+void can_comm_enable(const CanCommEnableBit bit);
 
 /**
  * @brief Disable a single bit of the internal handler flag
  *
  * @param bit The bit to disable
  */
-void can_comm_disable(CanCommEnableBit bit);
+void can_comm_disable(const CanCommEnableBit bit);
 
 /**
  * @brief Check if a single bit of the internal handler flag is enabled
@@ -276,7 +276,7 @@ void can_comm_disable(CanCommEnableBit bit);
  *
  * @return bool True if the manager is enabled, false otherwise
  */
-bool can_comm_is_enabled(CanCommEnableBit bit);
+bool can_comm_is_enabled(const CanCommEnableBit bit);
 
 /**
  * @brief Immediately send the message via the CAN bus
@@ -301,11 +301,11 @@ bool can_comm_is_enabled(CanCommEnableBit bit);
  *     - CAN_COMM_OK otherwise
  */
 CanCommReturnCode can_comm_send_immediate(
-    CanNetwork network,
-    can_index_t index,
-    CanFrameType frame_type,
-    uint8_t * data,
-    size_t size
+    const CanNetwork network,
+    const can_index_t index,
+    const CanFrameType frame_type,
+    uint8_t * const data,
+    const size_t size
 );
 
 /**
@@ -329,11 +329,11 @@ CanCommReturnCode can_comm_send_immediate(
  *     - CAN_COMM_OK otherwise
  */
 CanCommReturnCode can_comm_tx_add(
-    CanNetwork network,
-    can_index_t index,
-    CanFrameType frame_type,
-    uint8_t * data,
-    size_t size
+    const CanNetwork network,
+    const can_index_t index,
+    const CanFrameType frame_type,
+    uint8_t * const data,
+    const size_t size
 );
 
 /**
@@ -356,11 +356,11 @@ CanCommReturnCode can_comm_tx_add(
  *     - CAN_COMM_OK otherwise
  */
 CanCommReturnCode can_comm_rx_add(
-    CanNetwork network,
-    can_index_t index,
-    CanFrameType frame_type,
-    uint8_t * data,
-    size_t size
+    const CanNetwork network,
+    const can_index_t index,
+    const CanFrameType frame_type,
+    uint8_t * const data,
+    const size_t size
 );
 
 /**

@@ -28,23 +28,27 @@ InternalVoltageReturnCode internal_voltage_init(
 }
 
 InternalVoltageReturnCode internal_voltage_read_all(void) {
-    (void)max22530_read_channels_all(&hvolt.max22530, true, hvolt.data, NULL);
+    volt_t volts[INTERNAL_VOLTAGE_CHANNEL_COUNT];
+    (void)max22530_read_channels_all(&hvolt.max22530, true, volts, NULL);
+    hvolt.ts = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE]);
+    hvolt.pack = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE]);
+    // TODO: Convert and update the IMD TS connected feedback and precharge temperature
     return INTERNAL_VOLTAGE_OK;
 }
 
-raw_volt_t internal_voltage_get_ts(void) {
-    return hvolt.data[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE];
+volt_t internal_voltage_get_ts(void) {
+    return hvolt.ts;
 }
 
-raw_volt_t internal_voltage_get_batt(void) {
-    return hvolt.data[INTERNAL_VOLTAGE_CHANNEL_BATT_VOLTAGE];
+volt_t internal_voltage_get_pack(void) {
+    return hvolt.pack;
 }
 
-primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * byte_size) {
+primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hvolt.ts_voltage_can_payload);
-    hvolt.ts_voltage_can_payload.ts = INTERNAL_VOLTAGE_VALUE_TO_VOLT(internal_voltage_get_ts()) * 0.001;
-    hvolt.ts_voltage_can_payload.pack = INTERNAL_VOLTAGE_VALUE_TO_VOLT(internal_voltage_get_batt()) * 0.001;
+    hvolt.ts_voltage_can_payload.ts = hvolt.ts;
+    hvolt.ts_voltage_can_payload.pack = hvolt.pack;
     hvolt.ts_voltage_can_payload.cells_sum = volt_get_sum();
     return &hvolt.ts_voltage_can_payload;
 }

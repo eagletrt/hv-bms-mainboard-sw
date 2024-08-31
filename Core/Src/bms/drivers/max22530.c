@@ -20,10 +20,14 @@
  * @return Max22530ReturnCode
  *     - MAX22530_OK
  */
-Max22530ReturnCode _max22530_write(Max22530Handler * handler, max22530_address_t address, uint16_t data) {
+Max22530ReturnCode _max22530_write(
+    Max22530Handler * const handler,
+    const max22530_address_t address,
+    const uint16_t data)
+{
     uint8_t cmd[MAX22530_COMMAND_BYTE_SIZE] = {
         (address << 2U) | (MAX22530_COMMAND_WRITE << 1U),
-        (data & 0xff00) >> 8,
+        (data & 0xff00) >> 8U,
         data & 0x00ff
     }; 
     handler->send(SPI_NETWORK_ADC, cmd, MAX22530_COMMAND_BYTE_SIZE);
@@ -36,16 +40,17 @@ Max22530ReturnCode _max22530_write(Max22530Handler * handler, max22530_address_t
  * @param handler A pointer to the handler structure
  * @param address The address of the register to read from
  *
- * @return int16_t The data of the register
+ * @return uint16_t The data of the register
  */
-int16_t _max22530_read(Max22530Handler * handler, max22530_address_t address) {
+uint16_t _max22530_read(Max22530Handler * const handler, const max22530_address_t address) {
     uint8_t cmd[MAX22530_COMMAND_BYTE_SIZE];
-    cmd[0U] = (address << 2U) | (MAX22530_COMMAND_READ << 1U) | (MAX22530_BURST_OFF);
+    cmd[0U] = (address << 2U) |
+        (MAX22530_COMMAND_READ << 1U) |
+        (MAX22530_BURST_OFF);
 
     // Fill out every other byte with 1s so that they are ignored
     for (size_t i = 1U; i < MAX22530_COMMAND_BYTE_SIZE; ++i)
         cmd[i] = MAX22530_BYTE_UNUSED;
-
     handler->send_receive(SPI_NETWORK_ADC, cmd, &cmd[1U], 1U, MAX22530_COMMAND_BYTE_SIZE - 1U);
     return ((uint16_t)cmd[1U] << 8U) | cmd[2U];
 }
@@ -60,7 +65,10 @@ int16_t _max22530_read(Max22530Handler * handler, max22530_address_t address) {
  * @return Max22530ReturnCode
  *     - MAX22530_OK
  */
-Max22530ReturnCode _max22530_burst(Max22530Handler * handler, bool filtered, uint16_t * out) {
+Max22530ReturnCode _max22530_burst(
+    Max22530Handler * const handler,
+    const bool filtered,
+    uint16_t * const out) {
     const max22530_address_t address = filtered ?
         MAX22530_REGISTER_FILTERED_ADC :
         MAX22530_REGISTER_ADC;
@@ -80,15 +88,14 @@ Max22530ReturnCode _max22530_burst(Max22530Handler * handler, bool filtered, uin
 }
 
 Max22530ReturnCode max22530_init(
-    Max22530Handler * handler,
-    spi_send_callback_t send,
-    spi_send_receive_callback_t send_receive)
+    Max22530Handler * const handler,
+    const spi_send_callback_t send,
+    const spi_send_receive_callback_t send_receive)
 {
     if (handler == NULL ||
         send == NULL ||
         send_receive == NULL)
         return MAX22530_NULL_POINTER;
-
     handler->send = send;
     handler->send_receive = send_receive;
 
@@ -98,31 +105,34 @@ Max22530ReturnCode max22530_init(
     return _max22530_write(handler, MAX22530_REGISTER_CONTROL, data);
 }
 
-max22530_id_t max22530_get_id(Max22530Handler * handler) {
+max22530_id_t max22530_get_id(Max22530Handler * const handler) {
     if (handler == NULL)
         return -1;
-    int16_t data = _max22530_read(handler, MAX22530_REGISTER_ID);
+    const int16_t data = _max22530_read(handler, MAX22530_REGISTER_ID);
     return data >> 8U;
 }
 
-Max22530PowerOnReset max22530_get_power_on_reset(Max22530Handler * handler) {
+Max22530PowerOnReset max22530_get_power_on_reset(Max22530Handler * const handler) {
     if (handler == NULL)
         return -1;
-    int16_t data = _max22530_read(handler, MAX22530_REGISTER_ID);
+    const int16_t data = _max22530_read(handler, MAX22530_REGISTER_ID);
     return (data & 0x80) >> 7U;
 }
 
-max22530_revision_t max22530_get_revision(Max22530Handler * handler) {
+max22530_revision_t max22530_get_revision(Max22530Handler * const handler) {
     if (handler == NULL)
         return -1;
-    int16_t data = _max22530_read(handler, MAX22530_REGISTER_ID);
+    const int16_t data = _max22530_read(handler, MAX22530_REGISTER_ID);
     return data & 0x7F;
 }
 
-raw_volt_t max22530_read_channel(Max22530Handler * handler, Max22530Channel channel, bool filtered) {
+volt_t max22530_read_channel(
+    Max22530Handler * const handler,
+    const Max22530Channel channel,
+    const bool filtered)
+{
     if (handler == NULL)
         return 0U;
-
     // Get the channel register address
     max22530_address_t address = filtered ?
         MAX22530_REGISTER_FILTERED_ADC :
@@ -130,27 +140,25 @@ raw_volt_t max22530_read_channel(Max22530Handler * handler, Max22530Channel chan
     address += channel;
 
     // Get data
-    int16_t data = _max22530_read(handler, address);
-    if (data < 0)
-        return 0U;
-    return data;
+    const raw_volt_t data = _max22530_read(handler, address);
+    return MAX22530_RAW_VALUE_TO_VOLT(data);
 }
 
 Max22530ReturnCode max22530_read_channels_all(
-    Max22530Handler * handler,
-    bool filtered,
-    raw_volt_t * out,
-    uint16_t * interrupt_status)
+    Max22530Handler * const handler,
+    const bool filtered,
+    volt_t * const out,
+    uint16_t * const interrupt_status)
 {
     if (handler == NULL || out == NULL)
         return MAX22530_NULL_POINTER;
-
     // Get data
-    uint16_t data[MAX22530_CHANNEL_COUNT + 1U] = { 0 };
-    Max22530ReturnCode code = _max22530_burst(handler, filtered, data);
+    raw_volt_t data[MAX22530_CHANNEL_COUNT + 1U] = { 0 };
+    const Max22530ReturnCode code = _max22530_burst(handler, filtered, data);
 
     // Copy data
-    memcpy(out, data, MAX22530_CHANNEL_COUNT * sizeof(data[0]));
+    for (size_t i = 0U; i < MAX22530_CHANNEL_COUNT; ++i)
+        out[i] = MAX22530_RAW_VALUE_TO_VOLT(data[i]);
     if (interrupt_status != NULL)
         *interrupt_status = data[MAX22530_CHANNEL_COUNT];
     return code;
