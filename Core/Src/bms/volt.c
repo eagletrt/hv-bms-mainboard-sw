@@ -29,7 +29,7 @@ _STATIC_INLINE void _volt_check_value(const size_t index, const volt_t value) {
     else
         error_reset(ERROR_GROUP_UNDER_VOLTAGE, index);
 
-    if (value <= VOLT_MAX_V)
+    if (value >= VOLT_MAX_V)
         error_set(ERROR_GROUP_OVER_VOLTAGE, index);
     else
         error_reset(ERROR_GROUP_OVER_VOLTAGE, index);
