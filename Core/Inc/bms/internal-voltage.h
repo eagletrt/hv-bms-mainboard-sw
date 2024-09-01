@@ -23,7 +23,7 @@
 #define INTERNAL_VOLTAGE_MAX_DELTA_V (25.f)
 
 /** @brief Divider ratio of the internal voltages */
-#define INTERNAL_VOLTAGE_DIVIDER_RATIO (0.0032f)
+#define INTERNAL_VOLTAGE_DIVIDER_RATIO (0.002914f)
 
 /**
  * @brief Conversion from the voltage read from the ADC to the real voltage in V
