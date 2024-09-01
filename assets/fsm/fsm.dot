@@ -24,7 +24,7 @@ digraph "fsm" {
     ]
 
     init -> idle [label="start"]
-    init -> fatal [label="handle_fatal_error"]
+    init -> fatal [label="idle_to_fatal"]
 
     idle -> idle
     idle -> balancing [label="start_balancing"]
