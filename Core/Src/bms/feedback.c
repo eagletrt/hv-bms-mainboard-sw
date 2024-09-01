@@ -338,7 +338,7 @@ primary_hv_feedback_status_converted_t * feedback_get_status_payload(size_t * co
 
 primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hfeedback.status_can_payload);
+        *byte_size = sizeof(hfeedback.digital_can_payload);
     hfeedback.digital_can_payload.digital_airn_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
     hfeedback.digital_can_payload.digital_precharge_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);
     hfeedback.digital_can_payload.digital_airp_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
@@ -361,7 +361,7 @@ primary_hv_feedback_digital_converted_t * feedback_get_digital_payload(size_t * 
 
 primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hfeedback.status_can_payload);
+        *byte_size = sizeof(hfeedback.analog_can_payload);
     hfeedback.analog_can_payload.analog_airn_open_mec = hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC];
     hfeedback.analog_can_payload.analog_airp_open_mec = hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC];
     hfeedback.analog_can_payload.analog_imd_ok = hfeedback.analog[FEEDBACK_ANALOG_INDEX_IMD_OK];
@@ -374,7 +374,7 @@ primary_hv_feedback_analog_converted_t * feedback_get_analog_payload(size_t * co
 
 primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_t * const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hfeedback.status_can_payload);
+        *byte_size = sizeof(hfeedback.analog_sd_can_payload);
     hfeedback.analog_sd_can_payload.sd_out = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_OUT]);
     hfeedback.analog_sd_can_payload.sd_in = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_IN]);
     hfeedback.analog_sd_can_payload.sd_end = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_END]);
@@ -383,7 +383,7 @@ primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_
 
 primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(const FeedbackId id, size_t * const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hfeedback);
+        *byte_size = sizeof(hfeedback.enzomma_can_payload);
     const bool is_digital = feedback_is_digital(id);
     hfeedback.enzomma_can_payload.feedback = (primary_hv_feedback_enzomma_feedback)id;
     hfeedback.enzomma_can_payload.status = (primary_hv_feedback_enzomma_status)feedback_get_status(id);
