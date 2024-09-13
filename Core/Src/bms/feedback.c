@@ -188,7 +188,7 @@ bool feedback_check_values(
     const bit_flag32_t value,
     FeedbackId * const out)
 {
-    for (FeedbackId i = 0U; i <= FEEDBACK_ID_COUNT; ++i) {
+    for (FeedbackId i = 0U; i < FEEDBACK_ID_COUNT; ++i) {
         // Skip feedback not present inside the bitmask
         if (MAINBOARD_BIT_GET(mask, i) == 0U)
             continue;
