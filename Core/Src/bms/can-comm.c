@@ -245,6 +245,9 @@ CanCommReturnCode can_comm_tx_add(
     if (data == NULL && frame_type != CAN_FRAME_TYPE_REMOTE)
         return CAN_COMM_NULL_POINTER;
 
+    // Return if a message with the same index is still inside the buffer
+    if (hcan_comm.tx_busy[index])
+        return CAN_COMM_OK;
 
     // Prepare and push message to the buffer
     CanMessage msg = {
@@ -257,6 +260,7 @@ CanCommReturnCode can_comm_tx_add(
 
     if (ring_buffer_push_back(&hcan_comm.tx_buf, &msg) == RING_BUFFER_FULL)
         return CAN_COMM_OVERRUN;
+    hcan_comm.tx_busy[index] = true;
     return CAN_COMM_OK;
 }
 
@@ -295,6 +299,7 @@ CanCommReturnCode can_comm_rx_add(
 
     if (ring_buffer_push_back(&hcan_comm.rx_buf, &msg) == RING_BUFFER_FULL)
         return CAN_COMM_OVERRUN;
+    hcan_comm.rx_busy[index] = true;
     return CAN_COMM_OK;
 }
 
@@ -305,9 +310,12 @@ CanCommReturnCode can_comm_routine(void) {
     // Handler transmit and receive data
     CanCommReturnCode ret = CAN_COMM_OK;
     CanMessage tx_msg, rx_msg;
-    if (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT) &&
+    while (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT) &&
         ring_buffer_pop_front(&hcan_comm.tx_buf, &tx_msg) == RING_BUFFER_OK)
     {
+        // Reset the busy flag to notify that the message is not inside the buffer anymore
+        hcan_comm.tx_busy[tx_msg.index] = false;
+
         // Get the right canlib function for the serialization
         id_from_index_t id_from_index = bms_id_from_index;
         serialize_from_id_t serialize_from_id = bms_serialize_from_id;
@@ -341,15 +349,31 @@ CanCommReturnCode can_comm_routine(void) {
             size
         );
 
-        // Set an error in case of problems with CAN communication
-        if (ret != CAN_COMM_OK)
-            error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
-        else
-            error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+        /*
+         * Set an error in case of problems with CAN communication
+         * In case of any invalid data the error is not set because the communication
+         * is partially working but the data is not valid
+         */
+        switch (ret) {
+            case CAN_COMM_INVALID_INDEX:
+            case CAN_COMM_INVALID_PAYLOAD_SIZE:
+            case CAN_COMM_INVALID_FRAME_TYPE:
+                // Do nothing
+                break;
+            case CAN_COMM_OK:
+                error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                break;
+            default:
+                error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                break;
+        }
     }
-    if (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_RX_ENABLE_BIT) &&
+    while (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_RX_ENABLE_BIT) &&
         ring_buffer_pop_front(&hcan_comm.rx_buf, &rx_msg) == RING_BUFFER_OK)
     {
+        // Reset the busy flag to notify that the message is not inside the buffer anymore
+        hcan_comm.rx_busy[rx_msg.index] = false;
+
         // Get the right canlib function for the serialization
         id_from_index_t id_from_index = bms_id_from_index;
         deserialize_from_id_t deserialize_from_id = bms_devices_deserialize_from_id;
