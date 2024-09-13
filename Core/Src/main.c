@@ -159,6 +159,7 @@ int main(void)
   while (1)
   {
     fsm_state = fsm_run_state(fsm_state, &init_data);
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -257,5 +258,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-
