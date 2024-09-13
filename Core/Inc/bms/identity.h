@@ -11,6 +11,7 @@
 
 #include <stddef.h>
 
+#include "mainboard-conf.h"
 #include "mainboard-def.h"
 
 #include "primary_network.h"
@@ -39,6 +40,8 @@ typedef struct {
     primary_hv_mainboard_version_converted_t mainboard_version_payload;
     primary_hv_cellboard_version_converted_t cellboard_version_payload[CELLBOARD_ID_COUNT];
 } _IdentityHandler;
+
+#ifdef CONF_IDENTITY_MODULE_ENABLE
 
 /**
  * @brief Initialize all the info about the mainboard identity
@@ -77,5 +80,15 @@ primary_hv_cellboard_version_converted_t * identity_get_cellboard_version_payloa
  * @param payload A pointer to the canlib payload
  */
 void identity_cellboard_version_handle(bms_cellboard_version_converted_t * const payload);
+
+#else  // CONF_IDENTITY_MODULE_ENABLE
+
+#define identity_init(id) CELLBOARD_NOPE()
+#define identity_get_build_time() (0U)
+#define identity_get_mainboard_version_payload(byte_size) (NULL)
+#define identity_get_cellboard_version_payload(byte_size) (NULL)
+#define identity_cellboard_version_handle(payload) MAINBOARD_NOPE()
+
+#endif // CONF_IDENTITY_MODULE_ENABLE
 
 #endif  // IDENTITY_H

@@ -11,6 +11,8 @@
 #include <time.h>
 #include <string.h>
 
+#ifdef CONF_IDENTITY_MODULE_ENABLE
+
 _STATIC _IdentityHandler hidentity;
 
 void identity_init(void) {
@@ -57,3 +59,11 @@ void identity_cellboard_version_handle(bms_cellboard_version_converted_t * const
     hidentity.cellboard_version_payload[payload->cellboard_id].canlib_build_time = payload->canlib_build_time;
     hidentity.cellboard_version_payload[payload->cellboard_id].component_build_time = payload->component_build_time;
 }
+
+#ifdef CONF_IDENTITY_STRINGS_ENABLE
+
+_STATIC char * identity_module_name = "identity";
+
+#endif // CONF_IDENTITY_STRINGS_ENABLE
+
+#endif // CONF_IDENTITY_MODULE_ENABLE
