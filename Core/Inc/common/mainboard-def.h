@@ -282,12 +282,12 @@ void mainboard_assert_failed(const char * file, const int line);
  */
 typedef enum {
     CELLBOARD_ID_0 = 0U,
-    CELLBOARD_ID_COUNT,
     CELLBOARD_ID_1,
     CELLBOARD_ID_2,
     CELLBOARD_ID_3,
     CELLBOARD_ID_4,
     CELLBOARD_ID_5,
+    CELLBOARD_ID_COUNT,
     MAINBOARD_ID
 } CellboardId;
 

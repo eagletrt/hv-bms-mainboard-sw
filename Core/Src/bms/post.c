@@ -59,6 +59,21 @@ PostReturnCode _post_modules_init(const PostInitData * const data) {
     return POST_OK;
 }
 
+PostReturnCode _post_module_setup(void) {
+    pcu_reset_all();
+    timebase_set_enable(true);
+    can_comm_enable_all();
+
+    // Wait for the current sensor to start its normal operation cycle
+    milliseconds_t t = timebase_get_time();
+    while (timebase_get_time() - t >= CURRENT_SENSOR_STARTUP_TIME_MS)
+        ;
+    if (current_start_sensor_communication_watchdog() != WATCHDOG_OK)
+        return POST_SETUP_ERROR;
+
+    return POST_OK;
+}
+
 PostReturnCode post_run(const PostInitData data) {
     if (data.system_reset == NULL ||
         data.can_send == NULL ||
@@ -75,7 +90,13 @@ PostReturnCode post_run(const PostInitData data) {
         data.spi_send_receive == NULL)
         return POST_NULL_POINTER;
 
-    const PostReturnCode post_code = _post_modules_init(&data);
+    // Module initialization
+    PostReturnCode post_code = _post_modules_init(&data);
+    if (post_code != POST_OK)
+        return post_code;
+
+    // Module confiuration
+    post_code = _post_module_setup();
 
     // TODO: Test that every peripheral is working
 
@@ -89,17 +110,15 @@ _STATIC char * post_module_name = "post";
 _STATIC char * post_return_code_name[] = {
     [POST_OK] = "ok",
     [POST_UNINITIALIZED] = "uninitialized",
-    [POST_INVALID_CELLBOARD_ID] = "invalid cellboard id",
-    [POST_NULL_POINTER] = "null pointer",
-    [POST_WATCHDOG_INVALID_MESSAGE] = "invalid watchdog message"
+    [POST_SETUP_ERROR] = "setup error",
+    [POST_NULL_POINTER] = "null pointer"
 };
 
 _STATIC char * post_return_code_description[] = {
     [POST_OK] = "executed successfully",
     [POST_UNINITIALIZED] = "a module has not been initialized correctly",
-    [POST_INVALID_CELLBOARD_ID] = "the given id does not correspond to any valid cellboard identifier",
-    [POST_NULL_POINTER] = "attempt to dereference a null pointer",
-    [POST_WATCHDOG_INVALID_MESSAGE] = "the watchdogs are using a non valid can message"
+    [POST_SETUP_ERROR] = "a module has not been configured correctly",
+    [POST_NULL_POINTER] = "attempt to dereference a null pointer"
 };
 
 #endif // CONF_POST_STRINGS_ENABLE

@@ -27,16 +27,14 @@
  * @details
  *     - POST_OK the function executed succesfully
  *     - POST_UNINITIALIZED a module has not been initialized correctly
- *     - POST_INVALID_CELLBOARD_ID invalid cellboard identifier
+ *     - POST_SETUP_ERROR a error occured during the modules setup
  *     - POST_NULL_POINTER a NULL pointer was given to a function
- *     - POST_WATCHDOG_INVALID_MESSAGE the watchdog are using an invalid message
  */
 typedef enum {
     POST_OK,
     POST_UNINITIALIZED,
-    POST_INVALID_CELLBOARD_ID,
-    POST_NULL_POINTER,
-    POST_WATCHDOG_INVALID_MESSAGE
+    POST_SETUP_ERROR,
+    POST_NULL_POINTER
 } PostReturnCode;
 
 /**
@@ -91,9 +89,9 @@ typedef struct {
  * @param data The data needed by the POST module for initialization
  *
  * @return PostReturnCode
- *     - POST_INVALID_CELLBOARD_ID if the given cellboard id is not valid
  *     - POST_NULL_POINTER if the given function pointers are NULL
- *     - POST_WATCHDOG_INVALID_MESSAGE the watchdog are using an invalid message
+ *     - POST_UNINITIALIZED if any of the modules cannot be initialized correctly
+ *     - POST_SETUP_ERROR a error occured during the modules setup
  *     - POST_OK otherwise
  */
 PostReturnCode post_run(const PostInitData data);

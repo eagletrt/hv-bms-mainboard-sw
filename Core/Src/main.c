@@ -158,8 +158,7 @@ int main(void)
   fsm_state = fsm_run_state(fsm_state, &init_data);
   while (1)
   {
-    fsm_state = fsm_run_state(fsm_state, &init_data);
-    
+    fsm_state = fsm_run_state(fsm_state, NULL);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

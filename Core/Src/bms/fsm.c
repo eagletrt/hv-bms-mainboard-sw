@@ -255,21 +255,21 @@ fsm_state_t fsm_do_fatal(fsm_state_data_t *data) {
   (void)can_comm_routine();
 
   // TODO: Display error group name
-  ErrorInfo info = error_get_expired_info();
-  const char * const error_group_name = error_get_group_name_string(info.group);
-  (void)display_run_animation_string(
-      error_group_name,
-      strlen(error_group_name),
-      700U,
-      timebase_get_tick()
-  );
-  // const char * const display_animation = "E E EEEE ";
+  // ErrorInfo info = error_get_expired_info();
+  // const char * const error_group_name = error_get_group_name_string(info.group);
   // (void)display_run_animation_string(
-  //     display_animation,
-  //     strlen(display_animation),
-  //     400U,
+  //     error_group_name,
+  //     strlen(error_group_name),
+  //     700U,
   //     timebase_get_tick()
   // );
+  const char * const display_animation = "E E EEEE ";
+  (void)display_run_animation_string(
+      display_animation,
+      strlen(display_animation),
+      400U,
+      timebase_get_tick()
+  );
   /*** USER CODE END DO_FATAL ***/
   
   switch (next_state) {
@@ -654,11 +654,6 @@ void fsm_start(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN START ***/
   MAINBOARD_UNUSED(data); 
-
-  pcu_reset_all();
-
-  can_comm_enable_all();
-  timebase_set_enable(true);
   /*** USER CODE END START ***/
 }
 
@@ -668,11 +663,6 @@ void fsm_idle_to_fatal(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN IDLE_TO_FATAL ***/
   MAINBOARD_UNUSED(data); 
-
-  pcu_reset_all();
-
-  can_comm_enable_all();
-  timebase_set_enable(true);
 
   // Activate the AMS
   pcu_ams_activate();
