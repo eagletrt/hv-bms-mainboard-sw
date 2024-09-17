@@ -36,6 +36,10 @@
 #include "fsm.h"
 #include "post.h"
 
+#include "volt.h"
+#include "temp.h"
+#include "current.h"
+
 #include "stm32f4xx_it.h"
 
 /* USER CODE END Includes */
@@ -64,11 +68,44 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 void system_reset(void);
+void log_mainboard_params();
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void log_mainboard_params() {
+    const cells_voltage_t * volt_values = volt_get_values();
+    const cells_temp_t * temp_values = temp_get_values();
+    const ampere_t current = current_get_current();
+
+    static uint32_t last_log_time = 0;
+
+    if(HAL_GetTick() - last_log_time >= 100) {
+        usart_log("%d,", HAL_GetTick());
+
+        usart_log("%.03f,", current);
+
+        for (size_t i = 0; i < CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT; i++) {
+            usart_log("%.03f,", (*volt_values)[i]); 
+        }
+
+        for (size_t i = 0; i < CELLBOARD_COUNT * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; i++) {
+            usart_log("%.02f", (*temp_values)[i]); 
+            if(i != CELLBOARD_COUNT * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - 1) {
+                usart_log(",");
+            }
+        }
+
+        usart_log("\n");
+
+        last_log_time = HAL_GetTick();
+    }
+
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -159,6 +196,8 @@ int main(void)
   while (1)
   {
     fsm_state = fsm_run_state(fsm_state, NULL);
+    log_mainboard_params();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
