@@ -86,18 +86,21 @@ void log_mainboard_params() {
         usart_log("%d,", HAL_GetTick());
 
         usart_log("%.03f,", current);
-
-        for (size_t i = 0; i < CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT; i++) {
-            usart_log("%.03f,", (*volt_values)[i]); 
+        
+        for(size_t board = 0; board < CELLBOARD_COUNT; board++){
+          for (size_t cell = 0; cell < CELLBOARD_SEGMENT_SERIES_COUNT; cell++) {
+              usart_log("%.03f,", (*volt_values)[board][cell]); 
+          }
         }
 
-        for (size_t i = 0; i < CELLBOARD_COUNT * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; i++) {
-            usart_log("%.02f", (*temp_values)[i]); 
-            if(i != CELLBOARD_COUNT * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - 1) {
-                usart_log(",");
-            }
+        for(size_t board = 0; board < CELLBOARD_COUNT; board++){
+          for (size_t sensor = 0; sensor < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; sensor++) {
+              usart_log("%.02f", (*temp_values)[board][sensor]); 
+              if(board * CELLBOARD_COUNT + sensor != CELLBOARD_COUNT * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - 1) {
+                  usart_log(",");
+              }
+          }
         }
-
         usart_log("\n");
 
         last_log_time = HAL_GetTick();
