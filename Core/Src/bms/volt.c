@@ -86,7 +86,7 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const p
     const size_t size = 3U;
     if (payload == NULL ||
         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-        payload->offset + size >= CELLBOARD_SEGMENT_SERIES_COUNT)
+        payload->offset + size > CELLBOARD_SEGMENT_SERIES_COUNT)
         return;
     // Update voltages
     const size_t offset = payload->offset;

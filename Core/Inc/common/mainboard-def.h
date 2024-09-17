@@ -315,8 +315,8 @@ typedef enum {
 typedef enum {
     CAN_NETWORK_BMS,
     CAN_NETWORK_PRIMARY,
-    CAN_NETWORK_SECONDARY,
-    CAN_NETWORK_COUNT
+    CAN_NETWORK_COUNT,
+    CAN_NETWORK_SECONDARY
 } CanNetwork;
 
 /**

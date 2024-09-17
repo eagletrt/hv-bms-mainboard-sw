@@ -442,6 +442,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
 
   // Display the precharge percentage from 0 to 10 (in hex)
   const percentage_t perc = (percentage_t)floorf(pcu_get_precharge_percentage() * 10.f);
+  (void)display_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
   (void)display_set_digit(perc);
 
   FeedbackId id = FEEDBACK_ID_UNKNOWN;

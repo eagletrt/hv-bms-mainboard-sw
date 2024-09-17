@@ -207,8 +207,8 @@ typedef CanCommReturnCode (* can_comm_transmit_callback_t)(
  */
 typedef struct {
     bit_flag8_t enabled;
-    bool tx_busy[CAN_COMM_MESSAGE_COUNT];
-    bool rx_busy[CAN_COMM_MESSAGE_COUNT];
+    bool tx_busy[CAN_NETWORK_COUNT][CAN_COMM_MESSAGE_COUNT];
+    bool rx_busy[CAN_NETWORK_COUNT][CAN_COMM_MESSAGE_COUNT];
     RingBuffer(CanMessage, CAN_COMM_TX_BUFFER_BYTE_SIZE) tx_buf;
     RingBuffer(CanMessage, CAN_COMM_RX_BUFFER_BYTE_SIZE) rx_buf;
 

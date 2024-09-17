@@ -18,11 +18,11 @@ _STATIC _TempHandler htemp;
 
 // Array to map cells index in memory to phisical positions
 _STATIC size_t _temp_cell_position_index_map[] = {
-    63U, 65U, 15U, 61U,  6U, 39U, 46U,  7U, 
-    40U, 31U,  8U, 41U, 64U, 36U, 54U,  1U, 
-    51U, 42U, 32U, 37U, 55U, 48U, 52U, 43U, 
-    49U, 38U, 72U,  2U,  9U, 44U, 33U, 67U, 
-    45U,  3U, 10U, 75U, 34U, 11U, 57U,  4U, 
+    63U, 65U, 15U, 61U,  6U, 39U, 46U,  7U,
+    40U, 31U,  8U, 41U, 64U, 36U, 54U,  1U,
+    51U, 42U, 32U, 37U, 55U, 48U, 52U, 43U,
+    49U, 38U, 72U,  2U,  9U, 44U, 33U, 67U,
+    45U,  3U, 10U, 75U, 34U, 11U, 57U,  4U,
     12U, 70U, 35U, 13U, 69U,  5U, 14U, 73U
 };
 
@@ -103,7 +103,7 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
     const size_t size = 4U;
     if (payload == NULL ||
        (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-       payload->offset + size >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT)
+       payload->offset + size > CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT)
        return;
 
     // Update temperatures

@@ -18,6 +18,7 @@
 #include "pcu.h"
 #include "identity.h"
 #include "volt.h"
+#include "temp.h"
 #include "bal.h"
 #include "error.h"
 
@@ -59,6 +60,8 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
     switch (index) {
         case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
             return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
+        case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:     
+            return (can_comm_canlib_payload_handle_callback_t)temp_cells_temperature_handle;
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)programmer_cellboard_flash_response_handle;
         case BMS_CELLBOARD_STATUS_INDEX:
@@ -246,7 +249,7 @@ CanCommReturnCode can_comm_tx_add(
         return CAN_COMM_NULL_POINTER;
 
     // Return if a message with the same index is still inside the buffer
-    if (hcan_comm.tx_busy[index])
+    if (hcan_comm.tx_busy[network][index])
         return CAN_COMM_OK;
 
     // Prepare and push message to the buffer
@@ -260,7 +263,7 @@ CanCommReturnCode can_comm_tx_add(
 
     if (ring_buffer_push_back(&hcan_comm.tx_buf, &msg) == RING_BUFFER_FULL)
         return CAN_COMM_OVERRUN;
-    hcan_comm.tx_busy[index] = true;
+    hcan_comm.tx_busy[network][index] = true;
     return CAN_COMM_OK;
 }
 
@@ -299,7 +302,7 @@ CanCommReturnCode can_comm_rx_add(
 
     if (ring_buffer_push_back(&hcan_comm.rx_buf, &msg) == RING_BUFFER_FULL)
         return CAN_COMM_OVERRUN;
-    hcan_comm.rx_busy[index] = true;
+    hcan_comm.rx_busy[network][index] = true;
     return CAN_COMM_OK;
 }
 
@@ -314,7 +317,7 @@ CanCommReturnCode can_comm_routine(void) {
         ring_buffer_pop_front(&hcan_comm.tx_buf, &tx_msg) == RING_BUFFER_OK)
     {
         // Reset the busy flag to notify that the message is not inside the buffer anymore
-        hcan_comm.tx_busy[tx_msg.index] = false;
+        hcan_comm.tx_busy[tx_msg.network][tx_msg.index] = false;
 
         // Get the right canlib function for the serialization
         id_from_index_t id_from_index = bms_id_from_index;
@@ -372,7 +375,7 @@ CanCommReturnCode can_comm_routine(void) {
         ring_buffer_pop_front(&hcan_comm.rx_buf, &rx_msg) == RING_BUFFER_OK)
     {
         // Reset the busy flag to notify that the message is not inside the buffer anymore
-        hcan_comm.rx_busy[rx_msg.index] = false;
+        hcan_comm.rx_busy[rx_msg.network][rx_msg.index] = false;
 
         // Get the right canlib function for the serialization
         id_from_index_t id_from_index = bms_id_from_index;
