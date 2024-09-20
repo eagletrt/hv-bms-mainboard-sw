@@ -45,7 +45,7 @@ extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN Private defines */
 
 // Maximum buffer size
-#define USART_MAX_BUF_SIZE (10000U)
+#define USART_MAX_BUF_SIZE (3000U)
 
 /* USER CODE END Private defines */
 

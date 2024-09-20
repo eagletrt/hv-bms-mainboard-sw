@@ -18,7 +18,7 @@
 #include "watchdog.h"
 
 /** @brief Minimum and maximum allowed current value in A */
-#define CURRENT_MIN_A (-22.f)
+#define CURRENT_MIN_A (-40.f)
 #define CURRENT_MAX_A (130.f)
 
 /**
