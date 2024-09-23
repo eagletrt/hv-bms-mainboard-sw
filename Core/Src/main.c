@@ -94,13 +94,13 @@ void log_mainboard_params() {
         off += 4;
         *(ampere_t *)(data + off) = current;
         off += 4;
-        memcpy(data + off, (*volt_values)[4], 24 * sizeof(float));
+        memcpy(data + off, (*volt_values)[0], 24 * sizeof(float));
         off += 24 * sizeof(float);
-        memcpy(data + off, (*volt_values)[5], 24 * sizeof(float));
+        memcpy(data + off, (*volt_values)[1], 24 * sizeof(float));
         off += 24 * sizeof(float);
-        memcpy(data + off, (*temp_values)[4], 48 * sizeof(float));
+        memcpy(data + off, (*temp_values)[0], 48 * sizeof(float));
         off += 48 * sizeof(float);
-        memcpy(data + off, (*temp_values)[5], 48 * sizeof(float));
+        memcpy(data + off, (*temp_values)[1], 48 * sizeof(float));
         off += 48 * sizeof(float);
         *(char *)(data + off) = '\n';
 
