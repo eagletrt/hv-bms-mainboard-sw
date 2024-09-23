@@ -88,9 +88,11 @@ void log_mainboard_params() {
 
     static uint32_t last_log_time = 0;
 
-    if (sent && HAL_GetTick() - last_log_time >= 100) {
+    uint32_t t = HAL_GetTick();
+    if (sent && t - last_log_time >= 100) {
         size_t off = 0;
-        *(uint32_t *)data = HAL_GetTick();
+        
+        *(uint32_t *)data = t;
         off += 4;
         *(ampere_t *)(data + off) = current;
         off += 4;
@@ -107,31 +109,6 @@ void log_mainboard_params() {
         // HAL_UART_Transmit(&huart1, data, sizeof(data), HAL_MAX_DELAY);
         sent = 0;
         HAL_UART_Transmit_DMA(&huart1, data, sizeof(data));
-
-
-        // _STATIC char msg[3000] = { 0 };
-        // char str[30] = { 0 };
-        // sprintf(str, "%d,", HAL_GetTick());
-        // sprintf(msg, "%d,", HAL_GetTick());
-        //
-        // sprintf(msg + strlen(msg), "%.02f,", current);
-        // 
-        // for(size_t board = 0; board < CELLBOARD_COUNT; board++){
-        //   for (size_t cell = 0; cell < CELLBOARD_SEGMENT_SERIES_COUNT; cell++) {
-        //       sprintf(msg + strlen(msg), "%.02f,", (*volt_values)[board][cell]); 
-        //   }
-        // }
-        //
-        // for(size_t board = 0; board < CELLBOARD_COUNT; board++){
-        //   for (size_t sensor = 0; sensor < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; sensor++) {
-        //       sprintf(msg + strlen(msg), "%.01f", (*temp_values)[board][sensor]); 
-        //       if (board * CELLBOARD_COUNT + sensor != CELLBOARD_COUNT * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - 1) {
-        //           sprintf(msg + strlen(msg), ",");
-        //       }
-        //   }
-        // }
-        // sprintf(str + strlen(str), "\r\n");
-        // HAL_UART_Transmit(&huart1, (uint8_t *)str, strlen(str), 400U);
 
         last_log_time = HAL_GetTick();
     }
