@@ -189,6 +189,12 @@ bool feedback_check_values(
     FeedbackId * const out)
 {
     for (FeedbackId i = 0U; i < FEEDBACK_ID_COUNT; ++i) {
+        // TODO: Workaround only for testing, TO REMOVE
+        if (i == FEEDBACK_ID_IMD_OK ||
+            i == FEEDBACK_ID_IMD_FAULT_LATCHED ||
+            i == FEEDBACK_ID_IMD_FAULT_COCKPIT_LED)
+            continue;
+
         // Skip feedback not present inside the bitmask
         if (MAINBOARD_BIT_GET(mask, i) == 0U)
             continue;

@@ -25,6 +25,7 @@
 #include "mainboard-conf.h"
 
 #include "feedback.h"
+#include "cooling-temp.h"
 
 /* USER CODE END 0 */
 
@@ -501,8 +502,8 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
 /* USER CODE BEGIN 1 */
 
-_STATIC _VOLATILE raw_volt_t dma_data_1[ADC_FEEDBACK_1_COUNT];
-_STATIC _VOLATILE raw_volt_t dma_data_2[ADC_FEEDBACK_2_COUNT];
+_STATIC _VOLATILE raw_volt_t dma_data_1[ADC_1_CHANNEL_COUNT];
+_STATIC _VOLATILE raw_volt_t dma_data_2[ADC_2_CHANNEL_COUNT];
 
 /**
  * @brief Get the feedback analog index from the first ADC channel index
@@ -511,17 +512,16 @@ _STATIC _VOLATILE raw_volt_t dma_data_2[ADC_FEEDBACK_2_COUNT];
  *
  * @return The feedback analog index, or -1 if not found
  */
-FeedbackAnalogIndex _adc_get_index_from_adc_1_channel(AdcFeedback1ChannelIndex ch) {
+FeedbackAnalogIndex _adc_get_feedback_index_from_adc_1_channel(Adc1ChannelIndex ch) {
     switch (ch) {
-        case ADC_FEEDBACK_1_CHANNEL_INDEX_SD_OUT:
+        case ADC_1_CHANNEL_INDEX_SD_OUT:
             return FEEDBACK_ANALOG_INDEX_SD_OUT;
-        case ADC_FEEDBACK_1_CHANNEL_INDEX_SD_IN:
+        case ADC_1_CHANNEL_INDEX_SD_IN:
             return FEEDBACK_ANALOG_INDEX_SD_IN;
-        case ADC_FEEDBACK_1_CHANNEL_INDEX_SD_END:
+        case ADC_1_CHANNEL_INDEX_SD_END:
             return FEEDBACK_ANALOG_INDEX_SD_END;
-        case ADC_FEEDBACK_1_CHANNEL_INDEX_V5_MCU:
+        case ADC_1_CHANNEL_INDEX_V5_MCU:
             return FEEDBACK_ANALOG_INDEX_V5_MCU;
-
         default:
             return -1;
     }
@@ -534,64 +534,111 @@ FeedbackAnalogIndex _adc_get_index_from_adc_1_channel(AdcFeedback1ChannelIndex c
  *
  * @return The feedback analog index, or -1 if not found
  */
-FeedbackAnalogIndex _adc_get_index_from_adc_2_channel(AdcFeedback2ChannelIndex ch) {
+FeedbackAnalogIndex _adc_get_feedback_index_from_adc_2_channel(Adc2ChannelIndex ch) {
     switch (ch) {
-        case ADC_FEEDBACK_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC:
+        // Feedbacks
+        case ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC:
             return FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC;
-        case ADC_FEEDBACK_2_CHANNEL_INDEX_TSAL_GREEN:
+        case ADC_2_CHANNEL_INDEX_TSAL_GREEN:
             return FEEDBACK_ANALOG_INDEX_TSAL_GREEN;
-        case ADC_FEEDBACK_2_CHANNEL_INDEX_PROBING_3V3:
+        case ADC_2_CHANNEL_INDEX_PROBING_3V3:
             return FEEDBACK_ANALOG_INDEX_PROBING_3V3;
-        case ADC_FEEDBACK_2_CHANNEL_INDEX_AIRP_OPEN_MEC:
+        case ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC:
             return FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC;
-        case ADC_FEEDBACK_2_CHANNEL_INDEX_AIRN_OPEN_MEC:
+        case ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC:
             return FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC;
-        case ADC_FEEDBACK_2_CHANNEL_INDEX_IMD_OK:
+        case ADC_2_CHANNEL_INDEX_IMD_OK:
             return FEEDBACK_ANALOG_INDEX_IMD_OK;
-
         default:
             return -1;
     }
 }
 
-void adc_start_feedback_conversion() {
-    HAL_ADC_Start_DMA(&HADC_FEEDBACK_1, (uint32_t *)dma_data_1, ADC_FEEDBACK_1_COUNT);
-    HAL_ADC_Start_DMA(&HADC_FEEDBACK_2, (uint32_t *)dma_data_2, ADC_FEEDBACK_2_COUNT);
+/**
+ * @brief Get the cooling temperature index from the first ADC channel index
+ *
+ * @param ch The ADC channel index
+ *
+ * @return The cooling temperature index, or -1 if not found
+ */
+CoolingTempIndex _adc_get_cooling_temp_index_from_adc_1_channel(Adc1ChannelIndex ch) {
+    switch (ch) {
+        case ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMPERATURE:
+            return COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE;
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_1:
+            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1;
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_2:
+            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2;
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_3:
+            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3;
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_4:
+            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4;
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_5:
+            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5;
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_6:
+            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6;
+        default:
+            return -1;
+    }
+}
+
+void adc_start_feedback_conversion(void) {
+    HAL_ADC_Start_DMA(&HADC_1, (uint32_t *)dma_data_1, ADC_1_CHANNEL_COUNT);
+    HAL_ADC_Start_DMA(&HADC_2, (uint32_t *)dma_data_2, ADC_2_CHANNEL_COUNT);
 }
 
 // TODO: Handle return codes
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef * hadc) {
-    FeedbackAnalogIndex index;
-    if (hadc->Instance == HADC_FEEDBACK_1.Instance) {
-        const size_t size = 4U;
-        const AdcFeedback1ChannelIndex channels[] = {
-            ADC_FEEDBACK_1_CHANNEL_INDEX_SD_OUT,
-            ADC_FEEDBACK_1_CHANNEL_INDEX_SD_IN,
-            ADC_FEEDBACK_1_CHANNEL_INDEX_SD_END,
-            ADC_FEEDBACK_1_CHANNEL_INDEX_V5_MCU
+    if (hadc->Instance == HADC_1.Instance) {
+        const size_t fb_size = 4U;
+        const Adc1ChannelIndex fb_channels[] = {
+            ADC_1_CHANNEL_INDEX_SD_OUT,
+            ADC_1_CHANNEL_INDEX_SD_IN,
+            ADC_1_CHANNEL_INDEX_SD_END,
+            ADC_1_CHANNEL_INDEX_V5_MCU
         };
 
         // Copy all feedbacks values
-        for (size_t i = 0U; i < size; ++i) {
-            index = _adc_get_index_from_adc_1_channel(channels[i]);
-            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[channels[i]], ADC_VREF, ADC_RESOLUTION);
+        for (size_t i = 0U; i < fb_size; ++i) {
+            const FeedbackAnalogIndex index = _adc_get_feedback_index_from_adc_1_channel(fb_channels[i]);
+            // if (index < 0) { // TODO: Handle error }
+            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[fb_channels[i]], ADC_VREF, ADC_RESOLUTION);
             feedback_update_analog_feedback(index, volt);
         }
+
+        const size_t temp_size = 7U;
+        const Adc1ChannelIndex temp_channels[] = {
+            ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMPERATURE,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_1,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_2,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_3,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_4,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_5,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_6
+        };
+        // Copy all cooling temperature values
+        for (size_t i = 0U; i < temp_size; ++i) {
+            const CoolingTempIndex index = _adc_get_cooling_temp_index_from_adc_1_channel(temp_channels[i]);
+            // if (index < 0) { // Handle error }
+            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[fb_channels[i]], ADC_VREF, ADC_RESOLUTION);
+            cooling_temp_update_value(index, volt);
+        }
     }
-    else if (hadc->Instance == HADC_FEEDBACK_2.Instance) {
+    else if (hadc->Instance == HADC_2.Instance) {
         const size_t size = 6U;
-        const AdcFeedback2ChannelIndex channels[] = {
-            ADC_FEEDBACK_2_CHANNEL_INDEX_AIRN_OPEN_MEC,
-            ADC_FEEDBACK_2_CHANNEL_INDEX_AIRP_OPEN_MEC,
-            ADC_FEEDBACK_2_CHANNEL_INDEX_IMD_OK,
-            ADC_FEEDBACK_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC,
-            ADC_FEEDBACK_2_CHANNEL_INDEX_TSAL_GREEN,
-            ADC_FEEDBACK_2_CHANNEL_INDEX_PROBING_3V3
+        const Adc2ChannelIndex channels[] = {
+            ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC,
+            ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC,
+            ADC_2_CHANNEL_INDEX_IMD_OK,
+            ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC,
+            ADC_2_CHANNEL_INDEX_TSAL_GREEN,
+            ADC_2_CHANNEL_INDEX_PROBING_3V3
         };
 
         // Copy all feedbacks values
         for (size_t i = 0U; i < size; ++i) {
-            index = _adc_get_index_from_adc_2_channel(channels[i]);
+            const FeedbackAnalogIndex index = _adc_get_feedback_index_from_adc_2_channel(channels[i]);
+            // if (index < 0) { // TODO: Handle error }
             const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_2[channels[i]], ADC_VREF, ADC_RESOLUTION);
             feedback_update_analog_feedback(index, volt);
         }

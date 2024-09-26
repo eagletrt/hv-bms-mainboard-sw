@@ -133,6 +133,6 @@ primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_pay
 #define temp_cells_temperature_handle(payload) MAINBOARD_NOPE()
 #define temp_get_cells_temperature_canlib_payload(byte_size) (NULL)
 
-#endif  //  CONF_TEMPERATURE_MODULE_ENABLE
+#endif  // CONF_TEMPERATURE_MODULE_ENABLE
 
-#endif  //  VOLT_H
+#endif  // TEMP_H
