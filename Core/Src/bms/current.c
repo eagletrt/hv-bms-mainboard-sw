@@ -71,7 +71,7 @@ void current_handle(bms_ivt_msg_result_i_t * const payload) {
     watchdog_reset(&hcurrent.sensor_wdg);
     if (payload == NULL)
         return;
-    hcurrent.current = payload->ivt_result_i;
+    hcurrent.current = payload->ivt_result_i * 0.001f;
     _current_check_value(hcurrent.current);
 }
 
