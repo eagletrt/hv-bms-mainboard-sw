@@ -24,6 +24,25 @@
 #define COOLING_TEMP_MAX_C (60.f)
 
 /**
+ * @brief Minimum and maximum limit for the temperature voltages in V
+ *
+ * @details This limit is applied to fit into the polynomial conversion
+ * to get a plausible temperature value
+ */
+#define COOLING_TEMP_MIN_LIMIT_V (0.f/** @todo put correct values */)
+#define COOLING_TEMP_MAX_LIMIT_V (0.f/** @todo put correct values */)
+
+
+/** @brief Coefficients used for the polynomial conversion of the NTC cooling temperatures values */
+#define COOLING_TEMP_COEFF_0 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_1 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_2 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_3 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_4 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_5 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_6 (0.f /** @todo put correct values */)
+
+/**
  * @brief Return code for the cooling temperature module functions
  *
  * @details
@@ -67,7 +86,7 @@ typedef celsius_t cooling_temp_t[COOLING_TEMP_COUNT];
  */
 typedef struct {
     cooling_temp_t temperatures;
-} _TempHandler;
+} _CoolingTempHandler;
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
@@ -80,16 +99,68 @@ typedef struct {
 CoolingTempReturnCode cooling_temp_init(void);
 
 /**
+ * @brief Notify the cooling temperature module that the conversion is completed
+ *
+ * @param index The idx of the value to be upfated
+ * @param value The voltage to copy in V
+ */
+CoolingTempReturnCode cooling_temp_notify_conversion_complete(size_t index, const volt_t value);
+
+/**
+ * @brief Update a single temperature value
+ *
+ * @param index The index of the value to update
+ * @param value The new value
+ *
+ * @return TempReturnCode
+ *     - COOLING_TEMP_OUT_OF_BOUNDS if the index is greater than the total number of values
+ *     - COOLING_TEMP_OK otherwise
+ */
+CoolingTempReturnCode cooling_temp_update_value(const size_t index, const celsius_t value);
+
+/**
  * @brief Get a pointer to the array where the temperature values are stored
  *
  * @return cooling_temp_t* The pointer to the array
  */
 const cooling_temp_t * cooling_temp_get_values(void);
 
+
+/**
+ * @brief Get the minimum temperature in the cooling loop
+ *
+ * @return celsius_t The minimum temperature value in °C
+ */
+celsius_t cooling_temp_get_min(void);
+
+/**
+ * @brief Get the maximum temperature in the cooling loop
+ *
+ * @return celsius_t The maximum temperature value in °C
+ */
+celsius_t cooling_temp_get_max(void);
+
+/**
+ * @brief Get the sum of the temperatures of the cooling loop
+ *
+ * @return celsius_t The sum of the temperatures in °C
+ */
+celsius_t cooling_temp_get_sum(void);
+
+/**
+ * @brief Get the average temperature of the cooling loop
+ *
+ * @return celsius_t The average temperature in °C
+ */
+celsius_t cooling_temp_get_avg(void);
+
 #else
 
-#define cooling_temp_init() (TEMP_OK)
+#define cooling_temp_init() (COOLING_TEMP_OK)
 #define cooling_temp_get_values() (NULL)
+#define cooling_temp_get_min() (NULL)
+#define cooling_temp_get_max() (NULL)
+#define cooling_temp_get_avg() (NULL)
 
 #endif  // CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 

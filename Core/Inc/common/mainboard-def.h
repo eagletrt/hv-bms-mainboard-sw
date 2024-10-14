@@ -114,6 +114,9 @@
 /** @brief Total number of temperatures of the discharge resistance that can be read at the same time from a single segment */
 #define CELLBOARD_DISCHARGE_TEMP_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT))
 
+/** @brief Total number of cooling temperatures sensors */
+#define COOLING_TEMP_SENSOR_COUNT 6
+
 /** @} */
 
 /*** ######################### MACROS #################################### ***/

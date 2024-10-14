@@ -8,19 +8,107 @@
 
 #include "cooling-temp.h"
 
+#include <string.h>
+
+#include "error.h"
+
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
-_STATIC _CoolingTempHandler htemp;
+_STATIC _CoolingTempHandler hcoolingtemp;
+
+/**
+ * @brief Convert a voltage into a temperature using a polynomial conversion
+ *
+ * @param value The voltage value in V
+ *
+ * @return celsius_t The converted value in °C
+ */
+celsius_t _cooling_temp_volt_to_celsius(volt_t value) {
+    // Value is converted in V and limited to fit the polynomial range
+    value = MAINBOARD_CLAMP(value, COOLING_TEMP_MIN_LIMIT_V, COOLING_TEMP_MAX_LIMIT_V);
+    const double v = value;
+    const double v2 = v * v;
+    const double v3 = v2 * v;
+    const double v4 = v2 * v2;
+    const double v5 = v4 * v;
+    const double v6 = v3 * v3;
+    return COOLING_TEMP_COEFF_0 + 
+        COOLING_TEMP_COEFF_1 * v + 
+        COOLING_TEMP_COEFF_2 * v2 + 
+        COOLING_TEMP_COEFF_3 * v3 + 
+        COOLING_TEMP_COEFF_4 * v4 + 
+        COOLING_TEMP_COEFF_5 * v5 +
+        COOLING_TEMP_COEFF_6 * v6;
+}
+
+/**
+ * @brief Check if the cells temperature values are in range otherwise set an error
+ *
+ * @param value The temperature value to check in °C
+ */
+_STATIC_INLINE void _cooling_temp_check_value(const size_t index, const celsius_t value) {
+    if (value <= COOLING_TEMP_MIN_C)
+        error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+    else
+        error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+    if (value >= COOLING_TEMP_MAX_C)
+        error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+    else
+        error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+}
 
 CoolingTempReturnCode cooling_temp_init(void) {
-    memset(&htemp, 0U, sizeof(htemp));
+    memset(&hcoolingtemp, 0U, sizeof(hcoolingtemp));
+    return COOLING_TEMP_OK;
+}
+
+CoolingTempReturnCode cooling_temp_notify_conversion_complete(size_t index, const volt_t value) {
+    // Convert the raw value to celsius
+    const celsius_t temp = _cooling_temp_volt_to_celsius(value);
+    cooling_temp_update_value(index, temp);
+    return COOLING_TEMP_OK;
+}
+
+CoolingTempReturnCode cooling_temp_update_value(const size_t index, const celsius_t value) {
+    if (index > COOLING_TEMP_COUNT)
+        return COOLING_TEMP_OUT_OF_BOUNDS;
+    hcoolingtemp.temperatures[index] = value;
+    _cooling_temp_check_value(index, value);
     return COOLING_TEMP_OK;
 }
 
 const cooling_temp_t * cooling_temp_get_values(void) {
-    return &htemp.temperatures;
+    return &hcoolingtemp.temperatures;
 }
 
+
+celsius_t cooling_temp_get_min(void) {
+    celsius_t min = COOLING_TEMP_MAX_C;
+    for (size_t i = 0U; i < COOLING_TEMP_COUNT; ++i) {
+        min = MAINBOARD_MIN(min, hcoolingtemp.temperatures[i]);
+    }
+    return min;
+}
+
+celsius_t cooling_temp_get_max(void) {
+    celsius_t max = 0U;
+    for (size_t i = 0U; i < COOLING_TEMP_COUNT; ++i) {
+        max = MAINBOARD_MAX(max, hcoolingtemp.temperatures[i]);
+    }
+    return max;
+}
+
+celsius_t cooling_temp_get_sum(void) {
+    celsius_t sum = 0U;
+    for (size_t i = 0U; i < COOLING_TEMP_COUNT; ++i) {
+        sum += hcoolingtemp.temperatures[i];
+    }
+    return sum;
+}
+
+celsius_t cooling_temp_get_avg(void) {
+    return cooling_temp_get_sum() / COOLING_TEMP_COUNT;
+}
 
 #ifdef CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
 
