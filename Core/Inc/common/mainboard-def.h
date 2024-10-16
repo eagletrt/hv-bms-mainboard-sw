@@ -115,7 +115,7 @@
 #define CELLBOARD_DISCHARGE_TEMP_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT))
 
 /** @brief Total number of cooling temperatures sensors */
-#define COOLING_TEMP_SENSOR_COUNT 6
+#define COOLING_TEMP_SENSOR_COUNT 7
 
 /** @} */
 
