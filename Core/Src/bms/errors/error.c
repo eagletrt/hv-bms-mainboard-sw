@@ -24,7 +24,9 @@ const size_t instances[] = {
     [ERROR_GROUP_UNDER_TEMPERATURE] = ERROR_UNDER_TEMPERATURE_INSTANCE_COUNT,
     [ERROR_GROUP_OVER_TEMPERATURE] = ERROR_OVER_TEMPERATURE_INSTANCE_COUNT,
     [ERROR_GROUP_CAN_COMMUNICATION] = ERROR_CAN_COMMUNICATION_INSTANCE_COUNT,
-    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT
+    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT,
+    [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT,
+    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT
 };
 
 /**
@@ -41,7 +43,9 @@ const size_t thresholds[] = {
     [ERROR_GROUP_UNDER_TEMPERATURE] = 5U,
     [ERROR_GROUP_OVER_TEMPERATURE] = 5U,
     [ERROR_GROUP_CAN_COMMUNICATION] = 50U,
-    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = 1U
+    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = 1U,
+    [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = 5U,
+    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = 5U
 };
 
 int32_t error_post_instances[ERROR_POST_INSTANCE_COUNT];
@@ -53,6 +57,8 @@ int32_t error_under_temperature_instances[ERROR_UNDER_TEMPERATURE_INSTANCE_COUNT
 int32_t error_over_temperature_instances[ERROR_OVER_TEMPERATURE_INSTANCE_COUNT];
 int32_t error_can_communication_instances[ERROR_CAN_COMMUNICATION_INSTANCE_COUNT];
 int32_t error_current_sensor_communication_instances[ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT];
+int32_t error_cooling_under_temperature_instances[ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT];
+int32_t error_cooling_over_temperature_instances[ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT];
 int32_t * errors[] = {
     [ERROR_GROUP_POST] = error_post_instances,
     [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances,
@@ -62,7 +68,9 @@ int32_t * errors[] = {
     [ERROR_GROUP_UNDER_TEMPERATURE] = error_under_temperature_instances,
     [ERROR_GROUP_OVER_TEMPERATURE] = error_over_temperature_instances,
     [ERROR_GROUP_CAN_COMMUNICATION] = error_can_communication_instances,
-    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = error_current_sensor_communication_instances
+    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = error_current_sensor_communication_instances,
+    [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = error_cooling_under_temperature_instances,
+    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = error_cooling_over_temperature_instances,
 };
 
 ErrorReturnCode error_init(void) {
@@ -119,7 +127,9 @@ _STATIC char * error_group_name[] = {
     [ERROR_GROUP_UNDER_TEMPERATURE] = "under temperature",
     [ERROR_GROUP_OVER_TEMPERATURE] = "over temperature",
     [ERROR_GROUP_CAN_COMMUNICATION] = "can communication",
-    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = "current sensor communication"
+    [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = "current sensor communication",
+    [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = "cooling under temperature",
+    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = "cooling over temperature"
 };
 
 char * error_get_group_name_string(const ErrorGroup group) {

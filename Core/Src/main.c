@@ -77,7 +77,14 @@ void log_mainboard_params();
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 bool sent = 1;
-uint8_t data[8 + 72 * sizeof(float) * 6 + 4];
+uint8_t data[
+              4 +                       // timestamp
+              7 * sizeof(float) +       // cooling_volts
+              4 +                       // current
+              24 * sizeof(float) * 6 +  // volts
+              48 * sizeof(float) * 6 +  // temps
+              4                         // EOP
+            ];
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     sent = 1;
 }
@@ -96,6 +103,9 @@ void log_mainboard_params() {
         off += 4;
         *(ampere_t *)(data + off) = current;
         off += 4;
+
+        
+
         for (size_t i = 0; i < 6; i++) {
             memcpy(data + off, (*volt_values)[i], 24 * sizeof(float));
             off += 24 * sizeof(float);
