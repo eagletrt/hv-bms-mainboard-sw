@@ -77,7 +77,7 @@ void log_mainboard_params();
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 bool sent = 1;
-uint8_t data[8 + 48 * sizeof(float) * 3 + 1];
+uint8_t data[8 + 72 * sizeof(float) * 6 + 4];
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     sent = 1;
 }
@@ -96,15 +96,20 @@ void log_mainboard_params() {
         off += 4;
         *(ampere_t *)(data + off) = current;
         off += 4;
-        memcpy(data + off, (*volt_values)[0], 24 * sizeof(float));
-        off += 24 * sizeof(float);
-        memcpy(data + off, (*volt_values)[1], 24 * sizeof(float));
-        off += 24 * sizeof(float);
-        memcpy(data + off, (*temp_values)[0], 48 * sizeof(float));
-        off += 48 * sizeof(float);
-        memcpy(data + off, (*temp_values)[1], 48 * sizeof(float));
-        off += 48 * sizeof(float);
-        *(char *)(data + off) = '\n';
+        for (size_t i = 0; i < 6; i++) {
+            memcpy(data + off, (*volt_values)[i], 24 * sizeof(float));
+            off += 24 * sizeof(float);
+        }
+
+        for (size_t i = 0; i < 6; i++) {
+            memcpy(data + off, (*temp_values)[i], 48 * sizeof(float));
+            off += 48 * sizeof(float);
+        }
+
+        *(char *)(data + off++) = 0xff;
+        *(char *)(data + off++) = 0xff;
+        *(char *)(data + off++) = 0xff;
+        *(char *)(data + off++) = 0xff;
 
         // HAL_UART_Transmit(&huart1, data, sizeof(data), HAL_MAX_DELAY);
         sent = 0;
