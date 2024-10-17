@@ -39,6 +39,7 @@
 #include "volt.h"
 #include "temp.h"
 #include "current.h"
+#include "cooling-temp.h"
 
 #include "stm32f4xx_it.h"
 
@@ -79,10 +80,10 @@ void log_mainboard_params();
 bool sent = 1;
 uint8_t data[
               4 +                       // timestamp
-              7 * sizeof(float) +       // cooling_volts
               4 +                       // current
               24 * sizeof(float) * 6 +  // volts
               48 * sizeof(float) * 6 +  // temps
+              7 * sizeof(float) +       // cooling_volts
               4                         // EOP
             ];
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
@@ -92,6 +93,7 @@ void log_mainboard_params() {
     const cells_voltage_t * volt_values = volt_get_values();
     const cells_temp_t * temp_values = temp_get_values();
     const ampere_t current = current_get_current();
+    const cooling_temp_t * cooling_values = cooling_temp_get_values();
 
     static uint32_t last_log_time = 0;
 
@@ -104,8 +106,6 @@ void log_mainboard_params() {
         *(ampere_t *)(data + off) = current;
         off += 4;
 
-        
-
         for (size_t i = 0; i < 6; i++) {
             memcpy(data + off, (*volt_values)[i], 24 * sizeof(float));
             off += 24 * sizeof(float);
@@ -115,6 +115,9 @@ void log_mainboard_params() {
             memcpy(data + off, (*temp_values)[i], 48 * sizeof(float));
             off += 48 * sizeof(float);
         }
+
+        memcpy(data + off, *cooling_values, 7 * sizeof(float));
+        off += 7 * sizeof(float);
 
         *(char *)(data + off++) = 0xff;
         *(char *)(data + off++) = 0xff;
