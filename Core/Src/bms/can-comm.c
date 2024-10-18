@@ -364,10 +364,10 @@ CanCommReturnCode can_comm_routine(void) {
                 // Do nothing
                 break;
             case CAN_COMM_OK:
-                error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
                 break;
             default:
-                error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
                 break;
         }
     }
@@ -397,10 +397,10 @@ CanCommReturnCode can_comm_routine(void) {
 
             can_comm_canlib_payload_handle_callback_t handle_payload = _can_comm_payload_handle(rx_msg.network, rx_msg.index);
             if (handle_payload == NULL) {
-                error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
+                (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
             }
             else {
-                error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
+                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
                 handle_payload(hcan_comm.rx_device.message);
             }
         }

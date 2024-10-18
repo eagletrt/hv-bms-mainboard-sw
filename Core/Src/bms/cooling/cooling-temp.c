@@ -48,13 +48,13 @@ celsius_t _cooling_temp_volt_to_celsius(volt_t value) {
  */
 _STATIC_INLINE void _cooling_temp_check_value(const size_t index, const celsius_t value) {
     if (value <= COOLING_TEMP_MIN_C)
-        error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+        (void)error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
     else
-        error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+        (void)error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
     if (value >= COOLING_TEMP_MAX_C)
-        error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+        (void)error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
     else
-        error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+        (void)error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
 }
 
 CoolingTempReturnCode cooling_temp_init(void) {
