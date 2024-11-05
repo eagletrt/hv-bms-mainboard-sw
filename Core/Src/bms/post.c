@@ -66,7 +66,7 @@ PostReturnCode _post_module_setup(void) {
 
     // Wait for the current sensor to start its normal operation cycle
     milliseconds_t t = timebase_get_time();
-    while (timebase_get_time() - t >= CURRENT_SENSOR_STARTUP_TIME_MS)
+    while (timebase_get_time() - t <= CURRENT_SENSOR_STARTUP_TIME_MS)
         ;
     if (current_start_sensor_communication_watchdog() != WATCHDOG_OK)
         return POST_SETUP_ERROR;
