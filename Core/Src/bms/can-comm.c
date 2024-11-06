@@ -236,6 +236,8 @@ CanCommReturnCode can_comm_tx_add(
     // Check parameters validity
     if (network >= CAN_NETWORK_COUNT)
         return CAN_COMM_INVALID_NETWORK;
+    if (index < 0)
+        return CAN_COMM_INVALID_INDEX;
     if (network == CAN_NETWORK_BMS && index >= bms_MESSAGE_COUNT)
         return CAN_COMM_INVALID_INDEX;
     if (network == CAN_NETWORK_PRIMARY && index >= primary_MESSAGE_COUNT)
@@ -280,6 +282,8 @@ CanCommReturnCode can_comm_rx_add(
     // Check parameters validity
     if (network >= CAN_NETWORK_COUNT)
         return CAN_COMM_INVALID_NETWORK;
+    if (index < 0)
+        return CAN_COMM_INVALID_INDEX;
     if (network == CAN_NETWORK_BMS && index >= bms_MESSAGE_COUNT)
         return CAN_COMM_INVALID_INDEX;
     if (network == CAN_NETWORK_PRIMARY && index >= primary_MESSAGE_COUNT)
@@ -396,13 +400,8 @@ CanCommReturnCode can_comm_routine(void) {
             deserialize_from_id(&hcan_comm.rx_device, can_id, rx_msg.payload.rx);
 
             can_comm_canlib_payload_handle_callback_t handle_payload = _can_comm_payload_handle(rx_msg.network, rx_msg.index);
-            if (handle_payload == NULL) {
-                (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
-            }
-            else {
-                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(rx_msg.network));
+            if (handle_payload != NULL)
                 handle_payload(hcan_comm.rx_device.message);
-            }
         }
         else { 
             // TODO: Handler remote requests
