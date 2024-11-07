@@ -20,7 +20,7 @@
 
 /** @brief Minimum and maximum allowed cooling temperature in celsius */
 // TODO: Set the allowed temperature range
-#define COOLING_TEMP_MIN_C (-10.f)
+#define COOLING_TEMP_MIN_C (0.f)
 #define COOLING_TEMP_MAX_C (60.f)
 
 /**
@@ -29,18 +29,18 @@
  * @details This limit is applied to fit into the polynomial conversion
  * to get a plausible temperature value
  */
-#define COOLING_TEMP_MIN_LIMIT_V (0.f/** @todo put correct values */)
-#define COOLING_TEMP_MAX_LIMIT_V (0.f/** @todo put correct values */)
+#define COOLING_TEMP_MIN_LIMIT_V (1.118653f/** @todo put correct values */)
+#define COOLING_TEMP_MAX_LIMIT_V (2.755188f/** @todo put correct values */)
 
 
 /** @brief Coefficients used for the polynomial conversion of the NTC cooling temperatures values */
-#define COOLING_TEMP_COEFF_0 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_1 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_2 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_3 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_4 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_5 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_6 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_0 (629.6537483277709f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_1 (-2183.093259229041f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_2 (3016.411975796535f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_3 (-2150.538312014715f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_4 (846.0472201756023f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_5 (-174.4713506611182f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_6 (14.797208106456804f /** @todo put correct values */)
 
 /**
  * @brief Return code for the cooling temperature module functions
@@ -86,6 +86,7 @@ typedef celsius_t cooling_temp_t[COOLING_TEMP_COUNT];
  */
 typedef struct {
     cooling_temp_t temperatures;
+    primary_hv_cooling_temp_converted_t cooling_temp_can_payload;
 } _CoolingTempHandler;
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
@@ -154,6 +155,15 @@ celsius_t cooling_temp_get_sum(void);
  */
 celsius_t cooling_temp_get_avg(void);
 
+/**
+ * @brief Get a pointer to the CAN payload of the cooling temperature
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_cooling_temp_converted_t* A pointer to the payload
+ */
+primary_hv_cooling_temp_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size);
+
 #else
 
 #define cooling_temp_init() (COOLING_TEMP_OK)
@@ -161,6 +171,7 @@ celsius_t cooling_temp_get_avg(void);
 #define cooling_temp_get_min() (NULL)
 #define cooling_temp_get_max() (NULL)
 #define cooling_temp_get_avg() (NULL)
+#define cooling_temp_get_temperatures_canlib_payload(byte_size) (NULL)
 
 #endif  // CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 

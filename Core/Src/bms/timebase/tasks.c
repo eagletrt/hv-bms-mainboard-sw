@@ -20,6 +20,7 @@
 #include "bal.h"
 #include "imd.h"
 #include "temp.h"
+#include "cooling-temp.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -142,6 +143,19 @@ void _tasks_send_hv_cells_temperature(void) {
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLS_TEMPERATURE_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
+}
+
+/** @brief Send the cells temperature via CAN */
+void _tasks_send_hv_cooling_temperature(void) {
+    size_t byte_size = 0U;
+    uint8_t * const payload = (uint8_t * const)cooling_temp_get_temperatures_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_COOLING_TEMP_INDEX,
         CAN_FRAME_TYPE_DATA,
         payload,
         byte_size

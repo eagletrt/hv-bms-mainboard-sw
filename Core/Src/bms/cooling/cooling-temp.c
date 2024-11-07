@@ -110,6 +110,24 @@ celsius_t cooling_temp_get_avg(void) {
     return cooling_temp_get_sum() / COOLING_TEMP_COUNT;
 }
 
+
+primary_hv_cooling_temp_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size){
+    if (byte_size != NULL)
+        *byte_size = sizeof(hcoolingtemp.cooling_temp_can_payload);
+
+    const celsius_t * temperatures = hcoolingtemp.temperatures;
+
+    hcoolingtemp.cooling_temp_can_payload.temp_inlet    = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
+    hcoolingtemp.cooling_temp_can_payload.temp_outlet_1 = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
+    hcoolingtemp.cooling_temp_can_payload.temp_outlet_2 = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
+    hcoolingtemp.cooling_temp_can_payload.temp_outlet_3 = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3];
+    hcoolingtemp.cooling_temp_can_payload.temp_outlet_4 = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4];
+    hcoolingtemp.cooling_temp_can_payload.temp_outlet_5 = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5];
+    hcoolingtemp.cooling_temp_can_payload.temp_outlet_6 = hcoolingtemp.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6];
+
+    return &hcoolingtemp.cooling_temp_can_payload;
+}
+
 #ifdef CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
 
 _STATIC char * cooling_temp_module_name = "cooling temperature";
