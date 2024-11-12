@@ -136,7 +136,6 @@ void fsm_event_trigger(fsm_event_data_t *event) {
 fsm_state_t fsm_do_init(fsm_state_data_t *data) {
   fsm_state_t next_state = FSM_STATE_IDLE;
   
-  
   /*** USER CODE BEGIN DO_INIT ***/
   // Initialize the FSM handler
   memset(&hfsm, 0U, sizeof(hfsm));
@@ -199,7 +198,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
   else if (fsm_is_event_triggered()) {
       if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
           next_state = FSM_STATE_FLASH;
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
+      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON && feedback_latch_reset_ready()) {
           FeedbackId id = FEEDBACK_ID_UNKNOWN;
           if (feedback_check_values(
                   FEEDBACK_IDLE_TO_AIRN_CHECK_MASK,
@@ -699,6 +698,10 @@ void fsm_close_airn(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN CLOSE_AIRN ***/
   MAINBOARD_UNUSED(data);
+
+  // Make ts on state not enabled until reset so it isn't possible 
+  // to start ts_on immediately after returning to idle
+  feedback_latch_reset_notify();
 
   // Close the AIR-
   pcu_airn_close();

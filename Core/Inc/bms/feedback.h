@@ -466,6 +466,7 @@ typedef enum {
  * @param analog_can_payload The canlib payload of the analog feedbacks values
  * @param analog_sd_can_payload The canlib payload of the analog shutdown feedbacks values
  * @param enzomma_can_payload The canlib payload of the feedback that did not allow the BMS to go the TS ON state
+ * @param latch_reset_ready A flag which indicates if latch_reset feedback has gone low after latch_reset_notify was called
  */
 typedef struct {
     feedback_read_digital_all_callback_t read_digital;
@@ -481,6 +482,9 @@ typedef struct {
     primary_hv_feedback_analog_converted_t analog_can_payload;
     primary_hv_feedback_analog_sd_converted_t analog_sd_can_payload;
     primary_hv_feedback_enzomma_converted_t enzomma_can_payload;
+
+    // Set true if latch reset feedback goes low
+    bool latch_reset_ready;
 } _FeedbackHandler;
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
@@ -649,6 +653,18 @@ primary_hv_feedback_analog_sd_converted_t * feedback_get_analog_sd_payload(size_
  * @return primary_hv_feedback_enzomma_converted_t* A pointer to the payload
  */
 primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(const FeedbackId id, size_t * const byte_size);
+
+/**
+ * @brief sets latch_reset_low boolean inside feedback handler to false
+ */
+void feedback_latch_reset_notify();
+
+/**
+ * @brief Checks if latch reset is ready
+ *
+ * @return a boolean indicating if latch reset has gone low after feedback_latch_reset_notify was called
+ */
+bool feedback_latch_reset_ready();
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 

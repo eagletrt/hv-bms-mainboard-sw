@@ -128,6 +128,9 @@ FeedbackReturnCode feedback_init(const feedback_read_digital_all_callback_t read
     memset(&hfeedback, 0U, sizeof(hfeedback)); 
     hfeedback.read_digital = read_all;
     hfeedback.start_conversion = start_conversion;
+
+    // If latch_reset_ready is false the car can't do ts on
+    hfeedback.latch_reset_ready = true;
     return FEEDBACK_OK;
 }
 
@@ -164,9 +167,14 @@ FeedbackReturnCode feedback_update_status(void) {
     // Update the status of the digital feedbacks
     for (FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {
         const FeedbackId id = _feedback_get_id_from_digital_bit(bit);
+
         hfeedback.status[id] = MAINBOARD_BIT_GET(hfeedback.digital, bit) ?
             FEEDBACK_STATUS_HIGH :
             FEEDBACK_STATUS_LOW;
+
+        if (id == FEEDBACK_ID_LATCH_RESET && !hfeedback.status[id]) {
+            hfeedback.latch_reset_ready = true;
+        }
     }
 
     // Update the status of the analog feedback
@@ -404,6 +412,14 @@ primary_hv_feedback_enzomma_converted_t * feedback_get_enzomma_payload(const Fee
         hfeedback.enzomma_can_payload.analog = volt;
     }
     return &hfeedback.enzomma_can_payload;
+}
+
+void feedback_latch_reset_notify() {
+    hfeedback.latch_reset_ready = false;
+}
+
+bool feedback_latch_reset_ready() {
+    return hfeedback.latch_reset_ready;
 }
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
