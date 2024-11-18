@@ -20,6 +20,7 @@
 #include "bal.h"
 #include "imd.h"
 #include "temp.h"
+#include "error.h"
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
@@ -224,6 +225,20 @@ void _tasks_send_cellboard_set_balancing_status(void) {
         payload,
         byte_size
     ); 
+}
+
+/** @brief Send the errors status via CAN if an error occoured */
+void _tasks_send_errors(void) {
+
+    size_t byte_size = 0U;
+    uint8_t * const payload = (uint8_t * const)error_get_error_canlib_payload(&byte_size);
+    can_comm_tx_add(
+        CAN_NETWORK_PRIMARY,
+        PRIMARY_HV_SET_ERROR_INDEX,
+        CAN_FRAME_TYPE_DATA,
+        payload,
+        byte_size
+    );
 }
 
 /** @brief Update all the digital feedbacks */

@@ -8,11 +8,15 @@
 
 #include "error.h"
 
+#include "tasks.h"
+#include "primary_network.h"
+
 #include <string.h>
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
 _STATIC ErrorLibHandler herror;
+_STATIC primary_hv_set_error_converted_t error_can_payload;
 
 /** @brief Total number of instances for each group */
 const size_t instances[] = {
@@ -26,7 +30,8 @@ const size_t instances[] = {
     [ERROR_GROUP_CAN_COMMUNICATION] = ERROR_CAN_COMMUNICATION_INSTANCE_COUNT,
     [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT,
     [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT,
-    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT
+    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT,
+    [ERROR_GROUP_CELLBOARD_ERROR] = ERROR_CELLBOARD_ERROR_INSTANCE_COUNT
 };
 
 /**
@@ -45,7 +50,8 @@ const size_t thresholds[] = {
     [ERROR_GROUP_CAN_COMMUNICATION] = 50U,
     [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = 1U,
     [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = 5U,
-    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = 5U
+    [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = 5U,
+    [ERROR_GROUP_CELLBOARD_ERROR] = 2U,
 };
 
 int32_t error_post_instances[ERROR_POST_INSTANCE_COUNT];
@@ -59,7 +65,8 @@ int32_t error_can_communication_instances[ERROR_CAN_COMMUNICATION_INSTANCE_COUNT
 int32_t error_current_sensor_communication_instances[ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT];
 int32_t error_cooling_under_temperature_instances[ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT];
 int32_t error_cooling_over_temperature_instances[ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT];
-int32_t * errors[] = {
+int32_t error_cellboard_error_instances[ERROR_CELLBOARD_ERROR_INSTANCE_COUNT];
+int32_t * error[] = {
     [ERROR_GROUP_POST] = error_post_instances,
     [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances,
     [ERROR_GROUP_OVER_POWER] = error_over_power_instances,
@@ -71,11 +78,12 @@ int32_t * errors[] = {
     [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = error_current_sensor_communication_instances,
     [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = error_cooling_under_temperature_instances,
     [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = error_cooling_over_temperature_instances,
+    [ERROR_GROUP_CELLBOARD_ERROR] = error_cellboard_error_instances,
 };
 
 ErrorReturnCode error_init(void) {
     if (errorlib_init(&herror,
-        errors,
+        error,
         instances,
         thresholds,
         ERROR_GROUP_COUNT
@@ -85,9 +93,17 @@ ErrorReturnCode error_init(void) {
 }
 
 ErrorReturnCode error_set(const ErrorGroup group, const error_instance_t instance) {
-    if (errorlib_error_set(&herror, (errorlib_error_group_t)group, instance) != ERRORLIB_OK)
-        return ERROR_UNKNOWN;
-    return ERROR_OK;
+    ErrorLibReturnCode rt = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
+
+    if (errorlib_get_expired(&herror) > 0U) {
+        ErrorInfo error = errorlib_get_expired_info(&herror);
+        error_can_payload.group = error.group;
+        error_can_payload.instance = error.instance;
+
+        tasks_set_enable(TASKS_ID_SEND_ERRORS, true);
+    }
+
+    return rt != ERRORLIB_OK ? ERROR_UNKNOWN : ERROR_OK;
 }
 
 ErrorReturnCode error_reset(const ErrorGroup group, const error_instance_t instance) {
@@ -102,6 +118,17 @@ size_t error_get_expired(void) {
 
 ErrorInfo error_get_expired_info(void) {
     return errorlib_get_expired_info(&herror);
+}
+
+void error_cellboard_handle(bms_cellboard_error_t * const payload) {
+    error_can_payload.cellboard_group = payload->group;
+    error_can_payload.cellboard_id = payload->cellboard_id;
+    error_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);
+}
+
+primary_hv_set_error_converted_t * error_get_error_canlib_payload(size_t * const byte_size) {
+    *byte_size = sizeof(error_can_payload);
+    return &error_can_payload;
 }
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
