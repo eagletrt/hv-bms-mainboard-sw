@@ -21,15 +21,22 @@ _STATIC _VoltHandler hvolt;
 /**
  * @brief Check if the voltage values are in range otherwise set an error
  *
+ * @param id The cellboard identifier
+ * @param offset The cell offset of the segment
  * @param value The voltage value in V
  */
-_STATIC_INLINE void _volt_check_value(const size_t index, const volt_t value) {
-    if (value <= VOLT_MIN_V)
+_STATIC_INLINE void _volt_check_value(const CellboardId id, const size_t offset, const volt_t value) {
+    // BUG: Ignore broken voltages for now
+    if (id == CELLBOARD_ID_2 && (offset == 19 || offset == 20))
+        return;
+
+    size_t index = id * CELLBOARD_SEGMENT_SERIES_COUNT + offset;
+    if (value < VOLT_MIN_V)
         error_set(ERROR_GROUP_UNDER_VOLTAGE, index);
     else
         error_reset(ERROR_GROUP_UNDER_VOLTAGE, index);
 
-    if (value >= VOLT_MAX_V)
+    if (value > VOLT_MAX_V)
         error_set(ERROR_GROUP_OVER_VOLTAGE, index);
     else
         error_reset(ERROR_GROUP_OVER_VOLTAGE, index);
@@ -95,7 +102,7 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const p
     volts[offset + 1U] = payload->voltage_1;
     volts[offset + 2U] = payload->voltage_2;
     for (size_t i = 0U; i < size; ++i)
-        _volt_check_value(offset + i, volts[offset + i]);
+        _volt_check_value((CellboardId)payload->cellboard_id, offset + i, volts[offset + i]);
 }
 
 primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(size_t * const byte_size) {

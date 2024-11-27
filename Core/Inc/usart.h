@@ -70,6 +70,13 @@ void usart_log(const char * const fmt, ...);
  */
 void usart_log_ms(const milliseconds_t interval, const char * const fmt, ...);
 
+/**
+ * @brief Read a single character from the UART
+ *
+ * @return char The read character
+ */
+char usart_read(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

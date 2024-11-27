@@ -135,4 +135,10 @@ void usart_log_ms(const milliseconds_t interval, const char * const fmt, ...) {
     }
 }
 
+char usart_read(void) {
+    char c = '\0';
+    HAL_UART_Receive(&huart1, (uint8_t *)&c, 1, 3);
+    return c;
+}
+
 /* USER CODE END 1 */

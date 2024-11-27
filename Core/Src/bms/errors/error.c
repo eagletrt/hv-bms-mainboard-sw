@@ -16,7 +16,7 @@
 #ifdef CONF_ERROR_MODULE_ENABLE
 
 _STATIC ErrorLibHandler herror;
-_STATIC primary_hv_set_error_converted_t error_can_payload;
+_STATIC primary_hv_error_converted_t error_can_payload;
 
 /** @brief Total number of instances for each group */
 const size_t instances[] = {
@@ -126,7 +126,7 @@ void error_cellboard_handle(bms_cellboard_error_t * const payload) {
     error_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);
 }
 
-primary_hv_set_error_converted_t * error_get_error_canlib_payload(size_t * const byte_size) {
+primary_hv_error_converted_t * error_get_error_canlib_payload(size_t * const byte_size) {
     *byte_size = sizeof(error_can_payload);
     return &error_can_payload;
 }

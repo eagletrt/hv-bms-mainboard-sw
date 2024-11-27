@@ -112,9 +112,9 @@ void error_cellboard_handle(bms_cellboard_error_t * const payload);
  *
  * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * @return bms_cellboard_cells_voltage_converted_t* A pointer to the payload
+ * @return primary_hv_error_converted_t* A pointer to the payload
  */
-primary_hv_set_error_converted_t * error_get_error_canlib_payload(size_t * const byte_size);
+primary_hv_error_converted_t * error_get_error_canlib_payload(size_t * const byte_size);
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 
@@ -133,8 +133,8 @@ char * error_get_group_name_string(const ErrorGroup group);
 #define error_reset(group, instance) (ERROR_OK)
 #define error_get_expired() (0U)
 #define error_get_expired_info() ((ErrorInfo){ 0U })
-#define errors_cellboard_handle(payload) (NULL)
-#define error_get_errors_canlib_payload(byte_size) (NULL);
+#define error_cellboard_handle(payload) (NULL)
+#define error_get_error_canlib_payload(byte_size) (NULL);
 
 #endif // CONF_ERROR_MODULE_ENABLE
 

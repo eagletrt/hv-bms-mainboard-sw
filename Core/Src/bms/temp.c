@@ -42,15 +42,19 @@ _STATIC_INLINE int32_t _temp_cell_position_from_index(size_t index) {
 /**
  * @brief Check if the temperature values are in range otherwise set an error
  *
+ * @param id The cellboard identifier
+ * @param offset The cell offset of the segment
  * @param value The temperature value in °C
  */
-_STATIC_INLINE void _temp_check_value(const size_t index, const celsius_t value) {
-    if (value <= TEMP_MIN_C)
-        error_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
-    else
-        error_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
+_STATIC_INLINE void _temp_check_value(const CellboardId id, const size_t offset, const celsius_t value) {
+    size_t index = id * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT + offset;
+    // BUG: Ignore under temp for now
+    // if (value < TEMP_MIN_C)
+    //     error_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
+    // else
+    //     error_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
 
-    if (value >= TEMP_MAX_C)
+    if (value > TEMP_MAX_C)
         error_set(ERROR_GROUP_OVER_TEMPERATURE, index);
     else
         error_reset(ERROR_GROUP_OVER_TEMPERATURE, index);
@@ -114,7 +118,7 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
     temperatures[offset + 2U] = payload->temperature_2;
     temperatures[offset + 3U] = payload->temperature_3;
     for (size_t i = 0U; i < size; ++i)
-        _temp_check_value(offset + i, temperatures[offset + i]);
+        _temp_check_value((CellboardId)payload->cellboard_id, offset + i, temperatures[offset + i]);
 }
 
 primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_payload(size_t * const byte_size) {

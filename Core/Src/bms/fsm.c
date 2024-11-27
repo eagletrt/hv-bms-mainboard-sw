@@ -372,6 +372,23 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
+      switch (fsm_fired_event->type) {
+          case FSM_EVENT_TYPE_AIRN_TIMEOUT:
+              // Check values to update feedback enzomma
+              feedback_check_values(
+                  FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
+                  FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
+                  &id
+              );
+              // !!! BREAK INTENTIONALLY MISSING !!!
+          case FSM_EVENT_TYPE_TS_OFF:
+              next_state = FSM_STATE_IDLE;
+              break;
+          
+          default:
+              break;
+      }
+
       if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
           fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
@@ -449,9 +466,22 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_PRECHARGE_TIMEOUT ||
-          fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
-          next_state = FSM_STATE_IDLE;
+      switch (fsm_fired_event->type) {
+          case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
+              // Check values to update feedback enzomma
+              feedback_check_values(
+                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
+                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
+                  &id
+              );
+              // !!! BREAK INTENTIONALLY MISSING !!!
+          case FSM_EVENT_TYPE_TS_OFF:
+              next_state = FSM_STATE_IDLE;
+              break;
+          
+          default:
+              break;
+      }
   }
   /*
    * If the shutdown circuit is opened, immediately go to the IDLE state
@@ -522,9 +552,22 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRP_TIMEOUT ||
-          fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
-          next_state = FSM_STATE_IDLE;
+      switch (fsm_fired_event->type) {
+          case FSM_EVENT_TYPE_AIRP_TIMEOUT:
+              // Check values to update feedback enzomma
+              feedback_check_values(
+                  FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
+                  FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
+                  &id
+              );
+              // !!! BREAK INTENTIONALLY MISSING !!!
+          case FSM_EVENT_TYPE_TS_OFF:
+              next_state = FSM_STATE_IDLE;
+              break;
+          
+          default:
+              break;
+      }
   }
   /*
    * If the shutdown circuit is opened, immediately go to the IDLE state
