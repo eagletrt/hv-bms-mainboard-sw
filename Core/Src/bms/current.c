@@ -60,7 +60,7 @@ ampere_t current_get_current(void) {
 }
 
 kilowatt_t current_get_power(void) {
-    return hcurrent.current * internal_voltage_get_ts();
+    return hcurrent.current * internal_voltage_get_ts() * 0.001;
 }
 
 WatchdogReturnCode current_start_sensor_communication_watchdog(void) {
@@ -72,6 +72,8 @@ void current_handle(bms_ivt_msg_result_i_t * const payload) {
     if (payload == NULL)
         return;
     hcurrent.current = payload->ivt_result_i * 0.001f;
+    // BUG: Read current has the opposite sign
+    hcurrent.current = -hcurrent.current;
     _current_check_value(hcurrent.current);
 }
 
