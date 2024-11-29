@@ -115,9 +115,18 @@ FeedbackStatus _feedback_get_analog_status(const FeedbackAnalogIndex index) {
         return FEEDBACK_STATUS_ERROR;
     }
 
-    if (hfeedback.analog[index] >= FEEDBACK_THRESHOLD_HIGH_V)
+    volt_t thr_high = FEEDBACK_THRESHOLD_HIGH_V;
+    volt_t thr_low = FEEDBACK_THRESHOLD_LOW_V;
+
+    // BUG: Feedback voltage is too high
+    if (index == FEEDBACK_ANALOG_INDEX_IMD_OK ||
+        index == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC ||
+        index == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC)
+        thr_low = 1.4f;
+
+    if (hfeedback.analog[index] >= thr_high)
         return FEEDBACK_STATUS_HIGH;
-    if (hfeedback.analog[index] <= FEEDBACK_THRESHOLD_LOW_V)
+    if (hfeedback.analog[index] <= thr_low)
         return FEEDBACK_STATUS_LOW;
     return FEEDBACK_STATUS_ERROR;
 }
@@ -189,12 +198,6 @@ bool feedback_check_values(
     FeedbackId * const out)
 {
     for (FeedbackId i = 0U; i < FEEDBACK_ID_COUNT; ++i) {
-        // TODO: Workaround only for testing, TO REMOVE
-        if (i == FEEDBACK_ID_IMD_OK ||
-            i == FEEDBACK_ID_IMD_FAULT_LATCHED ||
-            i == FEEDBACK_ID_IMD_FAULT_COCKPIT_LED)
-            continue;
-
         // Skip feedback not present inside the bitmask
         if (MAINBOARD_BIT_GET(mask, i) == 0U)
             continue;
@@ -454,7 +457,7 @@ _STATIC char * feedback_id_name[] = {
 
 const char * const feedback_get_feedback_id_name(const FeedbackId id) {
     if (id >= FEEDBACK_ID_COUNT)
-        return "";
+        return "unknown";
     return feedback_id_name[id];
 }
 
