@@ -620,7 +620,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef * hadc) {
         for (size_t i = 0U; i < temp_size; ++i) {
             const CoolingTempIndex index = _adc_get_cooling_temp_index_from_adc_1_channel(temp_channels[i]);
             // if (index < 0) { // Handle error }
-            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[fb_channels[i]], ADC_VREF, ADC_RESOLUTION);
+            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[temp_channels[i]], ADC_VREF, ADC_RESOLUTION);
             cooling_temp_notify_conversion_complete(index, volt);
         }
     }
