@@ -56,7 +56,9 @@ ImdReturnCode imd_update(
 primary_hv_imd_status_converted_t * imd_get_status_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(himd.status_can_payload);
-    himd.status_can_payload.status = (primary_hv_imd_status_status)imd_get_status();
+    // The value of the IMD status of the canlib differs by one from the IMD status
+    // of the BMS
+    himd.status_can_payload.status = (primary_hv_imd_status_status)(imd_get_status() + 1U);
     himd.status_can_payload.frequency = imd_get_frequency();
     himd.status_can_payload.duty_cycle = imd_get_duty_cycle();
     himd.status_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
@@ -79,6 +81,25 @@ _STATIC char * imd_return_code_description[] = {
     [IMD_NULL_POINTER] = "attempt to dereference a null pointer",
     [IMD_INVALID_DATA] = "given data is not valid"
 };
+
+// IMD status unknown is negative so it can't be used in an array
+_STATIC char * imd_status_unknown_name = "unknown";
+_STATIC char * imd_status_name[] = {
+    [IMD_STATUS_SHORT_CIRCUIT] = "short circuit",
+    [IMD_STATUS_NORMAL] = "normal",
+    [IMD_STATUS_UNDER_VOLTAGE] = "undervoltage",
+    [IMD_STATUS_START_MEASURE] = "start measure",
+    [IMD_STATUS_DEVICE_ERROR] = "device error", 
+    [IMD_STATUS_EARTH_FAULT] = "earth fault"
+};
+
+const char * const imd_get_imd_status_name(const ImdStatus status) {
+    if (status > IMD_STATUS_COUNT)
+        return "unknown";
+    if (status == IMD_STATUS_UNKNOWN)
+        return imd_status_unknown_name;
+    return imd_status_name[status];
+}
 
 #endif // CONF_IMD_STRINGS_ENABLE
 

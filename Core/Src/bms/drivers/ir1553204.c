@@ -56,21 +56,8 @@ Ir1553204Status ir1553204_get_status(Ir1553204Handler * const handler) {
     if (handler == NULL)
         return IR1553204_STATUS_UNKNOWN;
     // Round frequency to avoid precision errors
-    uint32_t freq = roundf(handler->frequency / 10.f) * 10.f;
-    switch (freq) {
-        case 0U: 
-            return IR1553204_STATUS_SHORT_CIRCUIT;
-        case 10U: 
-            return IR1553204_STATUS_NORMAL;
-        case 20U:
-            return IR1553204_STATUS_UNDER_VOLTAGE;
-        case 30U:
-            return IR1553204_STATUS_START_MEASURE;
-        case 40U:
-            return IR1553204_STATUS_DEVICE_ERROR;
-        case 50U:
-            return IR1553204_STATUS_EARTH_FAULT;
-        default:
-            return IR1553204_STATUS_UNKNOWN;
-    }
+    uint32_t status = (uint32_t)roundf(handler->frequency / 10.f); 
+    if (status >= IR1553204_STATUS_COUNT)
+        return IR1553204_STATUS_UNKNOWN;
+    return (Ir1553204Status)status;
 }

@@ -140,6 +140,16 @@ ImdReturnCode imd_update(
  */
 primary_hv_imd_status_converted_t * imd_get_status_canlib_payload(size_t * const byte_size);
 
+#ifdef CONF_IMD_STRINGS_ENABLE
+
+const char * const imd_get_imd_status_name(const ImdStatus status);
+
+#else  // CONF_IMD_STRINGS_ENABLE
+
+#define imd_get_imd_status_name(status) ""
+
+#endif // CONF_IMD_STRINGS_ENABLE
+
 #else  // CONF_IMD_MODULE_ENABLE
 
 #define imd_init(start) (IMD_OK)
