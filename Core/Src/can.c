@@ -320,6 +320,84 @@ CanFrameType _can_get_frame_type_from_rtr(const uint32_t rtr) {
     }
 }
 
+void MX_CAN1_Init_250K(void) {
+    hcan1.Instance = CAN1;
+    hcan1.Init.Prescaler = 10;
+    hcan1.Init.Mode = CAN_MODE_NORMAL;
+    hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    hcan1.Init.TimeSeg1 = CAN_BS1_15TQ;
+    hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+    hcan1.Init.TimeTriggeredMode = DISABLE;
+    hcan1.Init.AutoBusOff = DISABLE;
+    hcan1.Init.AutoWakeUp = DISABLE;
+    hcan1.Init.AutoRetransmission = DISABLE;
+    hcan1.Init.ReceiveFifoLocked = DISABLE;
+    hcan1.Init.TransmitFifoPriority = DISABLE;
+    if (HAL_CAN_Init(&hcan1) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+        as the combination of: 
+        STDID + RTR + IDE + 4 most significant bits of EXTID
+    */
+    CAN_FilterTypeDef filter = {
+        .FilterActivation = CAN_FILTER_ENABLE,
+        .FilterBank = 0,
+        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
+        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+        .FilterIdLow = 0, // Take all ids from 0
+        .FilterMaskIdHigh = 0,
+        .FilterMaskIdLow = 0,
+        .FilterMode = CAN_FILTERMODE_IDMASK,
+        .FilterScale = CAN_FILTERSCALE_16BIT,
+        .SlaveStartFilterBank = 14
+    };
+    // Enable filters and start CAN
+    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
+    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_Start(&HCAN_PRIMARY);
+}
+
+void MX_CAN1_Init_1M(void) {
+  hcan1.Instance = CAN1;
+  hcan1.Init.Prescaler = 3;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
+  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+  hcan1.Init.TimeTriggeredMode = DISABLE;
+  hcan1.Init.AutoBusOff = DISABLE;
+  hcan1.Init.AutoWakeUp = DISABLE;
+  hcan1.Init.AutoRetransmission = DISABLE;
+  hcan1.Init.ReceiveFifoLocked = DISABLE;
+  hcan1.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+      as the combination of: 
+      STDID + RTR + IDE + 4 most significant bits of EXTID
+  */
+  CAN_FilterTypeDef filter = {
+      .FilterActivation = CAN_FILTER_ENABLE,
+      .FilterBank = 0,
+      .FilterFIFOAssignment = CAN_FILTER_FIFO0,
+      .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+      .FilterIdLow = 0, // Take all ids from 0
+      .FilterMaskIdHigh = 0,
+      .FilterMaskIdLow = 0,
+      .FilterMode = CAN_FILTERMODE_IDMASK,
+      .FilterScale = CAN_FILTERSCALE_16BIT,
+      .SlaveStartFilterBank = 14
+  };
+  // Enable filters and start CAN
+  HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
+  HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
+  HAL_CAN_Start(&HCAN_PRIMARY);
+}
+
 // TODO: Return and check errors
 CanCommReturnCode can_send(
     const CanNetwork network,

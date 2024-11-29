@@ -51,6 +51,11 @@ void MX_CAN2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
+/** @brief Configure CAN1 peripheral to work with 250k baudrate */
+void MX_CAN1_Init_250K(void);
+/* @brief Configure CAN1 peripheral to work with 1M baudrate */
+void MX_CAN1_Init_1M(void);
+
 /**
  * @brief Send a message via the CAN bus
  *
