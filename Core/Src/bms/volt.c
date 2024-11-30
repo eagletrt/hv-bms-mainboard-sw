@@ -61,8 +61,14 @@ const cells_voltage_t * volt_get_values(void) {
 volt_t volt_get_min(void) {
     volt_t min = VOLT_MAX_V;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
+
+            // BUG: Ignore broken voltages for now
+            if (id == CELLBOARD_ID_2 && (i == 19 || i == 20))
+                continue;
+
             min = MAINBOARD_MIN(hvolt.voltages[id][i], min);
+        }
     }
     return min;
 }
@@ -70,8 +76,14 @@ volt_t volt_get_min(void) {
 volt_t volt_get_max(void) {
     volt_t max = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
+
+            // BUG: Ignore broken voltages for now
+            if (id == CELLBOARD_ID_2 && (i == 19 || i == 20))
+                continue;
+
             max = MAINBOARD_MAX(hvolt.voltages[id][i], max);
+        }
     }
     return max;
 }
@@ -79,14 +91,21 @@ volt_t volt_get_max(void) {
 volt_t volt_get_sum(void) {
     volt_t sum = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i)
+        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
+
+            // BUG: Ignore broken voltages for now
+            if (id == CELLBOARD_ID_2 && (i == 19 || i == 20))
+                continue;
+
             sum += hvolt.voltages[id][i];
+        }
     }
     return sum;
 }
 
 volt_t volt_get_avg(void) {
-    return volt_get_sum() / CELLBOARD_SERIES_COUNT;
+    // BUG: Ignore broken voltages for now
+    return volt_get_sum() / (CELLBOARD_SERIES_COUNT - 2U);
 }
 
 void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const payload) {
@@ -124,6 +143,23 @@ primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(siz
             hvolt.cellboard_id = 0U;
     }
     return &hvolt.volt_can_payload;
+}
+
+primary_hv_cells_voltage_stats_converted_t * volt_get_cells_voltage_stats_canlib_payload(size_t * const byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hvolt.volt_stats_can_payload);
+
+    const volt_t max = volt_get_max();
+    const volt_t min = volt_get_min();
+
+    hvolt.volt_stats_can_payload.max = max;
+    hvolt.volt_stats_can_payload.min = min;
+
+    hvolt.volt_stats_can_payload.delta = max - min;
+
+    hvolt.volt_stats_can_payload.avg = volt_get_avg();
+
+    return &hvolt.volt_stats_can_payload;
 }
 
 #ifdef CONF_VOLTAGE_STRINGS_ENABLE

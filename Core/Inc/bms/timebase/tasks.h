@@ -54,7 +54,9 @@
     TASKS_X(SEND_POWER, true, 10U, PRIMARY_HV_POWER_CYCLE_TIME_MS, _tasks_send_hv_power) \
     TASKS_X(SEND_TS_VOLTAGE, true, 0U, PRIMARY_HV_TS_VOLTAGE_CYCLE_TIME_MS, _tasks_send_hv_ts_voltage) \
     TASKS_X(SEND_CELLS_VOLTAGE, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_CYCLE_TIME_MS, _tasks_send_hv_cells_voltage) \
+    TASKS_X(START_CELLS_VOLTAGE_STATS, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_STATS_CYCLE_TIME_MS, _tasks_send_hv_cells_voltage_stats) \
     TASKS_X(SEND_CELLS_TEMPERATURE, true, 10U, PRIMARY_HV_CELLS_TEMPERATURE_CYCLE_TIME_MS, _tasks_send_hv_cells_temperature) \
+    TASKS_X(START_CELLS_TEMPERATURE_STATS, true, 10U, PRIMARY_HV_CELLS_TEMP_STATS_CYCLE_TIME_MS, _tasks_send_hv_cells_temperature_stats) \
     TASKS_X(SEND_FEEDBACK_STATUS, true, 10U, PRIMARY_HV_FEEDBACK_STATUS_CYCLE_TIME_MS, _tasks_send_hv_feedback_status) \
     TASKS_X(SEND_FEEDBACK_DIGITAL, true, 10U, PRIMARY_HV_FEEDBACK_DIGITAL_CYCLE_TIME_MS, _tasks_send_hv_feedback_digital) \
     TASKS_X(SEND_FEEDBACK_ANALOG, true, 10U, PRIMARY_HV_FEEDBACK_ANALOG_CYCLE_TIME_MS, _tasks_send_hv_feedback_analog) \
@@ -65,7 +67,7 @@
     TASKS_X(READ_DIGITAL_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, _tasks_read_digital_feedbacks) \
     TASKS_X(START_ANALOG_CONVERSION_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, _tasks_start_analog_conversion_feedbacks) \
     TASKS_X(UPDATE_FEEDBACKS_STATUS, true, 2U, FEEDBACK_CYCLE_TIME_MS, _tasks_update_feedbacks_status) \
-    TASKS_X(START_INTERNAL_VOLTAGE_CONVERSION, true, 0U, INTERNAL_VOLTAGE_CYCLE_TIME_MS, _tasks_start_internal_voltage_conversion)
+    TASKS_X(START_INTERNAL_VOLTAGE_CONVERSION, true, 0U, INTERNAL_VOLTAGE_CYCLE_TIME_MS, _tasks_start_internal_voltage_conversion) 
 
 /** @brief Convert a task name to the corresponding TasksId name */
 #define TASKS_NAME_TO_ID(NAME) (TASKS_ID_##NAME)

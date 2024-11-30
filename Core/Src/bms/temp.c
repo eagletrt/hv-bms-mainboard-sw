@@ -73,6 +73,11 @@ celsius_t temp_get_min(void) {
     celsius_t min = TEMP_MAX_C;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
+
+            //BUG: ignore broken temperature for now
+            if ((i == 0 && j == 18) || (i == 3 && j == 43))
+                continue;
+
             min = MAINBOARD_MIN(min, htemp.temperatures[i][j]);
         }
     }
@@ -83,6 +88,11 @@ celsius_t temp_get_max(void) {
     celsius_t max = 0U;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
+
+            //BUG: ignore broken temperature for now
+            if ((i == 0 && j == 18) || (i == 3 && j == 43))
+                continue;
+
             max = MAINBOARD_MAX(max, htemp.temperatures[i][j]);
         }
     }
@@ -93,6 +103,11 @@ celsius_t temp_get_sum(void) {
     celsius_t sum = 0U;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
+
+            //BUG: ignore broken temperature for now
+            if ((i == 0 && j == 18) || (i == 3 && j == 43))
+                continue;
+
             sum += htemp.temperatures[i][j];
         }
     }
@@ -100,7 +115,8 @@ celsius_t temp_get_sum(void) {
 }
 
 celsius_t temp_get_avg(void) {
-    return temp_get_sum() / CELLBOARD_TEMP_SENSOR_COUNT;
+    //BUG: ignore broken temperature for now
+    return temp_get_sum() / (CELLBOARD_TEMP_SENSOR_COUNT - 2);
 }
 
 void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t * const payload) {
@@ -147,6 +163,18 @@ primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_pay
     }
     return &htemp.temp_can_payload;
 
+}
+
+primary_hv_cells_temp_stats_converted_t * temp_get_cells_temperature_stats_canlib_payload(size_t * const byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(htemp.temp_stats_can_payload);
+
+    htemp.temp_stats_can_payload.max = temp_get_max();
+    htemp.temp_stats_can_payload.min = temp_get_min();
+
+    htemp.temp_stats_can_payload.avg = temp_get_avg();
+
+    return &htemp.temp_stats_can_payload;
 }
 
 #ifdef CONF_TEMPERATURE_STRINGS_ENABLE

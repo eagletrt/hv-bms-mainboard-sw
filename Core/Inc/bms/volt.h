@@ -56,9 +56,10 @@ typedef volt_t cells_voltage_t[CELLBOARD_COUNT][CELLBOARD_SEGMENT_SERIES_COUNT];
 typedef struct {
     cells_voltage_t voltages;
 
-    primary_hv_cells_voltage_converted_t volt_can_payload;
     CellboardId cellboard_id;
     size_t offset;
+    primary_hv_cells_voltage_converted_t volt_can_payload;
+    primary_hv_cells_voltage_stats_converted_t volt_stats_can_payload;
 } _VoltHandler;
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
@@ -122,6 +123,15 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const p
  */
 primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(size_t * const byte_size);
 
+/**
+ * @brief Get a pointer to the CAN payload of the cells voltage stats
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_cellboard_cells_voltage_stats_converted_t* A pointer to the payload
+ */
+primary_hv_cells_voltage_stats_converted_t * volt_get_cells_voltage_stats_canlib_payload(size_t * const byte_size);
+
 #else  // CONF_VOLTAGE_MODULE_ENABLE
 
 #define volt_init() (VOLT_OK)
@@ -132,6 +142,7 @@ primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(siz
 #define volt_get_sum() (VOLT_VALUE_TO_VOLT(VOLT_MAX_VALUE))
 #define volt_cells_voltage_handle(payload) MAINBOARD_NOPE()
 #define volt_get_cells_voltage_canlib_payload(byte_size) (NULL)
+#define volt_get_cells_voltage_stats_canlib_payload(byte_size) (NULL)
 
 #endif  // CONF_VOLTAGE_MODULE_ENABLE
 

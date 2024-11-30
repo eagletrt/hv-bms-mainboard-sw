@@ -60,6 +60,7 @@ typedef struct {
     CellboardId cellboard_id;
     size_t offset; 
     primary_hv_cells_temperature_converted_t temp_can_payload;
+    primary_hv_cells_temp_stats_converted_t temp_stats_can_payload;
 } _TempHandler;
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
@@ -123,6 +124,15 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
  */
 primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_payload(size_t * const byte_size);
 
+/**
+ * @brief Get a pointer to the CAN payload of the cells temperature stats
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_cellboard_cells_temp_stats_converted_t* A pointer to the payload
+ */
+primary_hv_cells_temp_stats_converted_t * temp_get_cells_temperature_stats_canlib_payload(size_t * const byte_size);
+
 #else
 
 #define temp_init() (TEMP_OK)
@@ -132,6 +142,7 @@ primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_pay
 #define temp_get_avg() (NULL)
 #define temp_cells_temperature_handle(payload) MAINBOARD_NOPE()
 #define temp_get_cells_temperature_canlib_payload(byte_size) (NULL)
+#define temp_get_cells_temperature_stats_canlib_payload(byte_size) (NULL)
 
 #endif  // CONF_TEMPERATURE_MODULE_ENABLE
 
