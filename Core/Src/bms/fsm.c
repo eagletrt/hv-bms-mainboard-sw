@@ -762,7 +762,10 @@ void fsm_handle_fatal_error(fsm_state_data_t *data) {
   MAINBOARD_UNUSED(data); 
 
   // Activate the AMS
-  pcu_ams_activate();
+  pcu_ams_activate(); 
+
+  // Stop balancing in case it is running
+  (void)bal_stop();
   /*** USER CODE END HANDLE_FATAL_ERROR ***/
 }
 
