@@ -121,6 +121,9 @@ ErrorInfo error_get_expired_info(void) {
 }
 
 void error_cellboard_handle(bms_cellboard_error_t * const payload) {
+    // BUG: Open wire during charge
+    if (payload->group == bms_cellboard_error_group_open_wire)
+        return;
     error_can_payload.cellboard_group = payload->group;
     error_can_payload.cellboard_id = payload->cellboard_id;
     error_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);

@@ -73,7 +73,7 @@ CoolingTempReturnCode cooling_temp_update_value(const size_t index, const celsiu
     if (index > COOLING_TEMP_COUNT)
         return COOLING_TEMP_OUT_OF_BOUNDS;
     hcoolingtemp.temperatures[index] = value;
-    _cooling_temp_check_value(index, value);
+    // _cooling_temp_check_value(index, value);
     return COOLING_TEMP_OK;
 }
 
@@ -108,6 +108,32 @@ celsius_t cooling_temp_get_sum(void) {
 
 celsius_t cooling_temp_get_avg(void) {
     return cooling_temp_get_sum() / COOLING_TEMP_COUNT;
+}
+
+primary_hv_cells_temp_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size) {
+    if (byte_size != NULL)
+        *byte_size = sizeof(hcoolingtemp.cooling_temp_can_payload);
+
+    static size_t index = 0U;
+    const celsius_t * temperatures = hcoolingtemp.temperatures;
+    hcoolingtemp.cooling_temp_can_payload.start_index = index;
+    switch (index) {
+        case 0U:
+            hcoolingtemp.cooling_temp_can_payload.temp_0 = temperatures[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
+            hcoolingtemp.cooling_temp_can_payload.temp_1 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
+            hcoolingtemp.cooling_temp_can_payload.temp_2 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
+            hcoolingtemp.cooling_temp_can_payload.temp_3 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3];
+            break;
+        case 1U:
+            hcoolingtemp.cooling_temp_can_payload.temp_0 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4];
+            hcoolingtemp.cooling_temp_can_payload.temp_1 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5];
+            hcoolingtemp.cooling_temp_can_payload.temp_2 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6];
+            hcoolingtemp.cooling_temp_can_payload.temp_3 = 0U;
+            break;
+    }
+    if (++index >= 2U)
+        index = 0U;
+    return &hcoolingtemp.cooling_temp_can_payload;
 }
 
 #ifdef CONF_COOLING_TEMPERATURE_STRINGS_ENABLE

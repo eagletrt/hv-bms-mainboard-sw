@@ -122,7 +122,7 @@ FeedbackStatus _feedback_get_analog_status(const FeedbackAnalogIndex index) {
     if (index == FEEDBACK_ANALOG_INDEX_IMD_OK ||
         index == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC ||
         index == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC)
-        thr_low = 1.4f;
+        thr_low = 1.6f;
 
     if (hfeedback.analog[index] >= thr_high)
         return FEEDBACK_STATUS_HIGH;
@@ -169,6 +169,7 @@ volt_t feedback_get_analog(const FeedbackAnalogIndex index) {
     return hfeedback.analog[index];
 }
 
+uint32_t debug_cnt = 0U;
 FeedbackReturnCode feedback_update_status(void) {
     // Update the status of the digital feedbacks
     for (FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {
@@ -181,7 +182,19 @@ FeedbackReturnCode feedback_update_status(void) {
     // Update the status of the analog feedback
     for (FeedbackAnalogIndex i = 0U; i < FEEDBACK_ANALOG_INDEX_COUNT; ++i) {
         const FeedbackId id = _feedback_get_id_from_analog_index(i);
-        hfeedback.status[id] = _feedback_get_analog_status(i);
+        // hfeedback.status[id] = _feedback_get_analog_status(i);
+        FeedbackStatus status = _feedback_get_analog_status(i);
+        // BUG: Noise cause AIR feedbacks voltage to change too much
+        if (i == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC || i == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
+            if (status == FEEDBACK_STATUS_ERROR) {
+                ++debug_cnt;
+                status = hfeedback.analog[i] >= FEEDBACK_THRESHOLD_HIGH_V ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
+            }
+            else {
+                debug_cnt = 0U;
+            }
+        }
+        hfeedback.status[id] = status;
     }
     return FEEDBACK_OK;
 }

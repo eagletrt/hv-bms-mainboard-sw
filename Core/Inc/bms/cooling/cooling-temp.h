@@ -29,18 +29,18 @@
  * @details This limit is applied to fit into the polynomial conversion
  * to get a plausible temperature value
  */
-#define COOLING_TEMP_MIN_LIMIT_V (0.f/** @todo put correct values */)
-#define COOLING_TEMP_MAX_LIMIT_V (0.f/** @todo put correct values */)
+#define COOLING_TEMP_MIN_LIMIT_V (0.f)
+#define COOLING_TEMP_MAX_LIMIT_V (3.f)
 
 
 /** @brief Coefficients used for the polynomial conversion of the NTC cooling temperatures values */
-#define COOLING_TEMP_COEFF_0 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_1 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_2 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_3 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_4 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_5 (0.f /** @todo put correct values */)
-#define COOLING_TEMP_COEFF_6 (0.f /** @todo put correct values */)
+#define COOLING_TEMP_COEFF_0 ( 162.9947f)
+#define COOLING_TEMP_COEFF_1 (-289.0887f)
+#define COOLING_TEMP_COEFF_2 ( 353.5436f)
+#define COOLING_TEMP_COEFF_3 (-276.9361f)
+#define COOLING_TEMP_COEFF_4 ( 125.8228f)
+#define COOLING_TEMP_COEFF_5 (- 30.5363f)
+#define COOLING_TEMP_COEFF_6 (   3.0394f)
 
 /**
  * @brief Return code for the cooling temperature module functions
@@ -86,6 +86,8 @@ typedef celsius_t cooling_temp_t[COOLING_TEMP_COUNT];
  */
 typedef struct {
     cooling_temp_t temperatures;
+
+    primary_hv_cells_temp_converted_t cooling_temp_can_payload;
 } _CoolingTempHandler;
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
@@ -153,6 +155,8 @@ celsius_t cooling_temp_get_sum(void);
  * @return celsius_t The average temperature in °C
  */
 celsius_t cooling_temp_get_avg(void);
+
+primary_hv_cells_temp_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size);
 
 #else
 
