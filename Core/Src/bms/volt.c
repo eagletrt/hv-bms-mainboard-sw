@@ -26,10 +26,6 @@ _STATIC _VoltHandler hvolt;
  * @param value The voltage value in V
  */
 _STATIC_INLINE void _volt_check_value(const CellboardId id, const size_t offset, const volt_t value) {
-    // BUG: Ignore broken voltages for now
-    if (id == CELLBOARD_ID_2 && (offset == 19 || offset == 20))
-        return;
-
     size_t index = id * CELLBOARD_SEGMENT_SERIES_COUNT + offset;
     if (value < VOLT_MIN_V)
         error_set(ERROR_GROUP_UNDER_VOLTAGE, index);
@@ -62,11 +58,6 @@ volt_t volt_get_min(void) {
     volt_t min = VOLT_MAX_V;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-
-            // BUG: Ignore broken voltages for now
-            if (id == CELLBOARD_ID_2 && (i == 19 || i == 20))
-                continue;
-
             min = MAINBOARD_MIN(hvolt.voltages[id][i], min);
         }
     }
@@ -77,11 +68,6 @@ volt_t volt_get_max(void) {
     volt_t max = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-
-            // BUG: Ignore broken voltages for now
-            if (id == CELLBOARD_ID_2 && (i == 19 || i == 20))
-                continue;
-
             max = MAINBOARD_MAX(hvolt.voltages[id][i], max);
         }
     }
@@ -92,11 +78,6 @@ volt_t volt_get_sum(void) {
     volt_t sum = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-
-            // BUG: Ignore broken voltages for now
-            if (id == CELLBOARD_ID_2 && (i == 19 || i == 20))
-                continue;
-
             sum += hvolt.voltages[id][i];
         }
     }
@@ -104,8 +85,7 @@ volt_t volt_get_sum(void) {
 }
 
 volt_t volt_get_avg(void) {
-    // BUG: Ignore broken voltages for now
-    return volt_get_sum() / (CELLBOARD_SERIES_COUNT - 2U);
+    return volt_get_sum() / CELLBOARD_SERIES_COUNT;
 }
 
 void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const payload) {

@@ -48,11 +48,10 @@ _STATIC_INLINE int32_t _temp_cell_position_from_index(size_t index) {
  */
 _STATIC_INLINE void _temp_check_value(const CellboardId id, const size_t offset, const celsius_t value) {
     size_t index = id * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT + offset;
-    // BUG: Ignore under temp for now
-    // if (value < TEMP_MIN_C)
-    //     error_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
-    // else
-    //     error_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
+    if (value < TEMP_MIN_C)
+        error_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
+    else
+        error_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
 
     if (value > TEMP_MAX_C)
         error_set(ERROR_GROUP_OVER_TEMPERATURE, index);
@@ -73,11 +72,6 @@ celsius_t temp_get_min(void) {
     celsius_t min = TEMP_MAX_C;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-
-            //BUG: ignore broken temperature for now
-            if ((i == 0 && j == 18) || (i == 3 && j == 43))
-                continue;
-
             min = MAINBOARD_MIN(min, htemp.temperatures[i][j]);
         }
     }
@@ -88,11 +82,6 @@ celsius_t temp_get_max(void) {
     celsius_t max = 0U;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-
-            //BUG: ignore broken temperature for now
-            if ((i == 0 && j == 18) || (i == 3 && j == 43))
-                continue;
-
             max = MAINBOARD_MAX(max, htemp.temperatures[i][j]);
         }
     }
@@ -103,11 +92,6 @@ celsius_t temp_get_sum(void) {
     celsius_t sum = 0U;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-
-            //BUG: ignore broken temperature for now
-            if ((i == 0 && j == 18) || (i == 3 && j == 43))
-                continue;
-
             sum += htemp.temperatures[i][j];
         }
     }
@@ -115,8 +99,7 @@ celsius_t temp_get_sum(void) {
 }
 
 celsius_t temp_get_avg(void) {
-    //BUG: ignore broken temperature for now
-    return temp_get_sum() / (CELLBOARD_TEMP_SENSOR_COUNT - 2);
+    return temp_get_sum() / CELLBOARD_TEMP_SENSOR_COUNT;
 }
 
 void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t * const payload) {
