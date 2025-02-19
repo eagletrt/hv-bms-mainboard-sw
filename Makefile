@@ -57,8 +57,8 @@ ULIBS_DIR = $(LIB_DIR)/micro-libs
 C_SOURCES =  \
 $(shell find $(SRC_DIR)/bms -name "*.c") \
 $(CANLIB_DIR)/canlib_device.c \
-$(shell find $(CANLIB_DIR)/bms -name "*.c") \
-$(shell find $(CANLIB_DIR)/primary -name "*.c") \
+$(CANLIB_DIR)/bms/bms_network.c \
+$(CANLIB_DIR)/primary/primary_network.c \
 $(BLINKY_C_SOURCES) \
 $(RING_BUFFER_C_SOURCES) \
 $(MIN_HEAP_C_SOURCES) \

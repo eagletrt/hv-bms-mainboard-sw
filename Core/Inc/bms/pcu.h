@@ -173,18 +173,22 @@ void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted
 #else  // CONF_PCU_MODULE_ENABLE
 
 #define pcu_init(set, toggle) (PCU_OK)
-#define pcu_airn_open() CELLBOARD_NOPE()
-#define pcu_airn_close() CELLBOARD_NOPE()
-#define pcu_airp_open() CELLBOARD_NOPE()
-#define pcu_airp_close() CELLBOARD_NOPE()
-#define pcu_precharge_start() CELLBOARD_NOPE()
-#define pcu_precharge_stop() CELLBOARD_NOPE()
-#define pcu_ams_activate() CELLBOARD_NOPE()
-#define pcu_ams_deactivate() CELLBOARD_NOPE()
+#define pcu_reset_all() MAINBOARD_NOPE()
+#define pcu_airn_open() MAINBOARD_NOPE()
+#define pcu_airn_close() MAINBOARD_NOPE()
+#define pcu_airn_stop_watchdog() MAINBOARD_NOPE()
+#define pcu_airp_open() MAINBOARD_NOPE()
+#define pcu_airp_close() MAINBOARD_NOPE()
+#define pcu_airp_stop_watchdog() MAINBOARD_NOPE()
+#define pcu_precharge_start() MAINBOARD_NOPE()
+#define pcu_precharge_stop() MAINBOARD_NOPE()
+#define pcu_precharge_stop_watchdog() MAINBOARD_NOPE()
+#define pcu_ams_activate() MAINBOARD_NOPE()
+#define pcu_ams_deactivate() MAINBOARD_NOPE()
 #define pcu_get_precharge_percentage() (0.f)
 #define pcu_is_precharge_complete() (false)
-#define pcu_set_state_from_ecu_handle(payload) CELLBOARD_NOPE()
-#define pcu_set_state_from_handcart_handle(payload) CELLBOARD_NOPE()
+#define pcu_set_state_from_ecu_handle(payload) MAINBOARD_NOPE()
+#define pcu_set_state_from_handcart_handle(payload) MAINBOARD_NOPE()
 
 #endif // CONF_PCU_MODULE_ENABLE
 

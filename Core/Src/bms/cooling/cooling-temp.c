@@ -70,7 +70,7 @@ CoolingTempReturnCode cooling_temp_notify_conversion_complete(size_t index, cons
 }
 
 CoolingTempReturnCode cooling_temp_update_value(const size_t index, const celsius_t value) {
-    if (index > COOLING_TEMP_COUNT)
+    if (index >= COOLING_TEMP_COUNT)
         return COOLING_TEMP_OUT_OF_BOUNDS;
     hcoolingtemp.temperatures[index] = value;
     // _cooling_temp_check_value(index, value);

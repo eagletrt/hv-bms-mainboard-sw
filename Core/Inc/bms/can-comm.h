@@ -388,8 +388,8 @@ CanCommReturnCode can_comm_routine(void);
 #define can_comm_disable(bit) CELLBOARD_NOPE()
 #define can_comm_is_enabled(bit) (false)
 #define can_comm_send_immidiate(index, frame_type, data, size) (CAN_COMM_OK)
-#define can_comm_tx_add(index, frame_type, data, size) (CAN_COMM_OK)
-#define can_comm_rx_add(index, frame_type, data, size) (CAN_COMM_OK)
+#define can_comm_tx_add(network, index, frame_type, data, size) (CAN_COMM_OK)
+#define can_comm_rx_add(network, index, frame_type, data, size) (CAN_COMM_OK)
 #define can_comm_routine() (CAN_COMM_OK)
 
 #endif // CONF_CAN_COMM_MODULE_ENABLE
