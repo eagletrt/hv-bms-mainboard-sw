@@ -197,7 +197,9 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
       next_state = FSM_STATE_FATAL;
   // Check for events
   else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+      else if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
           next_state = FSM_STATE_FLASH;
       else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
           FeedbackId id = FEEDBACK_ID_UNKNOWN;
@@ -295,11 +297,18 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
   MAINBOARD_UNUSED(data); 
 
   const ProgrammerReturnCode code = programmer_routine();
-  // Check for errors
+
+  // Check for errors 
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
       next_state = FSM_STATE_IDLE;
+
+  // Check for events
+  if (fsm_is_event_triggered()) {
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+  }
   /*** USER CODE END DO_FLASH ***/
   
   switch (next_state) {
@@ -337,7 +346,9 @@ fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+      else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)
           next_state = FSM_STATE_IDLE;
   }
   /*** USER CODE END DO_BALANCING ***/
@@ -372,21 +383,25 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      switch (fsm_fired_event->type) {
-          case FSM_EVENT_TYPE_AIRN_TIMEOUT:
-              // Check values to update feedback enzomma
-              feedback_check_values(
-                  FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
-                  FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
-                  &id
-              );
-              // !!! BREAK INTENTIONALLY MISSING !!!
-          case FSM_EVENT_TYPE_TS_OFF:
-              next_state = FSM_STATE_IDLE;
-              break;
-          
-          default:
-              break;
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+      else {
+          switch (fsm_fired_event->type) {
+              case FSM_EVENT_TYPE_AIRN_TIMEOUT:
+                  // Check values to update feedback enzomma
+                  feedback_check_values(
+                      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
+                      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
+                      &id
+                  );
+                  // !!! BREAK INTENTIONALLY MISSING !!!
+              case FSM_EVENT_TYPE_TS_OFF:
+                  next_state = FSM_STATE_IDLE;
+                  break;
+              
+              default:
+                  break;
+          }
       }
 
       if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
@@ -466,21 +481,25 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      switch (fsm_fired_event->type) {
-          case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
-              // Check values to update feedback enzomma
-              feedback_check_values(
-                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
-                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
-                  &id
-              );
-              // !!! BREAK INTENTIONALLY MISSING !!!
-          case FSM_EVENT_TYPE_TS_OFF:
-              next_state = FSM_STATE_IDLE;
-              break;
-          
-          default:
-              break;
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+      else { 
+          switch (fsm_fired_event->type) {
+              case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
+                  // Check values to update feedback enzomma
+                  feedback_check_values(
+                      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
+                      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
+                      &id
+                  );
+                  // !!! BREAK INTENTIONALLY MISSING !!!
+              case FSM_EVENT_TYPE_TS_OFF:
+                  next_state = FSM_STATE_IDLE;
+                  break;
+              
+              default:
+                  break;
+          }
       }
   }
   /*
@@ -552,21 +571,25 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      switch (fsm_fired_event->type) {
-          case FSM_EVENT_TYPE_AIRP_TIMEOUT:
-              // Check values to update feedback enzomma
-              feedback_check_values(
-                  FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
-                  FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
-                  &id
-              );
-              // !!! BREAK INTENTIONALLY MISSING !!!
-          case FSM_EVENT_TYPE_TS_OFF:
-              next_state = FSM_STATE_IDLE;
-              break;
-          
-          default:
-              break;
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+      else {
+          switch (fsm_fired_event->type) {
+              case FSM_EVENT_TYPE_AIRP_TIMEOUT:
+                  // Check values to update feedback enzomma
+                  feedback_check_values(
+                      FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
+                      FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
+                      &id
+                  );
+                  // !!! BREAK INTENTIONALLY MISSING !!!
+              case FSM_EVENT_TYPE_TS_OFF:
+                  next_state = FSM_STATE_IDLE;
+                  break;
+              
+              default:
+                  break;
+          }
       }
   }
   /*
@@ -643,7 +666,9 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
   if (error_get_expired() > 0)
       next_state = FSM_STATE_FATAL;
   else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
+      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+            next_state = FSM_STATE_FATAL;
+      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
           next_state = FSM_STATE_IDLE;
   }
   else if (!feedback_check_values(
@@ -882,6 +907,12 @@ fsm_state_t fsm_get_status(void) {
 void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * const payload) {
     if (payload == NULL)
         return;
+
+    if (payload->status == BMS_CELLBOARD_STATUS_STATUS_FATAL_CHOICE) {
+        hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
+        fsm_event_trigger(&hfsm.fatal_event);
+    }
+
     hfsm.cellboard_status[payload->cellboard_id] = payload->status;
 }
 

@@ -61,6 +61,7 @@ typedef enum {
     FSM_EVENT_TYPE_AIRP_TIMEOUT,
     FSM_EVENT_TYPE_BALANCING_START,
     FSM_EVENT_TYPE_BALANCING_STOP,
+    FSM_EVENT_TYPE_CELLBOARD_FATAL,
     FSM_EVENT_TYPE_COUNT,
     FSM_EVENT_TYPE_IGNORED
 } FsmEventType;
@@ -122,6 +123,8 @@ typedef void transition_func_t(fsm_state_data_t *data);
 typedef struct {
     fsm_state_t fsm_state;
     fsm_event_data_t event;
+
+    fsm_event_data_t fatal_event;
 
     // Canlib paylaods
     primary_hv_status_converted_t status_can_payload;
