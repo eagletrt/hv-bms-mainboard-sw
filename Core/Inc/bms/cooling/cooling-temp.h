@@ -87,7 +87,7 @@ typedef celsius_t cooling_temp_t[COOLING_TEMP_COUNT];
 typedef struct {
     cooling_temp_t temperatures;
 
-    primary_hv_cells_temp_converted_t cooling_temp_can_payload;
+    primary_hv_cooling_temperature_converted_t cooling_temp_can_payload;
 } _CoolingTempHandler;
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
@@ -156,7 +156,14 @@ celsius_t cooling_temp_get_sum(void);
  */
 celsius_t cooling_temp_get_avg(void);
 
-primary_hv_cells_temp_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size);
+/**
+ * @brief Get a pointer to the CAN payload of the cooling temperatures
+ *
+ * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * @return primary_hv_cooling_temperature_converted_t* A pointer to the payload
+ */
+primary_hv_cooling_temperature_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size);
 
 #else
 

@@ -110,29 +110,18 @@ celsius_t cooling_temp_get_avg(void) {
     return cooling_temp_get_sum() / COOLING_TEMP_COUNT;
 }
 
-primary_hv_cells_temp_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size) {
+primary_hv_cooling_temperature_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hcoolingtemp.cooling_temp_can_payload);
 
-    static size_t index = 0U;
-    const celsius_t * temperatures = hcoolingtemp.temperatures;
-    hcoolingtemp.cooling_temp_can_payload.start_index = index;
-    switch (index) {
-        case 0U:
-            hcoolingtemp.cooling_temp_can_payload.temp_0 = temperatures[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
-            hcoolingtemp.cooling_temp_can_payload.temp_1 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
-            hcoolingtemp.cooling_temp_can_payload.temp_2 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
-            hcoolingtemp.cooling_temp_can_payload.temp_3 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3];
-            break;
-        case 1U:
-            hcoolingtemp.cooling_temp_can_payload.temp_0 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4];
-            hcoolingtemp.cooling_temp_can_payload.temp_1 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5];
-            hcoolingtemp.cooling_temp_can_payload.temp_2 = temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6];
-            hcoolingtemp.cooling_temp_can_payload.temp_3 = 0U;
-            break;
-    }
-    if (++index >= 2U)
-        index = 0U;
+    const celsius_t * temps = hcoolingtemp.temperatures;
+    hcoolingtemp.cooling_temp_can_payload.inlet = temps[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
+    hcoolingtemp.cooling_temp_can_payload.outlet_0 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
+    hcoolingtemp.cooling_temp_can_payload.outlet_1 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
+    hcoolingtemp.cooling_temp_can_payload.outlet_2 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3];
+    hcoolingtemp.cooling_temp_can_payload.outlet_3 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4];
+    hcoolingtemp.cooling_temp_can_payload.outlet_4 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5];
+    hcoolingtemp.cooling_temp_can_payload.outlet_5 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6];
     return &hcoolingtemp.cooling_temp_can_payload;
 }
 
