@@ -72,8 +72,7 @@ void current_handle(bms_ivt_msg_result_i_t * const payload) {
     if (payload == NULL)
         return;
     hcurrent.current = payload->ivt_result_i * 0.001f;
-    // BUG: Read current has the opposite sign
-    hcurrent.current = -hcurrent.current;
+    hcurrent.current = hcurrent.current;
     _current_check_value(hcurrent.current);
 }
 
