@@ -784,10 +784,14 @@ void fsm_close_airn(fsm_state_data_t *data) {
 void fsm_handle_fatal_error(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
-  MAINBOARD_UNUSED(data); 
+  MAINBOARD_UNUSED(data);
 
   // Activate the AMS
-  pcu_ams_activate(); 
+  pcu_ams_activate();
+
+  pcu_precharge_stop();
+  pcu_airn_open();
+  pcu_airp_open();
 
   // Stop balancing in case it is running
   (void)bal_stop();
@@ -859,7 +863,7 @@ void fsm_close_airp(fsm_state_data_t *data) {
 void fsm_ts_on(fsm_state_data_t *data) {
   
   /*** USER CODE BEGIN TS_ON ***/
-  MAINBOARD_UNUSED(data); 
+  MAINBOARD_UNUSED(data);
 
   // Stop the AIR+ watchdog
   pcu_airp_stop_watchdog();
@@ -895,7 +899,7 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
   if (new_state == FSM_NO_CHANGE) new_state = cur_state;
   transition_func_t *transition = fsm_transition_table[cur_state][new_state];
   if (transition)
-    transition(data);
+        transition(data);
   return new_state;
 };
 
