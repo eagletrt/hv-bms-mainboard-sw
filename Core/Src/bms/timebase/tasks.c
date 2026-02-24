@@ -72,7 +72,7 @@ void _tasks_send_hv_status(void) {
     );
 }
 
-/** @brief Send the BSM balancing status via CAN */
+/** @brief Send the BSM balancing status via CAN (enabled by default)*/
 void _tasks_send_hv_balancing_status(void) {
     size_t byte_size = 0U;
     uint8_t * const payload = (uint8_t * const)bal_get_status_canlib_payload(&byte_size);

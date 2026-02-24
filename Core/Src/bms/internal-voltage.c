@@ -14,7 +14,7 @@
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
-_STATIC _InternalVoltageHandler hvolt;
+_STATIC _InternalVoltageHandler hvolt_int;
 
 InternalVoltageReturnCode internal_voltage_init(
     spi_send_callback_t send,
@@ -22,35 +22,35 @@ InternalVoltageReturnCode internal_voltage_init(
 {
     if (send == NULL || send_receive == NULL)
         return INTERNAL_VOLTAGE_NULL_POINTER;
-    memset(&hvolt, 0U, sizeof(hvolt));
-    (void)max22530_init(&hvolt.max22530, send, send_receive);
+    memset(&hvolt_int, 0U, sizeof(hvolt_int));
+    (void)max22530_init(&hvolt_int.max22530, send, send_receive);
     return INTERNAL_VOLTAGE_OK;
 }
 
 InternalVoltageReturnCode internal_voltage_read_all(void) {
     volt_t volts[INTERNAL_VOLTAGE_CHANNEL_COUNT];
-    (void)max22530_read_channels_all(&hvolt.max22530, true, volts, NULL);
-    hvolt.ts = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE]);
-    hvolt.pack = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE]);
+    (void)max22530_read_channels_all(&hvolt_int.max22530, true, volts, NULL);
+    hvolt_int.ts = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE]);
+    hvolt_int.pack = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE]);
     // TODO: Convert and update the IMD TS connected feedback and precharge temperature
     return INTERNAL_VOLTAGE_OK;
 }
 
 volt_t internal_voltage_get_ts(void) {
-    return hvolt.ts;
+    return hvolt_int.ts;
 }
 
 volt_t internal_voltage_get_pack(void) {
-    return hvolt.pack;
+    return hvolt_int.pack;
 }
 
 primary_hv_ts_voltage_converted_t * internal_voltage_get_ts_voltage_canlib_payload(size_t * const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hvolt.ts_voltage_can_payload);
-    hvolt.ts_voltage_can_payload.ts = hvolt.ts;
-    hvolt.ts_voltage_can_payload.pack = hvolt.pack;
-    hvolt.ts_voltage_can_payload.cells_sum = volt_get_sum();
-    return &hvolt.ts_voltage_can_payload;
+        *byte_size = sizeof(hvolt_int.ts_voltage_can_payload);
+    hvolt_int.ts_voltage_can_payload.ts = hvolt_int.ts;
+    hvolt_int.ts_voltage_can_payload.pack = hvolt_int.pack;
+    hvolt_int.ts_voltage_can_payload.cells_sum = volt_get_sum();
+    return &hvolt_int.ts_voltage_can_payload;
 }
 
 #ifdef CONF_INTERNAL_VOLTAGE_STRINGS_ENABLE

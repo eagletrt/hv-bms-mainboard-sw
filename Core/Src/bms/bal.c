@@ -4,6 +4,7 @@
  * @author Antonio Gelain [antonio.gelain2@gmail.com]
  *
  * @brief Balancing handling functions
+ * 
  */
 
 #include "bal.h"
