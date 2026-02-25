@@ -263,7 +263,7 @@ DisplayReturnCode display_toggle_segment(const DisplaySegment segment) {
     const Tdsr0760SegmentStatus status = tdsr0760_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
     if (status == TDSR0760_SEGMENT_STATUS_UNKNOWN)
         return DISPLAY_INVALID_STATUS;
-    hdisplay.set(segment, (const DisplaySegmentStatus)status);
+    hdisplay.set(segment, (const DisplaySegmentStatus)status); 
     return DISPLAY_OK;
 }
 
@@ -312,6 +312,8 @@ DisplayReturnCode display_run_animation(
         return DISPLAY_NULL_POINTER;
     if (ticks_per_frame <= 0U)
         ticks_per_frame = 1U;
+    if (size == 0U)
+        return DISPLAY_INVALID_CHARACTER;
     // Display a step of the animation based on the current time
     const size_t i = (t / ticks_per_frame) % size;
     return display_set_segment_all(animation[i]);
