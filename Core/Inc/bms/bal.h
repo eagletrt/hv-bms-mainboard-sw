@@ -71,6 +71,7 @@ typedef struct {
 typedef struct {
     fsm_event_data_t event;
     bms_cellboard_set_balancing_status_converted_t set_status_can_payload;
+    //TODO: make this an array
     primary_hv_balancing_status_converted_t status_can_payload;
     Watchdog watchdog;
 
