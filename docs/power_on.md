@@ -3,7 +3,7 @@
 <img src="../assets/fsm/fsm.png">
 
 ## Idle state
-In idle state wait for a ```FSM_EVENT_TYPE_TS_ON``` fired event that comes from from either the ECU or the handcart.ù
+In idle state wait for a ```FSM_EVENT_TYPE_TS_ON``` fired event that comes from from either the ECU or the handcart.
 If the [```FEEDBACK_IDLE_TO_AIRN_CHECK_MASK```](feedback.md/#transition-mask-idle-airn_check) checks out correctly then the fsm transitions on, else it sends an enzomma payload with the failed check in can and stays in Idle.
 
 ### Idle to AIRN_CHECK

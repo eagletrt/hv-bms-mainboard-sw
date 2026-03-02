@@ -24,7 +24,7 @@ This module handles all the funcitons for the balancing of the batteries load. I
 
 ```bal_is_active```: returns the status of the balancing
 
-```bal_start```: called in the transition function between idle and balancing, this gets called if the fsm_fired_event is ```FSM_EVENT_TYPE_BALANCING_START```, this flag can be set by either the callbacks from the steering wheel or the handcart.
+```bal_start```: called in the transition function between idle and balancing, this gets called if the fsm_fired_event is ```FSM_EVENT_TYPE_BALANCING_START```, this flag can be set by either the callbacks from the steering wheel or the handcart, it enables the task that every 50ms sends the balancing status to the cellboards.
 
 ```bal_stop```: stops the watchdog and stops the mainboard from sending any more data to the cellboards. It is called either when a fatal event occurs or when returning to idle. Transition that is called either when the 3 seconds timeout expires or if one of the two callbacks from SW or hancart return an inactive balancing status. (how do the cellboards know that the balancing has stopped?? do they just get killed by their own timeout??) (RIGUARDAREEEEEE)
 
