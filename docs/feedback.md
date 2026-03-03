@@ -59,14 +59,45 @@ This module provides all the hardware checks needed to change and mantain states
 ```feedback_get_enzomma_payload```: this is used after ```feedback_check_values``` to send in can the out value if the check fails.
 
 ```feedback_check_values```: this function needs a mask(what feedback to check), a value(what is the expected value) and a pointer to a FeedbackId variable that will be set to the feedback that fails the check. This function will then check the masked feedback with the expected values and return true if all test pass.
+## Feedbacks
+
+    FEEDBACK_ID_AIRN_OPEN_COM: signal state of AIR- relay (negated).
+    FEEDBACK_ID_PRECHARGE_OPEN_COM: signal state of precharge relay (negated).
+    FEEDBACK_ID_AIRP_OPEN_COM: signal state of AIR+ relay (negated).
+    FEEDBACK_ID_AIRN_OPEN_MEC: mechanical state of the AIR- relay (high=open).
+    FEEDBACK_ID_PRECHARGE_OPEN_MEC: mechanical state of the precharge relay (high=open).
+    FEEDBACK_ID_AIRP_OPEN_MEC: mechanical state of the AIR+ relay (high=open). 
+    FEEDBACK_ID_SD_IMD_FB: feedback enabled if it is the IMD that triggered the shutdown circuit.
+    FEEDBACK_ID_SD_BMS_FB: feedback enabled if it is the BMS that triggered the shutdown circuit.
+    FEEDBACK_ID_TS_LESS_THAN_60V: tractive system circuit < 60V
+    FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED: plausibility check after buffer.
+    FEEDBACK_ID_PLAUSIBLE_STATE: raw plausibility check.
+    FEEDBACK_ID_BMS_FAULT_COCKPIT_LED: end of FEEDBACK_ID_BMS_FAULT_LATCHED.
+    FEEDBACK_ID_IMD_FAULT_COCKPIT_LED: end of FEEDBACK_ID_IMD_FAULT_LATCHED.
+    FEEDBACK_ID_INDICATOR_CONNECTED: feedback high if the ts > 60V indicator is connected. 
+    FEEDBACK_ID_LATCH_RESET: feedback to check if latch reset is enabled, this can be "activated" by the SD_RESET button.
+    FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED: plausibility check aftetr latching.
+    FEEDBACK_ID_BMS_FAULT_LATCHED: latched error state of the BMS, can be reset with the SD_RESET button, triggered by the BMS_OK_3V3 signal going low.
+    FEEDBACK_ID_IMD_FAULT_LATCHED: latched error state of the IMD, can be reset with the SD_RESET button, triggered by the BMS_OK_3V3 signal going low.
+    FEEDBACK_ID_EXT_FAULT_LATCHED: latched error state of an external fault coming from the tsac, can be reset with the SD_RESET button, triggered by the BMS_OK_3V3 signal going low.
+    FEEDBACK_ID_IMD_OK: feedback from the IMD (OK high).
+    FEEDBACK_ID_PLAUSIBLE_STATE_RC: plausibility check after filtering.
+    FEEDBACK_ID_TSAL_GREEN: high if: precharge relay open, ts<60V, all AIR open (also controls tsal led).
+    FEEDBACK_ID_PROBING_3V3: no idea what this is used for (check that 3v3 volt line is high??).
+    FEEDBACK_ID_SD_OUT: second shutdown check.
+    FEEDBACK_ID_SD_IN: first shutdown check.
+    FEEDBACK_ID_SD_END: third shutdown check.
+    FEEDBACK_ID_V5_MCU: feedback on the 5V line (can't find it).
+    FEEDBACK_ID_COUNT,
+    FEEDBACK_ID_UNKNOWN
 
 ## Check masks
 
 ### Transition mask IDLE->AIRN_CHECK
 Map used when transitioning from the IDLE state to the AIRN_CHECK state.
 #### Check high
- - AIRN_OPEN_MEC
- - PRECHARGE_OPEN_MEC
+ - AIRN_OPEN_MEC: mechanical state of the AIR- relay (high=open).
+ - PRECHARGE_OPEN_MEC: mechanical state of the precharge relay (high=open).
  - AIRP_OPEN_MEC
  - TS_LESS_THAN_60V
  - PLAUSIBLE_STATE_PERSISTED
@@ -83,8 +114,8 @@ Map used when transitioning from the IDLE state to the AIRN_CHECK state.
  - V5_MCU
 
 #### Check low
- - AIRN_OPEN_COM
- - PRECHARGE_OPEN_COM
+ - AIRN_OPEN_COM: signal state of AIR- relay (negated).
+ - PRECHARGE_OPEN_COM: signal state of precharge relay (negated).
  - AIRP_OPEN_COM
 
 ---

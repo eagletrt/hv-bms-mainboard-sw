@@ -9,14 +9,14 @@ Pack control unit, handles state transitions and precharge/startup procedures an
 ```PcuPin```: the enumerator.
  - ```PCU_PIN_AIR_NEGATIVE```: pin connected to the AIR- (the relay connected to the negative side of the battery pack).
  - ```PCU_PIN_AIR_POSITIVE```: pin connected to the AIR+ (the relay connected to the positive side of the battery pack).
- - ```PCU_PIN_PRECHARGE```: pin connected to the precharge circuit (WHAT DOES THIS DO??).
+ - ```PCU_PIN_PRECHARGE```: pin connected to the precharge relay.
  - ```PCU_PIN_AMS```: pin connected to the ams circuit (WHAT DOES THIS DO??).
 
 ```_PcuHandler```: this is the main handler that contains all relevant information for the class.
  - ```.set```: callback to the function to set a pin.
  - ```.toggle```: callback to the function to togglo a pin.
- - ```.event```: 
- - ```.timeout_event```: 
+ - ```.event```: event to trigger in the FSM.
+ - ```.timeout_event```: event in which the timeout triggered.
  - ```.airn_watchdog```: the pointer to the watchdog for the AIR-.
  - ```.precharge_watchdog```: the pointer to the watchdog for the precharge procedure.
   - ```.airp_watchdog```: the pointer to the watchdog for the AIR+.
