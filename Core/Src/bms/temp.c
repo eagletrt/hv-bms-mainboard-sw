@@ -79,7 +79,7 @@ celsius_t temp_get_min(void) {
 }
 
 celsius_t temp_get_max(void) {
-    celsius_t max = 0U;
+    celsius_t max = TEMP_MIN_C;
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
             max = MAINBOARD_MAX(max, htemp.temperatures[i][j]);
@@ -121,6 +121,8 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
 }
 
 primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_payload(size_t * const byte_size) {
+    //what is this check??? and what is byte size used for??
+
     if (byte_size != NULL)
         *byte_size = sizeof(htemp.temp_can_payload);
 
