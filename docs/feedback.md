@@ -4,61 +4,61 @@ This module provides all the hardware checks needed to change and mantain states
 
 ## Structures and Enums
 
-```FeedbackId```: this is the definition of all possible digital states (26).
-```FeedbackBit```: defines the mapping from the id to the correct bit position in the 32 bit flag, this is the final logical space, so it contains both digital and analog feedbacks so that masks can be created from it.
+`FeedbackId`: this is the definition of all possible digital states (26).
+`FeedbackBit`: defines the mapping from the id to the correct bit position in the 32 bit flag, this is the final logical space, so it contains both digital and analog feedbacks so that masks can be created from it.
 
-```FeedbackDigitalBit```: enum representing all digital inputs.
-```FeedbackAnalogIndex```: enum representing all analog inputs.
+`FeedbackDigitalBit`: enum representing all digital inputs.
+`FeedbackAnalogIndex`: enum representing all analog inputs.
 
 
-```FeedbackStatus```: the main logic flag, either high or low (or error).
+`FeedbackStatus`: the main logic flag, either high or low (or error).
 
-```_FeedbackHandler```: the main module handler, 
-- ```read_digital```: the callback to the gpio function to read all digital inputs 
-- ```start_conversion```: the callback to start the analog conversion
-- ```digital```: the 32bit flag for all the digital inputs
-- ```analog```: the voltage array for the analog inputs
-- ```status```: the normalized status structure that contains all the logical states of the feedbacks 
-- ```status_can_payload```, ```digital_can_payload```, ```analog_can_payload```, ```analog_sd_can_payload```, ```enzomma_can_payload```: the can payloads to be sent to the primary network.
+`_FeedbackHandler`: the main module handler, 
+- `read_digital`: the callback to the gpio function to read all digital inputs 
+- `start_conversion`: the callback to start the analog conversion
+- `digital`: the 32bit flag for all the digital inputs
+- `analog`: the voltage array for the analog inputs
+- `status`: the normalized status structure that contains all the logical states of the feedbacks 
+- `status_can_payload`, `digital_can_payload`, `analog_can_payload`, `analog_sd_can_payload`, `enzomma_can_payload`: the can payloads to be sent to the primary network.
 
 ## Functions
 
-```_feedback_get_id_from_digital_bit```: maps from the ```FeedbackDigitalBit``` enum to the ```FeedbackId```.
+`_feedback_get_id_from_digital_bit`: maps from the `FeedbackDigitalBit` enum to the `FeedbackId`.
 
-```_feedback_get_id_from_analog_index```: maps from the ```FeedbackAnalogIndex``` enum to the ```FeedbackId```.
+`_feedback_get_id_from_analog_index`: maps from the `FeedbackAnalogIndex` enum to the `FeedbackId`.
 
-```_feedback_get_analog_status```: from the ```FeedackAnalogIndex``` enum this functions gets the raw voltage from the ```.analog``` array and returns a boolean state depending on the type of feedback (3.3v probing must be inside a range and for the others they must be outside of a range).
+`_feedback_get_analog_status`: from the `FeedackAnalogIndex` enum this functions gets the raw voltage from the `.analog` array and returns a boolean state depending on the type of feedback (3.3v probing must be inside a range and for the others they must be outside of a range).
 
-```feedback_init```: clears the handler and stores the read digital and start conversion functions.
+`feedback_init`: clears the handler and stores the read digital and start conversion functions.
 
-```feedback_update_digital_feedback_all```: calls the read digital funciton, this is mapped to ```gpio_feedback_read_all``` in gpio through main.c and the fsm post. This already creates the 32bit flag.
+`feedback_update_digital_feedback_all`: calls the read digital funciton, this is mapped to `gpio_feedback_read_all` in gpio through main.c and the fsm post. This already creates the 32bit flag.
 
-```feedback_start_analog_conversion_all```: this is called in the taks ```_tasks_start_analog_conversion_feedbacks``` that is called every millisecond. (the ADC doesn't automatically reload itself right??)
-```feedback_get_digital```: returns a boolean of the state of a digital feedback given the bit of the digital bitflag.
+`feedback_start_analog_conversion_all`: this is called in the taks `_tasks_start_analog_conversion_feedbacks` that is called every millisecond. (the ADC doesn't automatically reload itself right??)
+`feedback_get_digital`: returns a boolean of the state of a digital feedback given the bit of the digital bitflag.
 
-```feedback_get_analog```: returns a volt value of the state of an analog feedback given the bit of the analog bitflag.
+`feedback_get_analog`: returns a volt value of the state of an analog feedback given the bit of the analog bitflag.
 
-```feedback_update_status```: updates the main logic status flag with the digital bit flag, updates the main logic status by repeatedly calling the ```_feedback_get_analog_status```.    
+`feedback_update_status`: updates the main logic status flag with the digital bit flag, updates the main logic status by repeatedly calling the `_feedback_get_analog_status`.    
 
-```feedback_get_status```: get the status from the ID from the status array.
+`feedback_get_status`: get the status from the ID from the status array.
 
-```feedback_is_digital```: returns true if the feedback ID is digital. 
+`feedback_is_digital`: returns true if the feedback ID is digital. 
 
-```feedback_get_digital_bit_from_id```: converts back from ID to bit
+`feedback_get_digital_bit_from_id`: converts back from ID to bit
 
-```feedback_get_analog_index_from_id```: converts back from ID to bit
+`feedback_get_analog_index_from_id`: converts back from ID to bit
 
-```feedback_get_status_payload```: called from a task that every 50 ms sends in can the whole status array.
+`feedback_get_status_payload`: called from a task that every 50 ms sends in can the whole status array.
 
-```feedback_get_digital_payload```: called from a task that every 50 ms sends in can the digital bits.
+`feedback_get_digital_payload`: called from a task that every 50 ms sends in can the digital bits.
 
-```feedback_get_analog_payload```: called from a task that every 50 ms sends in can the analog voltages.
+`feedback_get_analog_payload`: called from a task that every 50 ms sends in can the analog voltages.
 
-```feedback_get_analog_sd_payload```: called from a task that every 50 ms sends in can the shutdown button statuses. (why is the shutdown status not in any checks???)
+`feedback_get_analog_sd_payload`: called from a task that every 50 ms sends in can the shutdown button statuses. (why is the shutdown status not in any checks???)
 
-```feedback_get_enzomma_payload```: this is used after ```feedback_check_values``` to send in can the out value if the check fails.
+`feedback_get_enzomma_payload`: this is used after `feedback_check_values` to send in can the out value if the check fails.
 
-```feedback_check_values```: this function needs a mask(what feedback to check), a value(what is the expected value) and a pointer to a FeedbackId variable that will be set to the feedback that fails the check. This function will then check the masked feedback with the expected values and return true if all test pass.
+`feedback_check_values`: this function needs a mask(what feedback to check), a value(what is the expected value) and a pointer to a FeedbackId variable that will be set to the feedback that fails the check. This function will then check the masked feedback with the expected values and return true if all test pass.
 ## Feedbacks
 
     FEEDBACK_ID_AIRN_OPEN_COM: signal state of AIR- relay (negated).
