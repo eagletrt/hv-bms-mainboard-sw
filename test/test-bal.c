@@ -30,7 +30,7 @@ void test_bal_is_active_false() {
 }
 
 void test_bal_is_active_true() {
-    hbal.active = true; 
+    hbal.active = true;
     TEST_ASSERT_TRUE_MESSAGE(bal_is_active(), "Module should be active when hbal.active is true");
 }
 
@@ -58,16 +58,16 @@ void test_bal_get_status_canlib_payload() {
 
 void test_bal_get_set_status_canlib_payload() {
     size_t byte_size;
-    
+
     hbal.active = true;
     hbal.params.target = 3.5f;
     hbal.params.threshold = 0.05f;
 
     bms_cellboard_set_balancing_status_converted_t *payload = bal_get_set_status_canlib_payload(&byte_size);
-    
+
     TEST_ASSERT_EQUAL_MESSAGE(&hbal.set_status_can_payload, payload, "Returned payload pointer does not match internal handler");
     TEST_ASSERT_EQUAL_MESSAGE(sizeof(hbal.set_status_can_payload), byte_size, "Returned payload size mismatch");
-    
+
     TEST_ASSERT_TRUE_MESSAGE(payload->start, "Active status not correctly mapped to payload->start");
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(3.5f, payload->target, "Target voltage not correctly mapped to payload");
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.05f, payload->threshold, "Threshold voltage not correctly mapped to payload");
@@ -76,7 +76,7 @@ void test_bal_get_set_status_canlib_payload() {
 void test_bal_cellboard_balancing_status_handle_content() {
     bms_cellboard_balancing_status_converted_t input;
     memset(&input, 0, sizeof(input));
-    
+
     input.status = 1;
     input.cellboard_id = 5;
     input.discharging_cell_0 = 1;
@@ -97,7 +97,7 @@ void test_bal_set_balancing_state_from_steering_wheel_handle_target_clamp() {
     primary_hv_set_balancing_status_steering_wheel_converted_t payload;
     payload.status = true;
     payload.threshold = BAL_THRESHOLD_MAX_V;
-    
+
     bal_set_balancing_state_from_steering_wheel_handle(&payload);
 
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
@@ -111,7 +111,7 @@ void test_bal_set_balancing_state_from_steering_wheel_handle_threshold() {
     primary_hv_set_balancing_status_steering_wheel_converted_t payload;
     payload.status = true;
     payload.threshold = BAL_THRESHOLD_MIN_V - 1.0f; // Force low value
-    
+
     bal_set_balancing_state_from_steering_wheel_handle(&payload);
 
     float delta = (BAL_THRESHOLD_MIN_V + BAL_THRESHOLD_MAX_V) / 2.0f;
@@ -120,7 +120,7 @@ void test_bal_set_balancing_state_from_steering_wheel_handle_threshold() {
 
 void test_bal_set_balancing_state_from_steering_wheel_handle_event() {
     hbal.active = false; // Ensure current state is not balancing
-    
+
     primary_hv_set_balancing_status_steering_wheel_converted_t payload;
     payload.status = true;
     bal_set_balancing_state_from_steering_wheel_handle(&payload);
@@ -132,7 +132,7 @@ void test_bal_set_balancing_state_from_handcart_handle_threshold() {
     primary_hv_set_balancing_status_handcart_converted_t payload;
     payload.status = true;
     payload.threshold = BAL_THRESHOLD_MIN_V - 1.0f;
-    
+
     bal_set_balancing_state_from_handcart_handle(&payload);
 
     float delta = (BAL_THRESHOLD_MIN_V + BAL_THRESHOLD_MAX_V) / 2.0f;
@@ -141,7 +141,7 @@ void test_bal_set_balancing_state_from_handcart_handle_threshold() {
 
 void test_bal_set_balancing_state_from_handcart_handle_event() {
     hbal.active = false;
-    
+
     primary_hv_set_balancing_status_handcart_converted_t payload;
     payload.status = true;
     bal_set_balancing_state_from_handcart_handle(&payload);

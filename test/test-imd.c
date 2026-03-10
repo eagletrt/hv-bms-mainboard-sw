@@ -111,6 +111,12 @@ void test_imd_get_status_normal_after_update() {
     TEST_ASSERT_EQUAL_MESSAGE(IMD_STATUS_NORMAL, imd_get_status(), "IMD status should be NORMAL after 10Hz update");
 }
 
+void test_imd_get_status_under_voltage_after_update() {
+    (void)imd_init(imd_start_mock);
+    (void)imd_update(2000U, 100U, 50U); /* freq=20 => UNDER_VOLTAGE */
+    TEST_ASSERT_EQUAL_MESSAGE(IMD_STATUS_UNDER_VOLTAGE, imd_get_status(), "IMD status should be UNDER_VOLTAGE after 20Hz update");
+}
+
 void test_imd_get_period_after_update() {
     (void)imd_init(imd_start_mock);
     (void)imd_update(1000U, 50U, 25U); /* freq=20 => period=50ms */
@@ -139,7 +145,6 @@ void test_imd_get_status_canlib_payload_content_mapping() {
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 10.0f, payload->frequency, "CAN payload frequency mismatch");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 0.3f, payload->duty_cycle, "CAN payload duty cycle mismatch");
 }
-
 
 /* -------------------------- Unity runner ---------------------------- */
 
@@ -171,6 +176,7 @@ int main() {
     RUN_TEST(test_imd_update_invalid_period_count);
     RUN_TEST(test_imd_update_sets_frequency_and_duty_cycle);
     RUN_TEST(test_imd_get_status_normal_after_update);
+    RUN_TEST(test_imd_get_status_under_voltage_after_update);
     RUN_TEST(test_imd_get_period_after_update);
     RUN_TEST(test_imd_get_status_canlib_payload_pointer_and_size);
     RUN_TEST(test_imd_get_status_canlib_payload_content_mapping);

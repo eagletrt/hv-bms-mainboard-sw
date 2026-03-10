@@ -24,7 +24,7 @@ static CanFrameType mock_send_frame_type;
 static uint8_t mock_send_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE * 2];
 static size_t mock_send_size;
 
-CanCommReturnCode can_comm_send_mock(const CanNetwork network, const can_id_t id, const CanFrameType frame_type, const uint8_t * const data, const size_t size) {
+CanCommReturnCode can_comm_send_mock(const CanNetwork network, const can_id_t id, const CanFrameType frame_type, const uint8_t *const data, const size_t size) {
     mock_send_called = true;
     mock_send_network = network;
     mock_send_id = id;
@@ -98,7 +98,7 @@ void test_can_comm_send_immediate_invalid_network() {
 
 void test_can_comm_send_immediate_invalid_frame_type() {
     can_comm_enable_all();
-    CanCommReturnCode ret = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_COUNT + 1, (void *)0x01, 0);
+    CanCommReturnCode ret = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_COUNT, (void *)0x01, 0);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_INVALID_FRAME_TYPE, ret, "Should return INVALID_FRAME_TYPE for unknown frame");
 }
 
@@ -111,7 +111,7 @@ void test_can_comm_send_immediate_null() {
 // SECURITY TEST: This will fail until the payload size check is uncommented in `can-comm.c`
 void test_can_comm_send_immediate_invalid_payload_size_security_check() {
     can_comm_enable_all();
-    uint8_t oversized_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 5] = {0};
+    uint8_t oversized_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 5] = { 0 };
     CanCommReturnCode ret = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, oversized_data, CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_INVALID_PAYLOAD_SIZE, ret, "Should reject oversized payload to prevent memcpy buffer overflow!");
 }
@@ -119,13 +119,13 @@ void test_can_comm_send_immediate_invalid_payload_size_security_check() {
 // --- RX QUEUE TESTS ---
 
 void test_can_comm_rx_add_disabled() {
-    CanCommReturnCode ret = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void*)0x01, 1);
+    CanCommReturnCode ret = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_DISABLED, ret, "RX add should fail with DISABLED when not enabled");
 }
 
 void test_can_comm_rx_add_invalid_index() {
     can_comm_enable_all();
-    CanCommReturnCode ret = can_comm_rx_add(CAN_NETWORK_BMS, bms_MESSAGE_COUNT, CAN_FRAME_TYPE_DATA, (void*)0x01, 1);
+    CanCommReturnCode ret = can_comm_rx_add(CAN_NETWORK_BMS, bms_MESSAGE_COUNT, CAN_FRAME_TYPE_DATA, (void *)0x01, 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_INVALID_INDEX, ret, "RX add should fail with INVALID_INDEX");
 }
 
@@ -133,10 +133,10 @@ void test_can_comm_rx_add_ok_and_busy_flag() {
     can_comm_enable_all();
     uint8_t data[] = { 0xAA, 0xBB };
     CanCommReturnCode ret = can_comm_rx_add(CAN_NETWORK_BMS, 1, CAN_FRAME_TYPE_DATA, data, 2);
-    
+
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, ret, "RX add should return OK");
     TEST_ASSERT_TRUE_MESSAGE(hcan_comm.rx_busy[CAN_NETWORK_BMS][1], "Busy flag for this network and index should be set");
-    
+
     CanMessage rx_msg;
     ring_buffer_pop_front(&hcan_comm.rx_buf, &rx_msg);
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE(data, rx_msg.payload.rx, 2, "RX message payload content should match added data");
@@ -145,22 +145,22 @@ void test_can_comm_rx_add_ok_and_busy_flag() {
 // --- TX QUEUE TESTS ---
 
 void test_can_comm_tx_add_disabled() {
-    CanCommReturnCode ret = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void*)0x01, 1);
+    CanCommReturnCode ret = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_DISABLED, ret, "TX add should fail with DISABLED when not enabled");
 }
 
 void test_can_comm_tx_add_ignore_if_busy() {
     can_comm_enable_all();
     uint8_t data[] = { 0x01 };
-    
+
     // First add
     CanCommReturnCode ret1 = can_comm_tx_add(CAN_NETWORK_BMS, 2, CAN_FRAME_TYPE_DATA, data, 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, ret1, "First TX add should succeed");
-    
+
     // Second add for same index
     CanCommReturnCode ret2 = can_comm_tx_add(CAN_NETWORK_BMS, 2, CAN_FRAME_TYPE_DATA, data, 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, ret2, "Second TX add should return OK (ignored silently)");
-    
+
     // Buffer should only have 1 item
     CanMessage msg;
     ring_buffer_pop_front(&hcan_comm.tx_buf, &msg);
@@ -170,7 +170,7 @@ void test_can_comm_tx_add_ignore_if_busy() {
 // SECURITY TEST: This will fail until the payload size check is uncommented in `can-comm.c`
 void test_can_comm_tx_add_invalid_payload_size_security_check() {
     can_comm_enable_all();
-    uint8_t oversized_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 5] = {0};
+    uint8_t oversized_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 5] = { 0 };
     CanCommReturnCode ret = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, oversized_data, CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 1);
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_INVALID_PAYLOAD_SIZE, ret, "Should reject oversized payload to prevent memcpy buffer overflow!");
 }
@@ -184,20 +184,18 @@ void test_can_comm_routine_disabled() {
 void test_can_comm_routine_tx_processing() {
     can_comm_enable_all();
     uint8_t data[] = { 0x11, 0x22, 0x33 };
-    
+
     hcan_comm.tx_busy[CAN_NETWORK_BMS][0] = false; // Ensure not busy
 
     can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, data, 3);
-    
-    TEST_ASSERT_TRUE_MESSAGE(hcan_comm.tx_busy[CAN_NETWORK_BMS][0], "Busy flag should be set after adding to TX queue");    
+
+    TEST_ASSERT_TRUE_MESSAGE(hcan_comm.tx_busy[CAN_NETWORK_BMS][0], "Busy flag should be set after adding to TX queue");
 
     CanCommReturnCode ret = can_comm_routine();
-    
+
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, ret, "Routine should return OK after processing");
     TEST_ASSERT_FALSE_MESSAGE(hcan_comm.tx_busy[CAN_NETWORK_BMS][0], "Busy flag should be cleared after routine");
-    
-    // Note: mock_send check depends on id mapping and serialization which might require deep mocks
-    // But we verify that the buffer was emptied and busy flag reset.
+
     CanMessage msg;
     TEST_ASSERT_EQUAL_MESSAGE(RING_BUFFER_EMPTY, ring_buffer_pop_front(&hcan_comm.tx_buf, &msg), "TX buffer should be empty after routine");
 }
@@ -211,11 +209,12 @@ void setUp() {
     timebase_init(500U);
 }
 
-void tearDown() {}
+void tearDown() {
+}
 
 int main() {
     UNITY_BEGIN();
-    
+
     // Init & State
     RUN_TEST(test_can_comm_init_null);
     RUN_TEST(test_can_comm_init_ok);
@@ -224,7 +223,7 @@ int main() {
     RUN_TEST(test_can_comm_is_enabled_all);
     RUN_TEST(test_can_comm_enable);
     RUN_TEST(test_can_comm_disable);
-    
+
     // Immediate Sends
     RUN_TEST(test_can_comm_send_immediate_ok);
     RUN_TEST(test_can_comm_send_immediate_disabled);

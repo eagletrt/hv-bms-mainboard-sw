@@ -5,129 +5,293 @@
 
 #include <string.h>
 
-
 extern _TaskHandler htasks;
 
 extern _TimebaseHandler htimebase;
 
 int mock_watchdog_calls = 0;
 
-int mock_tasks_calls[3] = {0};
+int mock_tasks_calls[3] = { 0 };
 
-void mock_watchdog_callback(void){
+void mock_watchdog_callback(void) {
     mock_watchdog_calls++;
 }
 
-void mock_task_1_callback(void){
+void mock_task_1_callback(void) {
     mock_tasks_calls[0]++;
 }
 
-void mock_task_2_callback(void){
+void mock_task_2_callback(void) {
     mock_tasks_calls[1]++;
 }
 
-void mock_taks_3_callback(void){
+void mock_taks_3_callback(void) {
     mock_tasks_calls[2]++;
 }
 
-void test_timebase_init_NULL(void);
+static void setup_three_tasks(Task **task_1, Task **task_2, Task **task_3) {
+    *task_1 = tasks_get_task(TASKS_ID_SEND_MAINBOARD_VERSION);
+    *task_2 = tasks_get_task(TASKS_ID_SEND_ERRORS);
+    *task_3 = tasks_get_task(TASKS_ID_SEND_CELLBOARD_1_VERSION);
 
-void test_timebase_init_OK(void);
+    TEST_ASSERT_NOT_NULL_MESSAGE(*task_1, "Task 1 pointer should not be NULL");
+    TEST_ASSERT_NOT_NULL_MESSAGE(*task_2, "Task 2 pointer should not be NULL");
+    TEST_ASSERT_NOT_NULL_MESSAGE(*task_3, "Task 3 pointer should not be NULL");
 
-void test_timebase_inc_tick(void);
+    (*task_1)->enabled = true;
+    (*task_1)->interval = 3U;
+    (*task_1)->exec = mock_task_1_callback;
 
-void test_timebase_register_watchdog(void);
+    (*task_2)->enabled = false;
+    (*task_2)->interval = 0U;
+    (*task_2)->exec = mock_task_2_callback;
 
-void test_timebase_unregister_watchdog(void);
+    (*task_3)->enabled = false;
+    (*task_3)->interval = 5U;
+    (*task_3)->exec = mock_taks_3_callback;
+}
 
-void test_timebase_watchdog(void);
+static void run_ticks(int count) {
+    for (int i = 0; i < count; ++i) {
+        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_inc_tick(), "Failed to increment tick");
+        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run after tick increment");
+    }
+}
 
-void test_timebase_tasks(void){
-    // Disable all tasks
-    for (size_t i = 0; i < TASKS_ID_COUNT; ++i)
-        TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable((TasksId)i, false), "Unable to disable default tasks");
+void test_timebase_init_OK(void) {
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_init(5U), "timebase_init() should return TIMEBASE_OK when resolution is valid");
+};
 
-    // Get pointers to 3 tasks and set custom callbacks and intervals
-    Task * task_1 = tasks_get_task(TASKS_ID_SEND_MAINBOARD_VERSION);
-    Task * task_2 = tasks_get_task(TASKS_ID_SEND_ERRORS);
-    Task * task_3 = tasks_get_task(TASKS_ID_SEND_CELLBOARD_1_VERSION);
+void test_timebase_init_zero_resolution_defaults_to_one(void) {
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_init(0U), "timebase_init() should return TIMEBASE_OK when resolution is 0");
+    TEST_ASSERT_EQUAL_MESSAGE(1U, timebase_get_resolution(), "timebase_init() should set resolution to 1 when 0 is passed");
+};
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(task_1, "Task 1 pointer should not be NULL");
-    TEST_ASSERT_NOT_NULL_MESSAGE(task_2, "Task 2 pointer should not be NULL");
-    TEST_ASSERT_NOT_NULL_MESSAGE(task_3, "Task 3 pointer should not be NULL");
+void test_timebase_disabled_behaviour(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 4U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, watchdog_start(&wdg), "Failed to register watchdog");
 
-    task_1->enabled = true;
-    task_1->interval = 3U;
-    task_1->exec = mock_task_1_callback;
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_DISABLED, timebase_inc_tick(), "Timebase should fail to increment tick");
+};
 
-    task_2->enabled = false;
-    task_2->interval = 0U;
-    task_2->exec = mock_task_2_callback;
-
-    task_3->enabled = false;
-    task_3->interval = 5U;
-    task_3->exec = mock_taks_3_callback;
-
+void test_timebase_watchdog_stop(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 4U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, watchdog_start(&wdg), "Failed to register watchdog");
     (void)timebase_set_enable(true);
 
-    // Tick 0: task 1 is enabled and should run immediately. Task 2 is disabled one-shot.
+    run_ticks(1);
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, watchdog_stop(&wdg), "Failed to stop watchdog");
+    run_ticks(1);
+    TEST_ASSERT_EQUAL_MESSAGE(0, mock_watchdog_calls, "Watchdog should NOT time-out at threshold when stopped");
+};
+
+void test_timebase_watchdog_reset_behaviout(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 6U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    (void)timebase_set_enable(true);
+
+    run_ticks(1);
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_restart(&wdg), "Failed to restart watchdog");
+    TimebaseScheduledWatchdog *wdg_p = (TimebaseScheduledWatchdog *)min_heap_peek(&htimebase.scheduled_watchdogs);
+    TEST_ASSERT_EQUAL_MESSAGE(wdg_p->t, timebase_get_tick() + TIMEBASE_TIME_TO_TICKS(wdg.timeout, htimebase.resolution), "The timeout tick should be current tick + timeout");
+};
+
+void test_timebase_watchdog_double_start(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 4U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_BUSY, watchdog_start(&wdg), "Watchdog should answer buisy to double start");
+};
+
+void test_timebase_watchdog_timeout_state(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 4U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    (void)timebase_set_enable(true);
+
+    run_ticks(3);
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_watchdog_calls, "Watchdog should time-out at threshold tick");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_TIMED_OUT, watchdog_start(&wdg), "Wrong return value from start after time-out");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_TIMED_OUT, watchdog_stop(&wdg), "Wrong return value from stop after time-out");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_TIMED_OUT, watchdog_reset(&wdg), "Wrong return value from reset after time-out");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_restart(&wdg), "Wrong return value from restart after time-out");
+};
+
+void test_timebase_watchdog_does_not_timeout_before_threshold(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 6U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    (void)timebase_set_enable(true);
+
+    run_ticks(2);
+    TEST_ASSERT_EQUAL_MESSAGE(0, mock_watchdog_calls, "Watchdog should not time-out before threshold");
+}
+
+void test_timebase_watchdog_times_out_at_threshold(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 6U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    (void)timebase_set_enable(true);
+
+    run_ticks(3);
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_watchdog_calls, "Watchdog should time-out at threshold tick");
+}
+
+void test_timebase_watchdog_restart_prevents_pending_timeout(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 6U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    (void)timebase_set_enable(true);
+
+    run_ticks(2);
+
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_restart(&wdg), "Failed to restart watchdog");
+    run_ticks(1);
+    TEST_ASSERT_EQUAL_MESSAGE(0, mock_watchdog_calls, "Watchdog should not time-out right after restart");
+}
+
+void test_timebase_watchdog_restart_shifts_timeout_window(void) {
+    Watchdog wdg = { 0 };
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 6U, mock_watchdog_callback), "Failed to initialize watchdog");
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");
+    (void)timebase_set_enable(true);
+
+    run_ticks(2);
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_restart(&wdg), "Failed to restart watchdog");
+    run_ticks(3);
+
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_watchdog_calls, "Watchdog should time-out according to restarted schedule");
+}
+
+void test_timebase_task_periodic_enabled_runs_on_tick_zero(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
     TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[0], "Task 1 should run at tick 0");
-    TEST_ASSERT_EQUAL_MESSAGE(0, mock_tasks_calls[1], "Task 2 should not run while disabled");
-    TEST_ASSERT_EQUAL_MESSAGE(0, mock_tasks_calls[2], "Task 3 should not run before start tick");
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[0], "Enabled periodic task should run at tick 0");
+}
 
-    // Enabling task 2 now should make it run once.
+void test_timebase_task_oneshot_disabled_does_not_run(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
+    TEST_ASSERT_EQUAL_MESSAGE(0, mock_tasks_calls[1], "Disabled one-shot task should not run");
+}
+
+void test_timebase_task_periodic_runs_on_each_interval(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
+    run_ticks(3);
+    TEST_ASSERT_EQUAL_MESSAGE(2, mock_tasks_calls[0], "Periodic task should run at ticks 0 and 3");
+}
+
+void test_timebase_task_oneshot_runs_after_enable(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
     TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable(TASKS_ID_SEND_ERRORS, true), "Unable to enable task 2");
+    run_ticks(1);
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[1], "One-shot task should run after enabling");
+}
 
-    // Tick 1..3: task 1 should run once more at tick 3. Task 2 must run once and then disable itself.
-    for (int i = 0; i < 3; ++i) {
-        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_inc_tick(), "Failed to increment tick");
-        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run after tick increment");
-    }
-    TEST_ASSERT_EQUAL_MESSAGE(2, mock_tasks_calls[0], "Task 1 should run at ticks 0 and 3");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[1], "Task 2 should run once enabled");
-    TEST_ASSERT_EQUAL_MESSAGE(0, mock_tasks_calls[2], "Task 3 is still disabled");
+void test_timebase_task_oneshot_runs_only_once_per_enable(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
 
-    // Task 3 first slot was at tick 1 while disabled; after enabling it, it should run at next period (tick 6).
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable(TASKS_ID_SEND_ERRORS, true), "Unable to enable task 2");
+    run_ticks(4);
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[1], "One-shot task should execute only once per enable");
+}
+
+void test_timebase_task_periodic_disabled_misses_slot_and_waits_next_period(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
+    run_ticks(3);
     TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable(TASKS_ID_SEND_CELLBOARD_1_VERSION, true), "Unable to enable task 3");
+    run_ticks(3);
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[2], "Task 3 should run at next period after enabling");
+}
 
-    // Tick 4..6: task 1 runs at 6, task 3 runs at 6.
-    for (int i = 0; i < 3; ++i) {
-        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_inc_tick(), "Failed to increment tick");
-        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run after tick increment");
-    }
+void test_timebase_task_disable_stops_future_periodic_executions(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
+    run_ticks(6);
     TEST_ASSERT_EQUAL_MESSAGE(3, mock_tasks_calls[0], "Task 1 should run at ticks 0, 3 and 6");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[1], "Task 2 should never run again after first execution");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[2], "Task 3 should run once at tick 6");
-
-    // Disable task 1 and ensure it does not run anymore.
     TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable(TASKS_ID_SEND_MAINBOARD_VERSION, false), "Unable to disable task 1");
-    for (int i = 0; i < 4; ++i) {
-        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_inc_tick(), "Failed to increment tick");
-        TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run after tick increment");
-    }
-    TEST_ASSERT_EQUAL_MESSAGE(3, mock_tasks_calls[0], "Task 1 should not run while disabled");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[1], "Task 2 should remain never executed");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[2], "Task 3 should not run again before tick 11");
-    
-    // Enable task 2 again to check that it can be re-enabled after execution.
+
+    run_ticks(4);
+    TEST_ASSERT_EQUAL_MESSAGE(3, mock_tasks_calls[0], "Disabled periodic task should not run");
+}
+
+void test_timebase_task_oneshot_can_be_reenabled_and_run_again(void) {
+    Task *task_1 = NULL;
+    Task *task_2 = NULL;
+    Task *task_3 = NULL;
+
+    setup_three_tasks(&task_1, &task_2, &task_3);
+    (void)timebase_set_enable(true);
+
+    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run at tick 0");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable(TASKS_ID_SEND_ERRORS, true), "Unable to enable task 2");
+    run_ticks(2);
+    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[1], "Task 2 should have executed once");
+
     TEST_ASSERT_EQUAL_MESSAGE(TASKS_OK, tasks_set_enable(TASKS_ID_SEND_ERRORS, true), "Unable to re-enable task 2");
-    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_inc_tick(), "Failed to increment tick");
-    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, timebase_routine(), "Routine should run after tick increment");
-    TEST_ASSERT_EQUAL_MESSAGE(3, mock_tasks_calls[0], "Task 1 should remain disabled");
-    TEST_ASSERT_EQUAL_MESSAGE(2, mock_tasks_calls[1], "Task 2 should run again after being re-enabled");
-    TEST_ASSERT_EQUAL_MESSAGE(1, mock_tasks_calls[2], "Task 3 should still not run before tick 11");
+    run_ticks(1);
+    TEST_ASSERT_EQUAL_MESSAGE(2, mock_tasks_calls[1], "Task 2 should execute again after re-enable");
 }
 
 #ifdef TIMEBASE_TESTS
 
-
 void setUp(void) {
-    mock_watchdog_calls=0;
-    mock_tasks_calls[0]=0;
-    mock_tasks_calls[1]=0;
-    mock_tasks_calls[2]=0;
+    mock_watchdog_calls = 0;
+    mock_tasks_calls[0] = 0;
+    mock_tasks_calls[1] = 0;
+    mock_tasks_calls[2] = 0;
     (void)timebase_init(2U);
+    // Disable all tasks else they will call random callbacks
+    for (size_t i = 0; i < TASKS_ID_COUNT; ++i)
+        tasks_set_enable((TasksId)i, false);
 }
 
 void tearDown(void) {
@@ -135,7 +299,25 @@ void tearDown(void) {
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_timebase_tasks);
+    RUN_TEST(test_timebase_init_OK);
+    RUN_TEST(test_timebase_init_zero_resolution_defaults_to_one);
+    RUN_TEST(test_timebase_disabled_behaviour);
+    RUN_TEST(test_timebase_watchdog_stop);
+    RUN_TEST(test_timebase_watchdog_reset_behaviout);
+    RUN_TEST(test_timebase_watchdog_double_start);
+    RUN_TEST(test_timebase_watchdog_timeout_state);
+    RUN_TEST(test_timebase_watchdog_does_not_timeout_before_threshold);
+    RUN_TEST(test_timebase_watchdog_times_out_at_threshold);
+    RUN_TEST(test_timebase_watchdog_restart_prevents_pending_timeout);
+    RUN_TEST(test_timebase_watchdog_restart_shifts_timeout_window);
+    RUN_TEST(test_timebase_task_periodic_enabled_runs_on_tick_zero);
+    RUN_TEST(test_timebase_task_oneshot_disabled_does_not_run);
+    RUN_TEST(test_timebase_task_periodic_runs_on_each_interval);
+    RUN_TEST(test_timebase_task_oneshot_runs_after_enable);
+    RUN_TEST(test_timebase_task_oneshot_runs_only_once_per_enable);
+    RUN_TEST(test_timebase_task_periodic_disabled_misses_slot_and_waits_next_period);
+    RUN_TEST(test_timebase_task_disable_stops_future_periodic_executions);
+    RUN_TEST(test_timebase_task_oneshot_can_be_reenabled_and_run_again);
 
     return UNITY_END();
 }

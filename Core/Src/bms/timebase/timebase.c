@@ -111,7 +111,7 @@ TimebaseReturnCode timebase_register_watchdog(Watchdog * const watchdog) {
     if (min_heap_find(&htimebase.scheduled_watchdogs, &aux) >= 0)
         return TIMEBASE_BUSY;
 
-    aux.t = htimebase.t + watchdog->timeout;
+    aux.t = htimebase.t + TIMEBASE_TIME_TO_TICKS(watchdog->timeout, htimebase.resolution);
     if (min_heap_insert(&htimebase.scheduled_watchdogs, &aux) == MIN_HEAP_FULL)
         return TIMEBASE_WATCHDOG_UNAVAILABLE;
     return TIMEBASE_OK;
@@ -160,7 +160,7 @@ TimebaseReturnCode timebase_update_watchdog(Watchdog * const watchdog) {
         return TIMEBASE_WATCHDOG_NOT_REGISTERED;
 
     (void)min_heap_remove(&htimebase.scheduled_watchdogs, i, NULL);
-    aux.t = htimebase.t + watchdog->timeout;
+    aux.t = htimebase.t + TIMEBASE_TIME_TO_TICKS(watchdog->timeout, htimebase.resolution);
     if (min_heap_insert(&htimebase.scheduled_watchdogs, &aux) == MIN_HEAP_FULL)
         return TIMEBASE_WATCHDOG_UNAVAILABLE;
     return TIMEBASE_OK;
@@ -223,7 +223,7 @@ _STATIC char * timebase_return_code_name[] = {
 _STATIC char * timebase_return_code_description[] = {
     [TIMEBASE_OK] = "executed successfully",
     [TIMEBASE_NULL_POINTER] = "attempt to dereference a null pointer",
-    [TIMEBASE_DISABLE] = "the timebase is not enabled",
+    [TIMEBASE_DISABLED] = "the timebase is not enabled",
     [TIMEBASE_BUSY] = "the timebase couldn't perform the requested operation",
     [TIMEBASE_WATCHDOG_NOT_REGISTERED] = "the watchdog is not registered",
     [TIMEBASE_WATCHDOG_UNAVAILABLE] = "the watchdog can't be registered inside the timebase"

@@ -76,37 +76,44 @@ void test_display_get_code_from_hex_digit_invalid(void) {
 }
 
 void test_display_get_code_from_character_symbols(void) {
-    TEST_ASSERT_EQUAL(DISPLAY_CHARACTER_CODE_SPACE, display_get_code_from_character(' ', true, true));
-    TEST_ASSERT_EQUAL(DISPLAY_CHARACTER_CODE_DOT, display_get_code_from_character('.', true, true));
-    TEST_ASSERT_EQUAL(DISPLAY_CHARACTER_CODE_HYPEN, display_get_code_from_character('-', true, true));
-    TEST_ASSERT_EQUAL(DISPLAY_CHARACTER_CODE_UNDERSCORE, display_get_code_from_character('_', true, true));
+    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, display_get_code_from_character(' ', true, true), "Space character should map to SPACE code");
+    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_DOT, display_get_code_from_character('.', true, true), "Dot character should map to DOT code");
+    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_HYPEN, display_get_code_from_character('-', true, true), "Hyphen character should map to HYPEN code");
+    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_UNDERSCORE, display_get_code_from_character('_', true, true), "Underscore character should map to UNDERSCORE code");
 }
 
 void test_display_get_code_from_character_case_preference(void) {
-    TEST_ASSERT_EQUAL(
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_A_UPCASE,
-        display_get_code_from_character('A', true, true));
-    TEST_ASSERT_EQUAL(
+        display_get_code_from_character('A', true, true),
+        "Uppercase A should map to uppercase code");
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_A_DOWNCASE,
-        display_get_code_from_character('A', true, false));
-    TEST_ASSERT_EQUAL(
+        display_get_code_from_character('A', true, false),
+        "Lowercase a should map to lowercase code");
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_A_DOWNCASE,
-        display_get_code_from_character('a', true, false));
-    TEST_ASSERT_EQUAL(
+        display_get_code_from_character('a', true, false),
+        "Lowercase a should map to lowercase code");
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_A_UPCASE,
-        display_get_code_from_character('a', true, true));
+        display_get_code_from_character('a', true, true),
+        "Uppercase A should map to uppercase code");
 }
 
 void test_display_get_code_from_character_unsupported_branch_returns_space(void) {
-    TEST_ASSERT_EQUAL(
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_SPACE,
-        display_get_code_from_character('B', false, true));
-    TEST_ASSERT_EQUAL(
+        display_get_code_from_character('B', false, true),
+        "Unsupported character 'B' should map to SPACE code");
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_SPACE,
-        display_get_code_from_character('e', false, true));
-    TEST_ASSERT_EQUAL(
+        display_get_code_from_character('e', false, true),
+        "Unsupported character 'e' should map to SPACE code");
+    TEST_ASSERT_EQUAL_MESSAGE(
         DISPLAY_CHARACTER_CODE_SPACE,
-        display_get_code_from_character('@', true, true));
+        display_get_code_from_character('@', true, true),
+        "Unsupported character '@' should map to SPACE code");
 }
 
 void test_display_get_segment_invalid_segment(void) {

@@ -11,12 +11,12 @@ extern FeedbackId _feedback_get_id_from_digital_bit(const FeedbackDigitalBit bit
 extern FeedbackId _feedback_get_id_from_analog_index(const FeedbackAnalogIndex index);
 extern FeedbackStatus _feedback_get_analog_status(const FeedbackAnalogIndex index);
 
-/* ---------- Fakes ---------- */
+/* ---------- Mocks ---------- */
 
 static bit_flag32_t g_fake_digital_value = 0U;
 static uint32_t g_start_conversion_called = 0U;
 
-static bit_flag32_t _feedback_read_digital_all_fake(void) {
+static bit_flag32_t _feedback_read_digital_all_mock(void) {
     return g_fake_digital_value;
 }
 
@@ -36,14 +36,14 @@ void test_feedback_init_null_read_callback(void) {
 void test_feedback_init_null_start_conversion_callback(void) {
     TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_NULL_POINTER,
-        feedback_init(_feedback_read_digital_all_fake, NULL),
+        feedback_init(_feedback_read_digital_all_mock, NULL),
         "feedback_init() should fail with NULL start_conversion callback");
 }
 
 void test_feedback_init_ok(void) {
     TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_OK,
-        feedback_init(_feedback_read_digital_all_fake, _feedback_start_analog_conversion_fake),
+        feedback_init(_feedback_read_digital_all_mock, _feedback_start_analog_conversion_fake),
         "feedback_init() failed to return FEEDBACK_OK");
 }
 
@@ -129,13 +129,13 @@ void test_feedback_get_analog_status_probing_3v3_out_of_range(void) {
 
 void test_feedback_get_analog_status_generic_low_high_error(void) {
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = FEEDBACK_THRESHOLD_LOW_V - 0.1f;
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_LOW, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN));
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_LOW, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN), "TSAL_GREEN should be LOW");
 
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = FEEDBACK_THRESHOLD_HIGH_V + 0.1f;
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_HIGH, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN));
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN), "TSAL_GREEN should be HIGH");
 
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = (FEEDBACK_THRESHOLD_LOW_V + FEEDBACK_THRESHOLD_HIGH_V) * 0.5f;
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_ERROR, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN));
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_ERROR, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN), "TSAL_GREEN should be ERROR (indecisive state)");
 }
 
 void test_feedback_get_analog_status_imd_special_low_threshold(void) {
@@ -157,11 +157,11 @@ void test_feedback_update_status_digital_and_analog(void) {
 
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_OK, feedback_update_status(), "feedback_update_status failed");
 
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_AIRN_OPEN_COM));
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_SD_BMS_FB));
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_LOW, feedback_get_status(FEEDBACK_ID_AIRP_OPEN_COM));
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_TSAL_GREEN));
-    TEST_ASSERT_EQUAL(FEEDBACK_STATUS_LOW, feedback_get_status(FEEDBACK_ID_SD_OUT));
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_AIRN_OPEN_COM), "AIRN_OPEN_COM should be HIGH");
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_SD_BMS_FB), "SD_BMS_FB should be HIGH");
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_LOW, feedback_get_status(FEEDBACK_ID_AIRP_OPEN_COM), "AIRP_OPEN_COM should be LOW");
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_TSAL_GREEN), "TSAL_GREEN should be HIGH");
+    TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_LOW, feedback_get_status(FEEDBACK_ID_SD_OUT), "SD_OUT should be LOW");
 }
 
 void test_feedback_update_status_air_noise_branch_sets_low_and_increments_debug(void) {
@@ -207,26 +207,30 @@ void test_feedback_check_values_mismatch_sets_out(void) {
 }
 
 void test_feedback_is_digital_true_false(void) {
-    TEST_ASSERT_TRUE(feedback_is_digital(FEEDBACK_ID_AIRN_OPEN_COM));
-    TEST_ASSERT_FALSE(feedback_is_digital(FEEDBACK_ID_IMD_OK));
+    TEST_ASSERT_TRUE_MESSAGE(feedback_is_digital(FEEDBACK_ID_AIRN_OPEN_COM), "AIRN_OPEN_COM should be digital");
+    TEST_ASSERT_FALSE_MESSAGE(feedback_is_digital(FEEDBACK_ID_IMD_OK), "IMD_OK should not be digital");
 }
 
 void test_feedback_get_digital_bit_from_id(void) {
-    TEST_ASSERT_EQUAL(
+    TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM,
-        feedback_get_digital_bit_from_id(FEEDBACK_ID_AIRN_OPEN_COM));
-    TEST_ASSERT_EQUAL(
+        feedback_get_digital_bit_from_id(FEEDBACK_ID_AIRN_OPEN_COM),
+        "Expected digital bit for AIRN_OPEN_COM");
+    TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_DIGITAL_BIT_UNKNOWN,
-        feedback_get_digital_bit_from_id(FEEDBACK_ID_IMD_OK));
+        feedback_get_digital_bit_from_id(FEEDBACK_ID_IMD_OK),
+        "Expected unknown digital bit for IMD_OK");
 }
 
 void test_feedback_get_analog_index_from_id(void) {
-    TEST_ASSERT_EQUAL(
+    TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_ANALOG_INDEX_IMD_OK,
-        feedback_get_analog_index_from_id(FEEDBACK_ID_IMD_OK));
-    TEST_ASSERT_EQUAL(
+        feedback_get_analog_index_from_id(FEEDBACK_ID_IMD_OK),
+        "Expected analog index for IMD_OK");
+    TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_ANALOG_INDEX_UNKNOWN,
-        feedback_get_analog_index_from_id(FEEDBACK_ID_AIRN_OPEN_COM));
+        feedback_get_analog_index_from_id(FEEDBACK_ID_AIRN_OPEN_COM),
+        "Expected unknown analog index for AIRN_OPEN_COM");
 }
 
 void test_feedback_get_status_payload_pointer_size_and_content(void) {
@@ -239,8 +243,8 @@ void test_feedback_get_status_payload_pointer_size_and_content(void) {
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hfeedback.status_can_payload, payload, "Payload pointer mismatch");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)sizeof(hfeedback.status_can_payload), (uint32_t)byte_size, "Payload size mismatch");
-    TEST_ASSERT_EQUAL((int)FEEDBACK_STATUS_HIGH, (int)payload->airn_open_com);
-    TEST_ASSERT_EQUAL((int)FEEDBACK_STATUS_LOW, (int)payload->sd_bms_fb);
+    TEST_ASSERT_EQUAL_MESSAGE((int)FEEDBACK_STATUS_HIGH, (int)payload->airn_open_com, "AIRN_OPEN_COM status mismatch");
+    TEST_ASSERT_EQUAL_MESSAGE((int)FEEDBACK_STATUS_LOW, (int)payload->sd_bms_fb, "SD_BMS_FB status mismatch");
 }
 
 void test_feedback_get_digital_payload_pointer_size_and_content(void) {
@@ -253,9 +257,9 @@ void test_feedback_get_digital_payload_pointer_size_and_content(void) {
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hfeedback.digital_can_payload, payload, "Payload pointer mismatch");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)sizeof(hfeedback.digital_can_payload), (uint32_t)byte_size, "Payload size mismatch");
-    TEST_ASSERT_TRUE(payload->digital_airn_open_com);
-    TEST_ASSERT_TRUE(payload->digital_indicator_connected);
-    TEST_ASSERT_FALSE(payload->digital_airp_open_com);
+    TEST_ASSERT_TRUE_MESSAGE(payload->digital_airn_open_com, "AIRN_OPEN_COM digital bit should be set");
+    TEST_ASSERT_TRUE_MESSAGE(payload->digital_indicator_connected, "INDICATOR_CONNECTED digital bit should be set");
+    TEST_ASSERT_FALSE_MESSAGE(payload->digital_airp_open_com, "AIRP_OPEN_COM digital bit should not be set");
 }
 
 void test_feedback_get_analog_payload_pointer_size_and_content(void) {
@@ -267,8 +271,8 @@ void test_feedback_get_analog_payload_pointer_size_and_content(void) {
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hfeedback.analog_can_payload, payload, "Payload pointer mismatch");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)sizeof(hfeedback.analog_can_payload), (uint32_t)byte_size, "Payload size mismatch");
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 1.23f, payload->analog_airn_open_mec);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, FEEDBACK_VOLTAGE_TO_5V_VOLT(2.50f), payload->analog_v5_mcu);
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 1.23f, payload->analog_airn_open_mec, "AIRN_OPEN_MEC analog value mismatch");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, FEEDBACK_VOLTAGE_TO_5V_VOLT(2.50f), payload->analog_v5_mcu, "V5_MCU analog value mismatch");
 }
 
 void test_feedback_get_analog_sd_payload_pointer_size_and_content(void) {
@@ -281,9 +285,9 @@ void test_feedback_get_analog_sd_payload_pointer_size_and_content(void) {
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hfeedback.analog_sd_can_payload, payload, "Payload pointer mismatch");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)sizeof(hfeedback.analog_sd_can_payload), (uint32_t)byte_size, "Payload size mismatch");
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, FEEDBACK_VOLTAGE_TO_SD_VOLT(1.0f), payload->sd_out);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, FEEDBACK_VOLTAGE_TO_SD_VOLT(2.0f), payload->sd_in);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, FEEDBACK_VOLTAGE_TO_SD_VOLT(3.0f), payload->sd_end);
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, FEEDBACK_VOLTAGE_TO_SD_VOLT(1.0f), payload->sd_out, "SD_OUT analog value mismatch");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, FEEDBACK_VOLTAGE_TO_SD_VOLT(2.0f), payload->sd_in, "SD_IN analog value mismatch");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, FEEDBACK_VOLTAGE_TO_SD_VOLT(3.0f), payload->sd_end, "SD_END analog value mismatch");
 }
 
 void test_feedback_get_enzomma_payload_digital(void) {
@@ -296,9 +300,9 @@ void test_feedback_get_enzomma_payload_digital(void) {
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hfeedback.enzomma_can_payload, payload, "Payload pointer mismatch");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)sizeof(hfeedback.enzomma_can_payload), (uint32_t)byte_size, "Payload size mismatch");
-    TEST_ASSERT_TRUE(payload->is_digital);
-    TEST_ASSERT_TRUE(payload->digital);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 0.0f, payload->analog);
+    TEST_ASSERT_TRUE_MESSAGE(payload->is_digital, "Expected digital feedback");
+    TEST_ASSERT_TRUE_MESSAGE(payload->digital, "Expected digital value");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 0.0f, payload->analog, "Analog value mismatch for digital feedback");
 }
 
 void test_feedback_get_enzomma_payload_analog(void) {
@@ -311,9 +315,9 @@ void test_feedback_get_enzomma_payload_analog(void) {
 
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hfeedback.enzomma_can_payload, payload, "Payload pointer mismatch");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)sizeof(hfeedback.enzomma_can_payload), (uint32_t)byte_size, "Payload size mismatch");
-    TEST_ASSERT_FALSE(payload->is_digital);
-    TEST_ASSERT_FALSE(payload->digital);
-    TEST_ASSERT_FLOAT_WITHIN(0.0001f, 2.22f, payload->analog);
+    TEST_ASSERT_FALSE_MESSAGE(payload->is_digital, "Expected analog feedback");
+    TEST_ASSERT_FALSE_MESSAGE(payload->digital, "Expected analog value");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 2.22f, payload->analog, "Analog value mismatch for analog feedback");
 }
 
 #ifdef FEEDBACK_TESTS
@@ -322,7 +326,7 @@ void setUp(void) {
     g_fake_digital_value = 0U;
     g_start_conversion_called = 0U;
     debug_cnt = 0U;
-    (void)feedback_init(_feedback_read_digital_all_fake, _feedback_start_analog_conversion_fake);
+    (void)feedback_init(_feedback_read_digital_all_mock, _feedback_start_analog_conversion_fake);
 }
 
 void tearDown(void) {
