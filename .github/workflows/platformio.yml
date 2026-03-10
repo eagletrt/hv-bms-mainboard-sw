@@ -1,0 +1,67 @@
+name: PlatformIO Project CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ !(github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build
+        run: pio run -e base
+      
+      - name: Run balancing Unit Tests
+        run: pio test -e balancing_tests
+      - name: Run CAN Communication Unit Tests
+        run: pio test -e can_comm_tests
+      - name: Run current Unit Tests
+        run: pio test -e current_tests
+      - name: Run display Unit Tests
+        run: pio test -e display_tests
+      - name: Run feedback Unit Tests
+        run: pio test -e feedback_tests
+      - name: Run identity Unit Tests
+        run: pio test -e identity_tests
+      - name: Run imd Unit Tests
+        run: pio test -e imd_tests
+      - name: Run led Unit Tests
+        run: pio test -e led_tests
+      - name: Run internal_voltage Unit Tests
+        run: pio test -e internal_voltage_tests
+      - name: Run pcu Unit Tests
+        run: pio test -e pcu_tests
+      - name: Run tasks Unit Tests
+        run: pio test -e tasks_tests
+      - name: Run temp Unit Tests
+        run: pio test -e temp_tests
+      - name: Run timebase Unit Tests
+        run: pio test -e timebase_tests
+      - name: Run volt Unit Tests
+        run: pio test -e volt_tests
+      - name: Static Code Analysis
+        if: github.ref == 'refs/heads/dev'
+        run: pio check --src-filters="+<Core/Src/*>" --src-filters="+<Core/Inc/*>" --src-filters="-<Drivers/*>" || true

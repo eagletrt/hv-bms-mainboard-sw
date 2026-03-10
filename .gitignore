@@ -419,5 +419,6 @@ STM32Make.make
 #in case git exclude is not used
 .local_gitignore
 
+.pio/
+
 ## ---------------- END MANUALLY ADDED ---------------- ##
-STM32-for-VSCode.config.yaml
