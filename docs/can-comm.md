@@ -22,7 +22,7 @@ Module that handles communication between the board and the network.
 
 ## Functions
 
-`can_comm_init`: requires a pointer to the `can_send` function that immediately adds the message to the mailbox of the correct network. It initializes both ring buffers for tx and rx, initializes a canlib device (what is this??) and disables all can flags (see flag handlers).
+`can_comm_init`: requires a pointer to the `can_send` function that immediately adds the message to the mailbox of the correct network. It initializes both ring buffers for tx and rx, initializes a canlib device and disables all can flags (see flag handlers).
 
 `can_comm_send_immediate`: this function immediately sends a given message to the specified can network. It requires the network (either primary or bms), the index of the message (defined in either bms_network.h or primary_network.h), the frame type (either data or remote, but remote it is yet unused), the size of the message (WARNING: THE CHECK TO CHECK THAT THE MESSAGE ISN'T LONGER THAN THE MAX IS COMMENTED OUT), and the data itself. Then the function checks if the queue is full, if it is it runs the `can_comm_routine` to free up space and then pushes the message to the front before rerunning the routine to send the message.
 

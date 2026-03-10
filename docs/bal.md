@@ -10,7 +10,7 @@ This module handles all the funcitons for the balancing of the batteries load. I
 `_BalHandler`: this is the main handler that contains all relevant information for the class.
  - `.event.type`: contains the FSM events when changed by the SW or handcart, functionally unused.
  - `set_status_can_payload`: the payload (defined in bms_network) that contains the balancing status (1-0), the target voltage and the threshold voltage. This is the payload that is sent to the cellboards when balancing is active.
- - `status_can_payload`: the payload (defined in primary_network) that is relayed by the mainboard to the main network through the `_tasks_send_hv_balancing_status`, it is updated with the `bal_cellboard_balancing_status_handle`. It containes the boolean discharging value of 24 cells, the overall status and a cellboard id (WHAT DOES IT MEEEEEAN -_- :P).
+ - `status_can_payload`: the payload (defined in primary_network) that is relayed by the mainboard to the main network through the `_tasks_send_hv_balancing_status`: it is updated with the `bal_cellboard_balancing_status_handle`. It containes the boolean discharging value of 24 cells, the overall status and a cellboard id.
  - `watchdog`: contains the pointer to the watchdog that handles the balance timeout, it is initialized at initialization and started and stopped in the respective functions.
  - `active`: the boolean status of the balancing process.
  - `params`: the set parameters that are updated through either the handcart or steering wheel callbacks and are relayed periodically to the cellboard when balancing. They are target voltage and threshold.

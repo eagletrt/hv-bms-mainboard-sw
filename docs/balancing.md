@@ -11,7 +11,7 @@ Calls `bal_start`, sets the status to active and it enables the task that every 
 ## Balancing state
 The only thing that the FSM does in this state is wait for the `FSM_EVENT_TYPE_BALANCING_STOP` event trigger from either handcart, steering wheel or from the watchdog timeout as technically it isn't doing anything.
 The mainboard needs a heartbeat from either the steering wheel or the handcart to keep this status. The timeout is 3s long.
-Every 200ms the mainboard sends a status payload to the cellboards that contains the "started" status, a target voltage and a treshold. (what are these???)
+Every 200ms the mainboard sends a heartbeat payload to the cellboards that contains the "started" status, a target voltage and a treshold.
 
 ### Balancing to Idle
-Calls `bal_start`, sets the status to inactive and disables the task that keeps alive the cellboards. The cellboards will then die after their watchdog ends (intended behaviour??).
+Calls `bal_start`, sets the status to inactive and disables the task that keeps alive the cellboards. The cellboards will then die after their watchdog ends.

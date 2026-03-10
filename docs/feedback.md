@@ -54,7 +54,7 @@ This module provides all the hardware checks needed to change and mantain states
 
 `feedback_get_analog_payload`: called from a task that every 50 ms sends in can the analog voltages.
 
-`feedback_get_analog_sd_payload`: called from a task that every 50 ms sends in can the shutdown button statuses. (why is the shutdown status not in any checks???)
+`feedback_get_analog_sd_payload`: called from a task that every 50 ms sends in can the shutdown button statuses.
 
 `feedback_get_enzomma_payload`: this is used after `feedback_check_values` to send in can the out value if the check fails.
 
