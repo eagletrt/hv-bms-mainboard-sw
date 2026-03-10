@@ -82,20 +82,20 @@ void test_current_error_over_current() {
     memset(&payload, 0, sizeof(payload));
     payload.ivt_result_i = (int32_t)((CURRENT_MAX_A + 1.0f) * 1000.0f); /* mA */
     current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired()==0U, "Over current error should NOT be set");
+    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() == 0U, "Over current error should NOT be set");
     current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired()>0U, "Over current error should be set");
+    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() > 0U, "Over current error should be set");
 }
 
 void test_current_error_over_power() {
     bms_ivt_msg_result_i_t payload;
     memset(&payload, 0, sizeof(payload));
-    hvolt_int.ts = 400.0f; /* V */
+    hvolt_int.ts = 400.0f;                                                                                            /* V */
     payload.ivt_result_i = (int32_t)((CURRENT_MAX_POWER_KW / (internal_voltage_get_ts() * 0.001f) + 1.0f) * 1000.0f); /* mA */
     current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired()==0U, "Over power error should NOT be set");
+    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() == 0U, "Over power error should NOT be set");
     current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired()>0U, "Over power error should be set");
+    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() > 0U, "Over power error should be set");
 }
 
 #ifdef CURRENT_TESTS
