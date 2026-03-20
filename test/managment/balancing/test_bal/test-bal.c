@@ -25,6 +25,7 @@ void test_bal_init_threshold() {
     TEST_ASSERT_EQUAL_MESSAGE(BAL_THRESHOLD_MAX_V, hbal.params.threshold, "Threshold voltage did not initialize to safe MAX_V");
 }
 
+// probably unnecessary
 void test_bal_is_active_false() {
     TEST_ASSERT_FALSE_MESSAGE(bal_is_active(), "Module should be inactive by default");
 }
@@ -36,6 +37,7 @@ void test_bal_is_active_true() {
 
 void test_bal_start_ok() {
     TEST_ASSERT_EQUAL_MESSAGE(BAL_OK, bal_start(), "bal_start() failed to return BAL_OK");
+    TEST_ASSERT_TRUE_MESSAGE(hbal.active, "Balancing should be active");
 }
 
 void test_bal_stop_ok() {

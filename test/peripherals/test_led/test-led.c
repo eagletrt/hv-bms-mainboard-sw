@@ -1,5 +1,7 @@
 #include "unity.h"
 #include "led.h"
+#include <fff.h>
+DEFINE_FFF_GLOBALS;
 
 #include <stdint.h>
 

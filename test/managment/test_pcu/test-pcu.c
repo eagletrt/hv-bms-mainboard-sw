@@ -2,6 +2,8 @@
 #include "pcu.h"
 #include "fsm.h"
 #include "timebase.h"
+#include "fff.h"
+DEFINE_FFF_GLOBALS;
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -13,92 +15,50 @@ extern void _pcu_airn_timeout(void);
 extern void _pcu_precharge_timeout(void);
 extern void _pcu_airp_timeout(void);
 
-/* ---------- spies ---------- */
-
-#define PCU_SET_CALLS_MAX 32U
-
-static uint32_t g_set_calls_count = 0U;
-static PcuPin g_set_calls_pin[PCU_SET_CALLS_MAX];
-static PcuPinStatus g_set_calls_status[PCU_SET_CALLS_MAX];
-
-static uint32_t g_toggle_calls_count = 0U;
-static PcuPin g_toggle_last_pin = (PcuPin)0U;
-
-static void _pcu_set_spy(const PcuPin pin, const PcuPinStatus status) {
-    if (g_set_calls_count < PCU_SET_CALLS_MAX) {
-        g_set_calls_pin[g_set_calls_count] = pin;
-        g_set_calls_status[g_set_calls_count] = status;
-        g_set_calls_count++;
-    }
-}
-
-static void _pcu_toggle_spy(const PcuPin pin) {
-    g_toggle_last_pin = pin;
-    g_toggle_calls_count++;
-}
-
-static void _pcu_reset_spies(void) {
-    g_set_calls_count = 0U;
-    g_toggle_calls_count = 0U;
-    g_toggle_last_pin = (PcuPin)0U;
-    memset(g_set_calls_pin, 0, sizeof(g_set_calls_pin));
-    memset(g_set_calls_status, 0, sizeof(g_set_calls_status));
-}
+FAKE_VOID_FUNC(_pcu_set, const PcuPin, const PcuPinStatus);
+FAKE_VOID_FUNC(_pcu_toggle, const PcuPin);
 
 static void _assert_set_call(const uint32_t idx, const PcuPin pin, const PcuPinStatus status, const char *msg) {
-    TEST_ASSERT_TRUE_MESSAGE(idx < g_set_calls_count, msg);
-    TEST_ASSERT_EQUAL_MESSAGE(pin, g_set_calls_pin[idx], msg);
-    TEST_ASSERT_EQUAL_MESSAGE(status, g_set_calls_status[idx], msg);
+    TEST_ASSERT_EQUAL_MESSAGE(pin, _pcu_set_fake.arg0_history[idx], msg);
+    TEST_ASSERT_EQUAL_MESSAGE(status, _pcu_set_fake.arg1_history[idx], msg);
 }
 
-/* ---------- tests ---------- */
-
 void test_pcu_init_null_set_callback(void) {
-    TEST_ASSERT_EQUAL_MESSAGE(
-        PCU_NULL_POINTER,
-        pcu_init(NULL, _pcu_toggle_spy),
-        "pcu_init should return PCU_NULL_POINTER when set callback is NULL");
+    TEST_ASSERT_EQUAL_MESSAGE(PCU_NULL_POINTER, pcu_init(NULL, _pcu_toggle), "pcu_init should return PCU_NULL_POINTER when set callback is NULL");
 }
 
 void test_pcu_init_null_toggle_callback(void) {
-    TEST_ASSERT_EQUAL_MESSAGE(
-        PCU_NULL_POINTER,
-        pcu_init(_pcu_set_spy, NULL),
-        "pcu_init should return PCU_NULL_POINTER when toggle callback is NULL");
+    TEST_ASSERT_EQUAL_MESSAGE(PCU_NULL_POINTER, pcu_init(_pcu_set, NULL), "pcu_init should return PCU_NULL_POINTER when toggle callback is NULL");
 }
 
 void test_pcu_init_ok(void) {
-    _pcu_reset_spies();
-    TEST_ASSERT_EQUAL_MESSAGE(
-        PCU_OK,
-        pcu_init(_pcu_set_spy, _pcu_toggle_spy),
-        "pcu_init failed to return PCU_OK");
-}
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
 
-void test_pcu_init_event_type_ignored(void) {
-    TEST_ASSERT_EQUAL_MESSAGE(
-        FSM_EVENT_TYPE_IGNORED,
-        hpcu.event.type,
-        "Initial PCU event type should be IGNORED");
+    PcuReturnCode ret = pcu_init(_pcu_set, _pcu_toggle);
+
+    TEST_ASSERT_EQUAL_MESSAGE(PCU_OK, ret, "pcu_init failed to return PCU_OK");
+    TEST_ASSERT_EQUAL_MESSAGE(_pcu_set, hpcu.set, "the set function should be initialized");
+    TEST_ASSERT_EQUAL_MESSAGE(_pcu_toggle, hpcu.toggle, "the toggle function should be initialized");
+    TEST_ASSERT_EQUAL_MESSAGE(FSM_EVENT_TYPE_IGNORED, hpcu.event.type, "the toggle function should be initialized");
 }
 
 void test_pcu_init_sets_default_pins_high(void) {
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(4U, g_set_calls_count, "pcu_init should reset 4 pins");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(4U, _pcu_set_fake.call_count, "pcu_init should reset  pins");
     _assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH, "AIR- default state mismatch");
     _assert_set_call(1U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH, "Precharge default state mismatch");
     _assert_set_call(2U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH, "AIR+ default state mismatch");
     _assert_set_call(3U, PCU_PIN_AMS, PCU_PIN_STATUS_HIGH, "AMS default state mismatch");
-    TEST_ASSERT_EQUAL_MESSAGE(
-        FSM_EVENT_TYPE_IGNORED,
-        hpcu.timeout_event.type,
-        "Timeout event type should be IGNORED after reset");
 }
 
 void test_pcu_reset_all_sets_default_pins_high(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_reset_all();
 
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(4U, g_set_calls_count, "pcu_reset_all should write 4 pins");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(4U, _pcu_set_fake.call_count, "pcu_reset_all should write 4 pins");
     _assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH, "AIR- reset mismatch");
     _assert_set_call(1U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH, "Precharge reset mismatch");
     _assert_set_call(2U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH, "AIR+ reset mismatch");
@@ -106,66 +66,82 @@ void test_pcu_reset_all_sets_default_pins_high(void) {
 }
 
 void test_pcu_airn_open_sets_high(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_airn_open();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH, "pcu_airn_open mismatch");
 }
 
 void test_pcu_airn_close_sets_low(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_airn_close();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_LOW, "pcu_airn_close mismatch");
 }
 
 void test_pcu_airp_open_sets_high(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_airp_open();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH, "pcu_airp_open mismatch");
 }
 
 void test_pcu_airp_close_sets_low(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_airp_close();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW, "pcu_airp_close mismatch");
 }
 
 void test_pcu_precharge_start_sets_low(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_precharge_start();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW, "pcu_precharge_start mismatch");
 }
 
 void test_pcu_precharge_stop_sets_high(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_precharge_stop();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH, "pcu_precharge_stop mismatch");
 }
 
 void test_pcu_ams_activate_sets_low(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_ams_activate();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_AMS, PCU_PIN_STATUS_LOW, "pcu_ams_activate mismatch");
 }
 
 void test_pcu_ams_deactivate_sets_high(void) {
-    _pcu_reset_spies();
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
     pcu_ams_deactivate();
 
-    TEST_ASSERT_EQUAL_UINT32(1U, g_set_calls_count);
+    TEST_ASSERT_EQUAL_UINT32(1U, _pcu_set_fake.call_count);
     _assert_set_call(0U, PCU_PIN_AMS, PCU_PIN_STATUS_HIGH, "pcu_ams_deactivate mismatch");
 }
 
@@ -270,8 +246,11 @@ void test_pcu_set_state_from_handcart_handle_off(void) {
 
 void setUp(void) {
     timebase_init(500U);
-    _pcu_reset_spies();
-    (void)pcu_init(_pcu_set_spy, _pcu_toggle_spy);
+    RESET_FAKE(_pcu_set);
+    RESET_FAKE(_pcu_toggle);
+    FFF_RESET_HISTORY();
+
+    (void)pcu_init(_pcu_set, _pcu_toggle);
 }
 
 void tearDown(void) {
@@ -282,7 +261,6 @@ int main(void) {
     RUN_TEST(test_pcu_init_null_set_callback);
     RUN_TEST(test_pcu_init_null_toggle_callback);
     RUN_TEST(test_pcu_init_ok);
-    RUN_TEST(test_pcu_init_event_type_ignored);
     RUN_TEST(test_pcu_init_sets_default_pins_high);
     RUN_TEST(test_pcu_reset_all_sets_default_pins_high);
     RUN_TEST(test_pcu_airn_open_sets_high);

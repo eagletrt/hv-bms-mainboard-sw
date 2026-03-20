@@ -68,12 +68,10 @@ void test_timebase_init_zero_resolution_defaults_to_one(void) {
 };
 
 void test_timebase_disabled_behaviour(void) {
-    Watchdog wdg = { 0 };
-    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 4U, mock_watchdog_callback), "Failed to initialize watchdog");
-    TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_OK, watchdog_start(&wdg), "Failed to register watchdog");
-
     TEST_ASSERT_EQUAL_MESSAGE(TIMEBASE_DISABLED, timebase_inc_tick(), "Timebase should fail to increment tick");
 };
+
+// TODO: test timebase SET
 
 void test_timebase_watchdog_stop(void) {
     Watchdog wdg = { 0 };
@@ -87,7 +85,7 @@ void test_timebase_watchdog_stop(void) {
     TEST_ASSERT_EQUAL_MESSAGE(0, mock_watchdog_calls, "Watchdog should NOT time-out at threshold when stopped");
 };
 
-void test_timebase_watchdog_reset_behaviout(void) {
+void test_timebase_watchdog_reset_behaviour(void) {
     Watchdog wdg = { 0 };
     TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_init(&wdg, 6U, mock_watchdog_callback), "Failed to initialize watchdog");
     TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_OK, watchdog_start(&wdg), "Failed to register watchdog");

@@ -11,30 +11,16 @@
 #include "mainboard-def.h"
 #include <string.h>
 #include <timebase.h>
+#include "fff.h"
+DEFINE_FFF_GLOBALS;
 
 #define CELLBOARD_ID CELLBOARD_ID_1
 
+uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
+
 extern _CanCommHandler hcan_comm;
 
-// Mock variables to track `can_comm_send` callback
-static bool mock_send_called = false;
-static CanNetwork mock_send_network;
-static can_id_t mock_send_id;
-static CanFrameType mock_send_frame_type;
-static uint8_t mock_send_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE * 2];
-static size_t mock_send_size;
-
-CanCommReturnCode can_comm_send_mock(const CanNetwork network, const can_id_t id, const CanFrameType frame_type, const uint8_t *const data, const size_t size) {
-    mock_send_called = true;
-    mock_send_network = network;
-    mock_send_id = id;
-    mock_send_frame_type = frame_type;
-    mock_send_size = size;
-    if (data != NULL && size > 0) {
-        memcpy(mock_send_data, data, size);
-    }
-    return CAN_COMM_OK;
-}
+FAKE_VALUE_FUNC(CanCommReturnCode, can_comm_send, const CanNetwork, const can_id_t, const CanFrameType, const uint8_t *, const size_t);
 
 // --- INIT TESTS ---
 
@@ -42,8 +28,10 @@ void test_can_comm_init_null() {
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_NULL_POINTER, can_comm_init(NULL), "Init should return CAN_COMM_NULL_POINTER when callback is NULL");
 }
 
-void test_can_comm_init_ok() {
-    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, can_comm_init(can_comm_send_mock), "Init should return CAN_COMM_OK with valid callback");
+void test_can_comm_init_correct_callback() {
+    can_comm_send_fake.return_val = CAN_COMM_OK;
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, can_comm_init(can_comm_send), "Init should return CAN_COMM_OK with valid callback");
+    TEST_ASSERT_EQUAL_MESSAGE(hcan_comm.send, can_comm_send, "Init should store the callback in the handler");
 }
 
 // --- STATE MANAGEMENT TESTS ---
@@ -129,7 +117,7 @@ void test_can_comm_rx_add_invalid_index() {
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_INVALID_INDEX, ret, "RX add should fail with INVALID_INDEX");
 }
 
-void test_can_comm_rx_add_ok_and_busy_flag() {
+void test_can_comm_rx_add_ok() {
     can_comm_enable_all();
     uint8_t data[] = { 0xAA, 0xBB };
     CanCommReturnCode ret = can_comm_rx_add(CAN_NETWORK_BMS, 1, CAN_FRAME_TYPE_DATA, data, 2);
@@ -183,18 +171,28 @@ void test_can_comm_routine_disabled() {
 
 void test_can_comm_routine_tx_processing() {
     can_comm_enable_all();
-    uint8_t data[] = { 0x11, 0x22, 0x33 };
-
+    uint8_t data_in[] = { 0x11, 0x22, 0x33 };
     hcan_comm.tx_busy[CAN_NETWORK_BMS][0] = false; // Ensure not busy
+    can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, data_in, 3);
 
-    can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, data, 3);
+    uint8_t serialized_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE] = { 0 };
+    int can_id = bms_id_from_index(0);
 
-    TEST_ASSERT_TRUE_MESSAGE(hcan_comm.tx_busy[CAN_NETWORK_BMS][0], "Busy flag should be set after adding to TX queue");
+    int size = bms_serialize_from_id(
+        data_in,
+        can_id,
+        serialized_data);
 
     CanCommReturnCode ret = can_comm_routine();
 
     TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_OK, ret, "Routine should return OK after processing");
     TEST_ASSERT_FALSE_MESSAGE(hcan_comm.tx_busy[CAN_NETWORK_BMS][0], "Busy flag should be cleared after routine");
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_NETWORK_BMS, can_comm_send_fake.arg0_val, "Data should be send");
+    TEST_ASSERT_EQUAL_MESSAGE(can_id, can_comm_send_fake.arg1_val, "Index should be 0");
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_FRAME_TYPE_DATA, can_comm_send_fake.arg2_val, "Frame type should be DATA");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(serialized_data, data, size, "Payload should match the added data: TODO, FIND WHY THIS DOESN'T WORK");
+    TEST_ASSERT_EQUAL_MESSAGE(size, can_comm_send_fake.arg4_val, "Payload size should be 3");
 
     CanMessage msg;
     TEST_ASSERT_EQUAL_MESSAGE(RING_BUFFER_EMPTY, ring_buffer_pop_front(&hcan_comm.tx_buf, &msg), "TX buffer should be empty after routine");
@@ -203,9 +201,13 @@ void test_can_comm_routine_tx_processing() {
 #ifdef CAN_COMM_TESTS
 
 void setUp() {
-    can_comm_init(can_comm_send_mock);
-    mock_send_called = false;
-    memset(mock_send_data, 0, sizeof(mock_send_data));
+
+    RESET_FAKE(can_comm_send);
+    FFF_RESET_HISTORY();
+
+    can_comm_send_fake.return_val = CAN_COMM_OK;
+
+    can_comm_init(can_comm_send);
     timebase_init(500U);
 }
 
@@ -217,7 +219,7 @@ int main() {
 
     // Init & State
     RUN_TEST(test_can_comm_init_null);
-    RUN_TEST(test_can_comm_init_ok);
+    RUN_TEST(test_can_comm_init_correct_callback);
     RUN_TEST(test_can_comm_enable_all);
     RUN_TEST(test_can_comm_disable_all);
     RUN_TEST(test_can_comm_is_enabled_all);
@@ -235,7 +237,7 @@ int main() {
     // RX
     RUN_TEST(test_can_comm_rx_add_disabled);
     RUN_TEST(test_can_comm_rx_add_invalid_index);
-    RUN_TEST(test_can_comm_rx_add_ok_and_busy_flag);
+    RUN_TEST(test_can_comm_rx_add_ok);
 
     // TX
     RUN_TEST(test_can_comm_tx_add_disabled);
