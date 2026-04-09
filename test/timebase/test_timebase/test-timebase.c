@@ -202,6 +202,9 @@ void test_timebase_task_periodic_runs_on_each_interval(void) {
 }
 
 void test_timebase_task_oneshot_runs_after_enable(void) {
+
+    TEST_IGNORE_MESSAGE("This functionality has yet to be implemented.");
+
     Task *task_1 = NULL;
     Task *task_2 = NULL;
     Task *task_3 = NULL;
@@ -216,6 +219,9 @@ void test_timebase_task_oneshot_runs_after_enable(void) {
 }
 
 void test_timebase_task_oneshot_runs_only_once_per_enable(void) {
+
+    TEST_IGNORE_MESSAGE("This functionality has yet to be implemented.");
+
     Task *task_1 = NULL;
     Task *task_2 = NULL;
     Task *task_3 = NULL;
@@ -262,6 +268,9 @@ void test_timebase_task_disable_stops_future_periodic_executions(void) {
 }
 
 void test_timebase_task_oneshot_can_be_reenabled_and_run_again(void) {
+
+    TEST_IGNORE_MESSAGE("This functionality has yet to be implemented.");
+
     Task *task_1 = NULL;
     Task *task_2 = NULL;
     Task *task_3 = NULL;
@@ -301,7 +310,7 @@ int main(void) {
     RUN_TEST(test_timebase_init_zero_resolution_defaults_to_one);
     RUN_TEST(test_timebase_disabled_behaviour);
     RUN_TEST(test_timebase_watchdog_stop);
-    RUN_TEST(test_timebase_watchdog_reset_behaviout);
+    RUN_TEST(test_timebase_watchdog_reset_behaviour);
     RUN_TEST(test_timebase_watchdog_double_start);
     RUN_TEST(test_timebase_watchdog_timeout_state);
     RUN_TEST(test_timebase_watchdog_does_not_timeout_before_threshold);

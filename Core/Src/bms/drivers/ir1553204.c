@@ -57,7 +57,12 @@ Ir1553204Status ir1553204_get_status(Ir1553204Handler *const handler) {
     if (handler == NULL)
         return IR1553204_STATUS_UNKNOWN;
     // Round frequency to avoid precision errors
+
+    if (handler->frequency > (IR1553204_STATUS_COUNT - 1) * 10.f)
+        return IR1553204_STATUS_UNKNOWN;
+
     uint32_t status = (uint32_t)roundf(handler->frequency / 10.f);
+
     if (status >= IR1553204_STATUS_COUNT)
         return IR1553204_STATUS_UNKNOWN;
     return (Ir1553204Status)status;
