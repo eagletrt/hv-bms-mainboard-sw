@@ -25,18 +25,28 @@ void test_ir1553204_getters_default_zero_after_init() {
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&empty, &ir1553204Handler, sizeof(ir1553204Handler), "Default values should be zero");
 }
 
-// these test both get and set, as the get is just returning the struct value set by the set it is usless to split them up
-
-void test_ir1553204_set_get_frequency() {
+void test_ir1553204_set_frequency() {
     TEST_ASSERT_EQUAL_MESSAGE(IR1553204_OK, ir1553204_set_frequency(&ir1553204Handler, 23.0f), "set_frequency should return OK");
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 23.0f, ir1553204_get_frequency(&ir1553204Handler), "Frequency should match set value");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 23.0f, ir1553204Handler.frequency, "Frequency should match set value");
 }
 
-void test_ir1553204_set_get_duty_cycle() {
+void test_ir1553204_get_frequency() {
+    ir1553204Handler.frequency = 42.0f;
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 42.0f, ir1553204_get_frequency(&ir1553204Handler), "get_frequency should return the handler's frequency value");
+}
+
+void test_ir1553204_set_duty_cycle() {
     TEST_ASSERT_EQUAL_MESSAGE(IR1553204_OK, ir1553204_set_duty_cycle(&ir1553204Handler, 0.37f), "set_duty_cycle should return OK");
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 0.37f, ir1553204_get_duty_cycle(&ir1553204Handler), "Duty cycle should match set value");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 0.37f, ir1553204Handler.duty_cycle, "Duty cycle should match set value");
+}
+
+void test_ir1553204_get_duty_cycle() {
+    ir1553204Handler.duty_cycle = 0.85f;
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 0.85f, ir1553204_get_duty_cycle(&ir1553204Handler), "get_duty_cycle should return the handler's duty cycle value");
 }
 
 void test_ir1553204_setters_null_pointer() {
@@ -51,6 +61,8 @@ void test_ir1553204_get_period_valid() {
 }
 
 void test_ir1553204_get_period_zero_frequency() {
+    ir1553204Handler.frequency = 0.0f;
+
     TEST_ASSERT_EQUAL_MESSAGE(0U, ir1553204_get_period(&ir1553204Handler), "Period should be 0 when frequency is 0");
 }
 
@@ -91,8 +103,10 @@ int main() {
     RUN_TEST(test_ir1553204_init_ok);
     RUN_TEST(test_ir1553204_init_null_pointer);
     RUN_TEST(test_ir1553204_getters_default_zero_after_init);
-    RUN_TEST(test_ir1553204_set_get_frequency);
-    RUN_TEST(test_ir1553204_set_get_duty_cycle);
+    RUN_TEST(test_ir1553204_set_frequency);
+    RUN_TEST(test_ir1553204_get_frequency);
+    RUN_TEST(test_ir1553204_set_duty_cycle);
+    RUN_TEST(test_ir1553204_get_duty_cycle);
     RUN_TEST(test_ir1553204_setters_null_pointer);
     RUN_TEST(test_ir1553204_get_period_valid);
     RUN_TEST(test_ir1553204_get_period_zero_frequency);

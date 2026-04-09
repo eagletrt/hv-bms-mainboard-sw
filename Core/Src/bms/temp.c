@@ -18,12 +18,7 @@ _STATIC _TempHandler htemp;
 
 // Array to map cells index in memory to phisical positions
 _STATIC size_t _temp_cell_position_index_map[] = {
-    63U, 65U, 15U, 61U,  6U, 39U, 46U,  7U,
-    40U, 31U,  8U, 41U, 64U, 36U, 54U,  1U,
-    51U, 42U, 32U, 37U, 55U, 48U, 52U, 43U,
-    49U, 38U, 72U,  2U,  9U, 44U, 33U, 67U,
-    45U,  3U, 10U, 75U, 34U, 11U, 57U,  4U,
-    12U, 70U, 35U, 13U, 69U,  5U, 14U, 73U
+    63U, 65U, 15U, 61U, 6U, 39U, 46U, 7U, 40U, 31U, 8U, 41U, 64U, 36U, 54U, 1U, 51U, 42U, 32U, 37U, 55U, 48U, 52U, 43U, 49U, 38U, 72U, 2U, 9U, 44U, 33U, 67U, 45U, 3U, 10U, 75U, 34U, 11U, 57U, 4U, 12U, 70U, 35U, 13U, 69U, 5U, 14U, 73U
 };
 
 /**
@@ -64,7 +59,7 @@ TempReturnCode temp_init(void) {
     return TEMP_OK;
 }
 
-const cells_temp_t * temp_get_values(void) {
+const cells_temp_t *temp_get_values(void) {
     return &htemp.temperatures;
 }
 
@@ -102,16 +97,16 @@ celsius_t temp_get_avg(void) {
     return temp_get_sum() / CELLBOARD_TEMP_SENSOR_COUNT;
 }
 
-void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t * const payload) {
+void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *const payload) {
     const size_t size = 4U;
     if (payload == NULL ||
-       (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-       payload->offset + size > CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT)
-       return;
+        (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
+        payload->offset + size > CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT)
+        return;
 
     // Update temperatures
     const size_t offset = payload->offset;
-    celsius_t * const temperatures = htemp.temperatures[payload->cellboard_id];
+    celsius_t *const temperatures = htemp.temperatures[payload->cellboard_id];
     temperatures[offset] = payload->temperature_0;
     temperatures[offset + 1U] = payload->temperature_1;
     temperatures[offset + 2U] = payload->temperature_2;
@@ -120,13 +115,11 @@ void temp_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *
         _temp_check_value((CellboardId)payload->cellboard_id, offset + i, temperatures[offset + i]);
 }
 
-primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_payload(size_t * const byte_size) {
-    //what is this check??? and what is byte size used for??
-
+primary_hv_cells_temperature_converted_t *temp_get_cells_temperature_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(htemp.temp_can_payload);
 
-    const celsius_t * temperatures = htemp.temperatures[htemp.cellboard_id];
+    const celsius_t *temperatures = htemp.temperatures[htemp.cellboard_id];
     htemp.temp_can_payload.cellboard_id = (primary_hv_cells_temperature_cellboard_id)htemp.cellboard_id;
 
     htemp.temp_can_payload.temperature_0 = temperatures[htemp.offset];
@@ -143,14 +136,13 @@ primary_hv_cells_temperature_converted_t * temp_get_cells_temperature_canlib_pay
     htemp.offset += TEMP_NUM_TEMP_CAN_MESSAGE;
     if (htemp.offset >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
         htemp.offset = 0U;
-        if(++htemp.cellboard_id >= CELLBOARD_ID_COUNT)
+        if (++htemp.cellboard_id >= CELLBOARD_ID_COUNT)
             htemp.cellboard_id = 0U;
     }
     return &htemp.temp_can_payload;
-
 }
 
-primary_hv_cells_temp_stats_converted_t * temp_get_cells_temperature_stats_canlib_payload(size_t * const byte_size) {
+primary_hv_cells_temp_stats_converted_t *temp_get_cells_temperature_stats_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(htemp.temp_stats_can_payload);
 
@@ -164,20 +156,20 @@ primary_hv_cells_temp_stats_converted_t * temp_get_cells_temperature_stats_canli
 
 #ifdef CONF_TEMPERATURE_STRINGS_ENABLE
 
-_STATIC char * temp_module_name = "temperature";
+_STATIC char *temp_module_name = "temperature";
 
-_STATIC char * temp_return_code_name[] = {
+_STATIC char *temp_return_code_name[] = {
     [TEMP_OK] = "ok",
     [TEMP_NULL_POINTER] = "null pointer",
     [TEMP_OUT_OF_BOUNDS] = "out of bounds"
 };
 
-_STATIC char * temp_return_code_description[] = {
+_STATIC char *temp_return_code_description[] = {
     [TEMP_OK] = "executed successfully",
     [TEMP_NULL_POINTER] = "attempt to dereference a null pointer"
-    [TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+        [TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
 };
 
-#endif  //  CONF_TEMPERATURE_STRINGS_ENABLE
+#endif //  CONF_TEMPERATURE_STRINGS_ENABLE
 
-#endif  //  CONF_TEMPERATURE_MODULE_ENABLE
+#endif //  CONF_TEMPERATURE_MODULE_ENABLE

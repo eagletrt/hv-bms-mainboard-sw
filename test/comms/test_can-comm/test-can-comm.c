@@ -16,9 +16,15 @@ DEFINE_FFF_GLOBALS;
 
 #define CELLBOARD_ID CELLBOARD_ID_1
 
-uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
-
 extern _CanCommHandler hcan_comm;
+
+uint8_t test_data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 5] = { 0 };
+
+CanCommReturnCode can_comm_send_capture_data(const CanNetwork net, const can_id_t id, const CanFrameType type, const uint8_t *data, const size_t len) {
+
+    memcpy(test_data, data, len);
+    return CAN_COMM_OK;
+}
 
 FAKE_VALUE_FUNC(CanCommReturnCode, can_comm_send, const CanNetwork, const can_id_t, const CanFrameType, const uint8_t *, const size_t);
 
@@ -170,7 +176,10 @@ void test_can_comm_routine_disabled() {
 }
 
 void test_can_comm_routine_tx_processing() {
+
+    memset(test_data, 0, sizeof(test_data));
     can_comm_enable_all();
+    can_comm_send_fake.custom_fake = can_comm_send_capture_data;
     uint8_t data_in[] = { 0x11, 0x22, 0x33 };
     hcan_comm.tx_busy[CAN_NETWORK_BMS][0] = false; // Ensure not busy
     can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, data_in, 3);
@@ -191,7 +200,7 @@ void test_can_comm_routine_tx_processing() {
     TEST_ASSERT_EQUAL_MESSAGE(CAN_NETWORK_BMS, can_comm_send_fake.arg0_val, "Data should be send");
     TEST_ASSERT_EQUAL_MESSAGE(can_id, can_comm_send_fake.arg1_val, "Index should be 0");
     TEST_ASSERT_EQUAL_MESSAGE(CAN_FRAME_TYPE_DATA, can_comm_send_fake.arg2_val, "Frame type should be DATA");
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(serialized_data, data, size, "Payload should match the added data: TODO, FIND WHY THIS DOESN'T WORK");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(serialized_data, test_data, size, "Payload should match the added data");
     TEST_ASSERT_EQUAL_MESSAGE(size, can_comm_send_fake.arg4_val, "Payload size should be 3");
 
     CanMessage msg;

@@ -3,6 +3,10 @@
 #include "mainboard-def.h"
 #include <string.h>
 
+#include <fff.h>
+
+DEFINE_FFF_GLOBALS;
+
 extern _FeedbackHandler hfeedback;
 extern uint32_t debug_cnt;
 
@@ -11,54 +15,45 @@ extern FeedbackId _feedback_get_id_from_digital_bit(const FeedbackDigitalBit bit
 extern FeedbackId _feedback_get_id_from_analog_index(const FeedbackAnalogIndex index);
 extern FeedbackStatus _feedback_get_analog_status(const FeedbackAnalogIndex index);
 
-/* ---------- Mocks ---------- */
-
-static bit_flag32_t g_fake_digital_value = 0U;
-static uint32_t g_start_conversion_called = 0U;
-
-static bit_flag32_t _feedback_read_digital_all_mock(void) {
-    return g_fake_digital_value;
-}
-
-static void _feedback_start_analog_conversion_fake(void) {
-    ++g_start_conversion_called;
-}
-
-/* ---------- Tests ---------- */
+FAKE_VALUE_FUNC(uint32_t, _feedback_read_digital_all);
+FAKE_VOID_FUNC(_feedback_start_analog_conversion);
 
 void test_feedback_init_null_read_callback(void) {
     TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_NULL_POINTER,
-        feedback_init(NULL, _feedback_start_analog_conversion_fake),
+        feedback_init(NULL, _feedback_start_analog_conversion),
         "feedback_init() should fail with NULL read callback");
 }
 
 void test_feedback_init_null_start_conversion_callback(void) {
     TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_NULL_POINTER,
-        feedback_init(_feedback_read_digital_all_mock, NULL),
+        feedback_init(_feedback_read_digital_all, NULL),
         "feedback_init() should fail with NULL start_conversion callback");
 }
 
 void test_feedback_init_ok(void) {
     TEST_ASSERT_EQUAL_MESSAGE(
         FEEDBACK_OK,
-        feedback_init(_feedback_read_digital_all_mock, _feedback_start_analog_conversion_fake),
+        feedback_init(_feedback_read_digital_all, _feedback_start_analog_conversion),
         "feedback_init() failed to return FEEDBACK_OK");
+    TEST_ASSERT_EQUAL_MESSAGE(_feedback_read_digital_all, hfeedback.read_digital, "Init should save read function");
+
+    TEST_ASSERT_EQUAL_MESSAGE(_feedback_start_analog_conversion, hfeedback.start_conversion, "Init should save analog start function");
 }
 
 void test_feedback_update_digital_feedback_all_ok(void) {
-    g_fake_digital_value = (1UL << FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
+    _feedback_read_digital_all_fake.return_val = (1UL << FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
 
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_OK, feedback_update_digital_feedback_all(), "Update digital failed");
     TEST_ASSERT_TRUE_MESSAGE(feedback_get_digital(FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM), "Digital bit was not updated");
 }
 
 void test_feedback_start_analog_conversion_all_ok(void) {
-    g_start_conversion_called = 0U;
+    RESET_FAKE(_feedback_start_analog_conversion);
 
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_OK, feedback_start_analog_conversion_all(), "Start conversion failed");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, g_start_conversion_called, "Start conversion callback should be called once");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, _feedback_start_analog_conversion_fake.call_count, "Start conversion callback should be called once");
 }
 
 void test_feedback_update_analog_feedback_ok(void) {
@@ -127,13 +122,18 @@ void test_feedback_get_analog_status_probing_3v3_out_of_range(void) {
         "3V3 probing out-of-range should be ERROR");
 }
 
-void test_feedback_get_analog_status_generic_low_high_error(void) {
+void test_feedback_get_analog_status_low_error(void) {
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = FEEDBACK_THRESHOLD_LOW_V - 0.1f;
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_LOW, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN), "TSAL_GREEN should be LOW");
+}
+
+void test_feedback_get_analog_status_high_error(void) {
 
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = FEEDBACK_THRESHOLD_HIGH_V + 0.1f;
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN), "TSAL_GREEN should be HIGH");
+}
 
+void test_feedback_get_analog_status_feedback_error(void) {
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = (FEEDBACK_THRESHOLD_LOW_V + FEEDBACK_THRESHOLD_HIGH_V) * 0.5f;
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_ERROR, _feedback_get_analog_status(FEEDBACK_ANALOG_INDEX_TSAL_GREEN), "TSAL_GREEN should be ERROR (indecisive state)");
 }
@@ -147,9 +147,9 @@ void test_feedback_get_analog_status_imd_special_low_threshold(void) {
 }
 
 void test_feedback_update_status_digital_and_analog(void) {
-    g_fake_digital_value = 0U;
-    g_fake_digital_value |= (1UL << FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
-    g_fake_digital_value |= (1UL << FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
+    _feedback_read_digital_all_fake.return_val = 0U;
+    _feedback_read_digital_all_fake.return_val |= (1UL << FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
+    _feedback_read_digital_all_fake.return_val |= (1UL << FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
     (void)feedback_update_digital_feedback_all();
 
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN] = FEEDBACK_THRESHOLD_HIGH_V + 0.2f; /* HIGH */
@@ -157,15 +157,18 @@ void test_feedback_update_status_digital_and_analog(void) {
 
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_OK, feedback_update_status(), "feedback_update_status failed");
 
+    // Digital feedback tests
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_AIRN_OPEN_COM), "AIRN_OPEN_COM should be HIGH");
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_SD_BMS_FB), "SD_BMS_FB should be HIGH");
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_LOW, feedback_get_status(FEEDBACK_ID_AIRP_OPEN_COM), "AIRP_OPEN_COM should be LOW");
+
+    // Analog feedback tests
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_HIGH, feedback_get_status(FEEDBACK_ID_TSAL_GREEN), "TSAL_GREEN should be HIGH");
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_STATUS_LOW, feedback_get_status(FEEDBACK_ID_SD_OUT), "SD_OUT should be LOW");
 }
 
-void test_feedback_update_status_air_noise_branch_sets_low_and_increments_debug(void) {
-    debug_cnt = 0U;
+// Is this intended behaviour???
+void test_feedback_update_status_air_noise_branch_sets_low(void) {
     hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC] = 1.8f; /* special thr_low=1.6, if thr_high < 1.8 => ERROR path */
 
     (void)feedback_update_status();
@@ -206,7 +209,7 @@ void test_feedback_check_values_mismatch_sets_out(void) {
     TEST_ASSERT_EQUAL_MESSAGE(FEEDBACK_ID_AIRN_OPEN_COM, out, "Mismatch id not reported");
 }
 
-void test_feedback_is_digital_true_false(void) {
+void test_feedback_is_digital_check(void) {
     TEST_ASSERT_TRUE_MESSAGE(feedback_is_digital(FEEDBACK_ID_AIRN_OPEN_COM), "AIRN_OPEN_COM should be digital");
     TEST_ASSERT_FALSE_MESSAGE(feedback_is_digital(FEEDBACK_ID_IMD_OK), "IMD_OK should not be digital");
 }
@@ -323,10 +326,9 @@ void test_feedback_get_enzomma_payload_analog(void) {
 #ifdef FEEDBACK_TESTS
 
 void setUp(void) {
-    g_fake_digital_value = 0U;
-    g_start_conversion_called = 0U;
-    debug_cnt = 0U;
-    (void)feedback_init(_feedback_read_digital_all_mock, _feedback_start_analog_conversion_fake);
+    RESET_FAKE(_feedback_read_digital_all);
+    RESET_FAKE(_feedback_start_analog_conversion);
+    (void)feedback_init(_feedback_read_digital_all, _feedback_start_analog_conversion);
 }
 
 void tearDown(void) {
@@ -348,13 +350,15 @@ int main(void) {
     RUN_TEST(test_feedback_get_id_from_analog_index_ok);
     RUN_TEST(test_feedback_get_analog_status_probing_3v3_in_range);
     RUN_TEST(test_feedback_get_analog_status_probing_3v3_out_of_range);
-    RUN_TEST(test_feedback_get_analog_status_generic_low_high_error);
+    RUN_TEST(test_feedback_get_analog_status_low_error);
+    RUN_TEST(test_feedback_get_analog_status_high_error);
+    RUN_TEST(test_feedback_get_analog_status_feedback_error);
     RUN_TEST(test_feedback_get_analog_status_imd_special_low_threshold);
     RUN_TEST(test_feedback_update_status_digital_and_analog);
-    RUN_TEST(test_feedback_update_status_air_noise_branch_sets_low_and_increments_debug);
+    RUN_TEST(test_feedback_update_status_air_noise_branch_sets_low);
     RUN_TEST(test_feedback_check_values_ok);
     RUN_TEST(test_feedback_check_values_mismatch_sets_out);
-    RUN_TEST(test_feedback_is_digital_true_false);
+    RUN_TEST(test_feedback_is_digital_check);
     RUN_TEST(test_feedback_get_digital_bit_from_id);
     RUN_TEST(test_feedback_get_analog_index_from_id);
     RUN_TEST(test_feedback_get_status_payload_pointer_size_and_content);

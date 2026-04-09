@@ -29,7 +29,8 @@ void test_current_get_current_value() {
 
 void test_current_get_power_value() {
     hcurrent.current = 10.0f;
-    float expected = 10.0f * internal_voltage_get_ts() * 0.001f;
+    hvolt_int.ts = 350.0f; /* V */
+    float expected = 10.0f * 350.0f * 0.001f;
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, expected, current_get_power(), "current_get_power() returned unexpected value");
 }
 
@@ -68,8 +69,9 @@ void test_current_get_current_canlib_payload() {
 void test_current_get_power_canlib_payload() {
     size_t byte_size = 0U;
     hcurrent.current = 8.0f;
+    hvolt_int.ts = 350.0f; /* V */
 
-    float expected = hcurrent.current * internal_voltage_get_ts() * 0.001f;
+    float expected = hcurrent.current * 350.0f * 0.001f;
     primary_hv_power_converted_t *payload = current_get_power_canlib_payload(&byte_size);
 
     TEST_ASSERT_EQUAL_MESSAGE(&hcurrent.power_can_payload, payload, "Returned payload pointer mismatch");
@@ -77,25 +79,28 @@ void test_current_get_power_canlib_payload() {
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, expected, payload->power, "Payload power value mismatch");
 }
 
+extern int32_t error_over_current_instances[ERROR_OVER_CURRENT_INSTANCE_COUNT];
+extern int32_t error_over_power_instances[ERROR_OVER_POWER_INSTANCE_COUNT];
+
 void test_current_error_over_current() {
     bms_ivt_msg_result_i_t payload;
     memset(&payload, 0, sizeof(payload));
     payload.ivt_result_i = (int32_t)((CURRENT_MAX_A + 1.0f) * 1000.0f); /* mA */
     current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() == 0U, "Over current error should NOT be set");
-    current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() > 0U, "Over current error should be set");
+    TEST_ASSERT_EQUAL_MESSAGE(1, error_over_current_instances[0], "Over current error should be set");
 }
 
 void test_current_error_over_power() {
     bms_ivt_msg_result_i_t payload;
     memset(&payload, 0, sizeof(payload));
-    hvolt_int.ts = 400.0f;                                                                                            /* V */
-    payload.ivt_result_i = (int32_t)((CURRENT_MAX_POWER_KW / (internal_voltage_get_ts() * 0.001f) + 1.0f) * 1000.0f); /* mA */
+
+    hvolt_int.ts = 5000;
+
+    payload.ivt_result_i = (CURRENT_MAX_POWER_KW / 5 + 1) * 1000;
+
     current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() == 0U, "Over power error should NOT be set");
-    current_handle(&payload);
-    TEST_ASSERT_TRUE_MESSAGE(error_get_expired() > 0U, "Over power error should be set");
+
+    TEST_ASSERT_EQUAL_MESSAGE(1, error_over_power_instances[0], "Over power error should be set");
 }
 
 #ifdef CURRENT_TESTS

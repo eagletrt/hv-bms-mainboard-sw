@@ -35,15 +35,42 @@ void test_volt_get_values_pointer(void) {
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&hvolt.voltages, values, "volt_get_values() pointer mismatch");
 }
 
-void test_volt_get_min_max_sum_avg_uniform(void) {
+void test_volt_get_min(void) {
+    const volt_t v = 8.7f;
+
+    _volt_fill_all(v);
+
+    const volt_t min = 3.7f;
+
+    hvolt.voltages[0][0] = min;
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, min, volt_get_min(), "volt_get_min() mismatch");
+}
+
+void test_volt_get_max(void) {
+    const volt_t v = 3.7f;
+
+    _volt_fill_all(v);
+    const volt_t max = 8.7f;
+    hvolt.voltages[0][0] = max;
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, max, volt_get_max(), "volt_get_max() mismatch");
+}
+
+void test_volt_get_sum(void) {
     const volt_t v = 3.7f;
     const volt_t expected_sum = v * (volt_t)CELLBOARD_SERIES_COUNT;
 
     _volt_fill_all(v);
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, volt_get_min(), "volt_get_min() mismatch");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, volt_get_max(), "volt_get_max() mismatch");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.001f, expected_sum, volt_get_sum(), "volt_get_sum() mismatch");
+}
+
+void test_volt_get_avg(void) {
+    const volt_t v = 3.7f;
+
+    _volt_fill_all(v);
+
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, volt_get_avg(), "volt_get_avg() mismatch");
 }
 
@@ -89,7 +116,7 @@ void test_volt_cells_voltage_handle_invalid_offset(void) {
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 4.44f, hvolt.voltages[0][last], "Out-of-bounds offset should be ignored");
 }
 
-void test_volt_cells_voltage_handle_valid_updates_three_values(void) {
+void test_volt_cells_voltage_handle_valid_update(void) {
     bms_cellboard_cells_voltage_converted_t payload;
     memset(&payload, 0, sizeof(payload));
 
@@ -184,11 +211,14 @@ int main(void) {
     RUN_TEST(test_volt_init_ok);
     RUN_TEST(test_volt_init_values_are_max);
     RUN_TEST(test_volt_get_values_pointer);
-    RUN_TEST(test_volt_get_min_max_sum_avg_uniform);
+    RUN_TEST(test_volt_get_min);
+    RUN_TEST(test_volt_get_max);
+    RUN_TEST(test_volt_get_sum);
+    RUN_TEST(test_volt_get_avg);
     RUN_TEST(test_volt_cells_voltage_handle_null_payload);
     RUN_TEST(test_volt_cells_voltage_handle_invalid_cellboard_id);
     RUN_TEST(test_volt_cells_voltage_handle_invalid_offset);
-    RUN_TEST(test_volt_cells_voltage_handle_valid_updates_three_values);
+    RUN_TEST(test_volt_cells_voltage_handle_valid_update);
     RUN_TEST(test_volt_get_cells_voltage_canlib_payload_pointer_size_content_and_increment);
     RUN_TEST(test_volt_get_cells_voltage_canlib_payload_wrap_indices);
     RUN_TEST(test_volt_get_cells_voltage_stats_canlib_payload_pointer_size_and_content);

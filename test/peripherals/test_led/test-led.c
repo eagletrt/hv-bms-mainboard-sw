@@ -5,49 +5,27 @@ DEFINE_FFF_GLOBALS;
 
 #include <stdint.h>
 
-static uint32_t g_set_called = 0U;
-static uint32_t g_toggle_called = 0U;
-static LedId g_last_set_id = (LedId)0U;
-static LedStatus g_last_set_status = (LedStatus)0U;
-static LedId g_last_toggle_id = (LedId)0U;
-
-static void _led_set_spy(const LedId led, const LedStatus state) {
-    g_set_called++;
-    g_last_set_id = led;
-    g_last_set_status = state;
-}
-
-static void _led_toggle_spy(const LedId led) {
-    g_toggle_called++;
-    g_last_toggle_id = led;
-}
-
-static void _led_reset_spies() {
-    g_set_called = 0U;
-    g_toggle_called = 0U;
-    g_last_set_id = (LedId)0U;
-    g_last_set_status = (LedStatus)0U;
-    g_last_toggle_id = (LedId)0U;
-}
+FAKE_VOID_FUNC(_led_set, const LedId, const LedStatus);
+FAKE_VOID_FUNC(_led_toggle, const LedId);
 
 void test_led_init_null_set_callback() {
     TEST_ASSERT_EQUAL_MESSAGE(
         LED_NULL_POINTER,
-        led_init(NULL, _led_toggle_spy),
+        led_init(NULL, _led_toggle),
         "led_init() should fail with NULL set callback");
 }
 
 void test_led_init_null_toggle_callback() {
     TEST_ASSERT_EQUAL_MESSAGE(
         LED_NULL_POINTER,
-        led_init(_led_set_spy, NULL),
+        led_init(_led_set, NULL),
         "led_init() should fail with NULL toggle callback");
 }
 
 void test_led_init_ok() {
     TEST_ASSERT_EQUAL_MESSAGE(
         LED_OK,
-        led_init(_led_set_spy, _led_toggle_spy),
+        led_init(_led_set, _led_toggle),
         "led_init() failed to return LED_OK");
 }
 
@@ -66,14 +44,16 @@ void test_led_set_status_invalid_status() {
 }
 
 void test_led_set_status_ok_calls_set_callback() {
-    _led_reset_spies();
+    RESET_FAKE(_led_set);
+    RESET_FAKE(_led_toggle);
+    FFF_RESET_HISTORY();
 
     LedReturnCode rc = led_set_status(LED_ID_2, LED_STATUS_ON);
 
     TEST_ASSERT_EQUAL_MESSAGE(LED_OK, rc, "led_set_status() should return LED_OK");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, g_set_called, "Set callback should be called once");
-    TEST_ASSERT_EQUAL_MESSAGE(LED_ID_2, g_last_set_id, "Set callback LED id mismatch");
-    TEST_ASSERT_EQUAL_MESSAGE(LED_STATUS_ON, g_last_set_status, "Set callback status mismatch");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, _led_set_fake.call_count, "Set callback should be called once");
+    TEST_ASSERT_EQUAL_MESSAGE(LED_ID_2, _led_set_fake.arg0_val, "Set callback LED id mismatch");
+    TEST_ASSERT_EQUAL_MESSAGE(LED_STATUS_ON, _led_set_fake.arg1_val, "Set callback status mismatch");
 }
 
 void test_led_toggle_status_invalid_id() {
@@ -84,20 +64,25 @@ void test_led_toggle_status_invalid_id() {
 }
 
 void test_led_toggle_status_ok_calls_toggle_callback() {
-    _led_reset_spies();
+    RESET_FAKE(_led_set);
+    RESET_FAKE(_led_toggle);
+    FFF_RESET_HISTORY();
 
     LedReturnCode rc = led_toggle_status(LED_ID_1);
 
     TEST_ASSERT_EQUAL_MESSAGE(LED_OK, rc, "led_toggle_status() should return LED_OK");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, g_toggle_called, "Toggle callback should be called once");
-    TEST_ASSERT_EQUAL_MESSAGE(LED_ID_1, g_last_toggle_id, "Toggle callback LED id mismatch");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, _led_toggle_fake.call_count, "Toggle callback should be called once");
+    TEST_ASSERT_EQUAL_MESSAGE(LED_ID_1, _led_toggle_fake.arg0_val, "Toggle callback LED id mismatch");
 }
 
 #ifdef LED_TESTS
 
 void setUp(void) {
-    _led_reset_spies();
-    (void)led_init(_led_set_spy, _led_toggle_spy);
+    RESET_FAKE(_led_set);
+    RESET_FAKE(_led_toggle);
+    FFF_RESET_HISTORY();
+
+    (void)led_init(_led_set, _led_toggle);
 }
 
 void tearDown(void) {

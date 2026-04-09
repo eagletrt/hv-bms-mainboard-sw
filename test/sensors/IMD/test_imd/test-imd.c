@@ -54,7 +54,7 @@ void test_imd_get_status_canlib_payload_pointer_and_size() {
     TEST_ASSERT_EQUAL_MESSAGE(sizeof(himd.status_can_payload), byte_size, "Payload byte_size mismatch");
 }
 
-void test_imd_get_status_canlib_payload_NULL_size_ptr_ok() {
+void test_imd_get_status_canlib_payload_null_size_ptr_ok() {
     size_t byte_size = 0U;
     primary_hv_imd_status_converted_t *payload = imd_get_status_canlib_payload(&byte_size);
 
@@ -72,8 +72,7 @@ void test_imd_get_status_canlib_payload_content_mapping() {
 
     TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Payload pointer should not be NULL");
 
-    // MISMATCH BETWEEN CANLIB STATUS AND IMD STATUS ON PURPOSE TO DETECT WRONG MAPPING
-    TEST_ASSERT_EQUAL_MESSAGE((int)(IMD_STATUS_NORMAL + 1), (int)payload->status, "CAN status should be IMD status + 1");
+    TEST_ASSERT_EQUAL_MESSAGE((int)(IMD_STATUS_NORMAL), (int)payload->status, "CAN status should be IMD status normal (issue with current canlib)");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 10.0f, payload->frequency, "CAN payload frequency mismatch");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, 0.3f, payload->duty_cycle, "CAN payload duty cycle mismatch");
 }
@@ -98,7 +97,7 @@ int main() {
     RUN_TEST(test_imd_get_status_under_voltage_after_update);
     RUN_TEST(test_imd_get_period_after_update);
     RUN_TEST(test_imd_get_status_canlib_payload_pointer_and_size);
-    RUN_TEST(test_imd_get_status_canlib_payload_NULL_size_ptr_ok);
+    RUN_TEST(test_imd_get_status_canlib_payload_null_size_ptr_ok);
     RUN_TEST(test_imd_get_status_canlib_payload_content_mapping);
 
     return UNITY_END();

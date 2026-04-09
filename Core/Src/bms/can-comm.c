@@ -327,11 +327,7 @@ CanCommReturnCode can_comm_routine(void) {
             serialize_from_id = primary_serialize_from_id;
         }
 
-#ifdef EAGLE_EXTERN
-        extern uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
-#else
         uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
-#endif
         int size = 0;
         const can_id_t can_id = id_from_index(tx_msg.index);
 

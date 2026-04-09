@@ -4,47 +4,29 @@
 #include "volt.h"
 
 #include <string.h>
+#include <fff.h>
+DEFINE_FFF_GLOBALS;
 
 extern _InternalVoltageHandler hvolt_int;
 
-static raw_volt_t g_raw_channels[MAX22530_CHANNEL_COUNT + 1U];
-
-static void _mock_spi_send(
-    const SpiNetwork network,
-    uint8_t *const data,
-    const size_t size) {
-    (void)network;
-    (void)data;
-    (void)size;
-}
-
-static void _mock_spi_send_receive(
-    const SpiNetwork network,
-    uint8_t *const data,
-    uint8_t *const out,
-    const size_t size,
-    const size_t out_size) {
-    (void)network;
-    (void)data;
-    (void)size;
-    (void)out_size;
-}
+FAKE_VOID_FUNC(_spi_send, const SpiNetwork, uint8_t *const, const size_t);
+FAKE_VOID_FUNC(_spi_send_receive, const SpiNetwork, uint8_t *const, uint8_t *const, const size_t, const size_t);
 
 void test_internal_voltage_init_ok() {
     TEST_ASSERT_EQUAL_MESSAGE(
         INTERNAL_VOLTAGE_OK,
-        internal_voltage_init(_mock_spi_send, _mock_spi_send_receive),
+        internal_voltage_init(_spi_send, _spi_send_receive),
         "internal_voltage_init() failed to return INTERNAL_VOLTAGE_OK");
 }
 
 void test_internal_voltage_init_null_pointer() {
     TEST_ASSERT_EQUAL_MESSAGE(
         INTERNAL_VOLTAGE_NULL_POINTER,
-        internal_voltage_init(NULL, _mock_spi_send_receive),
+        internal_voltage_init(NULL, _spi_send_receive),
         "internal_voltage_init() should return INTERNAL_VOLTAGE_NULL_POINTER if send callback is NULL");
     TEST_ASSERT_EQUAL_MESSAGE(
         INTERNAL_VOLTAGE_NULL_POINTER,
-        internal_voltage_init(_mock_spi_send, NULL),
+        internal_voltage_init(_spi_send, NULL),
         "internal_voltage_init() should return INTERNAL_VOLTAGE_NULL_POINTER if send_receive callback is NULL");
 }
 
@@ -72,9 +54,10 @@ void test_internal_voltage_get_ts_voltage_canlib_payload_pointer_and_size() {
 #ifdef INTERNAL_VOLTAGE_TESTS
 
 void setUp() {
-    memset(g_raw_channels, 0U, sizeof(g_raw_channels));
+    RESET_FAKE(_spi_send);
+    RESET_FAKE(_spi_send_receive);
     volt_init();
-    internal_voltage_init(_mock_spi_send, _mock_spi_send_receive);
+    internal_voltage_init(_spi_send, _spi_send_receive);
 }
 
 void tearDown() {

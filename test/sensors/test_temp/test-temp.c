@@ -14,13 +14,11 @@ static void _temp_fill_all(const celsius_t value) {
 }
 
 void test_temp_init_ok(void) {
+    htemp.cellboard_id = 12;
+    htemp.temperatures[0][0] = 21;
     TEST_ASSERT_EQUAL_MESSAGE(TEMP_OK, temp_init(), "temp_init() failed to return TEMP_OK");
-}
-
-void test_temp_init_indices_zero(void) {
-    (void)temp_init();
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0U, (uint32_t)htemp.offset, "Offset should initialize to 0");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0U, (uint32_t)htemp.cellboard_id, "Cellboard ID should initialize to 0");
+    _TempHandler empty = { 0 };
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&empty, &htemp, sizeof(htemp), "Init should clear the handler");
 }
 
 void test_temp_get_values_pointer(void) {
@@ -28,16 +26,40 @@ void test_temp_get_values_pointer(void) {
     TEST_ASSERT_EQUAL_PTR_MESSAGE(&htemp.temperatures, values, "temp_get_values() pointer mismatch");
 }
 
-void test_temp_get_min_max_sum_avg_uniform(void) {
+void test_temp_get_min(void) {
     const celsius_t v = 10.0f;
+    const celsius_t min = 5.0f;
+    _temp_fill_all(v);
+
+    htemp.temperatures[0][0] = min;
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, min, temp_get_min(), "temp_get_min() mismatch");
+}
+
+void test_temp_get_max(void) {
+    const celsius_t v = 20.0f;
+    const celsius_t max = 25.0f;
+    _temp_fill_all(v);
+    htemp.temperatures[0][0] = max;
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, max, temp_get_max(), "temp_get_max() mismatch");
+}
+
+void test_temp_get_avg(void) {
+    const celsius_t v = 30.0f;
+
+    _temp_fill_all(v);
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, temp_get_avg(), "temp_get_avg() mismatch");
+}
+
+void test_temp_get_sum(void) {
+    const celsius_t v = 40.0f;
     const celsius_t expected_sum = v * (celsius_t)CELLBOARD_TEMP_SENSOR_COUNT;
 
     _temp_fill_all(v);
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, temp_get_min(), "temp_get_min() mismatch");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, temp_get_max(), "temp_get_max() mismatch");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, expected_sum, temp_get_sum(), "temp_get_sum() mismatch");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001f, v, temp_get_avg(), "temp_get_avg() mismatch");
 }
 
 void test_temp_cells_temperature_handle_null_payload(void) {
@@ -179,9 +201,11 @@ void tearDown(void) {
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_temp_init_ok);
-    RUN_TEST(test_temp_init_indices_zero);
     RUN_TEST(test_temp_get_values_pointer);
-    RUN_TEST(test_temp_get_min_max_sum_avg_uniform);
+    RUN_TEST(test_temp_get_min);
+    RUN_TEST(test_temp_get_max);
+    RUN_TEST(test_temp_get_avg);
+    RUN_TEST(test_temp_get_sum);
     RUN_TEST(test_temp_cells_temperature_handle_null_payload);
     RUN_TEST(test_temp_cells_temperature_handle_invalid_cellboard_id);
     RUN_TEST(test_temp_cells_temperature_handle_invalid_offset);
