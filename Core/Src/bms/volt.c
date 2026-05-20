@@ -10,13 +10,13 @@
 
 #include <string.h>
 
+#include "error.h"
 #include "identity.h"
 #include "timebase.h"
-#include "error.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 
-_STATIC _VoltHandler hvolt;
+_STATIC _VoltHandler volt_handler;
 
 /**
  * @brief Check if the voltage values are in range otherwise set an error
@@ -39,26 +39,26 @@ _STATIC_INLINE void _volt_check_value(const CellboardId id, const size_t offset,
 }
 
 VoltReturnCode volt_init(void) {
-    memset(&hvolt, 0U, sizeof(hvolt));
+    memset(&volt_handler, 0U, sizeof(volt_handler));
     /*
-     * Set the initial value of the voltages as maximum to avoid
-     * problems during the balancing procedure
-     */
+   * Set the initial value of the voltages as maximum to avoid
+   * problems during the balancing procedure
+   */
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id)
         for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell)
-            hvolt.voltages[id][cell] = VOLT_MAX_V;
+            volt_handler.voltages[id][cell] = VOLT_MAX_V;
     return VOLT_OK;
 }
 
-const cells_voltage_t * volt_get_values(void) {
-    return &hvolt.voltages;
+const cells_voltage_t *volt_get_values(void) {
+    return &volt_handler.voltages;
 }
 
 volt_t volt_get_min(void) {
     volt_t min = VOLT_MAX_V;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-            min = MAINBOARD_MIN(hvolt.voltages[id][i], min);
+            min = MAINBOARD_MIN(volt_handler.voltages[id][i], min);
         }
     }
     return min;
@@ -68,7 +68,7 @@ volt_t volt_get_max(void) {
     volt_t max = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-            max = MAINBOARD_MAX(hvolt.voltages[id][i], max);
+            max = MAINBOARD_MAX(volt_handler.voltages[id][i], max);
         }
     }
     return max;
@@ -78,7 +78,7 @@ volt_t volt_get_sum(void) {
     volt_t sum = 0.f;
     for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-            sum += hvolt.voltages[id][i];
+            sum += volt_handler.voltages[id][i];
         }
     }
     return sum;
@@ -88,7 +88,8 @@ volt_t volt_get_avg(void) {
     return volt_get_sum() / CELLBOARD_SERIES_COUNT;
 }
 
-void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const payload) {
+void volt_cells_voltage_handle(
+    bms_cellboard_cells_voltage_converted_t *const payload) {
     const size_t size = 3U;
     if (payload == NULL ||
         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
@@ -96,7 +97,7 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const p
         return;
     // Update voltages
     const size_t offset = payload->offset;
-    volt_t * volts = hvolt.voltages[payload->cellboard_id];
+    volt_t *volts = volt_handler.voltages[payload->cellboard_id];
     volts[offset] = payload->voltage_0;
     volts[offset + 1U] = payload->voltage_1;
     volts[offset + 2U] = payload->voltage_2;
@@ -104,58 +105,61 @@ void volt_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t * const p
         _volt_check_value((CellboardId)payload->cellboard_id, offset + i, volts[offset + i]);
 }
 
-primary_hv_cells_voltage_converted_t * volt_get_cells_voltage_canlib_payload(size_t * const byte_size) {
+primary_hv_cells_voltage_converted_t *
+volt_get_cells_voltage_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hvolt.volt_can_payload);
-    const volt_t * const volts = hvolt.voltages[hvolt.cellboard_id];
+        *byte_size = sizeof(volt_handler.volt_can_payload);
+    const volt_t *const volts = volt_handler.voltages[volt_handler.cellboard_id];
     // Set payload values
-    hvolt.volt_can_payload.cellboard_id = (primary_hv_cells_voltage_cellboard_id)hvolt.cellboard_id;
-    hvolt.volt_can_payload.offset = hvolt.offset;
-    hvolt.volt_can_payload.voltage_0 = volts[hvolt.offset];
-    hvolt.volt_can_payload.voltage_1 = volts[hvolt.offset + 1];
-    hvolt.volt_can_payload.voltage_2 = volts[hvolt.offset + 2];
+    volt_handler.volt_can_payload.cellboard_id =
+        (primary_hv_cells_voltage_cellboard_id)volt_handler.cellboard_id;
+    volt_handler.volt_can_payload.offset = volt_handler.offset;
+    volt_handler.volt_can_payload.voltage_0 = volts[volt_handler.offset];
+    volt_handler.volt_can_payload.voltage_1 = volts[volt_handler.offset + 1];
+    volt_handler.volt_can_payload.voltage_2 = volts[volt_handler.offset + 2];
 
     // Update indices
-    hvolt.offset += 3;
-    if (hvolt.offset >= CELLBOARD_SEGMENT_SERIES_COUNT) {
-        hvolt.offset = 0U;
-        if (++hvolt.cellboard_id >= CELLBOARD_ID_COUNT)
-            hvolt.cellboard_id = 0U;
+    volt_handler.offset += 3;
+    if (volt_handler.offset >= CELLBOARD_SEGMENT_SERIES_COUNT) {
+        volt_handler.offset = 0U;
+        if (++volt_handler.cellboard_id >= CELLBOARD_ID_COUNT)
+            volt_handler.cellboard_id = 0U;
     }
-    return &hvolt.volt_can_payload;
+    return &volt_handler.volt_can_payload;
 }
 
-primary_hv_cells_voltage_stats_converted_t * volt_get_cells_voltage_stats_canlib_payload(size_t * const byte_size) {
+primary_hv_cells_voltage_stats_converted_t *
+volt_get_cells_voltage_stats_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
-        *byte_size = sizeof(hvolt.volt_stats_can_payload);
+        *byte_size = sizeof(volt_handler.volt_stats_can_payload);
 
     const volt_t max = volt_get_max();
     const volt_t min = volt_get_min();
 
-    hvolt.volt_stats_can_payload.max = max;
-    hvolt.volt_stats_can_payload.min = min;
+    volt_handler.volt_stats_can_payload.max = max;
+    volt_handler.volt_stats_can_payload.min = min;
 
-    hvolt.volt_stats_can_payload.delta = max - min;
+    volt_handler.volt_stats_can_payload.delta = max - min;
 
-    hvolt.volt_stats_can_payload.avg = volt_get_avg();
+    volt_handler.volt_stats_can_payload.avg = volt_get_avg();
 
-    return &hvolt.volt_stats_can_payload;
+    return &volt_handler.volt_stats_can_payload;
 }
 
 #ifdef CONF_VOLTAGE_STRINGS_ENABLE
 
-_STATIC char * volt_module_name = "voltage";
+_STATIC char *volt_module_name = "voltage";
 
-_STATIC char * volt_return_code_name[] = {
-    [VOLT_OK] = "ok",
-    [VOLT_NULL_POINTER] = "null pointer",
-    [VOLT_OUT_OF_BOUNDS] = "out of bounds"
-};
+_STATIC char *volt_return_code_name[] = { [VOLT_OK] = "ok",
+                                          [VOLT_NULL_POINTER] = "null pointer",
+                                          [VOLT_OUT_OF_BOUNDS] =
+                                              "out of bounds" };
 
-_STATIC char * volt_return_code_description[] = {
+_STATIC char *volt_return_code_description[] = {
     [VOLT_OK] = "executed successfully",
-    [VOLT_NULL_POINTER] = "attempt to dereference a null pointer"
-    [VOLT_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+    [VOLT_NULL_POINTER] =
+        "attempt to dereference a null pointer"[VOLT_OUT_OF_BOUNDS] =
+            "attempt to access an invalid memory region"
 };
 
 #endif // CONF_VOLTAGE_STRINGS_ENABLE
