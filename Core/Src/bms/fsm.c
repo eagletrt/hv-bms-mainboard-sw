@@ -27,43 +27,42 @@ Functions and types have been generated with prefix "fsm_"
 #include "programmer.h"
 #include "feedback.h"
 #include "bal.h"
-#include "error.h"
+#include "error-api.h"
 /*** USER CODE END MACROS ***/
-
 
 // GLOBALS
 // State human-readable names
-const char *fsm_state_names[] = {"init", "idle", "fatal", "flash", "balancing", "airn_check", "precharge_check", "airp_check", "ts_on"};
+const char *fsm_state_names[] = { "init", "idle", "fatal", "flash", "balancing", "airn_check", "precharge_check", "airp_check", "ts_on" };
 
 // List of state functions
 fsm_state_func_t *const fsm_state_table[FSM_NUM_STATES] = {
-  fsm_do_init,            // in state init
-  fsm_do_idle,            // in state idle
-  fsm_do_fatal,           // in state fatal
-  fsm_do_flash,           // in state flash
-  fsm_do_balancing,       // in state balancing
-  fsm_do_airn_check,      // in state airn_check
-  fsm_do_precharge_check, // in state precharge_check
-  fsm_do_airp_check,      // in state airp_check
-  fsm_do_ts_on,           // in state ts_on
+    fsm_do_init,            // in state init
+    fsm_do_idle,            // in state idle
+    fsm_do_fatal,           // in state fatal
+    fsm_do_flash,           // in state flash
+    fsm_do_balancing,       // in state balancing
+    fsm_do_airn_check,      // in state airn_check
+    fsm_do_precharge_check, // in state precharge_check
+    fsm_do_airp_check,      // in state airp_check
+    fsm_do_ts_on,           // in state ts_on
 };
 
 // Table of transition functions
 transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STATES] = {
-  /* states:             init                     , idle                     , fatal                    , flash                    , balancing                , airn_check               , precharge_check          , airp_check               , ts_on                     */
-  /* init            */ {NULL                     , fsm_start                , fsm_idle_to_fatal        , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     }, 
-  /* idle            */ {NULL                     , NULL                     , fsm_handle_fatal_error   , fsm_start_flash_procedure, fsm_start_balancing      , fsm_close_airn           , NULL                     , NULL                     , NULL                     }, 
-  /* fatal           */ {NULL                     , NULL                     , NULL                     , fsm_start_flash_procedure, NULL                     , NULL                     , NULL                     , NULL                     , NULL                     }, 
-  /* flash           */ {NULL                     , fsm_stop_flash_procedure , fsm_handle_fatal_error   , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     }, 
-  /* balancing       */ {NULL                     , fsm_stop_balancing       , fsm_handle_fatal_error   , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     }, 
-  /* airn_check      */ {NULL                     , fsm_ts_off               , fsm_handle_fatal_error   , NULL                     , NULL                     , NULL                     , fsm_start_precharge      , NULL                     , NULL                     }, 
-  /* precharge_check */ {NULL                     , fsm_ts_off               , fsm_handle_fatal_error   , NULL                     , NULL                     , NULL                     , NULL                     , fsm_close_airp           , NULL                     }, 
-  /* airp_check      */ {NULL                     , fsm_ts_off               , fsm_handle_fatal_error   , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     , fsm_ts_on                }, 
-  /* ts_on           */ {NULL                     , fsm_ts_off               , fsm_handle_fatal_error   , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     , NULL                     }, 
+    /* states:             init                     , idle                     , fatal                    , flash                    , balancing                , airn_check               , precharge_check          , airp_check               , ts_on                     */
+    /* init            */ { NULL, fsm_start, fsm_idle_to_fatal, NULL, NULL, NULL, NULL, NULL, NULL },
+    /* idle            */ { NULL, NULL, fsm_handle_fatal_error, fsm_start_flash_procedure, fsm_start_balancing, fsm_close_airn, NULL, NULL, NULL },
+    /* fatal           */ { NULL, NULL, NULL, fsm_start_flash_procedure, NULL, NULL, NULL, NULL, NULL },
+    /* flash           */ { NULL, fsm_stop_flash_procedure, fsm_handle_fatal_error, NULL, NULL, NULL, NULL, NULL, NULL },
+    /* balancing       */ { NULL, fsm_stop_balancing, fsm_handle_fatal_error, NULL, NULL, NULL, NULL, NULL, NULL },
+    /* airn_check      */ { NULL, fsm_ts_off, fsm_handle_fatal_error, NULL, NULL, NULL, fsm_start_precharge, NULL, NULL },
+    /* precharge_check */ { NULL, fsm_ts_off, fsm_handle_fatal_error, NULL, NULL, NULL, NULL, fsm_close_airp, NULL },
+    /* airp_check      */ { NULL, fsm_ts_off, fsm_handle_fatal_error, NULL, NULL, NULL, NULL, NULL, fsm_ts_on },
+    /* ts_on           */ { NULL, fsm_ts_off, fsm_handle_fatal_error, NULL, NULL, NULL, NULL, NULL, NULL },
 };
 
 // Triggered event
-fsm_event_data_t * fsm_fired_event = NULL;
+fsm_event_data_t *fsm_fired_event = NULL;
 
 /*** USER CODE BEGIN GLOBALS ***/
 _STATIC _FsmHandler hfsm = { .fsm_state = FSM_STATE_INIT };
@@ -104,7 +103,6 @@ const DisplaySegmentBit fsm_balancing_display_animation[FSM_BALANCING_DISPLAY_AN
 };
 /*** USER CODE END GLOBALS ***/
 
-
 // Function to check if an event has fired
 bool fsm_is_event_triggered() {
     return fsm_fired_event != NULL;
@@ -117,7 +115,6 @@ void fsm_event_trigger(fsm_event_data_t *event) {
     fsm_fired_event = event ? event : &(fsm_event_data_t){};
 }
 
-
 /*  ____  _        _       
  * / ___|| |_ __ _| |_ ___ 
  * \___ \| __/ _` | __/ _ \
@@ -129,580 +126,537 @@ void fsm_event_trigger(fsm_event_data_t *event) {
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
- */                                             
+ */
 
 // Function to be executed in state init
 // valid return states: FSM_STATE_IDLE, FSM_STATE_FATAL
 fsm_state_t fsm_do_init(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_STATE_IDLE;
-  
-  
-  /*** USER CODE BEGIN DO_INIT ***/
-  // Initialize the FSM handler
-  memset(&hfsm, 0U, sizeof(hfsm));
-  hfsm.fsm_state = FSM_STATE_INIT;
-  hfsm.event.type = FSM_EVENT_TYPE_IGNORED;
+    fsm_state_t next_state = FSM_STATE_IDLE;
 
-  // Run the Power-On Self Test
-  const PostReturnCode code = (data == NULL) ?
-      POST_NULL_POINTER :
-      post_run(*(PostInitData *)data);
+    /*** USER CODE BEGIN DO_INIT ***/
+    // Initialize the FSM handler
+    memset(&hfsm, 0U, sizeof(hfsm));
+    hfsm.fsm_state = FSM_STATE_INIT;
+    hfsm.event.type = FSM_EVENT_TYPE_IGNORED;
 
-  // Init canlib payloads
-  hfsm.flash_can_payload.ready = false;
- 
-  switch (code) {
-      case POST_OK:
-          next_state = FSM_STATE_IDLE;
-          break;
-      default:
-          error_set(ERROR_GROUP_POST, 0U);
-          next_state = FSM_STATE_FATAL;
-          break;
-  }
-  /*** USER CODE END DO_INIT ***/
-  
-  switch (next_state) {
-    case FSM_STATE_IDLE:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
+    // Run the Power-On Self Test
+    const PostReturnCode code = (data == NULL) ? POST_NULL_POINTER : post_run(*(PostInitData *)data);
+
+    // Init canlib payloads
+    hfsm.flash_can_payload.ready = false;
+
+    switch (code) {
+        case POST_OK:
+            next_state = FSM_STATE_IDLE;
+            break;
+        default:
+            error_set(ERROR_GROUP_POST, 0U);
+            next_state = FSM_STATE_FATAL;
+            break;
+    }
+    /*** USER CODE END DO_INIT ***/
+
+    switch (next_state) {
+        case FSM_STATE_IDLE:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state idle
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_FLASH, FSM_STATE_BALANCING, FSM_STATE_AIRN_CHECK, FSM_STATE_FATAL
 fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_IDLE ***/
-  MAINBOARD_UNUSED(data);
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
-  (void)display_run_animation(
-      fsm_idle_display_animation,
-      FSM_IDLE_DISPLAY_ANIMATION_SIZE,
-      100U,
-      timebase_get_tick()
-  );
+    /*** USER CODE BEGIN DO_IDLE ***/
+    MAINBOARD_UNUSED(data);
 
-  // Check for errors
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  // Check for events
-  else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    (void)timebase_routine();
+    (void)can_comm_routine();
+    (void)display_run_animation(
+        fsm_idle_display_animation,
+        FSM_IDLE_DISPLAY_ANIMATION_SIZE,
+        100U,
+        timebase_get_tick());
+
+    // Check for errors
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    // Check for events
+    else if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
-          next_state = FSM_STATE_FLASH;
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
-          FeedbackId id = FEEDBACK_ID_UNKNOWN;
-          if (feedback_check_values(
-                  FEEDBACK_IDLE_TO_AIRN_CHECK_MASK,
-                  FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH,
-                  &id))
-          {
-              next_state = FSM_STATE_AIRN_CHECK;
-          }
-          else {
-              // If there is a problem during the TS on procedure send info about the problematic feedback
-              size_t byte_size = 0U;
-              uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
-              (void)can_comm_tx_add(
-                  CAN_NETWORK_PRIMARY,
-                  PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-                  CAN_FRAME_TYPE_DATA,
-                  payload,
-                  byte_size
-              );
-          }
-      }
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_START)
-          next_state = FSM_STATE_BALANCING;
-  }
-  /*** USER CODE END DO_IDLE ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_FLASH:
-    case FSM_STATE_BALANCING:
-    case FSM_STATE_AIRN_CHECK:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
-}
+        else if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST)
+            next_state = FSM_STATE_FLASH;
+        else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
+            FeedbackId id = FEEDBACK_ID_UNKNOWN;
+            if (feedback_check_values(
+                    FEEDBACK_IDLE_TO_AIRN_CHECK_MASK,
+                    FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH,
+                    &id)) {
+                next_state = FSM_STATE_AIRN_CHECK;
+            } else {
+                // If there is a problem during the TS on procedure send info about the problematic feedback
+                size_t byte_size = 0U;
+                uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(id, &byte_size);
+                (void)can_comm_tx_add(
+                    CAN_NETWORK_PRIMARY,
+                    PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+                    CAN_FRAME_TYPE_DATA,
+                    payload,
+                    byte_size);
+            }
+        } else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_START)
+            next_state = FSM_STATE_BALANCING;
+    }
+    /*** USER CODE END DO_IDLE ***/
 
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_FLASH:
+        case FSM_STATE_BALANCING:
+        case FSM_STATE_AIRN_CHECK:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
+}
 
 // Function to be executed in state fatal
 // valid return states: FSM_NO_CHANGE, FSM_STATE_FLASH, FSM_STATE_FATAL
 fsm_state_t fsm_do_fatal(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_FATAL ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
+    /*** USER CODE BEGIN DO_FATAL ***/
+    MAINBOARD_UNUSED(data);
 
-  // TODO: Display error group name
-  // ErrorInfo info = error_get_expired_info();
-  // const char * const error_group_name = error_get_group_name_string(info.group);
-  // (void)display_run_animation_string(
-  //     error_group_name,
-  //     strlen(error_group_name),
-  //     700U,
-  //     timebase_get_tick()
-  // );
-  const char * const display_animation = "E E EEEE ";
-  (void)display_run_animation_string(
-      display_animation,
-      strlen(display_animation),
-      400U,
-      timebase_get_tick()
-  );
-  /*** USER CODE END DO_FATAL ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_FLASH:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
+    (void)timebase_routine();
+    (void)can_comm_routine();
+
+    // TODO: Display error group name
+    // ErrorInfo info = error_get_expired_info();
+    // const char * const error_group_name = error_get_group_name_string(info.group);
+    // (void)display_run_animation_string(
+    //     error_group_name,
+    //     strlen(error_group_name),
+    //     700U,
+    //     timebase_get_tick()
+    // );
+    const char *const display_animation = "E E EEEE ";
+    (void)display_run_animation_string(
+        display_animation,
+        strlen(display_animation),
+        400U,
+        timebase_get_tick());
+    /*** USER CODE END DO_FATAL ***/
+
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_FLASH:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state flash
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_FLASH, FSM_STATE_FATAL
 fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_FLASH ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  const ProgrammerReturnCode code = programmer_routine();
+    /*** USER CODE BEGIN DO_FLASH ***/
+    MAINBOARD_UNUSED(data);
 
-  // Check for errors 
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  else if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
-      next_state = FSM_STATE_IDLE;
+    const ProgrammerReturnCode code = programmer_routine();
 
-  // Check for events
-  if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    // Check for errors
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    else if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
+        next_state = FSM_STATE_IDLE;
+
+    // Check for events
+    if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-  }
-  /*** USER CODE END DO_FLASH ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_FLASH:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
-}
+    }
+    /*** USER CODE END DO_FLASH ***/
 
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_FLASH:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
+}
 
 // Function to be executed in state balancing
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_BALANCING, FSM_STATE_FATAL
 fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_BALANCING ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
-  (void)display_run_animation(
-      fsm_balancing_display_animation,
-      FSM_BALANCING_DISPLAY_ANIMATION_SIZE,
-      100U,
-      timebase_get_tick()
-  );
+    /*** USER CODE BEGIN DO_BALANCING ***/
+    MAINBOARD_UNUSED(data);
 
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    (void)timebase_routine();
+    (void)can_comm_routine();
+    (void)display_run_animation(
+        fsm_balancing_display_animation,
+        FSM_BALANCING_DISPLAY_ANIMATION_SIZE,
+        100U,
+        timebase_get_tick());
+
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    else if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)
-          next_state = FSM_STATE_IDLE;
-  }
-  /*** USER CODE END DO_BALANCING ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_BALANCING:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
-}
+        else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP)
+            next_state = FSM_STATE_IDLE;
+    }
+    /*** USER CODE END DO_BALANCING ***/
 
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_BALANCING:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
+}
 
 // Function to be executed in state airn_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_AIRN_CHECK, FSM_STATE_PRECHARGE_CHECK, FSM_STATE_FATAL
 fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_AIRN_CHECK ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
+    /*** USER CODE BEGIN DO_AIRN_CHECK ***/
+    MAINBOARD_UNUSED(data);
 
-  FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    (void)timebase_routine();
+    (void)can_comm_routine();
+
+    FeedbackId id = FEEDBACK_ID_UNKNOWN;
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    else if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-      else {
-          switch (fsm_fired_event->type) {
-              case FSM_EVENT_TYPE_AIRN_TIMEOUT:
-                  // Check values to update feedback enzomma
-                  feedback_check_values(
-                      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
-                      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
-                      &id
-                  );
-                  // !!! BREAK INTENTIONALLY MISSING !!!
-              case FSM_EVENT_TYPE_TS_OFF:
-                  next_state = FSM_STATE_IDLE;
-                  break;
-              
-              default:
-                  break;
-          }
-      }
+        else {
+            switch (fsm_fired_event->type) {
+                case FSM_EVENT_TYPE_AIRN_TIMEOUT:
+                    // Check values to update feedback enzomma
+                    feedback_check_values(
+                        FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
+                        FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
+                        &id);
+                    // !!! BREAK INTENTIONALLY MISSING !!!
+                case FSM_EVENT_TYPE_TS_OFF:
+                    next_state = FSM_STATE_IDLE;
+                    break;
 
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
-          fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
-          next_state = FSM_STATE_IDLE;
-  }
-  /*
+                default:
+                    break;
+            }
+        }
+
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
+            fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
+            next_state = FSM_STATE_IDLE;
+    }
+    /*
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(
-      FEEDBACK_BIT_SD_END,
-      FEEDBACK_BIT_SD_END,
-      &id))
-  {
-      next_state = FSM_STATE_IDLE;
-  }
-  /*
+    else if (!feedback_check_values(
+                 FEEDBACK_BIT_SD_END,
+                 FEEDBACK_BIT_SD_END,
+                 &id)) {
+        next_state = FSM_STATE_IDLE;
+    }
+    /*
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok start the precharge
    */
-  else if (feedback_check_values(
-      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
-      FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
-      &id))
-  {
-      next_state = FSM_STATE_PRECHARGE_CHECK;
-  }
+    else if (feedback_check_values(
+                 FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
+                 FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
+                 &id)) {
+        next_state = FSM_STATE_PRECHARGE_CHECK;
+    }
 
-  // If there is a problem during the TS on procedure send info about the problematic feedback
-  if (next_state == FSM_STATE_IDLE) {
-      size_t byte_size = 0U;
-      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
-      (void)can_comm_tx_add(
-          CAN_NETWORK_PRIMARY,
-          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-          CAN_FRAME_TYPE_DATA,
-          payload,
-          byte_size
-      );
-  }
-  /*** USER CODE END DO_AIRN_CHECK ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_AIRN_CHECK:
-    case FSM_STATE_PRECHARGE_CHECK:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
+    // If there is a problem during the TS on procedure send info about the problematic feedback
+    if (next_state == FSM_STATE_IDLE) {
+        size_t byte_size = 0U;
+        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(id, &byte_size);
+        (void)can_comm_tx_add(
+            CAN_NETWORK_PRIMARY,
+            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+            CAN_FRAME_TYPE_DATA,
+            payload,
+            byte_size);
+    }
+    /*** USER CODE END DO_AIRN_CHECK ***/
+
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_AIRN_CHECK:
+        case FSM_STATE_PRECHARGE_CHECK:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state precharge_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_PRECHARGE_CHECK, FSM_STATE_AIRP_CHECK, FSM_STATE_FATAL
 fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
+    /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
+    MAINBOARD_UNUSED(data);
 
-  // Display the precharge percentage from 0 to 10 (in hex)
-  const percentage_t perc = (percentage_t)floorf(pcu_get_precharge_percentage() * 10.f);
-  (void)display_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
-  (void)display_set_digit(perc);
+    (void)timebase_routine();
+    (void)can_comm_routine();
 
-  FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    // Display the precharge percentage from 0 to 10 (in hex)
+    const percentage_t perc = (percentage_t)floorf(pcu_get_precharge_percentage() * 10.f);
+    (void)display_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
+    (void)display_set_digit(perc);
+
+    FeedbackId id = FEEDBACK_ID_UNKNOWN;
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    else if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-      else { 
-          switch (fsm_fired_event->type) {
-              case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
-                  // Check values to update feedback enzomma
-                  feedback_check_values(
-                      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
-                      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
-                      &id
-                  );
-                  // !!! BREAK INTENTIONALLY MISSING !!!
-              case FSM_EVENT_TYPE_TS_OFF:
-                  next_state = FSM_STATE_IDLE;
-                  break;
-              
-              default:
-                  break;
-          }
-      }
-  }
-  /*
+        else {
+            switch (fsm_fired_event->type) {
+                case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
+                    // Check values to update feedback enzomma
+                    feedback_check_values(
+                        FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
+                        FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
+                        &id);
+                    // !!! BREAK INTENTIONALLY MISSING !!!
+                case FSM_EVENT_TYPE_TS_OFF:
+                    next_state = FSM_STATE_IDLE;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+    /*
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(
-      FEEDBACK_BIT_SD_END,
-      FEEDBACK_BIT_SD_END,
-      &id))
-  {
-      next_state = FSM_STATE_IDLE;
-  }
-  /*
+    else if (!feedback_check_values(
+                 FEEDBACK_BIT_SD_END,
+                 FEEDBACK_BIT_SD_END,
+                 &id)) {
+        next_state = FSM_STATE_IDLE;
+    }
+    /*
    * Wait until every feedback inside the mask has the expected value and the precharge is complete
    * If all the feedbacks are ok close the AIR+
    */
-  else if (feedback_check_values(
-      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
-      FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
-      &id) &&
-      pcu_is_precharge_complete())
-  {
-      next_state = FSM_STATE_AIRP_CHECK;
-  }
+    else if (feedback_check_values(
+                 FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
+                 FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
+                 &id) &&
+             pcu_is_precharge_complete()) {
+        next_state = FSM_STATE_AIRP_CHECK;
+    }
 
-  // If there is a problem during the TS on procedure send info about the problematic feedback
-  if (next_state == FSM_STATE_IDLE) {
-      size_t byte_size = 0U;
-      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
-      (void)can_comm_tx_add(
-          CAN_NETWORK_PRIMARY,
-          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-          CAN_FRAME_TYPE_DATA,
-          payload,
-          byte_size
-      );
-  }
-  /*** USER CODE END DO_PRECHARGE_CHECK ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_PRECHARGE_CHECK:
-    case FSM_STATE_AIRP_CHECK:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
+    // If there is a problem during the TS on procedure send info about the problematic feedback
+    if (next_state == FSM_STATE_IDLE) {
+        size_t byte_size = 0U;
+        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(id, &byte_size);
+        (void)can_comm_tx_add(
+            CAN_NETWORK_PRIMARY,
+            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+            CAN_FRAME_TYPE_DATA,
+            payload,
+            byte_size);
+    }
+    /*** USER CODE END DO_PRECHARGE_CHECK ***/
+
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_PRECHARGE_CHECK:
+        case FSM_STATE_AIRP_CHECK:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state airp_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_AIRP_CHECK, FSM_STATE_TS_ON, FSM_STATE_FATAL
 fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_AIRP_CHECK ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
-  
-  FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    /*** USER CODE BEGIN DO_AIRP_CHECK ***/
+    MAINBOARD_UNUSED(data);
+
+    (void)timebase_routine();
+    (void)can_comm_routine();
+
+    FeedbackId id = FEEDBACK_ID_UNKNOWN;
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    else if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-      else {
-          switch (fsm_fired_event->type) {
-              case FSM_EVENT_TYPE_AIRP_TIMEOUT:
-                  // Check values to update feedback enzomma
-                  feedback_check_values(
-                      FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
-                      FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
-                      &id
-                  );
-                  // !!! BREAK INTENTIONALLY MISSING !!!
-              case FSM_EVENT_TYPE_TS_OFF:
-                  next_state = FSM_STATE_IDLE;
-                  break;
-              
-              default:
-                  break;
-          }
-      }
-  }
-  /*
+        else {
+            switch (fsm_fired_event->type) {
+                case FSM_EVENT_TYPE_AIRP_TIMEOUT:
+                    // Check values to update feedback enzomma
+                    feedback_check_values(
+                        FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
+                        FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
+                        &id);
+                    // !!! BREAK INTENTIONALLY MISSING !!!
+                case FSM_EVENT_TYPE_TS_OFF:
+                    next_state = FSM_STATE_IDLE;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+    /*
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-  else if (!feedback_check_values(
-      FEEDBACK_BIT_SD_END,
-      FEEDBACK_BIT_SD_END,
-      &id))
-  {
-      next_state = FSM_STATE_IDLE;
-  }
-  /*
+    else if (!feedback_check_values(
+                 FEEDBACK_BIT_SD_END,
+                 FEEDBACK_BIT_SD_END,
+                 &id)) {
+        next_state = FSM_STATE_IDLE;
+    }
+    /*
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok go to the TS on state
    */
-  else if (feedback_check_values(
-      FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
-      FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
-      &id))
-  {
-      next_state = FSM_STATE_TS_ON;
-  }
+    else if (feedback_check_values(
+                 FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
+                 FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
+                 &id)) {
+        next_state = FSM_STATE_TS_ON;
+    }
 
-  // If there is a problem during the TS on procedure send info about the problematic feedback
-  if (next_state == FSM_STATE_IDLE) {
-      size_t byte_size = 0U;
-      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
-      (void)can_comm_tx_add(
-          CAN_NETWORK_PRIMARY,
-          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-          CAN_FRAME_TYPE_DATA,
-          payload,
-          byte_size
-      );
-  }
-  /*** USER CODE END DO_AIRP_CHECK ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_AIRP_CHECK:
-    case FSM_STATE_TS_ON:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
+    // If there is a problem during the TS on procedure send info about the problematic feedback
+    if (next_state == FSM_STATE_IDLE) {
+        size_t byte_size = 0U;
+        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(id, &byte_size);
+        (void)can_comm_tx_add(
+            CAN_NETWORK_PRIMARY,
+            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+            CAN_FRAME_TYPE_DATA,
+            payload,
+            byte_size);
+    }
+    /*** USER CODE END DO_AIRP_CHECK ***/
+
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_AIRP_CHECK:
+        case FSM_STATE_TS_ON:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state ts_on
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_TS_ON, FSM_STATE_FATAL
 fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
-  fsm_state_t next_state = FSM_NO_CHANGE;
-  
-  
-  /*** USER CODE BEGIN DO_TS_ON ***/
-  MAINBOARD_UNUSED(data); 
+    fsm_state_t next_state = FSM_NO_CHANGE;
 
-  (void)timebase_routine();
-  (void)can_comm_routine();
-  (void)display_run_animation(
-      fsm_ts_on_display_animation,
-      FSM_TS_ON_DISPLAY_ANIMATION_SIZE,
-      100U,
-      timebase_get_tick()
-  );
+    /*** USER CODE BEGIN DO_TS_ON ***/
+    MAINBOARD_UNUSED(data);
 
-  FeedbackId id = FEEDBACK_ID_UNKNOWN;
-  if (error_get_expired() > 0)
-      next_state = FSM_STATE_FATAL;
-  else if (fsm_is_event_triggered()) {
-      if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
+    (void)timebase_routine();
+    (void)can_comm_routine();
+    (void)display_run_animation(
+        fsm_ts_on_display_animation,
+        FSM_TS_ON_DISPLAY_ANIMATION_SIZE,
+        100U,
+        timebase_get_tick());
+
+    FeedbackId id = FEEDBACK_ID_UNKNOWN;
+    if (error_get_expired() > 0)
+        next_state = FSM_STATE_FATAL;
+    else if (fsm_is_event_triggered()) {
+        if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
             next_state = FSM_STATE_FATAL;
-      else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
-          next_state = FSM_STATE_IDLE;
-  }
-  else if (!feedback_check_values(
-      FEEDBACK_TS_ON_MASK,
-      FEEDBACK_TS_ON_HIGH,
-      &id))
-  {
-      // If there is a problem during the TS on procedure send info about the problematic feedback
-      size_t byte_size = 0U;
-      uint8_t * const payload = (uint8_t * const)feedback_get_enzomma_payload(id, &byte_size);
-      (void)can_comm_tx_add(
-          CAN_NETWORK_PRIMARY,
-          PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-          CAN_FRAME_TYPE_DATA,
-          payload,
-          byte_size
-      );
-      next_state = FSM_STATE_IDLE;
-  }
-  /*** USER CODE END DO_TS_ON ***/
-  
-  switch (next_state) {
-    case FSM_NO_CHANGE:
-    case FSM_STATE_IDLE:
-    case FSM_STATE_TS_ON:
-    case FSM_STATE_FATAL:
-      break;
-    default:
-      next_state = FSM_NO_CHANGE;
-  }
-  
-  return next_state;
-}
+        else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF)
+            next_state = FSM_STATE_IDLE;
+    } else if (!feedback_check_values(
+                   FEEDBACK_TS_ON_MASK,
+                   FEEDBACK_TS_ON_HIGH,
+                   &id)) {
+        // If there is a problem during the TS on procedure send info about the problematic feedback
+        size_t byte_size = 0U;
+        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(id, &byte_size);
+        (void)can_comm_tx_add(
+            CAN_NETWORK_PRIMARY,
+            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+            CAN_FRAME_TYPE_DATA,
+            payload,
+            byte_size);
+        next_state = FSM_STATE_IDLE;
+    }
+    /*** USER CODE END DO_TS_ON ***/
 
+    switch (next_state) {
+        case FSM_NO_CHANGE:
+        case FSM_STATE_IDLE:
+        case FSM_STATE_TS_ON:
+        case FSM_STATE_FATAL:
+            break;
+        default:
+            next_state = FSM_NO_CHANGE;
+    }
+
+    return next_state;
+}
 
 /*  _____                    _ _   _              
  * |_   _| __ __ _ _ __  ___(_) |_(_) ___  _ __   
@@ -715,62 +669,62 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
- */    
-                                         
+ */
+
 // This function is called in 1 transition:
 // 1. from init to idle
 void fsm_start(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN START ***/
-  MAINBOARD_UNUSED(data); 
-  /*** USER CODE END START ***/
+
+    /*** USER CODE BEGIN START ***/
+    MAINBOARD_UNUSED(data);
+    /*** USER CODE END START ***/
 }
 
 // This function is called in 1 transition:
 // 1. from init to fatal
 void fsm_idle_to_fatal(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN IDLE_TO_FATAL ***/
-  MAINBOARD_UNUSED(data); 
 
-  // Activate the AMS
-  pcu_ams_activate();
-  /*** USER CODE END IDLE_TO_FATAL ***/
+    /*** USER CODE BEGIN IDLE_TO_FATAL ***/
+    MAINBOARD_UNUSED(data);
+
+    // Activate the AMS
+    pcu_ams_activate();
+    /*** USER CODE END IDLE_TO_FATAL ***/
 }
 
 // This function is called in 2 transitions:
 // 1. from idle to flash
 // 2. from fatal to flash
 void fsm_start_flash_procedure(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/
-  MAINBOARD_UNUSED(data);
-  /*** USER CODE END START_FLASH_PROCEDURE ***/
+
+    /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/
+    MAINBOARD_UNUSED(data);
+    /*** USER CODE END START_FLASH_PROCEDURE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from idle to balancing
 void fsm_start_balancing(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN START_BALANCING ***/
-  MAINBOARD_UNUSED(data);
 
-  // TODO: Handle watchog error
-  BalReturnCode code = bal_start();
-  MAINBOARD_UNUSED(code);
-  /*** USER CODE END START_BALANCING ***/
+    /*** USER CODE BEGIN START_BALANCING ***/
+    MAINBOARD_UNUSED(data);
+
+    // TODO: Handle watchog error
+    BalReturnCode code = bal_start();
+    MAINBOARD_UNUSED(code);
+    /*** USER CODE END START_BALANCING ***/
 }
 
 // This function is called in 1 transition:
 // 1. from idle to airn_check
 void fsm_close_airn(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN CLOSE_AIRN ***/
-  MAINBOARD_UNUSED(data);
 
-  // Close the AIR-
-  pcu_airn_close();
-  /*** USER CODE END CLOSE_AIRN ***/
+    /*** USER CODE BEGIN CLOSE_AIRN ***/
+    MAINBOARD_UNUSED(data);
+
+    // Close the AIR-
+    pcu_airn_close();
+    /*** USER CODE END CLOSE_AIRN ***/
 }
 
 // This function is called in 7 transitions:
@@ -782,40 +736,40 @@ void fsm_close_airn(fsm_state_data_t *data) {
 // 6. from airp_check to fatal
 // 7. from ts_on to fatal
 void fsm_handle_fatal_error(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
-  MAINBOARD_UNUSED(data);
 
-  // Activate the AMS
-  pcu_ams_activate();
+    /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
+    MAINBOARD_UNUSED(data);
 
-  pcu_precharge_stop();
-  pcu_airn_open();
-  pcu_airp_open();
+    // Activate the AMS
+    pcu_ams_activate();
 
-  // Stop balancing in case it is running
-  (void)bal_stop();
-  /*** USER CODE END HANDLE_FATAL_ERROR ***/
+    pcu_precharge_stop();
+    pcu_airn_open();
+    pcu_airp_open();
+
+    // Stop balancing in case it is running
+    (void)bal_stop();
+    /*** USER CODE END HANDLE_FATAL_ERROR ***/
 }
 
 // This function is called in 1 transition:
 // 1. from flash to idle
 void fsm_stop_flash_procedure(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN STOP_FLASH_PROCEDURE ***/
-  MAINBOARD_UNUSED(data);
-  /*** USER CODE END STOP_FLASH_PROCEDURE ***/
+
+    /*** USER CODE BEGIN STOP_FLASH_PROCEDURE ***/
+    MAINBOARD_UNUSED(data);
+    /*** USER CODE END STOP_FLASH_PROCEDURE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from balancing to idle
 void fsm_stop_balancing(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN STOP_BALANCING ***/
-  MAINBOARD_UNUSED(data); 
 
-  (void)bal_stop();
-  /*** USER CODE END STOP_BALANCING ***/
+    /*** USER CODE BEGIN STOP_BALANCING ***/
+    MAINBOARD_UNUSED(data);
+
+    (void)bal_stop();
+    /*** USER CODE END STOP_BALANCING ***/
 }
 
 // This function is called in 4 transitions:
@@ -824,52 +778,51 @@ void fsm_stop_balancing(fsm_state_data_t *data) {
 // 3. from airp_check to idle
 // 4. from ts_on to idle
 void fsm_ts_off(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN TS_OFF ***/
-  MAINBOARD_UNUSED(data); 
 
-  pcu_reset_all();
-  /*** USER CODE END TS_OFF ***/
+    /*** USER CODE BEGIN TS_OFF ***/
+    MAINBOARD_UNUSED(data);
+
+    pcu_reset_all();
+    /*** USER CODE END TS_OFF ***/
 }
 
 // This function is called in 1 transition:
 // 1. from airn_check to precharge_check
 void fsm_start_precharge(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN START_PRECHARGE ***/
-  MAINBOARD_UNUSED(data); 
 
-  // Stop the AIR- watchdog and start the precharge
-  pcu_airn_stop_watchdog();
-  pcu_precharge_start();
-  /*** USER CODE END START_PRECHARGE ***/
+    /*** USER CODE BEGIN START_PRECHARGE ***/
+    MAINBOARD_UNUSED(data);
+
+    // Stop the AIR- watchdog and start the precharge
+    pcu_airn_stop_watchdog();
+    pcu_precharge_start();
+    /*** USER CODE END START_PRECHARGE ***/
 }
 
 // This function is called in 1 transition:
 // 1. from precharge_check to airp_check
 void fsm_close_airp(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN CLOSE_AIRP ***/
-  MAINBOARD_UNUSED(data); 
 
-  // Stop the precharge watchdog and close the AIR+
-  pcu_precharge_stop_watchdog();
-  pcu_airp_close();
-  /*** USER CODE END CLOSE_AIRP ***/
+    /*** USER CODE BEGIN CLOSE_AIRP ***/
+    MAINBOARD_UNUSED(data);
+
+    // Stop the precharge watchdog and close the AIR+
+    pcu_precharge_stop_watchdog();
+    pcu_airp_close();
+    /*** USER CODE END CLOSE_AIRP ***/
 }
 
 // This function is called in 1 transition:
 // 1. from airp_check to ts_on
 void fsm_ts_on(fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN TS_ON ***/
-  MAINBOARD_UNUSED(data);
 
-  // Stop the AIR+ watchdog
-  pcu_airp_stop_watchdog();
-  /*** USER CODE END TS_ON ***/
+    /*** USER CODE BEGIN TS_ON ***/
+    MAINBOARD_UNUSED(data);
+
+    // Stop the AIR+ watchdog
+    pcu_airp_stop_watchdog();
+    /*** USER CODE END TS_ON ***/
 }
-
 
 /*  ____  _        _        
  * / ___|| |_ __ _| |_ ___  
@@ -886,21 +839,22 @@ void fsm_ts_on(fsm_state_data_t *data) {
  */
 
 fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data) {
-  
-  /*** USER CODE BEGIN RUN_STATE ***/
-  hfsm.fsm_state = cur_state;
-  /*** USER CODE END RUN_STATE ***/
 
-  fsm_event_data_t *prev_ev = fsm_fired_event;
-  fsm_state_t new_state = fsm_state_table[cur_state](data);
-  // Reset event status
-  if (prev_ev != NULL)
-    fsm_fired_event = NULL;
-  if (new_state == FSM_NO_CHANGE) new_state = cur_state;
-  transition_func_t *transition = fsm_transition_table[cur_state][new_state];
-  if (transition)
+    /*** USER CODE BEGIN RUN_STATE ***/
+    hfsm.fsm_state = cur_state;
+    /*** USER CODE END RUN_STATE ***/
+
+    fsm_event_data_t *prev_ev = fsm_fired_event;
+    fsm_state_t new_state = fsm_state_table[cur_state](data);
+    // Reset event status
+    if (prev_ev != NULL)
+        fsm_fired_event = NULL;
+    if (new_state == FSM_NO_CHANGE)
+        new_state = cur_state;
+    transition_func_t *transition = fsm_transition_table[cur_state][new_state];
+    if (transition)
         transition(data);
-  return new_state;
+    return new_state;
 };
 
 /*** USER CODE BEGIN FUNCTIONS ***/
@@ -908,7 +862,7 @@ fsm_state_t fsm_get_status(void) {
     return hfsm.fsm_state;
 }
 
-void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * const payload) {
+void fsm_cellboard_state_handle(bms_cellboard_status_converted_t *const payload) {
     if (payload == NULL)
         return;
 
@@ -920,7 +874,7 @@ void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * const payload
     hfsm.cellboard_status[payload->cellboard_id] = payload->status;
 }
 
-primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * const byte_size) {
+primary_hv_status_converted_t *fsm_get_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hfsm.status_can_payload);
     // Copy mainboard and cellboard status
@@ -938,11 +892,11 @@ primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * const byte_size)
 #ifdef TEST_MAIN
 #include <unistd.h>
 int main() {
-  fsm_state_t cur_state = FSM_STATE_INIT;
-  do {
-    cur_state = fsm_run_state(cur_state, NULL);
-    sleep(1);
-  } while (1);
-  return 0;
+    fsm_state_t cur_state = FSM_STATE_INIT;
+    do {
+        cur_state = fsm_run_state(cur_state, NULL);
+        sleep(1);
+    } while (1);
+    return 0;
 }
 #endif

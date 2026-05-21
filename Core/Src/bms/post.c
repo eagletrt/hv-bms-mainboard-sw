@@ -9,7 +9,7 @@
 
 #include "post.h"
 
-#include "error.h"
+#include "error-api.h"
 #include "identity.h"
 #include "programmer.h"
 #include "timebase.h"
@@ -30,12 +30,12 @@
  * @return PostReturnCode
  *     - POST_OK
  */
-PostReturnCode _post_modules_init(const PostInitData * const data) {
+PostReturnCode _post_modules_init(const PostInitData *const data) {
     /*
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
      */
-    if (error_init() != ERROR_OK)
+    if (error_init() != ERROR_RC_OK)
         return POST_UNINITIALIZED;
     identity_init();
 
@@ -105,16 +105,16 @@ PostReturnCode post_run(const PostInitData data) {
 
 #ifdef CONF_POST_STRINGS_ENABLE
 
-_STATIC char * post_module_name = "post";
+_STATIC char *post_module_name = "post";
 
-_STATIC char * post_return_code_name[] = {
+_STATIC char *post_return_code_name[] = {
     [POST_OK] = "ok",
     [POST_UNINITIALIZED] = "uninitialized",
     [POST_SETUP_ERROR] = "setup error",
     [POST_NULL_POINTER] = "null pointer"
 };
 
-_STATIC char * post_return_code_description[] = {
+_STATIC char *post_return_code_description[] = {
     [POST_OK] = "executed successfully",
     [POST_UNINITIALIZED] = "a module has not been initialized correctly",
     [POST_SETUP_ERROR] = "a module has not been configured correctly",

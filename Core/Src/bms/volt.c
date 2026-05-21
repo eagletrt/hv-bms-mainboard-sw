@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include "error.h"
+#include "error-api.h"
 #include "identity.h"
 #include "timebase.h"
 
