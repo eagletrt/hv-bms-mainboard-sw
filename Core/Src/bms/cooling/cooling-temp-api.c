@@ -31,19 +31,19 @@ celsius_t prv_cooling_temp_volt_to_celsius(volt_t value) {
     constexpr volt_t value_max = COOLING_TEMP_MAX_LIMIT_V;
 
     value = EAGLETRT_API_CLAMP(value, value_min, value_max);
-    const double v0 = value;
-    const double v2 = v0 * v0;
-    const double v3 = v2 * v0;
-    const double v4 = v2 * v2;
-    const double v5 = v4 * v0;
-    const double v6 = v3 * v3;
+    const double volt0 = value;
+    const double volt2 = volt0 * volt0;
+    const double volt3 = volt2 * volt0;
+    const double volt4 = volt2 * volt2;
+    const double volt5 = volt4 * volt0;
+    const double volt6 = volt3 * volt3;
     return COOLING_TEMP_COEFF_0 +
-           (COOLING_TEMP_COEFF_1 * v0) +
-           (COOLING_TEMP_COEFF_2 * v2) +
-           (COOLING_TEMP_COEFF_3 * v3) +
-           (COOLING_TEMP_COEFF_4 * v4) +
-           (COOLING_TEMP_COEFF_5 * v5) +
-           (COOLING_TEMP_COEFF_6 * v6);
+           (COOLING_TEMP_COEFF_1 * volt0) +
+           (COOLING_TEMP_COEFF_2 * volt2) +
+           (COOLING_TEMP_COEFF_3 * volt3) +
+           (COOLING_TEMP_COEFF_4 * volt4) +
+           (COOLING_TEMP_COEFF_5 * volt5) +
+           (COOLING_TEMP_COEFF_6 * volt6);
 }
 
 /*!
@@ -54,14 +54,14 @@ celsius_t prv_cooling_temp_volt_to_celsius(volt_t value) {
  */
 EAGLETRT_STATIC_INLINE void prv_cooling_temp_check_value(const size_t index, const celsius_t value) {
     if (value <= COOLING_TEMP_MIN_C) {
-        (void)error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+        (void)error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, (error_instance_t)index);
     } else {
-        (void)error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+        (void)error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, (error_instance_t)index);
     }
     if (value >= COOLING_TEMP_MAX_C) {
-        (void)error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+        (void)error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, (error_instance_t)index);
     } else {
-        (void)error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+        (void)error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, (error_instance_t)index);
     }
 }
 
