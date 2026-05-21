@@ -86,13 +86,14 @@ enum ErrorReturnCode error_api_init(void) {
                       error,
                       instances,
                       thresholds,
-                      ERROR_GROUP_COUNT) != ERRORLIB_OK)
+                      ERROR_GROUP_COUNT) != ERRORLIB_OK) {
         return ERROR_RC_UNKNOWN;
+    }
     return ERROR_RC_OK;
 }
 
 enum ErrorReturnCode error_api_set(const enum ErrorGroup group, const error_instance instance) {
-    ErrorLibReturnCode rt = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
+    ErrorLibReturnCode ret = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
 
     if (errorlib_get_expired(&herror) > 0U) {
         ErrorInfo error = errorlib_get_expired_info(&herror);
@@ -102,7 +103,7 @@ enum ErrorReturnCode error_api_set(const enum ErrorGroup group, const error_inst
         tasks_set_enable(TASKS_ID_SEND_ERRORS, true);
     }
 
-    return rt != ERRORLIB_OK ? ERROR_RC_UNKNOWN : ERROR_RC_OK;
+    return ret != ERRORLIB_OK ? ERROR_RC_UNKNOWN : ERROR_RC_OK;
 }
 
 enum ErrorReturnCode error_api_reset(const enum ErrorGroup group, const error_instance instance) {
