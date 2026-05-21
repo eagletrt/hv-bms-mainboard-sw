@@ -17,7 +17,7 @@
 /*!
  * \brief Initialization of the internal error handler structure
  */
-enum ErrorReturnCode error_init(void);
+enum ErrorReturnCode error_api_init(void);
 
 /*!
  * \brief Set an error instance
@@ -29,7 +29,7 @@ enum ErrorReturnCode error_init(void);
  *     - ERROR_RC_OK the function executed successfully
  *     - ERROR_RC_UNKNOWN an unknown error occurred
  */
-enum ErrorReturnCode error_set(enum ErrorGroup group, error_instance instance);
+enum ErrorReturnCode error_api_set(enum ErrorGroup group, error_instance instance);
 
 /*!
  * \brief Reset an error instance
@@ -41,28 +41,28 @@ enum ErrorReturnCode error_set(enum ErrorGroup group, error_instance instance);
  *     - ERROR_RC_OK the function executed successfully
  *     - ERROR_RC_UNKNOWN an unknown error occurred
  */
-enum ErrorReturnCode error_reset(enum ErrorGroup group, error_instance instance);
+enum ErrorReturnCode error_api_reset(enum ErrorGroup group, error_instance instance);
 
 /*!
  * \brief Get the number of expired errors
  *
  * \return size_t The number of expired errors
  */
-size_t error_get_expired(void);
+size_t error_api_get_expired(void);
 
 /*!
  * \brief Get the information of the first expired error
  *
  * \return ErrorInfo The information of the first expired error
  */
-ErrorInfo error_get_expired_info(void);
+ErrorInfo error_api_get_expired_info(void);
 
 /*!
  * \brief Handler can error messages sent from the cellboards
  *
  * \param payload the payload of the error message
  */
-void error_cellboard_handle(bms_cellboard_error_t *payload);
+void error_api_cellboard_handle(bms_cellboard_error_t *payload);
 
 /*!
  * \brief Get a pointer to the CAN payload of the last mainboard error 
@@ -71,7 +71,7 @@ void error_cellboard_handle(bms_cellboard_error_t *payload);
  *
  * \return primary_hv_error_converted_t* A pointer to the payload
  */
-primary_hv_error_converted_t *error_get_error_canlib_payload(size_t *const byte_size);
+primary_hv_error_converted_t *error_api_get_error_canlib_payload(size_t *const byte_size);
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 

@@ -264,7 +264,7 @@ void _tasks_send_cellboard_set_balancing_status(void) {
 /** @brief Send the errors status via CAN if an error occoured */
 void _tasks_send_errors(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)error_get_error_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)error_api_get_error_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_ERROR_INDEX,

@@ -51,14 +51,14 @@ _STATIC_INLINE int32_t _temp_cell_position_from_index(size_t index) {
 _STATIC_INLINE void _temp_check_value(const CellboardId id, const size_t offset, const celsius_t value) {
     size_t index = id * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT + offset;
     if (value < TEMP_MIN_C)
-        error_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
+        error_api_set(ERROR_GROUP_UNDER_TEMPERATURE, index);
     else
-        error_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
+        error_api_reset(ERROR_GROUP_UNDER_TEMPERATURE, index);
 
     if (value > TEMP_MAX_C)
-        error_set(ERROR_GROUP_OVER_TEMPERATURE, index);
+        error_api_set(ERROR_GROUP_OVER_TEMPERATURE, index);
     else
-        error_reset(ERROR_GROUP_OVER_TEMPERATURE, index);
+        error_api_reset(ERROR_GROUP_OVER_TEMPERATURE, index);
 }
 
 TempReturnCode temp_init(void) {

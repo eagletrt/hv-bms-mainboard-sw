@@ -13,6 +13,7 @@
 #include "mainboard-conf.h"
 
 #include "errorlib.h"
+#include "eagletrt-api.h"
 
 #include "bms_network.h"
 

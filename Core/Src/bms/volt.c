@@ -28,14 +28,14 @@ _STATIC _VoltHandler volt_handler;
 _STATIC_INLINE void _volt_check_value(const CellboardId id, const size_t offset, const volt_t value) {
     size_t index = id * CELLBOARD_SEGMENT_SERIES_COUNT + offset;
     if (value < VOLT_MIN_V)
-        error_set(ERROR_GROUP_UNDER_VOLTAGE, index);
+        error_api_set(ERROR_GROUP_UNDER_VOLTAGE, index);
     else
-        error_reset(ERROR_GROUP_UNDER_VOLTAGE, index);
+        error_api_reset(ERROR_GROUP_UNDER_VOLTAGE, index);
 
     if (value > VOLT_MAX_V)
-        error_set(ERROR_GROUP_OVER_VOLTAGE, index);
+        error_api_set(ERROR_GROUP_OVER_VOLTAGE, index);
     else
-        error_reset(ERROR_GROUP_OVER_VOLTAGE, index);
+        error_api_reset(ERROR_GROUP_OVER_VOLTAGE, index);
 }
 
 VoltReturnCode volt_init(void) {

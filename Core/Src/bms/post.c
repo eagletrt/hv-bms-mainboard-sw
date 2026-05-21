@@ -35,7 +35,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
      */
-    if (error_init() != ERROR_RC_OK)
+    if (error_api_init() != ERROR_RC_OK)
         return POST_UNINITIALIZED;
     identity_init();
 

@@ -73,7 +73,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
         case BMS_IVT_MSG_RESULT_I_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)current_handle;
         case BMS_CELLBOARD_ERROR_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)error_cellboard_handle;
+            return (can_comm_canlib_payload_handle_callback_t)error_api_cellboard_handle;
         default:
             return NULL;
     }
@@ -361,7 +361,7 @@ CanCommReturnCode can_comm_routine(void) {
                 // Do nothing
                 break;
             case CAN_COMM_OK:
-                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                (void)error_api_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
                 break;
             default:
                 // (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));

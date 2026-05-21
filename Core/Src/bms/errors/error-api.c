@@ -1,9 +1,9 @@
-/**
- * @file error.c
- * @date 2024-07-12
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file error.c
+ * \date 2024-07-12
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
  *
- * @brief Simple wrapper for the error handler generated code
+ * \brief Simple wrapper for the error handler generated code
  */
 
 #include "error-api.h"
@@ -15,10 +15,10 @@
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
-_STATIC ErrorLibHandler herror;
-_STATIC primary_hv_error_converted_t error_can_payload;
+EAGLETRT_STATIC ErrorLibHandler herror;
+EAGLETRT_STATIC primary_hv_error_converted_t error_can_payload;
 
-/** @brief Total number of instances for each group */
+/*! \brief Total number of instances for each group */
 const size_t instances[] = {
     [ERROR_GROUP_POST] = ERROR_POST_INSTANCE_COUNT,
     [ERROR_GROUP_OVER_CURRENT] = ERROR_OVER_CURRENT_INSTANCE_COUNT,
@@ -34,10 +34,10 @@ const size_t instances[] = {
     [ERROR_GROUP_CELLBOARD_ERROR] = ERROR_CELLBOARD_ERROR_INSTANCE_COUNT
 };
 
-/**
- * @brief Error thresholds for each group
+/*!
+ * \brief Error thresholds for each group
  * 
- * @details The values are arbitrary and shuold not be too much high 
+ * \details The values are arbitrary and shuold not be too much high 
  */
 const size_t thresholds[] = {
     [ERROR_GROUP_POST] = 1U,
@@ -81,7 +81,7 @@ int32_t *error[] = {
     [ERROR_GROUP_CELLBOARD_ERROR] = error_cellboard_error_instances,
 };
 
-enum ErrorReturnCode error_init(void) {
+enum ErrorReturnCode error_api_init(void) {
     if (errorlib_init(&herror,
                       error,
                       instances,
@@ -91,7 +91,7 @@ enum ErrorReturnCode error_init(void) {
     return ERROR_RC_OK;
 }
 
-enum ErrorReturnCode error_set(const enum ErrorGroup group, const error_instance instance) {
+enum ErrorReturnCode error_api_set(const enum ErrorGroup group, const error_instance instance) {
     ErrorLibReturnCode rt = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
 
     if (errorlib_get_expired(&herror) > 0U) {
@@ -105,51 +105,51 @@ enum ErrorReturnCode error_set(const enum ErrorGroup group, const error_instance
     return rt != ERRORLIB_OK ? ERROR_RC_UNKNOWN : ERROR_RC_OK;
 }
 
-enum ErrorReturnCode error_reset(const enum ErrorGroup group, const error_instance instance) {
+enum ErrorReturnCode error_api_reset(const enum ErrorGroup group, const error_instance instance) {
     if (errorlib_error_reset(&herror, (errorlib_error_group_t)group, instance) != ERRORLIB_OK) {
         return ERROR_RC_UNKNOWN;
     }
     return ERROR_RC_OK;
 }
 
-size_t error_get_expired(void) {
+size_t error_api_get_expired(void) {
     return errorlib_get_expired(&herror);
 }
 
-ErrorInfo error_get_expired_info(void) {
+ErrorInfo error_api_get_expired_info(void) {
     return errorlib_get_expired_info(&herror);
 }
 
-void error_cellboard_handle(bms_cellboard_error_t *const payload) {
+void error_api_cellboard_handle(bms_cellboard_error_t *const payload) {
     // BUG: Open wire during charge
     if (payload->group == bms_cellboard_error_group_open_wire) {
         return;
     }
     error_can_payload.cellboard_group = (primary_hv_error_cellboard_group)payload->group;
     error_can_payload.cellboard_id = (primary_hv_error_cellboard_id)payload->cellboard_id;
-    error_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);
+    error_api_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);
 }
 
-primary_hv_error_converted_t *error_get_error_canlib_payload(size_t *const byte_size) {
+primary_hv_error_converted_t *error_api_get_error_canlib_payload(size_t *const byte_size) {
     *byte_size = sizeof(error_can_payload);
     return &error_can_payload;
 }
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 
-_STATIC char *error_module_name = "error";
+EAGLETRT_STATIC char *error_module_name = "error";
 
-_STATIC char *error_return_code_name[] = {
+EAGLETRT_STATIC char *error_return_code_name[] = {
     [ERROR_OK] = "ok",
     [ERROR_NULL_POINTER] = "null pointer"
 };
 
-_STATIC char *error_return_code_description[] = {
+EAGLETRT_STATIC char *error_return_code_description[] = {
     [ERROR_OK] = "executed succesfully",
     [ERROR_NULL_POINTER] = "attempt to dereference a null pointer"
 };
 
-_STATIC char *error_group_name[] = {
+EAGLETRT_STATIC char *error_group_name[] = {
     [ERROR_GROUP_POST] = "post",
     [ERROR_GROUP_OVER_CURRENT] = "over current",
     [ERROR_GROUP_OVER_POWER] = "over power",
@@ -163,7 +163,7 @@ _STATIC char *error_group_name[] = {
     [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = "cooling over temperature"
 };
 
-char *error_get_group_name_string(const enum ErrorGroup group) {
+EAGLETRT_STATIC char *error_get_group_name_string(const enum ErrorGroup group) {
     if (group >= ERROR_GROUP_COUNT)
         return "";
     return error_group_name[group];

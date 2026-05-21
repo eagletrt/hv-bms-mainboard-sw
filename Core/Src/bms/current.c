@@ -24,7 +24,7 @@ _STATIC _CurrentHandler hcurrent;
  * @brief Timeout callback for the sensor communication watchdog
  */
 void _current_sensor_communcation_timeout(void) {
-    error_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
+    error_api_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
 }
 
 /**
@@ -34,14 +34,14 @@ void _current_sensor_communcation_timeout(void) {
  */
 _STATIC_INLINE void _current_check_value(const ampere_t value) {
     if (value <= CURRENT_MIN_A || value >= CURRENT_MAX_A)
-        error_set(ERROR_GROUP_OVER_CURRENT, 0U);
+        error_api_set(ERROR_GROUP_OVER_CURRENT, 0U);
     else
-        error_reset(ERROR_GROUP_OVER_CURRENT, 0U);
+        error_api_reset(ERROR_GROUP_OVER_CURRENT, 0U);
 
     if (fabsf(current_get_power()) >= CURRENT_MAX_POWER_KW)
-        error_set(ERROR_GROUP_OVER_POWER, 0U);
+        error_api_set(ERROR_GROUP_OVER_POWER, 0U);
     else
-        error_reset(ERROR_GROUP_OVER_POWER, 0U);
+        error_api_reset(ERROR_GROUP_OVER_POWER, 0U);
 }
 
 CurrentReturnCode current_init(void) {
