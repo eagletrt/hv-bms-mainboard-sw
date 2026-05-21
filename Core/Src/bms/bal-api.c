@@ -1,9 +1,9 @@
-/**
- * @file bal.c
- * @date 2024-08-02
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file bal.c
+ * \date 2024-08-02
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
  *
- * @brief Balancing handling functions
+ * \brief Balancing handling functions
  */
 
 #include "bal-api.h"
@@ -18,6 +18,7 @@
 
 EAGLETRT_STATIC struct BalHandler balancing_handler;
 
+/*! \brief Timeout handler for the balancing module */
 void prv_bal_timeout(void) {
     // Stop balancing
     balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_STOP;
