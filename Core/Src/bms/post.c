@@ -16,7 +16,7 @@
 #include "volt.h"
 #include "current.h"
 #include "internal-voltage.h"
-#include "bal.h"
+#include "bal-api.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
@@ -30,7 +30,7 @@
  * @return PostReturnCode
  *     - POST_OK
  */
-PostReturnCode _post_modules_init(const PostInitData * const data) {
+PostReturnCode _post_modules_init(const PostInitData *const data) {
     /*
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
@@ -54,7 +54,7 @@ PostReturnCode _post_modules_init(const PostInitData * const data) {
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
     (void)display_init(data->display_set, data->display_toggle);
     (void)internal_voltage_init(data->spi_send, data->spi_send_receive);
-    (void)bal_init();
+    (void)bal_api_init();
 
     return POST_OK;
 }
@@ -105,16 +105,16 @@ PostReturnCode post_run(const PostInitData data) {
 
 #ifdef CONF_POST_STRINGS_ENABLE
 
-_STATIC char * post_module_name = "post";
+_STATIC char *post_module_name = "post";
 
-_STATIC char * post_return_code_name[] = {
+_STATIC char *post_return_code_name[] = {
     [POST_OK] = "ok",
     [POST_UNINITIALIZED] = "uninitialized",
     [POST_SETUP_ERROR] = "setup error",
     [POST_NULL_POINTER] = "null pointer"
 };
 
-_STATIC char * post_return_code_description[] = {
+_STATIC char *post_return_code_description[] = {
     [POST_OK] = "executed successfully",
     [POST_UNINITIALIZED] = "a module has not been initialized correctly",
     [POST_SETUP_ERROR] = "a module has not been configured correctly",
