@@ -30,7 +30,7 @@ celsius_t prv_cooling_temp_volt_to_celsius(volt_t value) {
     constexpr volt_t value_min = COOLING_TEMP_MIN_LIMIT_V;
     constexpr volt_t value_max = COOLING_TEMP_MAX_LIMIT_V;
 
-    value = MAINBOARD_CLAMP(value, value_min, value_max);
+    value = EAGLETRT_API_CLAMP(value, value_min, value_max);
     const double v0 = value;
     const double v2 = v0 * v0;
     const double v3 = v2 * v0;
@@ -92,7 +92,7 @@ const cooling_temps *cooling_temp_api_get_values(void) {
 celsius_t cooling_temp_api_get_min(void) {
     celsius_t min = cooling_temp_handler.temperatures[0U];
     for (size_t i = 0U; i < COOLING_TEMP_COUNT; ++i) {
-        min = MAINBOARD_MIN(min, cooling_temp_handler.temperatures[i]);
+        min = EAGLETRT_API_MIN(min, cooling_temp_handler.temperatures[i]);
     }
     return min;
 }
@@ -100,7 +100,7 @@ celsius_t cooling_temp_api_get_min(void) {
 celsius_t cooling_temp_api_get_max(void) {
     celsius_t max = cooling_temp_handler.temperatures[0U];
     for (size_t i = 0U; i < COOLING_TEMP_COUNT; ++i) {
-        max = MAINBOARD_MAX(max, cooling_temp_handler.temperatures[i]);
+        max = EAGLETRT_API_MAX(max, cooling_temp_handler.temperatures[i]);
     }
     return max;
 }
