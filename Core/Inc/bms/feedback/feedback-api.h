@@ -81,11 +81,11 @@ volt_t feedback_get_analog(enum FeedbackAnalogIndex index);
 /*!
  * \brief Get the status of a single feedback
  *
- * \param ide The identifier of the feedback
+ * \param id_fb The identifier of the feedback
  *
  * \return enum FeedbackStatus The feedback status
  */
-enum FeedbackStatus feedback_get_status(enum FeedbackId ide);
+enum FeedbackStatus feedback_get_status(enum FeedbackId id_fb);
 
 /*!
  * \brief Check if the feedbacks specified in the mask are in the expected status
@@ -102,29 +102,29 @@ bool feedback_check_values(bit_flag32_t mask, bit_flag32_t value, enum FeedbackI
 /*!
  * \brief Check if a feedback is digital or analog given its identifier
  *
- * \param ide The identifier of the feedback
+ * \param id_fb The identifier of the feedback
  *
  * \return bool True if the feedback is digital, false otherwise
  */
-bool feedback_is_digital(enum FeedbackId ide);
+bool feedback_is_digital(enum FeedbackId id_fb);
 
 /*!
  * \brief Get the feedback digital bit position from its identifier
  *
- * \param ide The identifier of the feedback
+ * \param id_fb The identifier of the feedback
  *
  * \return enum FeedbackDigitalBit The bit position of the digital feedback
  */
-enum FeedbackDigitalBit feedback_get_digital_bit_from_id(enum FeedbackId ide);
+enum FeedbackDigitalBit feedback_get_digital_bit_from_id(enum FeedbackId id_fb);
 
 /*!
  * \brief Get the feedback analog index from its identifier
  *
- * \param ide The identifier of the feedback
+ * \param id_fb The identifier of the feedback
  *
  * \return enum FeedbackAnalogIndex The index of the analog feedback
  */
-enum FeedbackAnalogIndex feedback_get_analog_index_from_id(enum FeedbackId ide);
+enum FeedbackAnalogIndex feedback_get_analog_index_from_id(enum FeedbackId id_fb);
 
 /*!
  * \brief Get a pointer to the CAN payload structure of the feedbacks status
@@ -166,12 +166,12 @@ primary_hv_feedback_analog_sd_converted_t *feedback_get_analog_sd_payload(size_t
  * \brief Get a pointer to the CAN payload structure of the feedback that did not
  * allow the BMS to go to the TS ON state
  *
- * \param ide The identifier of the feedback
+ * \param id_fb The identifier of the feedback
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \return primary_hv_feedback_enzomma_converted_t* A pointer to the payload
  */
-primary_hv_feedback_enzomma_converted_t *feedback_get_enzomma_payload(enum FeedbackId ide, size_t *byte_size);
+primary_hv_feedback_enzomma_converted_t *feedback_get_enzomma_payload(enum FeedbackId id_fb, size_t *byte_size);
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 

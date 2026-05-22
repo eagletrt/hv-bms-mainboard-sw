@@ -1,9 +1,10 @@
-/**
- * @file feedback.c
- * @date 2024-08-10
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file feedback-api.c
+ * \date 2026-05-2
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
+ * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * @brief Feedback management function
+ * \brief Feedback management function
  */
 
 #include "feedback-api.h"
@@ -12,16 +13,16 @@
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
 
-_STATIC struct FeedbackHandler hfeedback;
+EAGLETRT_STATIC struct FeedbackHandler hfeedback;
 
-/**
- * @brief Get the feedback identifier from the digital feedback bit position
+/*!
+ * \brief Get the feedback identifier from the digital feedback bit position
  *
- * @param bit The bit position
+ * \param bit The bit position
  *
- * @return enum FeedbackId The feedback identifier or -1 if not valid
+ * \return enum FeedbackId The feedback identifier or -1 if not valid
  */
-enum FeedbackId _feedback_get_id_from_digital_bit(const enum FeedbackDigitalBit bit) {
+enum FeedbackId prv_feedback_get_id_from_digital_bit(const enum FeedbackDigitalBit bit) {
     switch (bit) {
         case FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM:
             return FEEDBACK_ID_AIRN_OPEN_COM;
@@ -62,14 +63,14 @@ enum FeedbackId _feedback_get_id_from_digital_bit(const enum FeedbackDigitalBit 
     }
 }
 
-/**
- * @brief Get the feedback identifier from the analog feedback index
+/*!
+ * \brief Get the feedback identifier from the analog feedback index
  *
- * @param index The index of the analog feedback
+ * \param index The index of the analog feedback
  *
- * @return enum FeedbackId The feedback identifier or -1 if not valid
+ * \return enum FeedbackId The feedback identifier or -1 if not valid
  */
-enum FeedbackId _feedback_get_id_from_analog_index(const enum FeedbackAnalogIndex index) {
+enum FeedbackId prv_feedback_get_id_from_analog_index(const enum FeedbackAnalogIndex index) {
     switch (index) {
         case FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC:
             return FEEDBACK_ID_AIRN_OPEN_MEC;
@@ -96,44 +97,51 @@ enum FeedbackId _feedback_get_id_from_analog_index(const enum FeedbackAnalogInde
     }
 }
 
-/**
- * @brief Get the status from an raw analog feedback value
+/*!
+ * \brief Get the status from an raw analog feedback value
  *
- * @details The 3V3 feedback is the only feedback considered high if between
+ * \details The 3V3 feedback is the only feedback considered high if between
  * the two thresholds, otherwise it is considered in the error state
  *
- * @param index The index of the analog feedback
+ * \param index The index of the analog feedback
  *
- * @return enum FeedbackStatus The status of the feedback
+ * \return enum FeedbackStatus The status of the feedback
  */
-enum FeedbackStatus _feedback_get_analog_status(const enum FeedbackAnalogIndex index) {
+enum FeedbackStatus prv_feedback_get_analog_status(const enum FeedbackAnalogIndex index) {
     // 3V3 probing is handled differently from the other feedbacks
     if (index == FEEDBACK_ANALOG_INDEX_PROBING_3V3) {
         if (hfeedback.analog[index] >= FEEDBACK_THRESHOLD_LOW_V &&
-            hfeedback.analog[index] <= FEEDBACK_THRESHOLD_HIGH_V)
+            hfeedback.analog[index] <= FEEDBACK_THRESHOLD_HIGH_V) {
             return FEEDBACK_STATUS_HIGH;
+        }
         return FEEDBACK_STATUS_ERROR;
     }
 
-    volt_t thr_high = FEEDBACK_THRESHOLD_HIGH_V;
+    constexpr volt_t thr_high = FEEDBACK_THRESHOLD_HIGH_V;
     volt_t thr_low = FEEDBACK_THRESHOLD_LOW_V;
+
+    constexpr volt_t special_low_threshold = 1.6F;
 
     // BUG: Feedback voltage is too high
     if (index == FEEDBACK_ANALOG_INDEX_IMD_OK ||
         index == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC ||
-        index == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC)
-        thr_low = 1.6f;
+        index == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
+        thr_low = special_low_threshold;
+    }
 
-    if (hfeedback.analog[index] >= thr_high)
+    if (hfeedback.analog[index] >= thr_high) {
         return FEEDBACK_STATUS_HIGH;
-    if (hfeedback.analog[index] <= thr_low)
+    }
+    if (hfeedback.analog[index] <= thr_low) {
         return FEEDBACK_STATUS_LOW;
+    }
     return FEEDBACK_STATUS_ERROR;
 }
 
 enum FeedbackReturnCode feedback_init(const feedback_read_digital_all_callback read_all, const feedback_start_analog_conversion_callback start_conversion) {
-    if (read_all == NULL || start_conversion == NULL)
+    if (read_all == NULL || start_conversion == NULL) {
         return FEEDBACK_RC_NULL_POINTER;
+    }
     memset(&hfeedback, 0U, sizeof(hfeedback));
     hfeedback.read_digital = read_all;
     hfeedback.start_conversion = start_conversion;
@@ -151,21 +159,24 @@ enum FeedbackReturnCode feedback_start_analog_conversion_all(void) {
 }
 
 enum FeedbackReturnCode feedback_update_analog_feedback(const enum FeedbackAnalogIndex index, const volt_t value) {
-    if (index >= FEEDBACK_ANALOG_INDEX_COUNT)
+    if (index >= FEEDBACK_ANALOG_INDEX_COUNT) {
         return FEEDBACK_RC_INVALID_INDEX;
+    }
     hfeedback.analog[index] = value;
     return FEEDBACK_RC_OK;
 }
 
 bool feedback_get_digital(const enum FeedbackDigitalBit bit) {
-    if (bit >= FEEDBACK_DIGITAL_BIT_COUNT)
+    if (bit >= FEEDBACK_DIGITAL_BIT_COUNT) {
         return false;
-    return MAINBOARD_BIT_GET(hfeedback.digital, bit);
+    }
+    return EAGLETRT_API_BIT_GET(hfeedback.digital, bit);
 }
 
 volt_t feedback_get_analog(const enum FeedbackAnalogIndex index) {
-    if (index >= FEEDBACK_ANALOG_INDEX_COUNT)
+    if (index >= FEEDBACK_ANALOG_INDEX_COUNT) {
         return 0U;
+    }
     return hfeedback.analog[index];
 }
 
@@ -173,15 +184,15 @@ uint32_t debug_cnt = 0U;
 enum FeedbackReturnCode feedback_update_status(void) {
     // Update the status of the digital feedbacks
     for (enum FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {
-        const enum FeedbackId id = _feedback_get_id_from_digital_bit(bit);
-        hfeedback.status[id] = MAINBOARD_BIT_GET(hfeedback.digital, bit) ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
+        const enum FeedbackId id_fb = prv_feedback_get_id_from_digital_bit(bit);
+        hfeedback.status[id_fb] = EAGLETRT_API_BIT_GET(hfeedback.digital, bit) ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
     }
 
     // Update the status of the analog feedback
     for (enum FeedbackAnalogIndex i = 0U; i < FEEDBACK_ANALOG_INDEX_COUNT; ++i) {
-        const enum FeedbackId id = _feedback_get_id_from_analog_index(i);
-        // hfeedback.status[id] = _feedback_get_analog_status(i);
-        enum FeedbackStatus status = _feedback_get_analog_status(i);
+        const enum FeedbackId id_fb = prv_feedback_get_id_from_analog_index(i);
+        // hfeedback.status[id_fb] = prv_feedback_get_analog_status(i);
+        enum FeedbackStatus status = prv_feedback_get_analog_status(i);
         // BUG: Noise cause AIR feedbacks voltage to change too much
         if (i == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC || i == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
             if (status == FEEDBACK_STATUS_ERROR) {
@@ -191,15 +202,16 @@ enum FeedbackReturnCode feedback_update_status(void) {
                 debug_cnt = 0U;
             }
         }
-        hfeedback.status[id] = status;
+        hfeedback.status[id_fb] = status;
     }
     return FEEDBACK_RC_OK;
 }
 
-enum FeedbackStatus feedback_get_status(const enum FeedbackId id) {
-    if (id >= FEEDBACK_ID_COUNT)
+enum FeedbackStatus feedback_get_status(const enum FeedbackId id_fb) {
+    if (id_fb >= FEEDBACK_ID_COUNT) {
         return FEEDBACK_STATUS_ERROR;
-    return hfeedback.status[id];
+    }
+    return hfeedback.status[id_fb];
 }
 
 bool feedback_check_values(
@@ -208,27 +220,30 @@ bool feedback_check_values(
     enum FeedbackId *const out) {
     for (enum FeedbackId i = 0U; i < FEEDBACK_ID_COUNT; ++i) {
         // Skip feedback not present inside the bitmask
-        if (MAINBOARD_BIT_GET(mask, i) == 0U)
+        if (EAGLETRT_API_BIT_GET(mask, i) == 0U) {
             continue;
+        }
 
         // Check if expected value does not match the current value
-        const bool expected_value = MAINBOARD_BIT_GET(value, i);
+        const bool expected_value = EAGLETRT_API_BIT_GET(value, i);
         if ((hfeedback.status[i] != FEEDBACK_STATUS_LOW || expected_value) &&
             (hfeedback.status[i] != FEEDBACK_STATUS_HIGH || !expected_value)) {
             // Save the identifier of the feedback with the unexpected values
-            if (out != NULL)
+            if (out != NULL) {
                 *out = i;
+            }
             return false;
         }
     }
     // If this point is reached every checked feedback match the expected value
-    if (out != NULL)
+    if (out != NULL) {
         *out = FEEDBACK_ID_UNKNOWN;
+    }
     return true;
 }
 
-bool feedback_is_digital(const enum FeedbackId id) {
-    switch (id) {
+bool feedback_is_digital(const enum FeedbackId id_fb) {
+    switch (id_fb) {
         case FEEDBACK_ID_AIRN_OPEN_COM:
         case FEEDBACK_ID_PRECHARGE_OPEN_COM:
         case FEEDBACK_ID_AIRP_OPEN_COM:
@@ -252,8 +267,8 @@ bool feedback_is_digital(const enum FeedbackId id) {
     }
 }
 
-enum FeedbackDigitalBit feedback_get_digital_bit_from_id(const enum FeedbackId id) {
-    switch (id) {
+enum FeedbackDigitalBit feedback_get_digital_bit_from_id(const enum FeedbackId id_fb) {
+    switch (id_fb) {
         case FEEDBACK_ID_AIRN_OPEN_COM:
             return FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM;
         case FEEDBACK_ID_PRECHARGE_OPEN_COM:
@@ -293,8 +308,8 @@ enum FeedbackDigitalBit feedback_get_digital_bit_from_id(const enum FeedbackId i
     }
 }
 
-enum FeedbackAnalogIndex feedback_get_analog_index_from_id(const enum FeedbackId id) {
-    switch (id) {
+enum FeedbackAnalogIndex feedback_get_analog_index_from_id(const enum FeedbackId id_fb) {
+    switch (id_fb) {
         case FEEDBACK_ID_AIRN_OPEN_MEC:
             return FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC;
         case FEEDBACK_ID_AIRP_OPEN_MEC:
@@ -321,8 +336,9 @@ enum FeedbackAnalogIndex feedback_get_analog_index_from_id(const enum FeedbackId
 }
 
 primary_hv_feedback_status_converted_t *feedback_get_status_payload(size_t *const byte_size) {
-    if (byte_size != NULL)
+    if (byte_size != NULL) {
         *byte_size = sizeof(hfeedback.status_can_payload);
+    }
     hfeedback.status_can_payload.airn_open_com = (primary_hv_feedback_status_airn_open_com)hfeedback.status[FEEDBACK_ID_AIRN_OPEN_COM];
     hfeedback.status_can_payload.precharge_open_com = (primary_hv_feedback_status_precharge_open_com)hfeedback.status[FEEDBACK_ID_PRECHARGE_OPEN_COM];
     hfeedback.status_can_payload.airp_open_com = (primary_hv_feedback_status_airp_open_com)hfeedback.status[FEEDBACK_ID_AIRP_OPEN_COM];
@@ -354,31 +370,33 @@ primary_hv_feedback_status_converted_t *feedback_get_status_payload(size_t *cons
 }
 
 primary_hv_feedback_digital_converted_t *feedback_get_digital_payload(size_t *const byte_size) {
-    if (byte_size != NULL)
+    if (byte_size != NULL) {
         *byte_size = sizeof(hfeedback.digital_can_payload);
-    hfeedback.digital_can_payload.digital_airn_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
-    hfeedback.digital_can_payload.digital_precharge_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);
-    hfeedback.digital_can_payload.digital_airp_open_com = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
-    hfeedback.digital_can_payload.digital_precharge_open_mec = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC);
-    hfeedback.digital_can_payload.digital_sd_imd_fb = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_IMD_FB);
-    hfeedback.digital_can_payload.digital_sd_bms_fb = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
-    hfeedback.digital_can_payload.digital_ts_less_than_60v = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V);
-    hfeedback.digital_can_payload.digital_plausible_state_persisted = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED);
-    hfeedback.digital_can_payload.digital_plausible_state = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE);
-    hfeedback.digital_can_payload.digital_not_bms_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
-    hfeedback.digital_can_payload.digital_not_imd_fault_cockpit_led = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
-    hfeedback.digital_can_payload.digital_indicator_connected = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED);
-    hfeedback.digital_can_payload.digital_not_latch_reset = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
-    hfeedback.digital_can_payload.digital_plausible_state_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_LATCHED);
-    hfeedback.digital_can_payload.digital_not_bms_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
-    hfeedback.digital_can_payload.digital_not_imd_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
-    hfeedback.digital_can_payload.digital_not_ext_fault_latched = MAINBOARD_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
+    }
+    hfeedback.digital_can_payload.digital_airn_open_com = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
+    hfeedback.digital_can_payload.digital_precharge_open_com = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);
+    hfeedback.digital_can_payload.digital_airp_open_com = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
+    hfeedback.digital_can_payload.digital_precharge_open_mec = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC);
+    hfeedback.digital_can_payload.digital_sd_imd_fb = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_IMD_FB);
+    hfeedback.digital_can_payload.digital_sd_bms_fb = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
+    hfeedback.digital_can_payload.digital_ts_less_than_60v = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V);
+    hfeedback.digital_can_payload.digital_plausible_state_persisted = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED);
+    hfeedback.digital_can_payload.digital_plausible_state = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE);
+    hfeedback.digital_can_payload.digital_not_bms_fault_cockpit_led = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
+    hfeedback.digital_can_payload.digital_not_imd_fault_cockpit_led = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
+    hfeedback.digital_can_payload.digital_indicator_connected = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED);
+    hfeedback.digital_can_payload.digital_not_latch_reset = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
+    hfeedback.digital_can_payload.digital_plausible_state_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_LATCHED);
+    hfeedback.digital_can_payload.digital_not_bms_fault_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_not_imd_fault_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
+    hfeedback.digital_can_payload.digital_not_ext_fault_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
     return &hfeedback.digital_can_payload;
 }
 
 primary_hv_feedback_analog_converted_t *feedback_get_analog_payload(size_t *const byte_size) {
-    if (byte_size != NULL)
+    if (byte_size != NULL) {
         *byte_size = sizeof(hfeedback.analog_can_payload);
+    }
     hfeedback.analog_can_payload.analog_airn_open_mec = hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC];
     hfeedback.analog_can_payload.analog_airp_open_mec = hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC];
     hfeedback.analog_can_payload.analog_imd_ok = hfeedback.analog[FEEDBACK_ANALOG_INDEX_IMD_OK];
@@ -390,27 +408,29 @@ primary_hv_feedback_analog_converted_t *feedback_get_analog_payload(size_t *cons
 }
 
 primary_hv_feedback_analog_sd_converted_t *feedback_get_analog_sd_payload(size_t *const byte_size) {
-    if (byte_size != NULL)
+    if (byte_size != NULL) {
         *byte_size = sizeof(hfeedback.analog_sd_can_payload);
+    }
     hfeedback.analog_sd_can_payload.sd_out = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_OUT]);
     hfeedback.analog_sd_can_payload.sd_in = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_IN]);
     hfeedback.analog_sd_can_payload.sd_end = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_END]);
     return &hfeedback.analog_sd_can_payload;
 }
 
-primary_hv_feedback_enzomma_converted_t *feedback_get_enzomma_payload(const enum FeedbackId id, size_t *const byte_size) {
-    if (byte_size != NULL)
+primary_hv_feedback_enzomma_converted_t *feedback_get_enzomma_payload(const enum FeedbackId id_fb, size_t *const byte_size) {
+    if (byte_size != NULL) {
         *byte_size = sizeof(hfeedback.enzomma_can_payload);
-    const bool is_digital = feedback_is_digital(id);
-    hfeedback.enzomma_can_payload.feedback = (primary_hv_feedback_enzomma_feedback)id;
-    hfeedback.enzomma_can_payload.status = (primary_hv_feedback_enzomma_status)feedback_get_status(id);
+    }
+    const bool is_digital = feedback_is_digital(id_fb);
+    hfeedback.enzomma_can_payload.feedback = (primary_hv_feedback_enzomma_feedback)id_fb;
+    hfeedback.enzomma_can_payload.status = (primary_hv_feedback_enzomma_status)feedback_get_status(id_fb);
     hfeedback.enzomma_can_payload.is_digital = is_digital;
     if (is_digital) {
-        hfeedback.enzomma_can_payload.digital = feedback_get_digital(feedback_get_digital_bit_from_id(id));
-        hfeedback.enzomma_can_payload.analog = 0.f;
+        hfeedback.enzomma_can_payload.digital = feedback_get_digital(feedback_get_digital_bit_from_id(id_fb));
+        hfeedback.enzomma_can_payload.analog = 0.F;
     } else {
         hfeedback.enzomma_can_payload.digital = 0U;
-        const volt_t volt = feedback_get_analog(feedback_get_analog_index_from_id(id));
+        const volt_t volt = feedback_get_analog(feedback_get_analog_index_from_id(id_fb));
         hfeedback.enzomma_can_payload.analog = volt;
     }
     return &hfeedback.enzomma_can_payload;
@@ -418,21 +438,21 @@ primary_hv_feedback_enzomma_converted_t *feedback_get_enzomma_payload(const enum
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
-_STATIC char *feedback_module_name = "feedback";
+EAGLETRT_STATIC char *feedback_module_name = "feedback";
 
-_STATIC char *feedback_return_code_name[] = {
+EAGLETRT_STATIC char *feedback_return_code_name[] = {
     [FEEDBACK_OK] = "ok",
     [FEEDBACK_NULL_POINTER] = "null pointer",
     [FEEDBACK_INVALID_INDEX] = "invalid index"
 };
 
-_STATIC char *feedback_return_code_description[] = {
+EAGLETRT_STATIC char *feedback_return_code_description[] = {
     [FEEDBACK_OK] = "executed succesfully",
     [FEEDBACK_NULL_POINTER] = "attempt to dereference a null pointer",
     [FEEDBACK_INVALID_INDEX] = "the given index is not valid"
 };
 
-_STATIC char *feedback_id_name[] = {
+EAGLETRT_STATIC char *feedback_id_name[] = {
     [FEEDBACK_ID_AIRN_OPEN_COM] = "air- open com",
     [FEEDBACK_ID_PRECHARGE_OPEN_COM] = "precharge open com",
     [FEEDBACK_ID_AIRP_OPEN_COM] = "air+ open com",
@@ -462,10 +482,10 @@ _STATIC char *feedback_id_name[] = {
     [FEEDBACK_ID_V5_MCU] = "mcu 5v"
 };
 
-const char *const feedback_get_feedback_id_name(const enum FeedbackId id) {
-    if (id >= FEEDBACK_ID_COUNT)
+const char *const feedback_get_feedback_id_name(const enum FeedbackId id_fb) {
+    if (id_fb >= FEEDBACK_ID_COUNT)
         return "unknown";
-    return feedback_id_name[id];
+    return feedback_id_name[id_fb];
 }
 
 #endif // CONF_FEEDBACK_STRINGS_ENABLE
