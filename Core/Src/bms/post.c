@@ -46,7 +46,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     (void)timebase_init(1U);
     (void)pcu_init(data->pcu_set, data->pcu_toggle);
     (void)volt_init();
-    (void)current_init();
+    (void)current_api_init();
     (void)can_comm_init(data->can_send);
     (void)programmer_init(data->system_reset);
     (void)led_init(data->led_set, data->led_toggle);
@@ -68,7 +68,7 @@ PostReturnCode _post_module_setup(void) {
     milliseconds_t t = timebase_get_time();
     while (timebase_get_time() - t <= CURRENT_SENSOR_STARTUP_TIME_MS)
         ;
-    if (current_start_sensor_communication_watchdog() != WATCHDOG_OK)
+    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_OK)
         return POST_SETUP_ERROR;
 
     return POST_OK;

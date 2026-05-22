@@ -19,7 +19,7 @@
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
-EAGLETRT_STATIC struct CurrentHandler current_handler;
+EAGLETRT_STATIC struct CurrentHandler current_api_handler;
 
 /*!
  * \brief Timeout callback for the sensor communication watchdog
@@ -40,63 +40,63 @@ EAGLETRT_STATIC_INLINE void prv_current_check_value(const ampere_t value) {
         error_reset(ERROR_GROUP_OVER_CURRENT, 0U);
     }
 
-    if (fabsf(current_get_power()) >= CURRENT_MAX_POWER_KW) {
+    if (fabsf(current_api_get_power()) >= CURRENT_MAX_POWER_KW) {
         error_set(ERROR_GROUP_OVER_POWER, 0U);
     } else {
         error_reset(ERROR_GROUP_OVER_POWER, 0U);
     }
 }
 
-enum CurrentReturnCode current_init(void) {
-    memset(&current_handler, 0U, sizeof(current_handler));
+enum CurrentReturnCode current_api_init(void) {
+    memset(&current_api_handler, 0U, sizeof(current_api_handler));
     (void)watchdog_init(
-        &current_handler.sensor_wdg,
+        &current_api_handler.sensor_wdg,
         CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
         prv_current_sensor_communcation_timeout);
     return CURRENT_RC_OK;
 }
 
-ampere_t current_get_current(void) {
-    return current_handler.current;
+ampere_t current_api_get_current(void) {
+    return current_api_handler.current;
 }
 
-kilowatt_t current_get_power(void) {
+kilowatt_t current_api_get_power(void) {
 
     constexpr float epsilon = 0.001F;
 
-    return (kilowatt_t)(current_handler.current * internal_voltage_get_ts() * epsilon);
+    return (kilowatt_t)(current_api_handler.current * internal_voltage_get_ts() * epsilon);
 }
 
-WatchdogReturnCode current_start_sensor_communication_watchdog(void) {
-    return watchdog_start(&current_handler.sensor_wdg);
+WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
+    return watchdog_start(&current_api_handler.sensor_wdg);
 }
 
-void current_handle(bms_ivt_msg_result_i_t *const payload) {
+void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
 
     constexpr float epsilon = 0.001F;
 
-    watchdog_reset(&current_handler.sensor_wdg);
+    watchdog_reset(&current_api_handler.sensor_wdg);
     if (payload == NULL) {
         return;
     }
-    current_handler.current = (float)payload->ivt_result_i * epsilon;
-    prv_current_check_value(current_handler.current);
+    current_api_handler.current = (float)payload->ivt_result_i * epsilon;
+    prv_current_check_value(current_api_handler.current);
 }
 
-primary_hv_current_converted_t *current_get_current_canlib_payload(size_t *const byte_size) {
+primary_hv_current_converted_t *current_api_get_current_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(current_handler.current_can_payload);
+        *byte_size = sizeof(current_api_handler.current_can_payload);
     }
-    current_handler.current_can_payload.current = current_handler.current;
-    return &current_handler.current_can_payload;
+    current_api_handler.current_can_payload.current = current_api_handler.current;
+    return &current_api_handler.current_can_payload;
 }
 
-primary_hv_power_converted_t *current_get_power_canlib_payload(size_t *const byte_size) {
+primary_hv_power_converted_t *current_api_get_power_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(current_handler.power_can_payload);
+        *byte_size = sizeof(current_api_handler.power_can_payload);
     }
-    current_handler.power_can_payload.power = current_get_power();
-    return &current_handler.power_can_payload;
+    current_api_handler.power_can_payload.power = current_api_get_power();
+    return &current_api_handler.power_can_payload;
 }
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE
