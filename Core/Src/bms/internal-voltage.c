@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include "volt.h"
+#include "volt-api.h"
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
@@ -53,7 +53,7 @@ internal_voltage_get_ts_voltage_canlib_payload(size_t *const byte_size) {
     internal_volt_handler.ts_voltage_can_payload.ts = internal_volt_handler.ts;
     internal_volt_handler.ts_voltage_can_payload.pack =
         internal_volt_handler.pack;
-    internal_volt_handler.ts_voltage_can_payload.cells_sum = volt_get_sum();
+    internal_volt_handler.ts_voltage_can_payload.cells_sum = volt_api_get_sum();
     return &internal_volt_handler.ts_voltage_can_payload;
 }
 

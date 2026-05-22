@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "timebase.h"
-#include "volt.h"
+#include "volt-api.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
 
@@ -42,8 +42,7 @@ BalReturnCode bal_init(void) {
     (void)watchdog_init(
         &hbal.watchdog,
         TIMEBASE_TIME_TO_TICKS(BAL_TIMEOUT_MS, timebase_get_resolution()),
-        _bal_timeout
-    );
+        _bal_timeout);
     return BAL_OK;
 }
 
@@ -80,7 +79,7 @@ BalReturnCode bal_stop(void) {
     return BAL_OK;
 }
 
-void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t * const payload) {
+void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *const payload) {
     if (payload == NULL)
         return;
     // Ignore stop command if not balancing
@@ -88,7 +87,7 @@ void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing
         return;
 
     // Update data
-    const volt_t target = volt_get_min();
+    const volt_t target = volt_api_get_min();
     const volt_t thr = payload->threshold;
     hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN_V, BAL_TARGET_MAX_V);
     hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN_V, BAL_THRESHOLD_MAX_V);
@@ -100,14 +99,12 @@ void bal_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing
 
     // Send event to the FSM
     if (hbal.active != payload->status) {
-        hbal.event.type = payload->status ?
-            FSM_EVENT_TYPE_BALANCING_START :
-            FSM_EVENT_TYPE_BALANCING_STOP;
+        hbal.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
         fsm_event_trigger(&hbal.event);
     }
 }
 
-void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t * const payload) {
+void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *const payload) {
     if (payload == NULL)
         return;
     // Ignore stop command if not balancing
@@ -115,7 +112,7 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
         return;
 
     // Update data
-    const volt_t target = volt_get_min();
+    const volt_t target = volt_api_get_min();
     const volt_t thr = payload->threshold;
     hbal.params.target = MAINBOARD_CLAMP(target, BAL_TARGET_MIN_V, BAL_TARGET_MAX_V);
     hbal.params.threshold = MAINBOARD_CLAMP(thr, BAL_THRESHOLD_MIN_V, BAL_THRESHOLD_MAX_V);
@@ -127,14 +124,12 @@ void bal_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_statu
 
     // Send event to the FSM
     if (hbal.active != payload->status) {
-        hbal.event.type = payload->status ?
-            FSM_EVENT_TYPE_BALANCING_START :
-            FSM_EVENT_TYPE_BALANCING_STOP;
+        hbal.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
         fsm_event_trigger(&hbal.event);
     }
 }
 
-void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t * const payload) {
+void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *const payload) {
     if (payload == NULL)
         return;
     // Forward balancing status info to the primary network
@@ -166,7 +161,7 @@ void bal_cellboard_balancing_status_handle(bms_cellboard_balancing_status_conver
     hbal.status_can_payload.discharging_cell_23 = payload->discharging_cell_23;
 }
 
-bms_cellboard_set_balancing_status_converted_t * bal_get_set_status_canlib_payload(size_t * const byte_size) {
+bms_cellboard_set_balancing_status_converted_t *bal_get_set_status_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hbal.set_status_can_payload);
     hbal.set_status_can_payload.start = hbal.active;
@@ -175,7 +170,7 @@ bms_cellboard_set_balancing_status_converted_t * bal_get_set_status_canlib_paylo
     return &hbal.set_status_can_payload;
 }
 
-primary_hv_balancing_status_converted_t * bal_get_status_canlib_payload(size_t * const byte_size) {
+primary_hv_balancing_status_converted_t *bal_get_status_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hbal.status_can_payload);
     return &hbal.status_can_payload;
