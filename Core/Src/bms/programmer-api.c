@@ -1,9 +1,9 @@
-/**
- * @file programmer.c
- * @date 2024-05-12
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file programmer.c
+ * \date 2024-05-12
+ * \author Antonio Gelain [antonio.gelain2\gmail.com]
  *
- * @brief Functions used during the flash procedure where the microcontroller
+ * \brief Functions used during the flash procedure where the microcontroller
  * is reset and openblt load the new code inside the flash memory
  */
 
@@ -11,19 +11,20 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include "eagletrt-api.h"
 
-_STATIC struct ProgrammerHandler hprogrammer;
+EAGLETRT_STATIC struct ProgrammerHandler hprogrammer;
 
-/**
- * @brief Check if all the cellboards are ready to start the flash procedure
+/*!
+ * \brief Check if all the cellboards are ready to start the flash procedure
  *
- * @return bool True if all the cellboards are ready, false otherwise
+ * \return bool True if all the cellboards are ready, false otherwise
  */
 bool _programmer_cellboard_ready_all(void) {
     return (hprogrammer.cellboard_ready & PROGRAMMER_CELLBOARD_READY_MASK) == PROGRAMMER_CELLBOARD_READY_MASK;
 }
 
-/** @brief Function called when the watchdog times-out */
+/*! \brief Function called when the watchdog times-out */
 void _programmer_flash_timeout(void) {
     hprogrammer.flash_request = false;
     hprogrammer.flashing = false;
@@ -31,7 +32,7 @@ void _programmer_flash_timeout(void) {
     hprogrammer.cellboard_ready = 0U;
 }
 
-/** @brief Function called when the flash procedure is completed */
+/*! \brief Function called when the flash procedure is completed */
 void _programmer_flash_stop(void) {
     hprogrammer.flash_request = false;
     hprogrammer.flashing = false;
@@ -39,7 +40,7 @@ void _programmer_flash_stop(void) {
     hprogrammer.cellboard_ready = 0U;
 }
 
-/** @brief Resets all the flash flags */
+/*! \brief Resets all the flash flags */
 void _programmer_flash_reset_flags(void) {
     hprogrammer.flash_request = false;
     hprogrammer.flashing = false;
