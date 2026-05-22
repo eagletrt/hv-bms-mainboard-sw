@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "eagletrt-api.h"
+#include "mainboard-def.h"
 
 EAGLETRT_STATIC struct ProgrammerHandler programmer_handler;
 
@@ -50,6 +51,11 @@ void prv_programmer_flash_reset_flags(void) {
 }
 
 enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t reset) {
+
+    if (reset == NULL) {
+        return PROGRAMMER_RC_NULL_POINTER;
+    }
+
     memset(&programmer_handler, 0U, sizeof(programmer_handler));
 
     programmer_handler.reset = reset;
@@ -101,12 +107,12 @@ void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response
     if (!programmer_handler.flash_request) {
         return;
     }
+    if (payload->cellboard_id >= CELLBOARD_COUNT) {
+        return;
+    }
 
     // Set the cellboard ready bit
-    programmer_handler.cellboard_ready = MAINBOARD_BIT_TOGGLE_IF(
-        programmer_handler.cellboard_ready,
-        payload->ready,
-        payload->cellboard_id);
+    programmer_handler.cellboard_ready = (programmer_handler.cellboard_ready & ~(1U << payload->cellboard_id)) | (payload->ready << payload->cellboard_id);
 }
 
 void programmer_api_flash_handle(primary_hv_flash_converted_t *const payload) {
