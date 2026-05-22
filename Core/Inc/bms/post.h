@@ -70,8 +70,8 @@ typedef struct {
     imd_pwm_start_callback_t imd_start;
     pcu_set_state_callback_t pcu_set;
     pcu_toggle_state_callback_t pcu_toggle;
-    feedback_read_digital_all_callback_t feedback_read_all;
-    feedback_start_analog_conversion_callback_t feedback_start_conversion;
+    feedback_read_digital_all_callback feedback_read_all;
+    feedback_start_analog_conversion_callback feedback_start_conversion;
     display_segment_set_state_callback_t display_set;
     display_segment_toggle_state_callback_t display_toggle;
     spi_send_callback_t spi_send;
@@ -96,7 +96,7 @@ typedef struct {
  */
 PostReturnCode post_run(const PostInitData data);
 
-#else  // CONF_POST_MODULE_ENABLE
+#else // CONF_POST_MODULE_ENABLE
 
 #define post_run(data) (POST_OK)
 
