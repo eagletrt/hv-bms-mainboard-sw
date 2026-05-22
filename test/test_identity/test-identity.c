@@ -1,119 +1,81 @@
+#include "mainboard-def.h"
+#include "primary_network.h"
 #include "unity.h"
 #include "identity-api.h"
 
 #include <stdint.h>
 #include <string.h>
 
-void test_identity_build_time_matches_mainboard_payload_component_build_time() {
-    size_t byte_size = 0U;
-    seconds_t build_time = identity_api_get_build_time();
+extern struct IdentityHandler identity_handler;
 
+void test_identity_api_init(void) {
+    struct IdentityHandler expected_handler = { 0 };
+    // I am using this as it is just a getter
+    expected_handler.build_time = identity_api_get_build_time();
+    expected_handler.mainboard_version_payload.component_build_time = expected_handler.build_time;
+    expected_handler.mainboard_version_payload.canlib_build_time = CANLIB_BUILD_TIME;
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        expected_handler.cellboard_version_payload[id].cellboard_id = (primary_hv_cellboard_version_cellboard_id)id;
+    }
+
+    identity_api_init();
+
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected_handler, &identity_handler, sizeof(expected_handler), "Identity handler not initialized correctly");
+}
+
+void test_identity_api_get_mainboard_version_payload(void) {
+    size_t byte_size = 0U;
     primary_hv_mainboard_version_converted_t *payload = identity_api_get_mainboard_version_payload(&byte_size);
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard payload pointer should not be NULL");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)build_time, (uint32_t)payload->component_build_time, "Mainboard component build time must match identity build time");
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard version payload pointer is NULL");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(sizeof(identity_handler.mainboard_version_payload), byte_size, "Mainboard version payload byte size is incorrect");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.mainboard_version_payload, payload, sizeof(identity_handler.mainboard_version_payload), "Mainboard version payload content is incorrect");
 }
 
-void test_identity_api_get_mainboard_version_payload_sets_byte_size() {
+void test_identity_api_get_cellboard_version_payload(void) {
     size_t byte_size = 0U;
+    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_0, &byte_size);
 
-    primary_hv_mainboard_version_converted_t *payload = identity_api_get_mainboard_version_payload(&byte_size);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard payload pointer should not be NULL");
-    TEST_ASSERT_EQUAL_UINT_MESSAGE(sizeof(primary_hv_mainboard_version_converted_t), byte_size, "Mainboard payload byte size mismatch");
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard version payload pointer is NULL");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(sizeof(identity_handler.cellboard_version_payload[CELLBOARD_ID_0]), byte_size, "Cellboard version payload byte size is incorrect");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.cellboard_version_payload[CELLBOARD_ID_0], payload, sizeof(identity_handler.cellboard_version_payload[CELLBOARD_ID_0]), "Cellboard version payload content is incorrect");
 }
 
-void test_identity_api_get_mainboard_version_payload_canlib_build_time_matches_macro() {
-    primary_hv_mainboard_version_converted_t *payload = identity_api_get_mainboard_version_payload(NULL);
+void test_identity_api_get_cellboard_version_payload_invalid_id(void) {
+    size_t byte_size = 0U;
+    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_COUNT, &byte_size);
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard payload pointer should not be NULL");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE((uint32_t)CANLIB_BUILD_TIME, (uint32_t)payload->canlib_build_time, "Mainboard canlib build time should match CANLIB_BUILD_TIME");
+    TEST_ASSERT_NULL_MESSAGE(payload, "Cellboard version payload pointer should be NULL for invalid id");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0U, byte_size, "Cellboard version payload byte size should be 0 for invalid id");
 }
 
-void test_identity_api_get_mainboard_version_payload_null_size_ptr_ok() {
-    primary_hv_mainboard_version_converted_t *payload = identity_api_get_mainboard_version_payload(NULL);
+void test_identity_api_cellboard_version_handle(void) {
+    bms_cellboard_version_converted_t payload = { 0 };
+    payload.cellboard_id = CELLBOARD_ID_0;
+    payload.canlib_build_time = 123456789U;
+    payload.component_build_time = 987654321U;
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard payload pointer should not be NULL when byte_size is NULL");
+    identity_api_cellboard_version_handle(&payload);
+
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&payload.canlib_build_time, &identity_handler.cellboard_version_payload[payload.cellboard_id].canlib_build_time, sizeof(payload.canlib_build_time), "Cellboard version canlib build time not updated correctly");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&payload.component_build_time, &identity_handler.cellboard_version_payload[payload.cellboard_id].component_build_time, sizeof(payload.component_build_time), "Cellboard version component build time not updated correctly");
 }
 
-void test_identity_api_get_cellboard_version_payload_valid_ids_return_non_null() {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(id, NULL);
-
-        TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard payload pointer should not be NULL for valid id");
-    }
-}
-
-void test_identity_api_get_cellboard_version_payload_valid_ids_set_expected_byte_size() {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        size_t byte_size = 0U;
-        primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(id, &byte_size);
-
-        TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard payload pointer should not be NULL for valid id");
-        TEST_ASSERT_EQUAL_UINT_MESSAGE(sizeof(primary_hv_cellboard_version_converted_t), byte_size, "Cellboard payload byte size mismatch");
-    }
-}
-
-void test_identity_api_get_cellboard_version_payload_valid_ids_set_cellboard_id_field() {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(id, NULL);
-
-        TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard payload pointer should not be NULL for valid id");
-        TEST_ASSERT_EQUAL_UINT8_MESSAGE((uint8_t)id, (uint8_t)payload->cellboard_id, "Cellboard id field should be initialized to its index");
-    }
-}
-
-void test_identity_api_get_cellboard_version_payload_invalid_id_returns_null() {
-    size_t byte_size = 0xA5A5U;
-
-    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload((CellboardId)CELLBOARD_ID_COUNT, &byte_size);
-
-    TEST_ASSERT_NULL_MESSAGE(payload, "Invalid cellboard id should return NULL");
-}
-
-void test_identity_api_get_cellboard_version_payload_invalid_id_keeps_byte_size_unchanged() {
-    size_t byte_size = 0xA5A5U;
-
-    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload((CellboardId)CELLBOARD_ID_COUNT, &byte_size);
-
-    TEST_ASSERT_NULL_MESSAGE(payload, "Invalid cellboard id should return NULL");
-    TEST_ASSERT_EQUAL_UINT_MESSAGE(0xA5A5U, byte_size, "byte_size should remain unchanged on invalid id");
-}
-
-void test_identity_api_get_cellboard_version_payload_null_size_ptr_ok() {
-    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_0, NULL);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard payload pointer should not be NULL when byte_size is NULL");
-}
-
-void test_identity_api_get_cellboard_version_payload_null_size_ptr_preserves_cellboard_id() {
-    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_0, NULL);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard payload pointer should not be NULL when byte_size is NULL");
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE((uint8_t)CELLBOARD_ID_0, (uint8_t)payload->cellboard_id, "Cellboard id should be correctly initialized");
-}
-
-void test_identity_api_cellboard_version_handle_null_payload_no_changes() {
-    primary_hv_cellboard_version_converted_t before[CELLBOARD_ID_COUNT];
-    primary_hv_cellboard_version_converted_t after[CELLBOARD_ID_COUNT];
-
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(id, NULL);
-        TEST_ASSERT_NOT_NULL(payload);
-        memcpy(&before[id], payload, sizeof(before[id]));
-    }
+void test_identity_api_cellboard_version_handle_invalid_payload(void) {
+    // Save a copy of the current handler to check that it is not modified
+    struct IdentityHandler expected_handler = identity_handler;
 
     identity_api_cellboard_version_handle(NULL);
 
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(id, NULL);
-        TEST_ASSERT_NOT_NULL(payload);
-        memcpy(&after[id], payload, sizeof(after[id]));
-        TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&before[id], &after[id], sizeof(before[id]), "State should not change when payload is NULL");
-    }
-}
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected_handler, &identity_handler, sizeof(expected_handler), "Identity handler should not be modified when handling NULL payload");
 
-#ifdef IDENTITY_TESTS
+    bms_cellboard_version_converted_t invalid_payload = { 0 };
+    invalid_payload.cellboard_id = CELLBOARD_ID_COUNT; // Invalid id
+
+    identity_api_cellboard_version_handle(&invalid_payload);
+
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected_handler, &identity_handler, sizeof(expected_handler), "Identity handler should not be modified when handling payload with invalid id");
+}
 
 void setUp() {
     identity_api_init();
@@ -125,22 +87,12 @@ void tearDown() {
 int main() {
     UNITY_BEGIN();
 
-    RUN_TEST(test_identity_build_time_matches_mainboard_payload_component_build_time);
-    RUN_TEST(test_identity_api_get_mainboard_version_payload_sets_byte_size);
-    RUN_TEST(test_identity_api_get_mainboard_version_payload_canlib_build_time_matches_macro);
-    RUN_TEST(test_identity_api_get_mainboard_version_payload_null_size_ptr_ok);
-
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_valid_ids_return_non_null);
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_valid_ids_set_expected_byte_size);
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_valid_ids_set_cellboard_id_field);
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_invalid_id_returns_null);
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_invalid_id_keeps_byte_size_unchanged);
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_null_size_ptr_ok);
-    RUN_TEST(test_identity_api_get_cellboard_version_payload_null_size_ptr_preserves_cellboard_id);
-
-    RUN_TEST(test_identity_api_cellboard_version_handle_null_payload_no_changes);
+    RUN_TEST(test_identity_api_init);
+    RUN_TEST(test_identity_api_get_mainboard_version_payload);
+    RUN_TEST(test_identity_api_get_cellboard_version_payload);
+    RUN_TEST(test_identity_api_get_cellboard_version_payload_invalid_id);
+    RUN_TEST(test_identity_api_cellboard_version_handle);
+    RUN_TEST(test_identity_api_cellboard_version_handle_invalid_payload);
 
     return UNITY_END();
 }
-
-#endif // IDENTITY_TESTS
