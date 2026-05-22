@@ -60,8 +60,8 @@ primary_hv_imd_status_converted_t *imd_get_status_canlib_payload(size_t *const b
     himd.status_can_payload.status = (primary_hv_imd_status_status)(imd_get_status() + 1U);
     himd.status_can_payload.frequency = imd_get_frequency();
     himd.status_can_payload.duty_cycle = imd_get_duty_cycle();
-    himd.status_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
-    himd.status_can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
+    himd.status_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_api_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
+    himd.status_can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_api_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
     return &himd.status_can_payload;
 }
 

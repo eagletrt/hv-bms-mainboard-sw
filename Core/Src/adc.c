@@ -559,7 +559,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
             const enum FeedbackAnalogIndex index = _adc_get_feedback_index_from_adc_1_channel(fb_channels[i]);
             // if (index < 0) { // TODO: Handle error }
             const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[fb_channels[i]], ADC_VREF, ADC_RESOLUTION);
-            (void)feedback_update_analog_feedback(index, volt);
+            (void)feedback_api_update_analog_feedback(index, volt);
         }
 
         const size_t temp_size = 7U;
@@ -595,7 +595,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
             const enum FeedbackAnalogIndex index = _adc_get_feedback_index_from_adc_2_channel(channels[i]);
             // if (index < 0) { // TODO: Handle error }
             const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_2[channels[i]], ADC_VREF, ADC_RESOLUTION);
-            feedback_update_analog_feedback(index, volt);
+            feedback_api_update_analog_feedback(index, volt);
         }
     }
 }

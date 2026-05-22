@@ -13,7 +13,7 @@
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
 
-EAGLETRT_STATIC struct FeedbackHandler hfeedback;
+EAGLETRT_STATIC struct FeedbackHandler feedback_handler;
 
 /*!
  * \brief Get the feedback identifier from the digital feedback bit position
@@ -107,11 +107,11 @@ enum FeedbackId prv_feedback_get_id_from_analog_index(const enum FeedbackAnalogI
  *
  * \return enum FeedbackStatus The status of the feedback
  */
-enum FeedbackStatus prv_feedback_get_analog_status(const enum FeedbackAnalogIndex index) {
+enum FeedbackStatus prv_feedback_api_get_analog_status(const enum FeedbackAnalogIndex index) {
     // 3V3 probing is handled differently from the other feedbacks
     if (index == FEEDBACK_ANALOG_INDEX_PROBING_3V3) {
-        if (hfeedback.analog[index] >= FEEDBACK_THRESHOLD_LOW_V &&
-            hfeedback.analog[index] <= FEEDBACK_THRESHOLD_HIGH_V) {
+        if (feedback_handler.analog[index] >= FEEDBACK_THRESHOLD_LOW_V &&
+            feedback_handler.analog[index] <= FEEDBACK_THRESHOLD_HIGH_V) {
             return FEEDBACK_STATUS_HIGH;
         }
         return FEEDBACK_STATUS_ERROR;
@@ -129,92 +129,92 @@ enum FeedbackStatus prv_feedback_get_analog_status(const enum FeedbackAnalogInde
         thr_low = special_low_threshold;
     }
 
-    if (hfeedback.analog[index] >= thr_high) {
+    if (feedback_handler.analog[index] >= thr_high) {
         return FEEDBACK_STATUS_HIGH;
     }
-    if (hfeedback.analog[index] <= thr_low) {
+    if (feedback_handler.analog[index] <= thr_low) {
         return FEEDBACK_STATUS_LOW;
     }
     return FEEDBACK_STATUS_ERROR;
 }
 
-enum FeedbackReturnCode feedback_init(const feedback_read_digital_all_callback read_all, const feedback_start_analog_conversion_callback start_conversion) {
+enum FeedbackReturnCode feedback_api_init(const feedback_read_digital_all_callback read_all, const feedback_start_analog_conversion_callback start_conversion) {
     if (read_all == NULL || start_conversion == NULL) {
         return FEEDBACK_RC_NULL_POINTER;
     }
-    memset(&hfeedback, 0U, sizeof(hfeedback));
-    hfeedback.read_digital = read_all;
-    hfeedback.start_conversion = start_conversion;
+    memset(&feedback_handler, 0U, sizeof(feedback_handler));
+    feedback_handler.read_digital = read_all;
+    feedback_handler.start_conversion = start_conversion;
     return FEEDBACK_RC_OK;
 }
 
-enum FeedbackReturnCode feedback_update_digital_feedback_all(void) {
-    hfeedback.digital = hfeedback.read_digital();
+enum FeedbackReturnCode feedback_api_update_digital_feedback_all(void) {
+    feedback_handler.digital = feedback_handler.read_digital();
     return FEEDBACK_RC_OK;
 }
 
-enum FeedbackReturnCode feedback_start_analog_conversion_all(void) {
-    hfeedback.start_conversion();
+enum FeedbackReturnCode feedback_api_start_analog_conversion_all(void) {
+    feedback_handler.start_conversion();
     return FEEDBACK_RC_OK;
 }
 
-enum FeedbackReturnCode feedback_update_analog_feedback(const enum FeedbackAnalogIndex index, const volt_t value) {
+enum FeedbackReturnCode feedback_api_update_analog_feedback(const enum FeedbackAnalogIndex index, const volt_t value) {
     if (index >= FEEDBACK_ANALOG_INDEX_COUNT) {
         return FEEDBACK_RC_INVALID_INDEX;
     }
-    hfeedback.analog[index] = value;
+    feedback_handler.analog[index] = value;
     return FEEDBACK_RC_OK;
 }
 
-bool feedback_get_digital(const enum FeedbackDigitalBit bit) {
+bool feedback_api_get_digital(const enum FeedbackDigitalBit bit) {
     if (bit >= FEEDBACK_DIGITAL_BIT_COUNT) {
         return false;
     }
-    return EAGLETRT_API_BIT_GET(hfeedback.digital, bit);
+    return EAGLETRT_API_BIT_GET(feedback_handler.digital, bit);
 }
 
-volt_t feedback_get_analog(const enum FeedbackAnalogIndex index) {
+volt_t feedback_api_get_analog(const enum FeedbackAnalogIndex index) {
     if (index >= FEEDBACK_ANALOG_INDEX_COUNT) {
         return 0U;
     }
-    return hfeedback.analog[index];
+    return feedback_handler.analog[index];
 }
 
 uint32_t debug_cnt = 0U;
-enum FeedbackReturnCode feedback_update_status(void) {
+enum FeedbackReturnCode feedback_api_update_status(void) {
     // Update the status of the digital feedbacks
     for (enum FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {
         const enum FeedbackId id_fb = prv_feedback_get_id_from_digital_bit(bit);
-        hfeedback.status[id_fb] = EAGLETRT_API_BIT_GET(hfeedback.digital, bit) ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
+        feedback_handler.status[id_fb] = EAGLETRT_API_BIT_GET(feedback_handler.digital, bit) ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
     }
 
     // Update the status of the analog feedback
     for (enum FeedbackAnalogIndex i = 0U; i < FEEDBACK_ANALOG_INDEX_COUNT; ++i) {
         const enum FeedbackId id_fb = prv_feedback_get_id_from_analog_index(i);
-        // hfeedback.status[id_fb] = prv_feedback_get_analog_status(i);
-        enum FeedbackStatus status = prv_feedback_get_analog_status(i);
+        // feedback_handler.status[id_fb] = prv_feedback_api_get_analog_status(i);
+        enum FeedbackStatus status = prv_feedback_api_get_analog_status(i);
         // BUG: Noise cause AIR feedbacks voltage to change too much
         if (i == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC || i == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
             if (status == FEEDBACK_STATUS_ERROR) {
                 ++debug_cnt;
-                status = hfeedback.analog[i] >= FEEDBACK_THRESHOLD_HIGH_V ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
+                status = feedback_handler.analog[i] >= FEEDBACK_THRESHOLD_HIGH_V ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
             } else {
                 debug_cnt = 0U;
             }
         }
-        hfeedback.status[id_fb] = status;
+        feedback_handler.status[id_fb] = status;
     }
     return FEEDBACK_RC_OK;
 }
 
-enum FeedbackStatus feedback_get_status(const enum FeedbackId id_fb) {
+enum FeedbackStatus feedback_api_get_status(const enum FeedbackId id_fb) {
     if (id_fb >= FEEDBACK_ID_COUNT) {
         return FEEDBACK_STATUS_ERROR;
     }
-    return hfeedback.status[id_fb];
+    return feedback_handler.status[id_fb];
 }
 
-bool feedback_check_values(const bit_flag32_t mask, const bit_flag32_t value, enum FeedbackId *const out) {
+bool feedback_api_check_values(const bit_flag32_t mask, const bit_flag32_t value, enum FeedbackId *const out) {
     for (enum FeedbackId i = 0U; i < FEEDBACK_ID_COUNT; ++i) {
         // Skip feedback not present inside the bitmask
         if (EAGLETRT_API_BIT_GET(mask, i) == 0U) {
@@ -223,8 +223,8 @@ bool feedback_check_values(const bit_flag32_t mask, const bit_flag32_t value, en
 
         // Check if expected value does not match the current value
         const bool expected_value = EAGLETRT_API_BIT_GET(value, i);
-        if ((hfeedback.status[i] != FEEDBACK_STATUS_LOW || expected_value) &&
-            (hfeedback.status[i] != FEEDBACK_STATUS_HIGH || !expected_value)) {
+        if ((feedback_handler.status[i] != FEEDBACK_STATUS_LOW || expected_value) &&
+            (feedback_handler.status[i] != FEEDBACK_STATUS_HIGH || !expected_value)) {
             // Save the identifier of the feedback with the unexpected values
             if (out != NULL) {
                 *out = i;
@@ -239,7 +239,7 @@ bool feedback_check_values(const bit_flag32_t mask, const bit_flag32_t value, en
     return true;
 }
 
-bool feedback_is_digital(const enum FeedbackId id_fb) {
+bool feedback_api_is_digital(const enum FeedbackId id_fb) {
     switch (id_fb) {
         case FEEDBACK_ID_AIRN_OPEN_COM: //NOLINT
         case FEEDBACK_ID_PRECHARGE_OPEN_COM:
@@ -264,7 +264,7 @@ bool feedback_is_digital(const enum FeedbackId id_fb) {
     }
 }
 
-enum FeedbackDigitalBit feedback_get_digital_bit_from_id(const enum FeedbackId id_fb) {
+enum FeedbackDigitalBit feedback_api_get_digital_bit_from_id(const enum FeedbackId id_fb) {
     switch (id_fb) {
         case FEEDBACK_ID_AIRN_OPEN_COM:
             return FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM;
@@ -305,7 +305,7 @@ enum FeedbackDigitalBit feedback_get_digital_bit_from_id(const enum FeedbackId i
     }
 }
 
-enum FeedbackAnalogIndex feedback_get_analog_index_from_id(const enum FeedbackId id_fb) {
+enum FeedbackAnalogIndex feedback_api_get_analog_index_from_id(const enum FeedbackId id_fb) {
     switch (id_fb) {
         case FEEDBACK_ID_AIRN_OPEN_MEC:
             return FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC;
@@ -332,105 +332,105 @@ enum FeedbackAnalogIndex feedback_get_analog_index_from_id(const enum FeedbackId
     }
 }
 
-primary_hv_feedback_status_converted_t *feedback_get_status_payload(size_t *const byte_size) {
+primary_hv_feedback_status_converted_t *feedback_api_get_status_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(hfeedback.status_can_payload);
+        *byte_size = sizeof(feedback_handler.status_can_payload);
     }
-    hfeedback.status_can_payload.airn_open_com = (primary_hv_feedback_status_airn_open_com)hfeedback.status[FEEDBACK_ID_AIRN_OPEN_COM];
-    hfeedback.status_can_payload.precharge_open_com = (primary_hv_feedback_status_precharge_open_com)hfeedback.status[FEEDBACK_ID_PRECHARGE_OPEN_COM];
-    hfeedback.status_can_payload.airp_open_com = (primary_hv_feedback_status_airp_open_com)hfeedback.status[FEEDBACK_ID_AIRP_OPEN_COM];
-    hfeedback.status_can_payload.airn_open_mec = (primary_hv_feedback_status_airn_open_mec)hfeedback.status[FEEDBACK_ID_AIRN_OPEN_MEC];
-    hfeedback.status_can_payload.precharge_open_mec = (primary_hv_feedback_status_precharge_open_mec)hfeedback.status[FEEDBACK_ID_PRECHARGE_OPEN_MEC];
-    hfeedback.status_can_payload.airp_open_mec = (primary_hv_feedback_status_airp_open_mec)hfeedback.status[FEEDBACK_ID_AIRP_OPEN_MEC];
-    hfeedback.status_can_payload.sd_imd_fb = (primary_hv_feedback_status_sd_imd_fb)hfeedback.status[FEEDBACK_ID_SD_IMD_FB];
-    hfeedback.status_can_payload.sd_bms_fb = (primary_hv_feedback_status_sd_bms_fb)hfeedback.status[FEEDBACK_ID_SD_BMS_FB];
-    hfeedback.status_can_payload.ts_less_than_60v = (primary_hv_feedback_status_ts_less_than_60v)hfeedback.status[FEEDBACK_ID_TS_LESS_THAN_60V];
-    hfeedback.status_can_payload.plausible_state_persisted = (primary_hv_feedback_status_plausible_state_persisted)hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED];
-    hfeedback.status_can_payload.plausible_state = (primary_hv_feedback_status_plausible_state)hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE];
-    hfeedback.status_can_payload.not_bms_fault_cockpit_led = (primary_hv_feedback_status_not_bms_fault_cockpit_led)hfeedback.status[FEEDBACK_ID_BMS_FAULT_COCKPIT_LED];
-    hfeedback.status_can_payload.not_imd_fault_cockpit_led = (primary_hv_feedback_status_not_imd_fault_cockpit_led)hfeedback.status[FEEDBACK_ID_IMD_FAULT_COCKPIT_LED];
-    hfeedback.status_can_payload.indicator_connected = (primary_hv_feedback_status_indicator_connected)hfeedback.status[FEEDBACK_ID_INDICATOR_CONNECTED];
-    hfeedback.status_can_payload.not_latch_reset = (primary_hv_feedback_status_not_latch_reset)hfeedback.status[FEEDBACK_ID_LATCH_RESET];
-    hfeedback.status_can_payload.plausible_state_latched = (primary_hv_feedback_status_plausible_state_latched)hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED];
-    hfeedback.status_can_payload.not_bms_fault_latched = (primary_hv_feedback_status_not_bms_fault_latched)hfeedback.status[FEEDBACK_ID_BMS_FAULT_LATCHED];
-    hfeedback.status_can_payload.not_imd_fault_latched = (primary_hv_feedback_status_not_imd_fault_latched)hfeedback.status[FEEDBACK_ID_IMD_FAULT_LATCHED];
-    hfeedback.status_can_payload.not_ext_fault_latched = (primary_hv_feedback_status_not_ext_fault_latched)hfeedback.status[FEEDBACK_ID_EXT_FAULT_LATCHED];
-    hfeedback.status_can_payload.imd_ok = (primary_hv_feedback_status_imd_ok)hfeedback.status[FEEDBACK_ID_IMD_OK];
-    hfeedback.status_can_payload.plausible_state_rc = (primary_hv_feedback_status_plausible_state_rc)hfeedback.status[FEEDBACK_ID_PLAUSIBLE_STATE_RC];
-    hfeedback.status_can_payload.tsal_green = (primary_hv_feedback_status_tsal_green)hfeedback.status[FEEDBACK_ID_TSAL_GREEN];
-    hfeedback.status_can_payload.probing_3v3 = (primary_hv_feedback_status_probing_3v3)hfeedback.status[FEEDBACK_ID_PROBING_3V3];
-    hfeedback.status_can_payload.sd_out = (primary_hv_feedback_status_sd_out)hfeedback.status[FEEDBACK_ID_SD_OUT];
-    hfeedback.status_can_payload.sd_in = (primary_hv_feedback_status_sd_in)hfeedback.status[FEEDBACK_ID_SD_IN];
-    hfeedback.status_can_payload.sd_end = (primary_hv_feedback_status_sd_end)hfeedback.status[FEEDBACK_ID_SD_END];
-    hfeedback.status_can_payload.v5_mcu = (primary_hv_feedback_status_v5_mcu)hfeedback.status[FEEDBACK_ID_V5_MCU];
-    return &hfeedback.status_can_payload;
+    feedback_handler.status_can_payload.airn_open_com = (primary_hv_feedback_status_airn_open_com)feedback_handler.status[FEEDBACK_ID_AIRN_OPEN_COM];
+    feedback_handler.status_can_payload.precharge_open_com = (primary_hv_feedback_status_precharge_open_com)feedback_handler.status[FEEDBACK_ID_PRECHARGE_OPEN_COM];
+    feedback_handler.status_can_payload.airp_open_com = (primary_hv_feedback_status_airp_open_com)feedback_handler.status[FEEDBACK_ID_AIRP_OPEN_COM];
+    feedback_handler.status_can_payload.airn_open_mec = (primary_hv_feedback_status_airn_open_mec)feedback_handler.status[FEEDBACK_ID_AIRN_OPEN_MEC];
+    feedback_handler.status_can_payload.precharge_open_mec = (primary_hv_feedback_status_precharge_open_mec)feedback_handler.status[FEEDBACK_ID_PRECHARGE_OPEN_MEC];
+    feedback_handler.status_can_payload.airp_open_mec = (primary_hv_feedback_status_airp_open_mec)feedback_handler.status[FEEDBACK_ID_AIRP_OPEN_MEC];
+    feedback_handler.status_can_payload.sd_imd_fb = (primary_hv_feedback_status_sd_imd_fb)feedback_handler.status[FEEDBACK_ID_SD_IMD_FB];
+    feedback_handler.status_can_payload.sd_bms_fb = (primary_hv_feedback_status_sd_bms_fb)feedback_handler.status[FEEDBACK_ID_SD_BMS_FB];
+    feedback_handler.status_can_payload.ts_less_than_60v = (primary_hv_feedback_status_ts_less_than_60v)feedback_handler.status[FEEDBACK_ID_TS_LESS_THAN_60V];
+    feedback_handler.status_can_payload.plausible_state_persisted = (primary_hv_feedback_status_plausible_state_persisted)feedback_handler.status[FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED];
+    feedback_handler.status_can_payload.plausible_state = (primary_hv_feedback_status_plausible_state)feedback_handler.status[FEEDBACK_ID_PLAUSIBLE_STATE];
+    feedback_handler.status_can_payload.not_bms_fault_cockpit_led = (primary_hv_feedback_status_not_bms_fault_cockpit_led)feedback_handler.status[FEEDBACK_ID_BMS_FAULT_COCKPIT_LED];
+    feedback_handler.status_can_payload.not_imd_fault_cockpit_led = (primary_hv_feedback_status_not_imd_fault_cockpit_led)feedback_handler.status[FEEDBACK_ID_IMD_FAULT_COCKPIT_LED];
+    feedback_handler.status_can_payload.indicator_connected = (primary_hv_feedback_status_indicator_connected)feedback_handler.status[FEEDBACK_ID_INDICATOR_CONNECTED];
+    feedback_handler.status_can_payload.not_latch_reset = (primary_hv_feedback_status_not_latch_reset)feedback_handler.status[FEEDBACK_ID_LATCH_RESET];
+    feedback_handler.status_can_payload.plausible_state_latched = (primary_hv_feedback_status_plausible_state_latched)feedback_handler.status[FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED];
+    feedback_handler.status_can_payload.not_bms_fault_latched = (primary_hv_feedback_status_not_bms_fault_latched)feedback_handler.status[FEEDBACK_ID_BMS_FAULT_LATCHED];
+    feedback_handler.status_can_payload.not_imd_fault_latched = (primary_hv_feedback_status_not_imd_fault_latched)feedback_handler.status[FEEDBACK_ID_IMD_FAULT_LATCHED];
+    feedback_handler.status_can_payload.not_ext_fault_latched = (primary_hv_feedback_status_not_ext_fault_latched)feedback_handler.status[FEEDBACK_ID_EXT_FAULT_LATCHED];
+    feedback_handler.status_can_payload.imd_ok = (primary_hv_feedback_status_imd_ok)feedback_handler.status[FEEDBACK_ID_IMD_OK];
+    feedback_handler.status_can_payload.plausible_state_rc = (primary_hv_feedback_status_plausible_state_rc)feedback_handler.status[FEEDBACK_ID_PLAUSIBLE_STATE_RC];
+    feedback_handler.status_can_payload.tsal_green = (primary_hv_feedback_status_tsal_green)feedback_handler.status[FEEDBACK_ID_TSAL_GREEN];
+    feedback_handler.status_can_payload.probing_3v3 = (primary_hv_feedback_status_probing_3v3)feedback_handler.status[FEEDBACK_ID_PROBING_3V3];
+    feedback_handler.status_can_payload.sd_out = (primary_hv_feedback_status_sd_out)feedback_handler.status[FEEDBACK_ID_SD_OUT];
+    feedback_handler.status_can_payload.sd_in = (primary_hv_feedback_status_sd_in)feedback_handler.status[FEEDBACK_ID_SD_IN];
+    feedback_handler.status_can_payload.sd_end = (primary_hv_feedback_status_sd_end)feedback_handler.status[FEEDBACK_ID_SD_END];
+    feedback_handler.status_can_payload.v5_mcu = (primary_hv_feedback_status_v5_mcu)feedback_handler.status[FEEDBACK_ID_V5_MCU];
+    return &feedback_handler.status_can_payload;
 }
 
-primary_hv_feedback_digital_converted_t *feedback_get_digital_payload(size_t *const byte_size) {
+primary_hv_feedback_digital_converted_t *feedback_api_get_digital_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(hfeedback.digital_can_payload);
+        *byte_size = sizeof(feedback_handler.digital_can_payload);
     }
-    hfeedback.digital_can_payload.digital_airn_open_com = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
-    hfeedback.digital_can_payload.digital_precharge_open_com = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);
-    hfeedback.digital_can_payload.digital_airp_open_com = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
-    hfeedback.digital_can_payload.digital_precharge_open_mec = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC);
-    hfeedback.digital_can_payload.digital_sd_imd_fb = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_IMD_FB);
-    hfeedback.digital_can_payload.digital_sd_bms_fb = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
-    hfeedback.digital_can_payload.digital_ts_less_than_60v = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V);
-    hfeedback.digital_can_payload.digital_plausible_state_persisted = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED);
-    hfeedback.digital_can_payload.digital_plausible_state = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE);
-    hfeedback.digital_can_payload.digital_not_bms_fault_cockpit_led = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
-    hfeedback.digital_can_payload.digital_not_imd_fault_cockpit_led = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
-    hfeedback.digital_can_payload.digital_indicator_connected = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED);
-    hfeedback.digital_can_payload.digital_not_latch_reset = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
-    hfeedback.digital_can_payload.digital_plausible_state_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_LATCHED);
-    hfeedback.digital_can_payload.digital_not_bms_fault_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
-    hfeedback.digital_can_payload.digital_not_imd_fault_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
-    hfeedback.digital_can_payload.digital_not_ext_fault_latched = EAGLETRT_API_BIT_GET(hfeedback.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
-    return &hfeedback.digital_can_payload;
+    feedback_handler.digital_can_payload.digital_airn_open_com = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM);
+    feedback_handler.digital_can_payload.digital_precharge_open_com = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM);
+    feedback_handler.digital_can_payload.digital_airp_open_com = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM);
+    feedback_handler.digital_can_payload.digital_precharge_open_mec = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC);
+    feedback_handler.digital_can_payload.digital_sd_imd_fb = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_SD_IMD_FB);
+    feedback_handler.digital_can_payload.digital_sd_bms_fb = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_SD_BMS_FB);
+    feedback_handler.digital_can_payload.digital_ts_less_than_60v = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V);
+    feedback_handler.digital_can_payload.digital_plausible_state_persisted = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_PERSISTED);
+    feedback_handler.digital_can_payload.digital_plausible_state = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE);
+    feedback_handler.digital_can_payload.digital_not_bms_fault_cockpit_led = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_COCKPIT_LED);
+    feedback_handler.digital_can_payload.digital_not_imd_fault_cockpit_led = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_COCKPIT_LED);
+    feedback_handler.digital_can_payload.digital_indicator_connected = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_INDICATOR_CONNECTED);
+    feedback_handler.digital_can_payload.digital_not_latch_reset = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_LATCH_RESET);
+    feedback_handler.digital_can_payload.digital_plausible_state_latched = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_PLAUSIBLE_STATE_LATCHED);
+    feedback_handler.digital_can_payload.digital_not_bms_fault_latched = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_BMS_FAULT_LATCHED);
+    feedback_handler.digital_can_payload.digital_not_imd_fault_latched = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED);
+    feedback_handler.digital_can_payload.digital_not_ext_fault_latched = EAGLETRT_API_BIT_GET(feedback_handler.digital, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED);
+    return &feedback_handler.digital_can_payload;
 }
 
-primary_hv_feedback_analog_converted_t *feedback_get_analog_payload(size_t *const byte_size) {
+primary_hv_feedback_analog_converted_t *feedback_api_get_analog_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(hfeedback.analog_can_payload);
+        *byte_size = sizeof(feedback_handler.analog_can_payload);
     }
-    hfeedback.analog_can_payload.analog_airn_open_mec = hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC];
-    hfeedback.analog_can_payload.analog_airp_open_mec = hfeedback.analog[FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC];
-    hfeedback.analog_can_payload.analog_imd_ok = hfeedback.analog[FEEDBACK_ANALOG_INDEX_IMD_OK];
-    hfeedback.analog_can_payload.analog_plausible_state_rc = hfeedback.analog[FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC];
-    hfeedback.analog_can_payload.analog_tsal_green = hfeedback.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN];
-    hfeedback.analog_can_payload.analog_probing_3v3 = hfeedback.analog[FEEDBACK_ANALOG_INDEX_PROBING_3V3];
-    hfeedback.analog_can_payload.analog_v5_mcu = FEEDBACK_VOLTAGE_TO_5V_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_V5_MCU]);
-    return &hfeedback.analog_can_payload;
+    feedback_handler.analog_can_payload.analog_airn_open_mec = feedback_handler.analog[FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC];
+    feedback_handler.analog_can_payload.analog_airp_open_mec = feedback_handler.analog[FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC];
+    feedback_handler.analog_can_payload.analog_imd_ok = feedback_handler.analog[FEEDBACK_ANALOG_INDEX_IMD_OK];
+    feedback_handler.analog_can_payload.analog_plausible_state_rc = feedback_handler.analog[FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC];
+    feedback_handler.analog_can_payload.analog_tsal_green = feedback_handler.analog[FEEDBACK_ANALOG_INDEX_TSAL_GREEN];
+    feedback_handler.analog_can_payload.analog_probing_3v3 = feedback_handler.analog[FEEDBACK_ANALOG_INDEX_PROBING_3V3];
+    feedback_handler.analog_can_payload.analog_v5_mcu = FEEDBACK_VOLTAGE_TO_5V_VOLT(feedback_handler.analog[FEEDBACK_ANALOG_INDEX_V5_MCU]);
+    return &feedback_handler.analog_can_payload;
 }
 
-primary_hv_feedback_analog_sd_converted_t *feedback_get_analog_sd_payload(size_t *const byte_size) {
+primary_hv_feedback_analog_sd_converted_t *feedback_api_get_analog_sd_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(hfeedback.analog_sd_can_payload);
+        *byte_size = sizeof(feedback_handler.analog_sd_can_payload);
     }
-    hfeedback.analog_sd_can_payload.sd_out = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_OUT]);
-    hfeedback.analog_sd_can_payload.sd_in = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_IN]);
-    hfeedback.analog_sd_can_payload.sd_end = FEEDBACK_VOLTAGE_TO_SD_VOLT(hfeedback.analog[FEEDBACK_ANALOG_INDEX_SD_END]);
-    return &hfeedback.analog_sd_can_payload;
+    feedback_handler.analog_sd_can_payload.sd_out = FEEDBACK_VOLTAGE_TO_SD_VOLT(feedback_handler.analog[FEEDBACK_ANALOG_INDEX_SD_OUT]);
+    feedback_handler.analog_sd_can_payload.sd_in = FEEDBACK_VOLTAGE_TO_SD_VOLT(feedback_handler.analog[FEEDBACK_ANALOG_INDEX_SD_IN]);
+    feedback_handler.analog_sd_can_payload.sd_end = FEEDBACK_VOLTAGE_TO_SD_VOLT(feedback_handler.analog[FEEDBACK_ANALOG_INDEX_SD_END]);
+    return &feedback_handler.analog_sd_can_payload;
 }
 
-primary_hv_feedback_enzomma_converted_t *feedback_get_enzomma_payload(const enum FeedbackId id_fb, size_t *const byte_size) {
+primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(const enum FeedbackId id_fb, size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(hfeedback.enzomma_can_payload);
+        *byte_size = sizeof(feedback_handler.enzomma_can_payload);
     }
-    const bool is_digital = feedback_is_digital(id_fb);
-    hfeedback.enzomma_can_payload.feedback = (primary_hv_feedback_enzomma_feedback)id_fb;
-    hfeedback.enzomma_can_payload.status = (primary_hv_feedback_enzomma_status)feedback_get_status(id_fb);
-    hfeedback.enzomma_can_payload.is_digital = is_digital;
+    const bool is_digital = feedback_api_is_digital(id_fb);
+    feedback_handler.enzomma_can_payload.feedback = (primary_hv_feedback_enzomma_feedback)id_fb;
+    feedback_handler.enzomma_can_payload.status = (primary_hv_feedback_enzomma_status)feedback_api_get_status(id_fb);
+    feedback_handler.enzomma_can_payload.is_digital = is_digital;
     if (is_digital) {
-        hfeedback.enzomma_can_payload.digital = feedback_get_digital(feedback_get_digital_bit_from_id(id_fb));
-        hfeedback.enzomma_can_payload.analog = 0.F;
+        feedback_handler.enzomma_can_payload.digital = feedback_api_get_digital(feedback_api_get_digital_bit_from_id(id_fb));
+        feedback_handler.enzomma_can_payload.analog = 0.F;
     } else {
-        hfeedback.enzomma_can_payload.digital = 0U;
-        const volt_t volt = feedback_get_analog(feedback_get_analog_index_from_id(id_fb));
-        hfeedback.enzomma_can_payload.analog = volt;
+        feedback_handler.enzomma_can_payload.digital = 0U;
+        const volt_t volt = feedback_api_get_analog(feedback_api_get_analog_index_from_id(id_fb));
+        feedback_handler.enzomma_can_payload.analog = volt;
     }
-    return &hfeedback.enzomma_can_payload;
+    return &feedback_handler.enzomma_can_payload;
 }
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
@@ -479,7 +479,7 @@ EAGLETRT_STATIC char *feedback_id_name[] = {
     [FEEDBACK_ID_V5_MCU] = "mcu 5v"
 };
 
-const char *const feedback_get_feedback_id_name(const enum FeedbackId id_fb) {
+const char *const feedback_api_get_feedback_id_name(const enum FeedbackId id_fb) {
     if (id_fb >= FEEDBACK_ID_COUNT)
         return "unknown";
     return feedback_id_name[id_fb];

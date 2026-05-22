@@ -192,7 +192,7 @@ void _tasks_send_hv_cooling_temperature(void) {
 /** @brief Send the feedback status via CAN */
 void _tasks_send_hv_feedback_status(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)feedback_get_status_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)feedback_api_get_status_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_FEEDBACK_STATUS_INDEX,
@@ -204,7 +204,7 @@ void _tasks_send_hv_feedback_status(void) {
 /** @brief Send the digital feedbacks values via CAN */
 void _tasks_send_hv_feedback_digital(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)feedback_get_digital_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)feedback_api_get_digital_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_FEEDBACK_DIGITAL_INDEX,
@@ -216,7 +216,7 @@ void _tasks_send_hv_feedback_digital(void) {
 /** @brief Send the analog feedbacks values via CAN */
 void _tasks_send_hv_feedback_analog(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)feedback_get_analog_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)feedback_api_get_analog_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_FEEDBACK_ANALOG_INDEX,
@@ -228,7 +228,7 @@ void _tasks_send_hv_feedback_analog(void) {
 /** @brief Send the analog shutdown feedbacks values via CAN */
 void _tasks_send_hv_feedback_analog_sd(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)feedback_get_analog_sd_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)feedback_api_get_analog_sd_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_FEEDBACK_ANALOG_SD_INDEX,
@@ -275,17 +275,17 @@ void _tasks_send_errors(void) {
 
 /** @brief Update all the digital feedbacks */
 void _tasks_read_digital_feedbacks(void) {
-    (void)feedback_update_digital_feedback_all();
+    (void)feedback_api_update_digital_feedback_all();
 }
 
 /** @brief Start the conversion of all the analog feedbacks */
 void _tasks_start_analog_conversion_feedbacks(void) {
-    (void)feedback_start_analog_conversion_all();
+    (void)feedback_api_start_analog_conversion_all();
 }
 
 /** @brief Update all the feedbacks status */
 void _tasks_update_feedbacks_status(void) {
-    (void)feedback_update_status();
+    (void)feedback_api_update_status();
 }
 
 /** @brief Start the internal voltages ADC conversion */
