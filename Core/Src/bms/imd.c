@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "imd.h"
-#include "feedback.h"
+#include "feedback-api.h"
 
 #ifdef CONF_IMD_MODULE_ENABLE
 
@@ -42,8 +42,7 @@ ImdStatus imd_get_status() {
 ImdReturnCode imd_update(
     const ticks_t source_frequency,
     const ticks_t period_count,
-    const ticks_t high_count)
-{
+    const ticks_t high_count) {
     if (period_count == 0)
         return IMD_INVALID_DATA;
     hertz_t frequency = source_frequency / (float)period_count;
@@ -53,7 +52,7 @@ ImdReturnCode imd_update(
     return IMD_OK;
 }
 
-primary_hv_imd_status_converted_t * imd_get_status_canlib_payload(size_t * const byte_size) {
+primary_hv_imd_status_converted_t *imd_get_status_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(himd.status_can_payload);
     // The value of the IMD status of the canlib differs by one from the IMD status
@@ -68,32 +67,32 @@ primary_hv_imd_status_converted_t * imd_get_status_canlib_payload(size_t * const
 
 #ifdef CONF_IMD_STRINGS_ENABLE
 
-_STATIC char * imd_module_name = "imd";
+_STATIC char *imd_module_name = "imd";
 
-_STATIC char * imd_return_code_name[] = {
+_STATIC char *imd_return_code_name[] = {
     [IMD_OK] = "ok",
     [IMD_NULL_POINTER] = "null pointer",
     [IMD_INVALID_DATA] = "invalid data"
 };
 
-_STATIC char * imd_return_code_description[] = {
+_STATIC char *imd_return_code_description[] = {
     [IMD_OK] = "executed succesfully",
     [IMD_NULL_POINTER] = "attempt to dereference a null pointer",
     [IMD_INVALID_DATA] = "given data is not valid"
 };
 
 // IMD status unknown is negative so it can't be used in an array
-_STATIC char * imd_status_unknown_name = "unknown";
-_STATIC char * imd_status_name[] = {
+_STATIC char *imd_status_unknown_name = "unknown";
+_STATIC char *imd_status_name[] = {
     [IMD_STATUS_SHORT_CIRCUIT] = "short circuit",
     [IMD_STATUS_NORMAL] = "normal",
     [IMD_STATUS_UNDER_VOLTAGE] = "undervoltage",
     [IMD_STATUS_START_MEASURE] = "start measure",
-    [IMD_STATUS_DEVICE_ERROR] = "device error", 
+    [IMD_STATUS_DEVICE_ERROR] = "device error",
     [IMD_STATUS_EARTH_FAULT] = "earth fault"
 };
 
-const char * const imd_get_imd_status_name(const ImdStatus status) {
+const char *const imd_get_imd_status_name(const ImdStatus status) {
     if (status > IMD_STATUS_COUNT)
         return "unknown";
     if (status == IMD_STATUS_UNKNOWN)

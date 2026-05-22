@@ -24,7 +24,7 @@
 
 #include "mainboard-conf.h"
 
-#include "feedback.h"
+#include "feedback-api.h"
 #include "cooling-temp.h"
 
 /* USER CODE END 0 */

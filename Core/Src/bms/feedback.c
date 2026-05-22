@@ -6,7 +6,7 @@
  * @brief Feedback management function
  */
 
-#include "feedback.h"
+#include "feedback-api.h"
 
 #include <string.h>
 

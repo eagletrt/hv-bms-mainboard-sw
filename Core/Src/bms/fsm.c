@@ -25,7 +25,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "can-comm.h"
 #include "timebase.h"
 #include "programmer.h"
-#include "feedback.h"
+#include "feedback-api.h"
 #include "bal.h"
 #include "error.h"
 /*** USER CODE END MACROS ***/

@@ -18,7 +18,7 @@
 #include "led.h"
 #include "imd.h"
 #include "pcu.h"
-#include "feedback.h"
+#include "feedback-api.h"
 #include "display.h"
 
 /**
