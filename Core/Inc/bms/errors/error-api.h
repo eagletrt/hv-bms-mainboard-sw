@@ -75,23 +75,23 @@ primary_hv_error_converted_t *error_api_get_error_canlib_payload(size_t *const b
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 
-char *error_get_group_name_string(const enum ErrorGroup group);
+char *error_api_get_group_name_string(const enum ErrorGroup group);
 
 #else // CONF_ERROR_STRINGS_ENABLE
 
-#define error_get_group_name_string(group) ("")
+#define error_api_get_group_name_string(group) ("")
 
 #endif // CONF_ERROR_STRINGS_ENABLE
 
 #else // CONF_ERROR_MODULE_ENABLE
 
-#define error_init() (ERROR_OK)
-#define error_set(group, instance) (ERROR_OK)
-#define error_reset(group, instance) (ERROR_OK)
-#define error_get_expired() (0U)
-#define error_get_expired_info() ((ErrorInfo){ 0U })
-#define error_cellboard_handle(payload) (NULL)
-#define error_get_error_canlib_payload(byte_size) (NULL);
+#define error_api_init() (ERROR_OK)
+#define error_api_set(group, instance) (ERROR_OK)
+#define error_api_reset(group, instance) (ERROR_OK)
+#define error_api_get_expired() (0U)
+#define error_api_get_expired_info() ((ErrorInfo){ 0U })
+#define error_api_cellboard_handle(payload) (NULL)
+#define error_api_get_error_canlib_payload(byte_size) (NULL);
 
 #endif // CONF_ERROR_MODULE_ENABLE
 
