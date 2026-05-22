@@ -80,7 +80,7 @@ celsius_t temp_api_get_min(void) {
     celsius_t min = temp_handler.temperatures[0][0];
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            min = MAINBOARD_MIN(min, temp_handler.temperatures[i][j]);
+            min = EAGLETRT_API_MIN(min, temp_handler.temperatures[i][j]);
         }
     }
     return min;
@@ -90,7 +90,7 @@ celsius_t temp_api_get_max(void) {
     celsius_t max = temp_handler.temperatures[0][0];
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            max = MAINBOARD_MAX(max, temp_handler.temperatures[i][j]);
+            max = EAGLETRT_API_MAX(max, temp_handler.temperatures[i][j]);
         }
     }
     return max;
