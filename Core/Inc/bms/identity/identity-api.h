@@ -22,7 +22,7 @@ void identity_api_init(void);
 /*!
  * \brief Get the mainboard software build time in unix timestamp format (seconds)
  *
- * \return seconds_t The build time
+ * \returns seconds_t The build time
  */
 seconds_t identity_api_get_build_time(void);
 
@@ -31,7 +31,7 @@ seconds_t identity_api_get_build_time(void);
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \return primary_hv_mainboard_version_converted_t* A pointer to the payload
+ * \returns primary_hv_mainboard_version_converted_t* A pointer to the payload
  */
 primary_hv_mainboard_version_converted_t *identity_api_get_mainboard_version_payload(size_t *byte_size);
 
@@ -41,7 +41,7 @@ primary_hv_mainboard_version_converted_t *identity_api_get_mainboard_version_pay
  * \param cellboard_id The cellboard to get the payload from
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \return primary_hv_cellboard_version_converted_t* A pointer to the payload or NULL if the id is not valid
+ * \returns primary_hv_cellboard_version_converted_t* A pointer to the payload or NULL if the id is not valid
  */
 primary_hv_cellboard_version_converted_t *identity_api_get_cellboard_version_payload(CellboardId cellboard_id, size_t *byte_size);
 
