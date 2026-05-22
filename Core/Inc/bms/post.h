@@ -17,7 +17,7 @@
 #include "can-comm.h"
 #include "led.h"
 #include "imd.h"
-#include "pcu.h"
+#include "pcu-api.h"
 #include "feedback.h"
 #include "display.h"
 
@@ -68,8 +68,8 @@ typedef struct {
     led_set_state_callback_t led_set;
     led_toggle_state_callback_t led_toggle;
     imd_pwm_start_callback_t imd_start;
-    pcu_set_state_callback_t pcu_set;
-    pcu_toggle_state_callback_t pcu_toggle;
+    pcu_set_state_callback pcu_set;
+    pcu_toggle_state_callback pcu_toggle;
     feedback_read_digital_all_callback_t feedback_read_all;
     feedback_start_analog_conversion_callback_t feedback_start_conversion;
     display_segment_set_state_callback_t display_set;
@@ -96,7 +96,7 @@ typedef struct {
  */
 PostReturnCode post_run(const PostInitData data);
 
-#else  // CONF_POST_MODULE_ENABLE
+#else // CONF_POST_MODULE_ENABLE
 
 #define post_run(data) (POST_OK)
 
