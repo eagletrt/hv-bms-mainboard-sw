@@ -11,6 +11,7 @@
 #define FEEDBACK_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
@@ -252,34 +253,8 @@ enum FeedbackReturnCode {
 
 /*!
  * \brief Type definition of the feedback identifiers
- *
- * \details
- *     - FEEDBACK_ID_AIRN_COM Opposite of the AIR- commanded state
- *     - FEEDBACK_ID_PRECHARGE_OPEN_COM Opposite of the PRECHARGE commanded state
- *     - FEEDBACK_ID_AIRP_COM Opposite of the AIR+ commanded state
- *     - FEEDBACK_ID_AIRN_MEC Mechanical status of the AIR-
- *     - FEEDBACK_ID_PRECHARGE_OPEN_MEC Mechanical status of the PRECHARGE relay
- *     - FEEDBACK_ID_AIRP_MEC Mechanical status of the AIR+
- *     - FEEDBACK_ID_SD_IMD_FB Shutdown IMD node feedback
- *     - FEEDBACK_ID_SD_BMS_FB Shutdown AMS node feedback
- *     - FEEDBACK_ID_TS_LESS_THAN_60V Less than 60V on the Tractive System
- *     - FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED Plausible state persisted value (Prefer this over the other two)
- *     - FEEDBACK_ID_PLAUSIBLE_STATE Raw plausible state value
- *     - FEEDBACK_ID_BMS_FAULT_COCKPIT_LED AMS cockpit LED status
- *     - FEEDBACK_ID_IMD_FAULT_COCKPIT_LED IMD cockpit LED status
- *     - FEEDBACK_ID_IMD_OK Status of the IMD
- *     - FEEDBACK_ID_INDICATOR_CONNECTED Voltage indicator connected
- *     - FEEDBACK_ID_LATCH_RESET All the latches are reset
- *     - FEEDBACK_ID_PLAUSIBLE_STATE_RC Plausible state after the RC circuit
- *     - FEEDBACK_ID_TSAL_GREEN Status of the TSAL
- *     - FEEDBACK_ID_PROBING_3V3 Feedback on the 3V3 line (comes out of a divider so it should be around 1.6V)
- *     - FEEDBACK_ID_SD_OUT Shutdown out
- *     - FEEDBACK_ID_SD_IN Shutdown in
- *     - FEEDBACK_ID_SD_END Shutdown end
- *     - FEEDBACK_ID_V5_MCU Feedback on the 5V line
- *     - FEEDBACK_ID_UNKNOWN Feedback used for initialization or as return value
  */
-enum FeedbackId {
+enum FeedbackId : int8_t {
     FEEDBACK_ID_AIRN_OPEN_COM = 0,         /*!< Opposite of the AIR- commanded state */
     FEEDBACK_ID_PRECHARGE_OPEN_COM,        /*!< Opposite of the PRECHARGE commanded state */
     FEEDBACK_ID_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
@@ -317,7 +292,7 @@ enum FeedbackId {
  * \details Can be used to change or check bit flags, the feedback id is used as
  * the position of the bit
  */
-enum FeedbackBit {
+enum FeedbackBit : int32_t {
     FEEDBACK_BIT_AIRN_OPEN_COM = (1U << FEEDBACK_ID_AIRN_OPEN_COM),                         /*!< Opposite of the AIR- commanded state (bit definition)*/
     FEEDBACK_BIT_PRECHARGE_OPEN_COM = (1U << FEEDBACK_ID_PRECHARGE_OPEN_COM),               /*!< Opposite of the PRECHARGE commanded state (bit definition)*/
     FEEDBACK_BIT_AIRP_OPEN_COM = (1U << FEEDBACK_ID_AIRP_OPEN_COM),                         /*!< Opposite of the AIR+ commanded state (bit definition)*/
@@ -350,7 +325,7 @@ enum FeedbackBit {
 /*!
  * \brief Bit position of the digital feedbacks inside the bit flag
  */
-enum FeedbackDigitalBit {
+enum FeedbackDigitalBit : int8_t {
     FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM = 0U,        /*!< Opposite of the AIR- commanded state */
     FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
     FEEDBACK_DIGITAL_BIT_SD_IMD_FB,                 /*!< Shutdown IMD node feedback */
@@ -375,7 +350,7 @@ enum FeedbackDigitalBit {
 /*!
  * \brief Indices of the analog feedbacks
  */
-enum FeedbackAnalogIndex {
+enum FeedbackAnalogIndex : int8_t {
     FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC = 0U, /*!< Mechanical status of the AIR- */
     FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC,      /*!< Mechanical status of the AIR+ */
     FEEDBACK_ANALOG_INDEX_IMD_OK,             /*!< Status of the IMD */
@@ -393,7 +368,7 @@ enum FeedbackAnalogIndex {
 /*!
  * \brief Status of the feedbacks
  */
-enum FeedbackStatus {
+enum FeedbackStatus : int8_t {
     FEEDBACK_STATUS_LOW,   /*!< The feedback value is considered as logically low */
     FEEDBACK_STATUS_ERROR, /*!< The feedback value is not in a valid state */
     FEEDBACK_STATUS_HIGH   /*!< The feedback value is considered as logically high */

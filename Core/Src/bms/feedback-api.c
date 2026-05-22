@@ -214,10 +214,7 @@ enum FeedbackStatus feedback_get_status(const enum FeedbackId id_fb) {
     return hfeedback.status[id_fb];
 }
 
-bool feedback_check_values(
-    const bit_flag32_t mask,
-    const bit_flag32_t value,
-    enum FeedbackId *const out) {
+bool feedback_check_values(const bit_flag32_t mask, const bit_flag32_t value, enum FeedbackId *const out) {
     for (enum FeedbackId i = 0U; i < FEEDBACK_ID_COUNT; ++i) {
         // Skip feedback not present inside the bitmask
         if (EAGLETRT_API_BIT_GET(mask, i) == 0U) {
@@ -244,7 +241,7 @@ bool feedback_check_values(
 
 bool feedback_is_digital(const enum FeedbackId id_fb) {
     switch (id_fb) {
-        case FEEDBACK_ID_AIRN_OPEN_COM:
+        case FEEDBACK_ID_AIRN_OPEN_COM: //NOLINT
         case FEEDBACK_ID_PRECHARGE_OPEN_COM:
         case FEEDBACK_ID_AIRP_OPEN_COM:
         case FEEDBACK_ID_PRECHARGE_OPEN_MEC:
