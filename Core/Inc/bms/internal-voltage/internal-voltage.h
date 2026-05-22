@@ -33,7 +33,7 @@
  *
  * \returns volt_t The converted value in V
  */
-#define INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(value) (value / INTERNAL_VOLTAGE_DIVIDER_RATIO)
+#define INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(value) ((value) / INTERNAL_VOLTAGE_DIVIDER_RATIO)
 
 /*!
  * \brief Return code for the internal voltage module functions

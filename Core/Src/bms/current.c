@@ -13,7 +13,7 @@
 
 #include "timebase.h"
 #include "error.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 #include "volt.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE

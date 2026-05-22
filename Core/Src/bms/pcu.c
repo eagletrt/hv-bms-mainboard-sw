@@ -12,7 +12,7 @@
 
 #include "timebase.h"
 #include "fsm.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 

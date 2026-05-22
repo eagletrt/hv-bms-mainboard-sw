@@ -15,7 +15,7 @@
 #include "timebase.h"
 #include "volt.h"
 #include "current.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 #include "bal.h"
 
 #ifdef CONF_POST_MODULE_ENABLE

@@ -16,7 +16,7 @@
 #include "current.h"
 #include "volt.h"
 #include "feedback.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 #include "bal.h"
 #include "imd.h"
 #include "temp.h"
