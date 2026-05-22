@@ -113,8 +113,7 @@ void volt_api_cells_voltage_handle(
     }
 }
 
-primary_hv_cells_voltage_converted_t *
-volt_api_get_cells_voltage_canlib_payload(size_t *const byte_size) {
+primary_hv_cells_voltage_converted_t *volt_api_get_cells_voltage_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
         *byte_size = sizeof(volt_handler.volt_can_payload);
     }
@@ -139,8 +138,7 @@ volt_api_get_cells_voltage_canlib_payload(size_t *const byte_size) {
     return &volt_handler.volt_can_payload;
 }
 
-primary_hv_cells_voltage_stats_converted_t *
-volt_api_get_cells_voltage_stats_canlib_payload(size_t *const byte_size) {
+primary_hv_cells_voltage_stats_converted_t *volt_api_get_cells_voltage_stats_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
         *byte_size = sizeof(volt_handler.volt_stats_can_payload);
     }
