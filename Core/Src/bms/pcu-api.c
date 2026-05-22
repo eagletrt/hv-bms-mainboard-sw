@@ -17,61 +17,61 @@
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
-EAGLETRT_STATIC struct PcuHandler hpcu;
+EAGLETRT_STATIC struct PcuHandler pcu_handler;
 
 /*! \brief Callback executed when the AIR- watchdog times out */
 void prv_pcu_api_airn_timeout(void) {
     // Send AIR- timeout event to the FSM
-    hpcu.timeout_event.type = FSM_EVENT_TYPE_AIRN_TIMEOUT;
-    fsm_event_trigger(&hpcu.timeout_event);
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_AIRN_TIMEOUT;
+    fsm_event_trigger(&pcu_handler.timeout_event);
 }
 
 /*! \brief Callback executed when the precharge watchdog times out */
 void prv_pcu_api_precharge_timeout(void) {
     // Send precharge timeout event to the FSM
-    hpcu.timeout_event.type = FSM_EVENT_TYPE_PRECHARGE_TIMEOUT;
-    fsm_event_trigger(&hpcu.timeout_event);
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_PRECHARGE_TIMEOUT;
+    fsm_event_trigger(&pcu_handler.timeout_event);
 }
 
 /*! \brief Callback executed when the AIR+ watchdog times out */
 void prv_pcu_api_airp_timeout(void) {
     // Send AIR+ timeout event to the FSM
-    hpcu.timeout_event.type = FSM_EVENT_TYPE_AIRP_TIMEOUT;
-    fsm_event_trigger(&hpcu.timeout_event);
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_AIRP_TIMEOUT;
+    fsm_event_trigger(&pcu_handler.timeout_event);
 }
 
 /*! \brief Initialize all the watchdogs */
 void prv_pcu_api_init_watchdogs(void) {
     const milliseconds_t res = timebase_get_resolution();
     watchdog_init(
-        &hpcu.airn_watchdog,
+        &pcu_handler.airn_watchdog,
         TIMEBASE_TIME_TO_TICKS(pcu_api_airn_TIMEOUT_MS, res),
         prv_pcu_api_airn_timeout);
     watchdog_init(
-        &hpcu.precharge_watchdog,
+        &pcu_handler.precharge_watchdog,
         TIMEBASE_TIME_TO_TICKS(PCU_PRECHARGE_TIMEOUT_MS, res),
         prv_pcu_api_precharge_timeout);
     watchdog_init(
-        &hpcu.airp_watchdog,
+        &pcu_handler.airp_watchdog,
         TIMEBASE_TIME_TO_TICKS(pcu_api_airp_TIMEOUT_MS, res),
         prv_pcu_api_airp_timeout);
 }
 /*! \brief Uninitialize all the watchdogs to be able to use them again */
 void prv_pcu_api_deinit_watchdogs(void) {
-    watchdog_deinit(&hpcu.airn_watchdog);
-    watchdog_deinit(&hpcu.precharge_watchdog);
-    watchdog_deinit(&hpcu.airp_watchdog);
+    watchdog_deinit(&pcu_handler.airn_watchdog);
+    watchdog_deinit(&pcu_handler.precharge_watchdog);
+    watchdog_deinit(&pcu_handler.airp_watchdog);
 }
 
 enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_toggle_state_callback toggle) {
     if (set == NULL || toggle == NULL) {
         return PCU_RC_NULL_POINTER;
     }
-    memset(&hpcu, 0U, sizeof(hpcu));
+    memset(&pcu_handler, 0U, sizeof(pcu_handler));
 
-    hpcu.set = set;
-    hpcu.toggle = toggle;
-    hpcu.event.type = FSM_EVENT_TYPE_IGNORED;
+    pcu_handler.set = set;
+    pcu_handler.toggle = toggle;
+    pcu_handler.event.type = FSM_EVENT_TYPE_IGNORED;
 
     // Reset all gpios
     pcu_api_reset_all();
@@ -86,57 +86,57 @@ void pcu_api_reset_all(void) {
     prv_pcu_api_deinit_watchdogs();
 
     // Set all pins to their default state
-    hpcu.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
-    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
-    hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
+    pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
+    pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
+    pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
+    pcu_handler.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
 
-    hpcu.timeout_event.type = FSM_EVENT_TYPE_IGNORED;
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_IGNORED;
     prv_pcu_api_init_watchdogs();
 }
 
 void pcu_api_airn_open(void) {
-    watchdog_stop(&hpcu.airn_watchdog);
-    hpcu.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
+    watchdog_stop(&pcu_handler.airn_watchdog);
+    pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
 }
 void pcu_api_airn_close(void) {
-    hpcu.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_LOW);
-    watchdog_start(&hpcu.airn_watchdog);
+    pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_LOW);
+    watchdog_start(&pcu_handler.airn_watchdog);
 }
 void pcu_api_airn_stop_watchdog(void) {
-    watchdog_stop(&hpcu.airn_watchdog);
+    watchdog_stop(&pcu_handler.airn_watchdog);
 }
 
 void pcu_api_airp_open(void) {
-    watchdog_stop(&hpcu.airp_watchdog);
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
+    watchdog_stop(&pcu_handler.airp_watchdog);
+    pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
 }
 void pcu_api_airp_close(void) {
-    hpcu.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW);
-    watchdog_start(&hpcu.airp_watchdog);
+    pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW);
+    watchdog_start(&pcu_handler.airp_watchdog);
 }
 void pcu_api_airp_stop_watchdog(void) {
-    watchdog_stop(&hpcu.airp_watchdog);
+    watchdog_stop(&pcu_handler.airp_watchdog);
 }
 
 // TODO: Handler watchdog return codes
 void pcu_api_precharge_start(void) {
-    watchdog_start(&hpcu.precharge_watchdog);
-    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW);
+    watchdog_start(&pcu_handler.precharge_watchdog);
+    pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW);
 }
 void pcu_api_precharge_stop(void) {
-    hpcu.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
-    watchdog_stop(&hpcu.precharge_watchdog);
+    pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
+    watchdog_stop(&pcu_handler.precharge_watchdog);
 }
 void pcu_api_precharge_stop_watchdog(void) {
-    watchdog_stop(&hpcu.precharge_watchdog);
+    watchdog_stop(&pcu_handler.precharge_watchdog);
 }
 
 void pcu_api_ams_activate(void) {
-    hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_LOW);
+    pcu_handler.set(PCU_PIN_AMS, PCU_PIN_STATUS_LOW);
 }
 void pcu_api_ams_deactivate(void) {
-    hpcu.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
+    pcu_handler.set(PCU_PIN_AMS, PCU_PIN_STATUS_HIGH);
 }
 
 precise_percentage_t pcu_api_get_precharge_percentage(void) {
@@ -154,16 +154,16 @@ void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *co
     if (payload == NULL) {
         return;
     }
-    hpcu.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
-    fsm_event_trigger(&hpcu.event);
+    pcu_handler.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
+    fsm_event_trigger(&pcu_handler.event);
 }
 
 void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *const payload) {
     if (payload == NULL) {
         return;
     }
-    hpcu.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
-    fsm_event_trigger(&hpcu.event);
+    pcu_handler.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
+    fsm_event_trigger(&pcu_handler.event);
 }
 
 #ifdef CONF_PCU_STRING_ENABLE
