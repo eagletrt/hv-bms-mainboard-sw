@@ -11,6 +11,7 @@
 #define IDENTITY_API_H
 
 #include "identity.h"
+#include "eagletrt-api.h"
 
 #ifdef CONF_IDENTITY_MODULE_ENABLE
 
@@ -54,11 +55,11 @@ void identity_api_cellboard_version_handle(bms_cellboard_version_converted_t *pa
 
 #else // CONF_IDENTITY_MODULE_ENABLE
 
-#define identity_api_init(id) CELLBOARD_NOPE()
+#define identity_api_init(id) EAGLETRT_API_NOP()
 #define identity_api_get_build_time() (0U)
 #define identity_api_get_mainboard_version_payload(byte_size) (NULL)
 #define identity_api_get_cellboard_version_payload(byte_size) (NULL)
-#define identity_api_cellboard_version_handle(payload) MAINBOARD_NOPE()
+#define identity_api_cellboard_version_handle(payload) EAGLETRT_API_NOP()
 
 #endif // CONF_IDENTITY_MODULE_ENABLE
 
