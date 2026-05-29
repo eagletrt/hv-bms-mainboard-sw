@@ -11,6 +11,7 @@
 #define BAL_API_H
 
 #include <bal.h>
+#include "eagletrt-api.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
 
@@ -88,8 +89,8 @@ primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_
 #define bal_api_is_active() (false)
 #define bal_api_start() (BAL_OK)
 #define bal_api_stop() (BAL_OK)
-#define bal_api_set_balancing_state_from_steering_wheel_handle(payload) MAINBOARD_NOPE()
-#define bal_api_set_balancing_state_from_handcart_handle(payload) MAINBOARD_NOPE()
+#define bal_api_set_balancing_state_from_steering_wheel_handle(payload) EAGLETRT_API_NOP()
+#define bal_api_set_balancing_state_from_handcart_handle(payload) EAGLETRT_API_NOP()
 #define bal_api_get_set_status_canlib_payload(byte_size) (NULL)
 #define bal_api_get_status_canlib_payload(byte_size) (NULL)
 

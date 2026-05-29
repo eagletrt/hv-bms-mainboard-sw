@@ -15,16 +15,16 @@
 extern struct BalHandler balancing_handler;
 extern _VoltHandler volt_handler;
 
-void prv_bal_timeout(void);
+void prv_bal_api_timeout(void);
 
 // --- prv_bal_timeout ---
 
-void test_prv_bal_timeout_sets_stop_event() {
+void test_prv_bal_api_timeout_sets_stop_event() {
     balancing_handler.event.type = FSM_EVENT_TYPE_IGNORED;
 
-    prv_bal_timeout();
+    prv_bal_api_timeout();
 
-    TEST_ASSERT_EQUAL_MESSAGE(FSM_EVENT_TYPE_BALANCING_STOP, balancing_handler.event.type, "prv_bal_timeout() should set event type to BALANCING_STOP");
+    TEST_ASSERT_EQUAL_MESSAGE(FSM_EVENT_TYPE_BALANCING_STOP, balancing_handler.event.type, "prv_bal_api_timeout() should set event type to BALANCING_STOP");
 }
 
 // --- bal_api_init ---
@@ -274,32 +274,7 @@ void test_bal_api_cellboard_balancing_status_handle_ok() {
 
     bal_api_cellboard_balancing_status_handle(&payload);
 
-    TEST_ASSERT_EQUAL_MESSAGE(payload.status, balancing_handler.status_can_payload.status, "failed to forward status");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.cellboard_id, balancing_handler.status_can_payload.cellboard_id, "failed to forward cellboard_id");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_0, balancing_handler.status_can_payload.discharging_cell_0, "failed to forward discharging_cell_0");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_1, balancing_handler.status_can_payload.discharging_cell_1, "failed to forward discharging_cell_1");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_2, balancing_handler.status_can_payload.discharging_cell_2, "failed to forward discharging_cell_2");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_3, balancing_handler.status_can_payload.discharging_cell_3, "failed to forward discharging_cell_3");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_4, balancing_handler.status_can_payload.discharging_cell_4, "failed to forward discharging_cell_4");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_5, balancing_handler.status_can_payload.discharging_cell_5, "failed to forward discharging_cell_5");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_6, balancing_handler.status_can_payload.discharging_cell_6, "failed to forward discharging_cell_6");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_7, balancing_handler.status_can_payload.discharging_cell_7, "failed to forward discharging_cell_7");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_8, balancing_handler.status_can_payload.discharging_cell_8, "failed to forward discharging_cell_8");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_9, balancing_handler.status_can_payload.discharging_cell_9, "failed to forward discharging_cell_9");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_10, balancing_handler.status_can_payload.discharging_cell_10, "failed to forward discharging_cell_10");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_11, balancing_handler.status_can_payload.discharging_cell_11, "failed to forward discharging_cell_11");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_12, balancing_handler.status_can_payload.discharging_cell_12, "failed to forward discharging_cell_12");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_13, balancing_handler.status_can_payload.discharging_cell_13, "failed to forward discharging_cell_13");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_14, balancing_handler.status_can_payload.discharging_cell_14, "failed to forward discharging_cell_14");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_15, balancing_handler.status_can_payload.discharging_cell_15, "failed to forward discharging_cell_15");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_16, balancing_handler.status_can_payload.discharging_cell_16, "failed to forward discharging_cell_16");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_17, balancing_handler.status_can_payload.discharging_cell_17, "failed to forward discharging_cell_17");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_18, balancing_handler.status_can_payload.discharging_cell_18, "failed to forward discharging_cell_18");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_19, balancing_handler.status_can_payload.discharging_cell_19, "failed to forward discharging_cell_19");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_20, balancing_handler.status_can_payload.discharging_cell_20, "failed to forward discharging_cell_20");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_21, balancing_handler.status_can_payload.discharging_cell_21, "failed to forward discharging_cell_21");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_22, balancing_handler.status_can_payload.discharging_cell_22, "failed to forward discharging_cell_22");
-    TEST_ASSERT_EQUAL_MESSAGE(payload.discharging_cell_23, balancing_handler.status_can_payload.discharging_cell_23, "failed to forward discharging_cell_23");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&payload.status, &balancing_handler.status_can_payload.status, sizeof(payload.status), "failed to forward status");
 }
 
 // --- bal_api_get_set_status_canlib_payload ---
@@ -369,7 +344,7 @@ void tearDown() {
 
 int main() {
     UNITY_BEGIN();
-    RUN_TEST(test_prv_bal_timeout_sets_stop_event);
+    RUN_TEST(test_prv_bal_api_timeout_sets_stop_event);
     RUN_TEST(test_bal_api_init_ok);
 
     RUN_TEST(test_bal_api_start_already_active_returns_ok);

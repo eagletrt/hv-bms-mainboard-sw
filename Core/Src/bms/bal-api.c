@@ -19,7 +19,7 @@
 EAGLETRT_STATIC struct BalHandler balancing_handler;
 
 /*! \brief Timeout handler for the balancing module */
-void prv_bal_timeout(void) {
+void prv_bal_api_timeout(void) {
     // Stop balancing
     balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_STOP;
     fsm_event_trigger(&balancing_handler.event);
@@ -44,7 +44,7 @@ enum BalReturnCode bal_api_init(void) {
     (void)watchdog_init(
         &balancing_handler.watchdog,
         TIMEBASE_TIME_TO_TICKS(BAL_TIMEOUT_MS, timebase_get_resolution()),
-        prv_bal_timeout);
+        prv_bal_api_timeout);
     return BAL_RC_OK;
 }
 
