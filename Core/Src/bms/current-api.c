@@ -24,7 +24,7 @@ EAGLETRT_STATIC struct CurrentHandler current_api_handler;
 /*!
  * \brief Timeout callback for the sensor communication watchdog
  */
-EAGLETRT_STATIC void prv_current_sensor_communcation_timeout(void) {
+EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
     error_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
 }
 
@@ -33,7 +33,7 @@ EAGLETRT_STATIC void prv_current_sensor_communcation_timeout(void) {
  *
  * \param value The raw current value
  */
-EAGLETRT_STATIC_INLINE void prv_current_check_value(const ampere_t value) {
+EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
     if (value <= CURRENT_MIN_A || value >= CURRENT_MAX_A) {
         error_set(ERROR_GROUP_OVER_CURRENT, 0U);
     } else {
@@ -52,7 +52,7 @@ enum CurrentReturnCode current_api_init(void) {
     (void)watchdog_init(
         &current_api_handler.sensor_wdg,
         CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
-        prv_current_sensor_communcation_timeout);
+        prv_current_api_sensor_communcation_timeout);
     return CURRENT_RC_OK;
 }
 
@@ -62,9 +62,9 @@ ampere_t current_api_get_current(void) {
 
 kilowatt_t current_api_get_power(void) {
 
-    constexpr float epsilon = 0.001F;
+    constexpr float W_to_kW = 0.001F;
 
-    return (kilowatt_t)(current_api_handler.current * internal_voltage_get_ts() * epsilon);
+    return (kilowatt_t)(current_api_handler.current * internal_voltage_get_ts() * W_to_kW);
 }
 
 WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
@@ -73,14 +73,14 @@ WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
 
 void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
 
-    constexpr float epsilon = 0.001F;
+    constexpr float mA_to_A = 0.001F;
 
     watchdog_reset(&current_api_handler.sensor_wdg);
     if (payload == NULL) {
         return;
     }
-    current_api_handler.current = (float)payload->ivt_result_i * epsilon;
-    prv_current_check_value(current_api_handler.current);
+    current_api_handler.current = (float)payload->ivt_result_i * mA_to_A;
+    prv_current_api_check_value(current_api_handler.current);
 }
 
 primary_hv_current_converted_t *current_api_get_current_canlib_payload(size_t *const byte_size) {
