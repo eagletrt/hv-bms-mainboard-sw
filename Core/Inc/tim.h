@@ -49,6 +49,16 @@ extern TIM_HandleTypeDef htim7;
 #define HTIM_TIMEBASE htim6
 #define HTIM_ERROR htim7
 
+#define _M_GET_TIM_APB_PLACEMENT(__HANDLE__) (((__HANDLE__)->Instance < (TIM_TypeDef *)APB2PERIPH_BASE) ? 1U : 0U)
+
+#define TIM_GET_FREQ(TIM) (uint32_t)(TIM_GetInternalClkFreq((TIM)) / ((TIM)->Instance->PSC + 1))
+
+#define TIM_MS_TO_TICKS(TIM, MS) (uint32_t)(((float)TIM_GET_FREQ((TIM)) * (MS)) / 1000)
+
+#define TIM_TICKS_TO_MS(TIM, TICKS) (((float)(TICKS) * 1000) / TIM_GET_FREQ((TIM)))
+
+#define TIM_GET_MAX_AUTORELOAD(TIM) (IS_TIM_32B_COUNTER_INSTANCE((TIM)->Instance) ? UINT32_MAX : UINT16_MAX)
+
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);
@@ -60,6 +70,8 @@ void MX_TIM7_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
+
+uint32_t TIM_GetInternalClkFreq(TIM_HandleTypeDef *htim);
 
 /**
  * @brief Starts the timer with PWM for the IMD
@@ -86,4 +98,3 @@ void tim_stop_error_timer(void);
 #endif
 
 #endif /* __TIM_H__ */
-
