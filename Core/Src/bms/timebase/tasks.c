@@ -16,7 +16,7 @@
 #include "current.h"
 #include "volt.h"
 #include "feedback.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 #include "bal.h"
 #include "imd.h"
 #include "temp.h"
@@ -120,7 +120,7 @@ void _tasks_send_hv_power(void) {
 /** @brief Send the Tractive System voltages info via CAN */
 void _tasks_send_hv_ts_voltage(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)internal_voltage_get_ts_voltage_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)internal_voltage_api_get_ts_voltage_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_TS_VOLTAGE_INDEX,
@@ -290,14 +290,14 @@ void _tasks_update_feedbacks_status(void) {
 
 /** @brief Start the internal voltages ADC conversion */
 void _tasks_start_internal_voltage_conversion(void) {
-    (void)internal_voltage_read_all();
+    (void)internal_voltage_api_read_all();
 }
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)
         resolution = 1U;
 
-        // Initialize the tasks with the X macro
+    // Initialize the tasks with the X macro
 #define TASKS_X(NAME, ENABLED, START, INTERVAL, EXEC)                                                 \
     do {                                                                                              \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].enabled = (ENABLED);                                     \

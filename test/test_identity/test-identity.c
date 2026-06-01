@@ -32,6 +32,13 @@ void test_identity_api_get_mainboard_version_payload(void) {
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.mainboard_version_payload, payload, sizeof(identity_handler.mainboard_version_payload), "Mainboard version payload content is incorrect");
 }
 
+void test_identity_api_get_mainboard_version_payload_null_byte_size(void) {
+    primary_hv_mainboard_version_converted_t *payload = identity_api_get_mainboard_version_payload(NULL);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard version payload pointer is NULL when byte_size is NULL");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.mainboard_version_payload, payload, sizeof(identity_handler.mainboard_version_payload), "Mainboard version payload content is incorrect when byte_size is NULL");
+}
+
 void test_identity_api_get_cellboard_version_payload(void) {
     size_t byte_size = 0U;
     primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_0, &byte_size);
@@ -39,6 +46,13 @@ void test_identity_api_get_cellboard_version_payload(void) {
     TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard version payload pointer is NULL");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(sizeof(identity_handler.cellboard_version_payload[CELLBOARD_ID_0]), byte_size, "Cellboard version payload byte size is incorrect");
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.cellboard_version_payload[CELLBOARD_ID_0], payload, sizeof(identity_handler.cellboard_version_payload[CELLBOARD_ID_0]), "Cellboard version payload content is incorrect");
+}
+
+void test_identity_api_get_cellboard_version_payload_null_byte_size(void) {
+    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_0, NULL);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard version payload pointer is NULL when byte_size is NULL");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.cellboard_version_payload[CELLBOARD_ID_0], payload, sizeof(identity_handler.cellboard_version_payload[CELLBOARD_ID_0]), "Cellboard version payload content is incorrect when byte_size is NULL");
 }
 
 void test_identity_api_get_cellboard_version_payload_invalid_id(void) {
@@ -77,20 +91,6 @@ void test_identity_api_cellboard_version_handle_invalid_payload(void) {
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected_handler, &identity_handler, sizeof(expected_handler), "Identity handler should not be modified when handling payload with invalid id");
 }
 
-void test_get_mainboard_version_payload_null_byte_size(void) {
-    primary_hv_mainboard_version_converted_t *payload = identity_api_get_mainboard_version_payload(NULL);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Mainboard version payload pointer is NULL when byte_size is NULL");
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.mainboard_version_payload, payload, sizeof(identity_handler.mainboard_version_payload), "Mainboard version payload content is incorrect when byte_size is NULL");
-}
-
-void test_get_cellboard_version_payload_null_byte_size(void) {
-    primary_hv_cellboard_version_converted_t *payload = identity_api_get_cellboard_version_payload(CELLBOARD_ID_0, NULL);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "Cellboard version payload pointer is NULL when byte_size is NULL");
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&identity_handler.cellboard_version_payload[CELLBOARD_ID_0], payload, sizeof(identity_handler.cellboard_version_payload[CELLBOARD_ID_0]), "Cellboard version payload content is incorrect when byte_size is NULL");
-}
-
 void setUp() {
     identity_api_init();
 }
@@ -103,12 +103,12 @@ int main() {
 
     RUN_TEST(test_identity_api_init);
     RUN_TEST(test_identity_api_get_mainboard_version_payload);
+    RUN_TEST(test_identity_api_get_mainboard_version_payload_null_byte_size);
     RUN_TEST(test_identity_api_get_cellboard_version_payload);
+    RUN_TEST(test_identity_api_get_cellboard_version_payload_null_byte_size);
     RUN_TEST(test_identity_api_get_cellboard_version_payload_invalid_id);
     RUN_TEST(test_identity_api_cellboard_version_handle);
     RUN_TEST(test_identity_api_cellboard_version_handle_invalid_payload);
-    RUN_TEST(test_get_mainboard_version_payload_null_byte_size);
-    RUN_TEST(test_get_cellboard_version_payload_null_byte_size);
 
     return UNITY_END();
 }
