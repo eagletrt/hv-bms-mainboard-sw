@@ -12,10 +12,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "timebase.h"
 #include "error.h"
-#include "internal-voltage.h"
-#include "volt.h"
+#include "internal-voltage-api.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
@@ -62,7 +60,7 @@ ampere_t current_api_get_current(void) {
 
 kilowatt_t current_api_get_power(void) {
     constexpr float w_to_kw = 0.001F;
-    return (kilowatt_t)(current_api_handler.current * internal_voltage_get_ts() * w_to_kw);
+    return (kilowatt_t)(current_api_handler.current * internal_voltage_api_get_ts() * w_to_kw);
 }
 
 WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {

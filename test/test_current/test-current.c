@@ -9,11 +9,10 @@
 #include "unity.h"
 #include "current-api.h"
 #include <stddef.h>
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 
 extern struct CurrentHandler current_api_handler;
-
-extern _InternalVoltageHandler internal_volt_handler;
+extern struct InternalVoltageHandler internal_volt_handler;
 
 void test_current_api_init_clears_struct(void) {
     current_api_handler.current = 10.f;
