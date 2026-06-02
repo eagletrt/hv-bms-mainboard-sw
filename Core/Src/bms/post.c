@@ -15,14 +15,14 @@
 #include "timebase.h"
 #include "volt.h"
 #include "current-api.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 #include "bal.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
 /**
  * @brief Initialize all the cellboard modules
- * 
+ *
  * @attention The order in which the init functions are called matters
  *
  * @param data A pointer to the initialization data
@@ -53,7 +53,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     (void)imd_init(data->imd_start);
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
     (void)display_init(data->display_set, data->display_toggle);
-    (void)internal_voltage_init(data->spi_send, data->spi_send_receive);
+    (void)internal_voltage_api_init(data->spi_send, data->spi_send_receive);
     (void)bal_init();
 
     return POST_OK;
