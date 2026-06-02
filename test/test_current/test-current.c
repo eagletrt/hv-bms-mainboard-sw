@@ -8,24 +8,12 @@
 
 #include "unity.h"
 #include "current-api.h"
-#include "error.h"
 #include <stddef.h>
 #include "internal-voltage.h"
 
 extern struct CurrentHandler current_api_handler;
 
 extern _InternalVoltageHandler internal_volt_handler;
-
-void test_current_api_get_power(void) {
-    current_api_handler.current = 10.f;
-    internal_volt_handler.ts = 400.f;
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 4.f, current_api_get_power(), "Expected power value not found");
-}
-
-void test_current_api_handle_null_pointer(void) {
-    // If the test doesn't crash, then it means that it works.
-    current_api_handle(NULL);
-}
 
 void test_current_api_init_clears_struct(void) {
     current_api_handler.current = 10.f;
@@ -37,6 +25,17 @@ void test_current_api_init_clears_struct(void) {
     TEST_ASSERT_EQUAL_MESSAGE(0, current_api_handler.current, "Expected current value not found");
     TEST_ASSERT_EQUAL_MESSAGE(0, current_api_handler.current_can_payload.current, "Expected current payload value not found");
     TEST_ASSERT_EQUAL_MESSAGE(0, current_api_handler.power_can_payload.power, "Expected power payload value not found");
+}
+
+void test_current_api_get_power(void) {
+    current_api_handler.current = 10.f;
+    internal_volt_handler.ts = 400.f;
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 4.f, current_api_get_power(), "Expected power value not found");
+}
+
+void test_current_api_handle_null_pointer(void) {
+    current_api_handle(NULL);
+    TEST_PASS();
 }
 
 void test_current_api_handle_sets_current(void) {

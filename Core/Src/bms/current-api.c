@@ -61,10 +61,8 @@ ampere_t current_api_get_current(void) {
 }
 
 kilowatt_t current_api_get_power(void) {
-
-    constexpr float W_to_kW = 0.001F;
-
-    return (kilowatt_t)(current_api_handler.current * internal_voltage_get_ts() * W_to_kW);
+    constexpr float w_to_kw = 0.001F;
+    return (kilowatt_t)(current_api_handler.current * internal_voltage_get_ts() * w_to_kw);
 }
 
 WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
@@ -72,14 +70,13 @@ WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
 }
 
 void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
-
-    constexpr float mA_to_A = 0.001F;
-
     watchdog_reset(&current_api_handler.sensor_wdg);
     if (payload == NULL) {
         return;
     }
-    current_api_handler.current = (float)payload->ivt_result_i * mA_to_A;
+
+    constexpr float ma_to_a = 0.001F;
+    current_api_handler.current = (float)payload->ivt_result_i * ma_to_a;
     prv_current_api_check_value(current_api_handler.current);
 }
 
@@ -104,11 +101,11 @@ primary_hv_power_converted_t *current_api_get_power_canlib_payload(size_t *const
 EAGLETRT_STATIC char *current_module_name = "current";
 
 EAGLETRT_STATIC char *current_return_code_name[] = {
-    [CURRENT_OK] = "ok"
+    [CURRENT_RC_OK] = "ok"
 };
 
 EAGLETRT_STATIC char *current_return_code_description[] = {
-    [CURRENT_OK] = "executed succesfully"
+    [CURRENT_RC_OK] = "executed succesfully"
 };
 
 #endif // CONF_CURRENT_STRINGS_ENABLE

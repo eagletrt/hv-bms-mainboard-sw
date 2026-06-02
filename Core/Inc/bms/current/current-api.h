@@ -55,7 +55,7 @@ void current_api_handle(bms_ivt_msg_result_i_t *payload);
 
 /*!
  * \brief Get a pointer to the CAN payload of the current
- * 
+ *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns primary_hv_current_converted_t* A pointer to the payload
@@ -64,7 +64,7 @@ primary_hv_current_converted_t *current_api_get_current_canlib_payload(size_t *b
 
 /*!
  * \brief Get a pointer to the CAN payload of the power
- * 
+ *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns primary_hv_power_converted_t* A pointer to the payload
