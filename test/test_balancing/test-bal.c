@@ -271,10 +271,38 @@ void test_bal_api_cellboard_balancing_status_handle_ok() {
         .discharging_cell_22 = true,
         .discharging_cell_23 = false,
     };
+    primary_hv_balancing_status_converted_t expected_payload = {
+        .status = payload.status,
+        .cellboard_id = payload.cellboard_id,
+        .discharging_cell_0 = payload.discharging_cell_0,
+        .discharging_cell_1 = payload.discharging_cell_1,
+        .discharging_cell_2 = payload.discharging_cell_2,
+        .discharging_cell_3 = payload.discharging_cell_3,
+        .discharging_cell_4 = payload.discharging_cell_4,
+        .discharging_cell_5 = payload.discharging_cell_5,
+        .discharging_cell_6 = payload.discharging_cell_6,
+        .discharging_cell_7 = payload.discharging_cell_7,
+        .discharging_cell_8 = payload.discharging_cell_8,
+        .discharging_cell_9 = payload.discharging_cell_9,
+        .discharging_cell_10 = payload.discharging_cell_10,
+        .discharging_cell_11 = payload.discharging_cell_11,
+        .discharging_cell_12 = payload.discharging_cell_12,
+        .discharging_cell_13 = payload.discharging_cell_13,
+        .discharging_cell_14 = payload.discharging_cell_14,
+        .discharging_cell_15 = payload.discharging_cell_15,
+        .discharging_cell_16 = payload.discharging_cell_16,
+        .discharging_cell_17 = payload.discharging_cell_17,
+        .discharging_cell_18 = payload.discharging_cell_18,
+        .discharging_cell_19 = payload.discharging_cell_19,
+        .discharging_cell_20 = payload.discharging_cell_20,
+        .discharging_cell_21 = payload.discharging_cell_21,
+        .discharging_cell_22 = payload.discharging_cell_22,
+        .discharging_cell_23 = payload.discharging_cell_23,
+    };
 
     bal_api_cellboard_balancing_status_handle(&payload);
 
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&payload, &balancing_handler.status_can_payload, sizeof(payload), "canlib payload content do not match");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected_payload, &balancing_handler.status_can_payload, sizeof(payload), "canlib payload content do not match");
 }
 
 // --- bal_api_get_set_status_canlib_payload ---
