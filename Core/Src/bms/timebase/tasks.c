@@ -10,7 +10,7 @@
 
 #include "bms_network.h"
 #include "can-comm.h"
-#include "identity.h"
+#include "identity-api.h"
 #include "timebase.h"
 #include "fsm.h"
 #include "current-api.h"
@@ -30,7 +30,7 @@ _STATIC _TaskHandler htasks;
 /** @brief Send the mainboard version info via CAN */
 void _tasks_send_mainboard_version(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)identity_get_mainboard_version_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)identity_api_get_mainboard_version_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_MAINBOARD_VERSION_INDEX,
@@ -42,7 +42,7 @@ void _tasks_send_mainboard_version(void) {
 /** @brief Send the cellboard version info via CAN */
 void _tasks_send_cellboard_version(CellboardId id) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)identity_get_cellboard_version_payload(id, &byte_size);
+    uint8_t *const payload = (uint8_t *const)identity_api_get_cellboard_version_payload(id, &byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLBOARD_VERSION_INDEX,

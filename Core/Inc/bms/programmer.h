@@ -14,7 +14,7 @@
 #include "bms_network.h"
 #include "mainboard-def.h"
 #include "watchdog.h"
-#include "identity.h"
+#include "identity-api.h"
 #include "timebase.h"
 #include "fsm.h"
 
@@ -84,21 +84,21 @@ ProgrammerReturnCode programmer_init(const system_reset_callback_t reset);
  *
  * @param payload A pointer to the canlib payload of the request
  */
-void programmer_flash_request_handle(primary_hv_flash_request_converted_t * const payload);
+void programmer_flash_request_handle(primary_hv_flash_request_converted_t *const payload);
 
 /**
  * @brief Handle the received flash response from the cellboards
  *
  * @param payload A pointer to the canlib payload of the response
  */
-void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t * const payload);
+void programmer_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t *const payload);
 
 /**
  * @brief Handle the received actual flash command
  *
  * @param payload A pointer to the canlib payload of the command
  */
-void programmer_flash_handle(primary_hv_flash_converted_t * const payload);
+void programmer_flash_handle(primary_hv_flash_converted_t *const payload);
 
 /**
  * @brief Routine that should be called during the flash procedure
@@ -112,4 +112,4 @@ void programmer_flash_handle(primary_hv_flash_converted_t * const payload);
  */
 ProgrammerReturnCode programmer_routine(void);
 
-#endif  // PROGRAMMER_H
+#endif // PROGRAMMER_H
