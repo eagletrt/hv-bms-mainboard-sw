@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "error.h"
-#include "identity.h"
+#include "identity-api.h"
 #include "timebase.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE

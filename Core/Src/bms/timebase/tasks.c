@@ -10,13 +10,13 @@
 
 #include "bms_network.h"
 #include "can-comm.h"
-#include "identity.h"
+#include "identity-api.h"
 #include "timebase.h"
 #include "fsm.h"
-#include "current.h"
+#include "current-api.h"
 #include "volt.h"
 #include "feedback.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 #include "bal-api.h"
 #include "imd.h"
 #include "temp.h"
@@ -30,7 +30,7 @@ _STATIC _TaskHandler htasks;
 /** @brief Send the mainboard version info via CAN */
 void _tasks_send_mainboard_version(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)identity_get_mainboard_version_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)identity_api_get_mainboard_version_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_MAINBOARD_VERSION_INDEX,
@@ -42,7 +42,7 @@ void _tasks_send_mainboard_version(void) {
 /** @brief Send the cellboard version info via CAN */
 void _tasks_send_cellboard_version(CellboardId id) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)identity_get_cellboard_version_payload(id, &byte_size);
+    uint8_t *const payload = (uint8_t *const)identity_api_get_cellboard_version_payload(id, &byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLBOARD_VERSION_INDEX,
@@ -96,7 +96,7 @@ void _tasks_send_hv_balancing_status(void) {
 /** @brief Send the current via CAN */
 void _tasks_send_hv_current(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)current_get_current_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)current_api_get_current_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CURRENT_INDEX,
@@ -108,7 +108,7 @@ void _tasks_send_hv_current(void) {
 /** @brief Send the power via CAN */
 void _tasks_send_hv_power(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)current_get_power_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)current_api_get_power_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_POWER_INDEX,
@@ -120,7 +120,7 @@ void _tasks_send_hv_power(void) {
 /** @brief Send the Tractive System voltages info via CAN */
 void _tasks_send_hv_ts_voltage(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)internal_voltage_get_ts_voltage_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)internal_voltage_api_get_ts_voltage_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_TS_VOLTAGE_INDEX,
@@ -290,14 +290,14 @@ void _tasks_update_feedbacks_status(void) {
 
 /** @brief Start the internal voltages ADC conversion */
 void _tasks_start_internal_voltage_conversion(void) {
-    (void)internal_voltage_read_all();
+    (void)internal_voltage_api_read_all();
 }
 
 TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)
         resolution = 1U;
 
-        // Initialize the tasks with the X macro
+    // Initialize the tasks with the X macro
 #define TASKS_X(NAME, ENABLED, START, INTERVAL, EXEC)                                                 \
     do {                                                                                              \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].enabled = (ENABLED);                                     \
