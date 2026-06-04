@@ -48,7 +48,7 @@ volt_t internal_voltage_api_get_pack(void);
 
 /*!
  * \brief Get a pointer to the CAN payload of the TS voltage info
- * 
+ *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns primary_hv_ts_voltage_converted_t* A pointer to the payload
@@ -57,8 +57,8 @@ primary_hv_ts_voltage_converted_t *internal_voltage_api_get_ts_voltage_canlib_pa
 
 #else // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
-#define internal_voltage_api_init(send, send_receive) (INTERNAL_VOLTAGE_OK)
-#define internal_voltage_api_read_all() (INTERNAL_VOLTAGE_OK)
+#define internal_voltage_api_init(send, send_receive) (INTERNAL_VOLTAGE_RC_OK)
+#define internal_voltage_api_read_all() (INTERNAL_VOLTAGE_RC_OK)
 #define internal_voltage_api_get_ts() (0U)
 #define internal_voltage_api_get_pack() (0U)
 #define internal_voltage_api_get_ts_voltage_canlib_payload(byte_size) (NULL)

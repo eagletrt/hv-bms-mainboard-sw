@@ -14,7 +14,7 @@
 #include "programmer.h"
 #include "watchdog.h"
 #include "timebase.h"
-#include "current.h"
+#include "current-api.h"
 #include "pcu.h"
 #include "identity-api.h"
 #include "volt.h"
@@ -71,7 +71,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
         case BMS_CELLBOARD_BALANCING_STATUS_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)bal_cellboard_balancing_status_handle;
         case BMS_IVT_MSG_RESULT_I_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)current_handle;
+            return (can_comm_canlib_payload_handle_callback_t)current_api_handle;
         case BMS_CELLBOARD_ERROR_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)error_cellboard_handle;
         default:
