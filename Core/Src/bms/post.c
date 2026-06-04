@@ -16,7 +16,7 @@
 #include "volt.h"
 #include "current-api.h"
 #include "internal-voltage-api.h"
-#include "bal.h"
+#include "bal-api.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
@@ -54,8 +54,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
     (void)display_init(data->display_set, data->display_toggle);
     (void)internal_voltage_api_init(data->spi_send, data->spi_send_receive);
-    (void)bal_init();
-
+    (void)bal_api_init();
     return POST_OK;
 }
 

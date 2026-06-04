@@ -17,7 +17,7 @@
 #include "volt.h"
 #include "feedback.h"
 #include "internal-voltage-api.h"
-#include "bal.h"
+#include "bal-api.h"
 #include "imd.h"
 #include "temp.h"
 #include "error.h"
@@ -84,7 +84,7 @@ void _tasks_send_hv_status(void) {
 /** @brief Send the BSM balancing status via CAN */
 void _tasks_send_hv_balancing_status(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)bal_get_status_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)bal_api_get_status_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_BALANCING_STATUS_INDEX,
@@ -252,7 +252,7 @@ void _tasks_send_hv_imd_status(void) {
 /** @brief Send the set balancing status command via CAN */
 void _tasks_send_cellboard_set_balancing_status(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)bal_get_set_status_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)bal_api_get_set_status_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_BMS,
         BMS_CELLBOARD_SET_BALANCING_STATUS_INDEX,

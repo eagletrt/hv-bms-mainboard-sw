@@ -35,6 +35,7 @@ jobs:
 
       - name: Build
         run: pio run # change based on the command you use normally
+
       - name: Run Unit Tests
         run: pio test -e tests  # here as well, change based on your enviroment
 
