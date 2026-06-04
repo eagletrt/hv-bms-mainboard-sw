@@ -274,7 +274,7 @@ void test_bal_api_cellboard_balancing_status_handle_ok() {
 
     bal_api_cellboard_balancing_status_handle(&payload);
 
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&payload.status, &balancing_handler.status_can_payload.status, sizeof(payload.status), "failed to forward status");
+    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&payload, &balancing_handler.status_can_payload, sizeof(payload), "canlib payload content do not match");
 }
 
 // --- bal_api_get_set_status_canlib_payload ---
