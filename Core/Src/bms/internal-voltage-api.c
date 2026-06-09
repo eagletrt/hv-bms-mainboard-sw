@@ -10,8 +10,9 @@
 #include "internal-voltage-api.h"
 
 #include <string.h>
+
 #include "eagletrt-api.h"
-#include "volt.h"
+#include "volt-api.h"
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
@@ -30,7 +31,6 @@ enum InternalVoltageReturnCode internal_voltage_api_read_all(void) {
     volt_t volts[INTERNAL_VOLTAGE_CHANNEL_COUNT];
     (void)max22530_read_channels_all(&internal_volt_handler.max22530, true, volts, NULL);
     internal_volt_handler.ts = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE]);
-
     internal_volt_handler.pack = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE]);
     // TODO: Convert and update the IMD TS connected feedback and precharge
     // temperature
@@ -51,7 +51,7 @@ primary_hv_ts_voltage_converted_t *internal_voltage_api_get_ts_voltage_canlib_pa
     }
     internal_volt_handler.ts_voltage_can_payload.ts = internal_volt_handler.ts;
     internal_volt_handler.ts_voltage_can_payload.pack = internal_volt_handler.pack;
-    internal_volt_handler.ts_voltage_can_payload.cells_sum = volt_get_sum();
+    internal_volt_handler.ts_voltage_can_payload.cells_sum = volt_api_get_sum();
     return &internal_volt_handler.ts_voltage_can_payload;
 }
 
@@ -60,13 +60,13 @@ primary_hv_ts_voltage_converted_t *internal_voltage_api_get_ts_voltage_canlib_pa
 EAGLETRT_STATIC char *internal_voltage_module_name = "internal voltage";
 
 EAGLETRT_STATIC char *internal_voltage_return_code_name[] = {
-    [INTERNAL_VOLTAGE_OK] = "ok",
-    [INTERNAL_VOLTAGE_NULL_POINTER] = "null pointer"
+    [INTERNAL_VOLTAGE_RC_OK] = "ok",
+    [INTERNAL_VOLTAGE_RC_NULL_POINTER] = "null pointer"
 };
 
 EAGLETRT_STATIC char *internal_voltage_return_code_description[] = {
-    [INTERNAL_VOLTAGE_OK] = "executed succefully",
-    [INTERNAL_VOLTAGE_NULL_POINTER] = "attempt to dereference a null pointer"
+    [INTERNAL_VOLTAGE_RC_OK] = "executed succefully",
+    [INTERNAL_VOLTAGE_RC_NULL_POINTER] = "attempt to dereference a null pointer"
 };
 
 #endif // CONF_INTERNAL_VOLTAGE_STRINGS_ENABLE

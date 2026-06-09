@@ -16,8 +16,8 @@
 #include "timebase.h"
 #include "current-api.h"
 #include "pcu.h"
+#include "volt-api.h"
 #include "identity-api.h"
-#include "volt.h"
 #include "temp-api.h"
 #include "bal-api.h"
 #include "error.h"
@@ -59,7 +59,7 @@ error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork netw
 can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can_index_t index) {
     switch (index) {
         case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
+            return (can_comm_canlib_payload_handle_callback_t)volt_api_cells_voltage_handle;
         case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)temp_api_cells_temperature_handle;
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:

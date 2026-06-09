@@ -10,7 +10,7 @@
 #include "unity.h"
 #include "internal-voltage-api.h"
 #include "mainboard-def.h"
-#include "volt.h"
+#include "volt-api.h"
 
 #include <string.h>
 #include <fff.h>
@@ -70,7 +70,7 @@ void test_internal_voltage_get_ts_voltage_canlib_payload_null_byte_size() {
 void setUp() {
     RESET_FAKE(spi_send);
     RESET_FAKE(spi_send_receive);
-    volt_init();
+    volt_api_init();
     internal_voltage_api_init(spi_send, spi_send_receive);
 }
 

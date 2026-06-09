@@ -14,7 +14,7 @@
 #include "timebase.h"
 #include "fsm.h"
 #include "current-api.h"
-#include "volt.h"
+#include "volt-api.h"
 #include "feedback.h"
 #include "internal-voltage-api.h"
 #include "bal-api.h"
@@ -132,7 +132,7 @@ void _tasks_send_hv_ts_voltage(void) {
 /** @brief Send the cells voltages via CAN */
 void _tasks_send_hv_cells_voltage(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)volt_get_cells_voltage_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)volt_api_get_cells_voltage_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLS_VOLTAGE_INDEX,
@@ -144,7 +144,7 @@ void _tasks_send_hv_cells_voltage(void) {
 /** @brief Send the cells voltage stats via CAN */
 void _tasks_send_hv_cells_voltage_stats(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)volt_get_cells_voltage_stats_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)volt_api_get_cells_voltage_stats_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLS_VOLTAGE_STATS_INDEX,

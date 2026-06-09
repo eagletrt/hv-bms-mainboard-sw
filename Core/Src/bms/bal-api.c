@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "timebase.h"
-#include "volt.h"
+#include "volt-api.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
 
@@ -96,7 +96,7 @@ void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balan
     }
 
     // Update data
-    const volt_t target = volt_get_min();
+    const volt_t target = volt_api_get_min();
     const volt_t thr = payload->threshold;
 
     constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
@@ -131,7 +131,7 @@ void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_s
     }
 
     // Update data
-    const volt_t target = volt_get_min();
+    const volt_t target = volt_api_get_min();
     const volt_t thr = payload->threshold;
 
     constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;

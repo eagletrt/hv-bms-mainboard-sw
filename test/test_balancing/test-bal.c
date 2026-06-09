@@ -9,11 +9,11 @@
 #include "unity.h"
 #include "bal-api.h"
 #include "timebase.h"
-#include "volt.h"
+#include "volt-api.h"
 #include <string.h>
 
 extern struct BalHandler balancing_handler;
-extern _VoltHandler volt_handler;
+extern struct VoltHandler volt_handler;
 
 void prv_bal_api_timeout(void);
 
@@ -363,7 +363,7 @@ void test_bal_api_get_status_canlib_payload_returns_correct_pointer() {
 
 void setUp() {
     timebase_init(1U);
-    volt_init();
+    volt_api_init();
     bal_api_init();
 }
 

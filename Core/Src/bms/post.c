@@ -13,7 +13,7 @@
 #include "identity-api.h"
 #include "programmer-api.h"
 #include "timebase.h"
-#include "volt.h"
+#include "volt-api.h"
 #include "current-api.h"
 #include "internal-voltage-api.h"
 #include "bal-api.h"
@@ -45,7 +45,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
      */
     (void)timebase_init(1U);
     (void)pcu_init(data->pcu_set, data->pcu_toggle);
-    (void)volt_init();
+    (void)volt_api_init();
     (void)current_api_init();
     (void)can_comm_init(data->can_send);
     (void)programmer_api_init(data->system_reset);
