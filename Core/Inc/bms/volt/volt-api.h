@@ -84,12 +84,14 @@ primary_hv_cells_voltage_stats_converted_t *volt_api_get_cells_voltage_stats_can
 
 #else // CONF_VOLTAGE_MODULE_ENABLE
 
+#define VOLT_NOMINAL_VALUE (4)
+
 #define volt_api_init() (VOLT_OK)
 #define volt_api_get_values() (NULL)
-#define volt_api_get_min() ((VOLT_MAX_VALUE + VOLT_MIN_VALUE) / 2)
-#define volt_api_get_max() ((VOLT_MAX_VALUE + VOLT_MIN_VALUE) / 2)
-#define volt_api_get_avg() ((VOLT_MAX_VALUE + VOLT_MIN_VALUE) / 2)
-#define volt_api_get_sum() (VOLT_VALUE_TO_VOLT((VOLT_MAX_VALUE + VOLT_MIN_VALUE) / 2) * CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT)
+#define volt_api_get_min() (VOLT_NOMINAL_VALUE)
+#define volt_api_get_max() (VOLT_NOMINAL_VALUE)
+#define volt_api_get_avg() (VOLT_NOMINAL_VALUE)
+#define volt_api_get_sum() (VOLT_VALUE_TO_VOLT(VOLT_NOMINAL_VALUE) * CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT)
 #define volt_api_cells_voltage_handle(payload) EAGLETRT_API_NOP()
 #define volt_api_get_cells_voltage_canlib_payload(byte_size) (NULL)
 #define volt_api_get_cells_voltage_stats_canlib_payload(byte_size) (NULL)
