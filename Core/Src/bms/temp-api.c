@@ -149,7 +149,7 @@ primary_hv_cells_temperature_converted_t *temp_api_get_cells_temperature_canlib_
     temp_handler.temp_can_payload.temperature_id_3 = prv_temp_cell_position_from_index(temp_handler.offset + 3);
 
     // Update indices
-    temp_handler.offset += TEMP_NUM_TEMP_CAN_MESSAGE;
+    temp_handler.offset += TEMP_TEMPERATURE_PER_MESSAGE_COUNT;
     if (temp_handler.offset >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
         temp_handler.offset = 0U;
         if (++temp_handler.cellboard_id >= CELLBOARD_ID_COUNT) {
@@ -177,15 +177,15 @@ primary_hv_cells_temp_stats_converted_t *temp_api_get_cells_temperature_stats_ca
 EAGLETRT_STATIC char *temp_module_name = "temperature";
 
 EAGLETRT_STATIC char *temp_return_code_name[] = {
-    [TEMP_OK] = "ok",
-    [TEMP_NULL_POINTER] = "null pointer",
-    [TEMP_OUT_OF_BOUNDS] = "out of bounds"
+    [TEMP_RC_OK] = "ok",
+    [TEMP_RC_NULL_POINTER] = "null pointer",
+    [TEMP_RC_OUT_OF_BOUNDS] = "out of bounds"
 };
 
 EAGLETRT_STATIC char *temp_return_code_description[] = {
-    [TEMP_OK] = "executed successfully",
-    [TEMP_NULL_POINTER] = "attempt to dereference a null pointer",
-    [TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+    [TEMP_RC_OK] = "executed successfully",
+    [TEMP_RC_NULL_POINTER] = "attempt to dereference a null pointer",
+    [TEMP_RC_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
 };
 
 #endif //  CONF_TEMPERATURE_STRINGS_ENABLE

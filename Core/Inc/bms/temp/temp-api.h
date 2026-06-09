@@ -11,6 +11,7 @@
 #define TEMP_API_H
 
 #include "temp.h"
+#include "eagletrt-api.h"
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
@@ -88,7 +89,7 @@ primary_hv_cells_temp_stats_converted_t *temp_api_get_cells_temperature_stats_ca
 #define temp_api_get_min() (NULL)
 #define temp_api_get_max() (NULL)
 #define temp_api_get_avg() (NULL)
-#define temp_api_cells_temperature_handle(payload) MAINBOARD_NOPE()
+#define temp_api_cells_temperature_handle(payload) EAGLETRT_API_NOP()
 #define temp_api_get_cells_temperature_canlib_payload(byte_size) (NULL)
 #define temp_api_get_cells_temperature_stats_canlib_payload(byte_size) (NULL)
 

@@ -156,15 +156,9 @@ void test_temp_api_cells_temperature_handle_ok(void) {
 
 /* --- temp_api_get_cells_temperature_canlib_payload --- */
 
-void test_temp_api_get_cells_temperature_canlib_payload_size(void) {
+void test_temp_api_get_cells_temperature_canlib_payload(void) {
     size_t size = 0U;
 
-    (void)temp_api_get_cells_temperature_canlib_payload(&size);
-
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(temp_handler.temp_can_payload), size, "temp_api_get_cells_temperature_canlib_payload() returned incorrect byte size");
-}
-
-void test_temp_api_get_cells_temperature_canlib_payload_values(void) {
     temp_handler.cellboard_id = 0U;
     temp_handler.offset = 0U;
     temp_handler.temperatures[0U][0U] = 11.0F;
@@ -172,26 +166,29 @@ void test_temp_api_get_cells_temperature_canlib_payload_values(void) {
     temp_handler.temperatures[0U][2U] = 33.0F;
     temp_handler.temperatures[0U][3U] = 44.0F;
 
-    primary_hv_cells_temperature_converted_t *payload = temp_api_get_cells_temperature_canlib_payload(NULL);
+    primary_hv_cells_temperature_converted_t *payload = temp_api_get_cells_temperature_canlib_payload(&size);
+
+    TEST_ASSERT_EQUAL_MESSAGE(sizeof(temp_handler.temp_can_payload), size, "temp_api_get_cells_temperature_canlib_payload() returned incorrect byte size");
 
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 11.0F, payload->temperature_0, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_0");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 22.0F, payload->temperature_1, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_1");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 33.0F, payload->temperature_2, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_2");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 44.0F, payload->temperature_3, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_3");
+    TEST_ASSERT_EQUAL_MESSAGE(TEMP_TEMPERATURE_PER_MESSAGE_COUNT, temp_handler.offset, "temp_api_get_cells_temperature_canlib_payload() did not advance offset");
 }
 
-void test_temp_api_get_cells_temperature_canlib_payload_offset_advances(void) {
+void test_temp_api_get_cells_temperature_canlib_payload_null_size(void) {
     temp_handler.cellboard_id = 0U;
     temp_handler.offset = 0U;
 
-    (void)temp_api_get_cells_temperature_canlib_payload(NULL);
+    primary_hv_cells_temperature_converted_t *payload = temp_api_get_cells_temperature_canlib_payload(NULL);
 
-    TEST_ASSERT_EQUAL_MESSAGE(TEMP_NUM_TEMP_CAN_MESSAGE, temp_handler.offset, "temp_api_get_cells_temperature_canlib_payload() did not advance offset");
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_canlib_payload() should not return NULL when byte_size is NULL");
 }
 
 void test_temp_api_get_cells_temperature_canlib_payload_offset_wraps(void) {
     temp_handler.cellboard_id = 0U;
-    temp_handler.offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - TEMP_NUM_TEMP_CAN_MESSAGE;
+    temp_handler.offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - TEMP_TEMPERATURE_PER_MESSAGE_COUNT;
 
     (void)temp_api_get_cells_temperature_canlib_payload(NULL);
 
@@ -201,7 +198,7 @@ void test_temp_api_get_cells_temperature_canlib_payload_offset_wraps(void) {
 
 void test_temp_api_get_cells_temperature_canlib_payload_cellboard_wraps(void) {
     temp_handler.cellboard_id = CELLBOARD_ID_COUNT - 1U;
-    temp_handler.offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - TEMP_NUM_TEMP_CAN_MESSAGE;
+    temp_handler.offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - TEMP_TEMPERATURE_PER_MESSAGE_COUNT;
 
     (void)temp_api_get_cells_temperature_canlib_payload(NULL);
 
@@ -222,21 +219,10 @@ void test_temp_api_get_cells_temperature_canlib_payload_temperature_ids(void) {
 
 /* --- temp_api_get_cells_temperature_stats_canlib_payload --- */
 
-void test_temp_api_get_cells_temperature_stats_canlib_payload_not_null(void) {
-    primary_hv_cells_temp_stats_converted_t *payload = temp_api_get_cells_temperature_stats_canlib_payload(NULL);
+void test_temp_api_get_cells_temperature_stats_canlib_payload(void) {
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_stats_canlib_payload() should not return NULL");
-}
-
-void test_temp_api_get_cells_temperature_stats_canlib_payload_size(void) {
     size_t size = 0U;
 
-    (void)temp_api_get_cells_temperature_stats_canlib_payload(&size);
-
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(temp_handler.temp_stats_can_payload), size, "temp_api_get_cells_temperature_stats_canlib_payload() returned incorrect byte size");
-}
-
-void test_temp_api_get_cells_temperature_stats_canlib_payload_values(void) {
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
             temp_handler.temperatures[i][j] = 20.0F;
@@ -245,11 +231,26 @@ void test_temp_api_get_cells_temperature_stats_canlib_payload_values(void) {
     temp_handler.temperatures[0U][0U] = 5.0F;
     temp_handler.temperatures[1U][0U] = 60.0F;
 
-    primary_hv_cells_temp_stats_converted_t *payload = temp_api_get_cells_temperature_stats_canlib_payload(NULL);
+    primary_hv_cells_temp_stats_converted_t *payload = temp_api_get_cells_temperature_stats_canlib_payload(&size);
 
+    TEST_ASSERT_EQUAL_MESSAGE(sizeof(temp_handler.temp_stats_can_payload), size, "temp_api_get_cells_temperature_stats_canlib_payload() returned incorrect byte size");
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_stats_canlib_payload() should not return NULL");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->min, "temp_api_get_cells_temperature_stats_canlib_payload() wrong min");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 60.0F, payload->max, "temp_api_get_cells_temperature_stats_canlib_payload() wrong max");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1F, temp_api_get_avg(), payload->avg, "temp_api_get_cells_temperature_stats_canlib_payload() wrong avg");
+}
+
+void test_temp_api_get_cells_temperature_stats_canlib_payload_null_size(void) {
+    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
+        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
+            temp_handler.temperatures[i][j] = 20.0F;
+        }
+    }
+
+    primary_hv_cells_temp_stats_converted_t *payload = temp_api_get_cells_temperature_stats_canlib_payload(NULL);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_stats_canlib_payload() should not return NULL when byte_size is NULL");
 }
 
 void setUp(void) {
@@ -278,15 +279,12 @@ int main(void) {
     RUN_TEST(test_temp_api_cells_temperature_handle_offset_overflow);
     RUN_TEST(test_temp_api_cells_temperature_handle_ok);
 
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_size);
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_values);
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_offset_advances);
+    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload);
     RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_offset_wraps);
     RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_cellboard_wraps);
     RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_temperature_ids);
 
-    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload_not_null);
-    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload_size);
-    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload_values);
+    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload);
+    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload_null_size);
     return UNITY_END();
 }
