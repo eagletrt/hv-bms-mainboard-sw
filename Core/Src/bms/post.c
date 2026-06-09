@@ -11,7 +11,7 @@
 
 #include "error.h"
 #include "identity-api.h"
-#include "programmer.h"
+#include "programmer-api.h"
 #include "timebase.h"
 #include "volt.h"
 #include "current-api.h"
@@ -48,7 +48,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     (void)volt_init();
     (void)current_api_init();
     (void)can_comm_init(data->can_send);
-    (void)programmer_init(data->system_reset);
+    (void)programmer_api_init(data->system_reset);
     (void)led_init(data->led_set, data->led_toggle);
     (void)imd_init(data->imd_start);
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);

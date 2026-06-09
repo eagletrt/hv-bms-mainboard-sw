@@ -24,7 +24,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "post.h"
 #include "can-comm.h"
 #include "timebase.h"
-#include "programmer.h"
+#include "programmer-api.h"
 #include "feedback.h"
 #include "bal-api.h"
 #include "error.h"
@@ -278,12 +278,12 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     /*** USER CODE BEGIN DO_FLASH ***/
     MAINBOARD_UNUSED(data);
 
-    const ProgrammerReturnCode code = programmer_routine();
+    const enum ProgrammerReturnCode code = programmer_api_routine();
 
     // Check for errors
     if (error_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
-    else if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
+    else if (code == PROGRAMMER_RC_TIMEOUT || code == PROGRAMMER_RC_OK)
         next_state = FSM_STATE_IDLE;
 
     // Check for events
