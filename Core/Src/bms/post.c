@@ -10,19 +10,19 @@
 #include "post.h"
 
 #include "error.h"
-#include "identity.h"
-#include "programmer.h"
+#include "identity-api.h"
+#include "programmer-api.h"
 #include "timebase.h"
 #include "volt-api.h"
-#include "current.h"
-#include "internal-voltage.h"
-#include "bal.h"
+#include "current-api.h"
+#include "internal-voltage-api.h"
+#include "bal-api.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
 /**
  * @brief Initialize all the cellboard modules
- * 
+ *
  * @attention The order in which the init functions are called matters
  *
  * @param data A pointer to the initialization data
@@ -37,7 +37,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
      */
     if (error_init() != ERROR_OK)
         return POST_UNINITIALIZED;
-    identity_init();
+    identity_api_init();
 
     /**
      * Some of the function return values can be ignored because they are either
@@ -46,16 +46,15 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     (void)timebase_init(1U);
     (void)pcu_init(data->pcu_set, data->pcu_toggle);
     (void)volt_api_init();
-    (void)current_init();
+    (void)current_api_init();
     (void)can_comm_init(data->can_send);
-    (void)programmer_init(data->system_reset);
+    (void)programmer_api_init(data->system_reset);
     (void)led_init(data->led_set, data->led_toggle);
     (void)imd_init(data->imd_start);
     (void)feedback_init(data->feedback_read_all, data->feedback_start_conversion);
     (void)display_init(data->display_set, data->display_toggle);
-    (void)internal_voltage_init(data->spi_send, data->spi_send_receive);
-    (void)bal_init();
-
+    (void)internal_voltage_api_init(data->spi_send, data->spi_send_receive);
+    (void)bal_api_init();
     return POST_OK;
 }
 
@@ -68,7 +67,7 @@ PostReturnCode _post_module_setup(void) {
     milliseconds_t t = timebase_get_time();
     while (timebase_get_time() - t <= CURRENT_SENSOR_STARTUP_TIME_MS)
         ;
-    if (current_start_sensor_communication_watchdog() != WATCHDOG_OK)
+    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_OK)
         return POST_SETUP_ERROR;
 
     return POST_OK;

@@ -19,8 +19,8 @@
 #include "bms_network.h"
 
 /*! \brief Minimum and maximum allowed cell voltage in V */
-#define VOLT_MIN_V (2.8f)
-#define VOLT_MAX_V (4.2f)
+#define VOLT_MIN_V (2.8F)
+#define VOLT_MAX_V (4.2F)
 
 #define VOLT_NOMINAL_V (3.6F)
 

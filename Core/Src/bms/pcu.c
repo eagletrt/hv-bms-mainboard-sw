@@ -12,7 +12,7 @@
 
 #include "timebase.h"
 #include "fsm.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -45,18 +45,15 @@ void _pcu_init_watchdogs(void) {
     watchdog_init(
         &hpcu.airn_watchdog,
         TIMEBASE_TIME_TO_TICKS(PCU_AIRN_TIMEOUT_MS, res),
-        _pcu_airn_timeout
-    );
+        _pcu_airn_timeout);
     watchdog_init(
         &hpcu.precharge_watchdog,
         TIMEBASE_TIME_TO_TICKS(PCU_PRECHARGE_TIMEOUT_MS, res),
-        _pcu_precharge_timeout
-    );
+        _pcu_precharge_timeout);
     watchdog_init(
         &hpcu.airp_watchdog,
         TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, res),
-        _pcu_airp_timeout
-    );
+        _pcu_airp_timeout);
 }
 /** @brief Uninitialize all the watchdogs to be able to use them again */
 void _pcu_deinit_watchdogs(void) {
@@ -141,8 +138,8 @@ void pcu_ams_deactivate(void) {
 }
 
 precise_percentage_t pcu_get_precharge_percentage(void) {
-    volt_t ts = internal_voltage_get_ts();
-    volt_t batt = internal_voltage_get_pack();
+    volt_t ts = internal_voltage_api_get_ts();
+    volt_t batt = internal_voltage_api_get_pack();
     return ts / batt;
 }
 
@@ -151,34 +148,30 @@ bool pcu_is_precharge_complete(void) {
 }
 
 // TODO: Add watchdog for the set state canlib message
-void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t * const payload) {
+void pcu_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *const payload) {
     if (payload == NULL)
         return;
-    hpcu.event.type = payload->status ?
-        FSM_EVENT_TYPE_TS_ON :
-        FSM_EVENT_TYPE_TS_OFF;
+    hpcu.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
     fsm_event_trigger(&hpcu.event);
 }
 
-void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t * const payload) {
+void pcu_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *const payload) {
     if (payload == NULL)
         return;
-    hpcu.event.type = payload->status ?
-        FSM_EVENT_TYPE_TS_ON :
-        FSM_EVENT_TYPE_TS_OFF;
+    hpcu.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
     fsm_event_trigger(&hpcu.event);
 }
 
 #ifdef CONF_PCU_STRING_ENABLE
 
-_STATIC char * pcu_module_name = "pcu";
+_STATIC char *pcu_module_name = "pcu";
 
-_STATIC char * pcu_return_code_name[] = {
+_STATIC char *pcu_return_code_name[] = {
     [PCU_OK] = "ok",
     [PCU_NULL_POINTER] = "null pointer",
 };
 
-_STATIC char * pcu_return_code_description[] = {
+_STATIC char *pcu_return_code_description[] = {
     [PCU_OK] = "executed succesfully",
     [PCU_NULL_POINTER] = "attempt to dereference a NULL pointer",
 };
