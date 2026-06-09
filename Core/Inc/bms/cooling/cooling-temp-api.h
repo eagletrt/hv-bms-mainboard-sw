@@ -17,7 +17,7 @@
 /*!
  * \brief Initialize the cooling temperature module
  *
- * \retval COOLING_TEMP_OK the init always succeeds as it just clears the handler.
+ * \retval COOLING_TEMP_RC_OK the init always succeeds as it just clears the handler.
  */
 enum CoolingTempReturnCode cooling_temp_api_init(void);
 
@@ -89,8 +89,8 @@ primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_ca
 
 #else
 
-#define cooling_temp_api_init() (COOLING_TEMP_OK)
-#define cooling_temp_api_notify_conversion_complete(index, value) (COOLING_TEMP_OK)
+#define cooling_temp_api_init() (COOLING_TEMP_RC_OK)
+#define cooling_temp_api_notify_conversion_complete(index, value) (COOLING_TEMP_RC_OK)
 #define cooling_temp_api_get_values() (NULL)
 #define cooling_temp_api_get_min() (NULL)
 #define cooling_temp_api_get_max() (NULL)

@@ -138,15 +138,15 @@ primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_ca
 EAGLETRT_STATIC char *cooling_temp_module_name = "cooling temperature";
 
 EAGLETRT_STATIC char *cooling_temp_return_code_name[] = {
-    [COOLING_TEMP_OK] = "ok",
-    [COOLING_TEMP_NULL_POINTER] = "null pointer",
-    [COOLING_TEMP_OUT_OF_BOUNDS] = "out of bounds"
+    [COOLING_TEMP_RC_OK] = "ok",
+    [COOLING_TEMP_RC_NULL_POINTER] = "null pointer",
+    [COOLING_TEMP_RC_OUT_OF_BOUNDS] = "out of bounds"
 };
 
 EAGLETRT_STATIC char *cooling_temp_return_code_description[] = {
-    [COOLING_TEMP_OK] = "executed successfully",
-    [COOLING_TEMP_NULL_POINTER] = "attempt to dereference a null pointer",
-    [COOLING_TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+    [COOLING_TEMP_RC_OK] = "executed successfully",
+    [COOLING_TEMP_RC_NULL_POINTER] = "attempt to dereference a null pointer",
+    [COOLING_TEMP_RC_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
 };
 
 #endif //  CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
