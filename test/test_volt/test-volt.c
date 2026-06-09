@@ -140,35 +140,28 @@ void test_volt_api_cells_voltage_handle_ok(void) {
 
 /* --- volt_api_get_cells_voltage_canlib_payload --- */
 
-void test_volt_api_get_cells_voltage_canlib_payload_size(void) {
+void test_volt_api_get_cells_voltage_canlib_payload(void) {
     size_t size = 0U;
 
-    (void)volt_api_get_cells_voltage_canlib_payload(&size);
-
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(volt_handler.volt_can_payload), size, "volt_api_get_cells_voltage_canlib_payload() returned incorrect byte size");
-}
-
-void test_volt_api_get_cells_voltage_canlib_payload_values(void) {
-    volt_handler.cellboard_id = 0U;
     volt_handler.offset = 0U;
     volt_handler.voltages[0U][0U] = 3.6F;
     volt_handler.voltages[0U][1U] = 3.7F;
     volt_handler.voltages[0U][2U] = 3.8F;
 
-    primary_hv_cells_voltage_converted_t *payload = volt_api_get_cells_voltage_canlib_payload(NULL);
+    primary_hv_cells_voltage_converted_t *payload = volt_api_get_cells_voltage_canlib_payload(&size);
+
+    TEST_ASSERT_EQUAL_MESSAGE(sizeof(volt_handler.volt_can_payload), size, "volt_api_get_cells_voltage_canlib_payload() returned incorrect byte size");
 
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001F, 3.6F, payload->voltage_0, "volt_api_get_cells_voltage_canlib_payload() wrong voltage_0");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001F, 3.7F, payload->voltage_1, "volt_api_get_cells_voltage_canlib_payload() wrong voltage_1");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001F, 3.8F, payload->voltage_2, "volt_api_get_cells_voltage_canlib_payload() wrong voltage_2");
+    TEST_ASSERT_EQUAL_MESSAGE(3U, volt_handler.offset, "volt_api_get_cells_voltage_canlib_payload() did not advance offset");
 }
 
-void test_volt_api_get_cells_voltage_canlib_payload_offset_advances(void) {
-    volt_handler.cellboard_id = 0U;
-    volt_handler.offset = 0U;
+void test_volt_api_get_cells_voltage_canlib_payload_null_size(void) {
+    primary_hv_cells_voltage_converted_t *payload = volt_api_get_cells_voltage_canlib_payload(NULL);
 
-    (void)volt_api_get_cells_voltage_canlib_payload(NULL);
-
-    TEST_ASSERT_EQUAL_MESSAGE(3U, volt_handler.offset, "volt_api_get_cells_voltage_canlib_payload() did not advance offset");
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "volt_api_get_cells_voltage_canlib_payload() returned NULL payload when byte_size is NULL");
 }
 
 void test_volt_api_get_cells_voltage_canlib_payload_offset_wraps(void) {
@@ -200,29 +193,31 @@ void test_volt_api_get_cells_voltage_canlib_payload_cellboard_wraps(void) {
 
 /* --- volt_api_get_cells_voltage_stats_canlib_payload --- */
 
-void test_volt_api_get_cells_voltage_stats_canlib_payload_size(void) {
+void test_volt_api_get_cells_voltage_stats_canlib_payload(void) {
     size_t size = 0U;
 
-    (void)volt_api_get_cells_voltage_stats_canlib_payload(&size);
-
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(volt_handler.volt_stats_can_payload), size, "volt_api_get_cells_voltage_stats_canlib_payload() returned incorrect byte size");
-}
-
-void test_volt_api_get_cells_voltage_stats_canlib_payload_values(void) {
     for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
         for (size_t j = 0U; j < CELLBOARD_SEGMENT_SERIES_COUNT; ++j) {
             volt_handler.voltages[i][j] = 3.7F;
         }
     }
+
     volt_handler.voltages[0U][0U] = 3.0F;
     volt_handler.voltages[1U][0U] = 4.2F;
 
-    primary_hv_cells_voltage_stats_converted_t *payload = volt_api_get_cells_voltage_stats_canlib_payload(NULL);
+    primary_hv_cells_voltage_stats_converted_t *payload = volt_api_get_cells_voltage_stats_canlib_payload(&size);
 
+    TEST_ASSERT_EQUAL_MESSAGE(sizeof(volt_handler.volt_stats_can_payload), size, "volt_api_get_cells_voltage_stats_canlib_payload() returned incorrect byte size");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001F, 3.0F, payload->min, "volt_api_get_cells_voltage_stats_canlib_payload() wrong min");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001F, 4.2F, payload->max, "volt_api_get_cells_voltage_stats_canlib_payload() wrong max");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.0001F, 1.2F, payload->delta, "volt_api_get_cells_voltage_stats_canlib_payload() wrong delta");
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, volt_api_get_avg(), payload->avg, "volt_api_get_cells_voltage_stats_canlib_payload() wrong avg");
+}
+
+void test_volt_api_get_cells_voltage_stats_canlib_payload_null(void) {
+    primary_hv_cells_voltage_stats_converted_t *payload = volt_api_get_cells_voltage_stats_canlib_payload(NULL);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "volt_api_get_cells_voltage_stats_canlib_payload() returned NULL payload when byte_size is NULL");
 }
 
 void test_volt_api_get_cells_voltage_stats_canlib_payload_delta_zero_when_all_equal(void) {
@@ -261,15 +256,14 @@ int main(void) {
     RUN_TEST(test_volt_api_cells_voltage_handle_offset_overflow);
     RUN_TEST(test_volt_api_cells_voltage_handle_ok);
 
-    RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_size);
-    RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_values);
-    RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_offset_advances);
+    RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload);
+    RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_null_size);
     RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_offset_wraps);
     RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_cellboard_advances_on_wrap);
     RUN_TEST(test_volt_api_get_cells_voltage_canlib_payload_cellboard_wraps);
 
-    RUN_TEST(test_volt_api_get_cells_voltage_stats_canlib_payload_size);
-    RUN_TEST(test_volt_api_get_cells_voltage_stats_canlib_payload_values);
+    RUN_TEST(test_volt_api_get_cells_voltage_stats_canlib_payload);
+    RUN_TEST(test_volt_api_get_cells_voltage_stats_canlib_payload_null);
     RUN_TEST(test_volt_api_get_cells_voltage_stats_canlib_payload_delta_zero_when_all_equal);
     return UNITY_END();
 }

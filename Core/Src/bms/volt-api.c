@@ -161,15 +161,15 @@ primary_hv_cells_voltage_stats_converted_t *volt_api_get_cells_voltage_stats_can
 EAGLETRT_STATIC char *volt_module_name = "voltage";
 
 EAGLETRT_STATIC char *volt_return_code_name[] = {
-    [VOLT_OK] = "ok",
-    [VOLT_NULL_POINTER] = "null pointer",
-    [VOLT_OUT_OF_BOUNDS] = "out of bounds"
+    [VOLT_RC_OK] = "ok",
+    [VOLT_RC_NULL_POINTER] = "null pointer",
+    [VOLT_RC_OUT_OF_BOUNDS] = "out of bounds"
 };
 
 EAGLETRT_STATIC char *volt_return_code_description[] = {
-    [VOLT_OK] = "executed successfully",
-    [VOLT_NULL_POINTER] = "attempt to dereference a null pointer",
-    [VOLT_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+    [VOLT_RC_OK] = "executed successfully",
+    [VOLT_RC_NULL_POINTER] = "attempt to dereference a null pointer",
+    [VOLT_RC_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
 };
 
 #endif // CONF_VOLTAGE_STRINGS_ENABLE
