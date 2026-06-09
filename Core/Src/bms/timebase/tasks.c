@@ -19,7 +19,7 @@
 #include "internal-voltage-api.h"
 #include "bal-api.h"
 #include "imd.h"
-#include "temp.h"
+#include "temp-api.h"
 #include "error.h"
 #include "cooling-temp.h"
 
@@ -156,7 +156,7 @@ void _tasks_send_hv_cells_voltage_stats(void) {
 /** @brief Send the cells temperature via CAN */
 void _tasks_send_hv_cells_temperature(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)temp_get_cells_temperature_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)temp_api_get_cells_temperature_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLS_TEMPERATURE_INDEX,
@@ -168,7 +168,7 @@ void _tasks_send_hv_cells_temperature(void) {
 /** @brief Send the cells temperature stats via CAN */
 void _tasks_send_hv_cells_temperature_stats(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)temp_get_cells_temperature_stats_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)temp_api_get_cells_temperature_stats_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_CELLS_TEMP_STATS_INDEX,

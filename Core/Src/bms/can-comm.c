@@ -18,7 +18,7 @@
 #include "pcu.h"
 #include "identity-api.h"
 #include "volt.h"
-#include "temp.h"
+#include "temp-api.h"
 #include "bal-api.h"
 #include "error.h"
 
@@ -52,7 +52,7 @@ error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork netw
  * @brief Handle the message payload received from the BMS internal CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
@@ -61,7 +61,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
         case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
         case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)temp_cells_temperature_handle;
+            return (can_comm_canlib_payload_handle_callback_t)temp_api_cells_temperature_handle;
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)programmer_cellboard_flash_response_handle;
         case BMS_CELLBOARD_STATUS_INDEX:
@@ -83,7 +83,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
  * @brief Handle the message payload received from the primary CAN network of the car
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
@@ -110,7 +110,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
  * @brief Handle the message payload received from a CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
