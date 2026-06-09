@@ -141,13 +141,13 @@ primary_hv_error_converted_t *error_api_get_error_canlib_payload(size_t *const b
 EAGLETRT_STATIC char *error_module_name = "error";
 
 EAGLETRT_STATIC char *error_return_code_name[] = {
-    [ERROR_OK] = "ok",
-    [ERROR_NULL_POINTER] = "null pointer"
+    [ERROR_RC_OK] = "ok",
+    [ERROR_RC_NULL_POINTER] = "null pointer"
 };
 
 EAGLETRT_STATIC char *error_return_code_description[] = {
-    [ERROR_OK] = "executed succesfully",
-    [ERROR_NULL_POINTER] = "attempt to dereference a null pointer"
+    [ERROR_RC_OK] = "executed succesfully",
+    [ERROR_RC_NULL_POINTER] = "attempt to dereference a null pointer"
 };
 
 EAGLETRT_STATIC char *error_group_name[] = {

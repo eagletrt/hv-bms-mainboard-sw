@@ -50,17 +50,17 @@ enum ErrorReturnCode {
  */
 enum ErrorGroup {
     ERROR_GROUP_POST,                         /*!< The Power On Self Test procedure failed */
-    ERROR_GROUP_OVER_CURRENT,                 /*!< no description */
+    ERROR_GROUP_OVER_CURRENT,                 /*!< The current exceeded the maximum allowed value */
     ERROR_GROUP_OVER_POWER,                   /*!< The power must not exceed 80 kW */
-    ERROR_GROUP_UNDER_VOLTAGE,                /*!< no description */
-    ERROR_GROUP_OVER_VOLTAGE,                 /*!< no description */
-    ERROR_GROUP_UNDER_TEMPERATURE,            /*!< no description */
-    ERROR_GROUP_OVER_TEMPERATURE,             /*!< no description */
-    ERROR_GROUP_CAN_COMMUNICATION,            /*!< no description */
-    ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, /*!< no description */
-    ERROR_GROUP_COOLING_UNDER_TEMPERATURE,    /*!< no description */
-    ERROR_GROUP_COOLING_OVER_TEMPERATURE,     /*!< no description */
-    ERROR_GROUP_CELLBOARD_ERROR,              /*!< no description */
+    ERROR_GROUP_UNDER_VOLTAGE,                /*!< The voltage is below the minimum allowed value */
+    ERROR_GROUP_OVER_VOLTAGE,                 /*!< The voltage exceeded the maximum allowed value */
+    ERROR_GROUP_UNDER_TEMPERATURE,            /*!< The temperature is below the minimum allowed value */
+    ERROR_GROUP_OVER_TEMPERATURE,             /*!< The temperature exceeded the maximum allowed value */
+    ERROR_GROUP_CAN_COMMUNICATION,            /*!< A CAN communication error occurred */
+    ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, /*!< A current sensor communication error occurred */
+    ERROR_GROUP_COOLING_UNDER_TEMPERATURE,    /*!< The cooling temperature is below the minimum allowed value */
+    ERROR_GROUP_COOLING_OVER_TEMPERATURE,     /*!< The cooling temperature exceeded the maximum allowed value */
+    ERROR_GROUP_CELLBOARD_ERROR,              /*!< A cellboard error occurred */
     ERROR_GROUP_COUNT                         /*!< The number of error groups */
 };
 

@@ -85,9 +85,9 @@ char *error_api_get_group_name_string(const enum ErrorGroup group);
 
 #else // CONF_ERROR_MODULE_ENABLE
 
-#define error_api_init() (ERROR_OK)
-#define error_api_set(group, instance) (ERROR_OK)
-#define error_api_reset(group, instance) (ERROR_OK)
+#define error_api_init() (ERROR_RC_OK)
+#define error_api_set(group, instance) (ERROR_RC_OK)
+#define error_api_reset(group, instance) (ERROR_RC_OK)
 #define error_api_get_expired() (0U)
 #define error_api_get_expired_info() ((ErrorInfo){ 0U })
 #define error_api_cellboard_handle(payload) (NULL)
