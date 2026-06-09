@@ -22,6 +22,8 @@
 #define VOLT_MIN_V (2.8f)
 #define VOLT_MAX_V (4.2f)
 
+#define VOLT_NOMINAL_V (3.6F)
+
 /*!
  * \brief Return code for the voltage module functions
  */
