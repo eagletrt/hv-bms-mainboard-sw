@@ -14,12 +14,12 @@
 #include "programmer.h"
 #include "watchdog.h"
 #include "timebase.h"
-#include "current.h"
+#include "current-api.h"
 #include "pcu.h"
-#include "identity.h"
+#include "identity-api.h"
 #include "volt.h"
 #include "temp-api.h"
-#include "bal.h"
+#include "bal-api.h"
 #include "error.h"
 
 #include "canlib_device.h"
@@ -52,7 +52,7 @@ error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork netw
  * @brief Handle the message payload received from the BMS internal CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
@@ -67,11 +67,11 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
         case BMS_CELLBOARD_STATUS_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
         case BMS_CELLBOARD_VERSION_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)identity_cellboard_version_handle;
+            return (can_comm_canlib_payload_handle_callback_t)identity_api_cellboard_version_handle;
         case BMS_CELLBOARD_BALANCING_STATUS_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_cellboard_balancing_status_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_cellboard_balancing_status_handle;
         case BMS_IVT_MSG_RESULT_I_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)current_handle;
+            return (can_comm_canlib_payload_handle_callback_t)current_api_handle;
         case BMS_CELLBOARD_ERROR_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)error_cellboard_handle;
         default:
@@ -83,7 +83,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
  * @brief Handle the message payload received from the primary CAN network of the car
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
@@ -98,9 +98,9 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
         case PRIMARY_HV_SET_STATUS_HANDCART_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_handcart_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_STEERING_WHEEL_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_steering_wheel_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_steering_wheel_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_HANDCART_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_handcart_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_handcart_handle;
         default:
             return NULL;
     }
@@ -110,7 +110,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
  * @brief Handle the message payload received from a CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
