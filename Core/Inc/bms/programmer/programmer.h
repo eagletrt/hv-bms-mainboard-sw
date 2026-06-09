@@ -23,7 +23,7 @@
 #define PROGRAMMER_FLASH_TIMEOUT_MS (1000U)
 
 /*! \brief Cellboard ready bit mask */
-#define PROGRAMMER_CELLBOARD_READY_MASK (0x3FU)
+#define PROGRAMMER_CELLBOARD_READY_MASK ((1U << CELLBOARD_COUNT) - 1U)
 
 /*!
  * \brief Return code for the programmer module functions 

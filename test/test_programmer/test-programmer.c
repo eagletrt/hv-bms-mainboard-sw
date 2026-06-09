@@ -136,6 +136,7 @@ void test_flash_request_handle_already_pending(void) {
 }
 
 void test_flash_request_handle_wrong_fsm_state(void) {
+    hfsm.fsm_state = (FSM_STATE_AIRN_CHECK);
     programmer_handler.flash_request = false;
     primary_hv_flash_request_converted_t payload = { .mainboard = true };
 

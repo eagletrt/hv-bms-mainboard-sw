@@ -112,7 +112,11 @@ void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response
     }
 
     // Set the cellboard ready bit
-    programmer_handler.cellboard_ready = (programmer_handler.cellboard_ready & ~(1U << payload->cellboard_id)) | (payload->ready << payload->cellboard_id);
+    if (payload->ready == 1U) {
+        programmer_handler.cellboard_ready = EAGLETRT_API_BIT_SET(programmer_handler.cellboard_ready, payload->cellboard_id);
+    } else {
+        programmer_handler.cellboard_ready = EAGLETRT_API_BIT_RESET(programmer_handler.cellboard_ready, payload->cellboard_id);
+    }
 }
 
 void programmer_api_flash_handle(primary_hv_flash_converted_t *const payload) {
