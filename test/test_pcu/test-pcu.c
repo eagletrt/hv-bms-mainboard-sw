@@ -11,6 +11,7 @@
 #include "fsm.h"
 #include "fff.h"
 #include "timebase.h"
+#include "internal-voltage.h"
 DEFINE_FFF_GLOBALS;
 
 #include <stdint.h>
@@ -18,6 +19,7 @@ DEFINE_FFF_GLOBALS;
 #include <string.h>
 
 extern struct PcuHandler pcu_handler;
+extern _InternalVoltageHandler internal_volt_handler;
 
 extern void prv_pcu_api_airn_timeout(void);
 extern void prv_pcu_api_precharge_timeout(void);
@@ -26,7 +28,7 @@ extern void prv_pcu_api_airp_timeout(void);
 FAKE_VOID_FUNC(pcu_set, const enum PcuPin, const enum PcuPinStatus);
 FAKE_VOID_FUNC(pcu_toggle, const enum PcuPin);
 
-static void assert_set_call(const uint32_t idx, const enum PcuPin pin, const enum PcuPinStatus status, const char *msg) {
+static inline void assert_set_call(const uint32_t idx, const enum PcuPin pin, const enum PcuPinStatus status, const char *msg) {
     TEST_ASSERT_EQUAL_MESSAGE(pin, pcu_set_fake.arg0_history[idx], msg);
     TEST_ASSERT_EQUAL_MESSAGE(status, pcu_set_fake.arg1_history[idx], msg);
 }
@@ -157,6 +159,16 @@ void test_prv_pcu_api_airp_timeout_sets_event_type(void) {
         "AIR+ timeout should set AIRP_TIMEOUT event");
 }
 
+void test_pcu_get_precharge_percentage_zero_batt(void) {
+    internal_volt_handler.ts = 100;
+    internal_volt_handler.pack = 0;
+
+    TEST_ASSERT_EQUAL_MESSAGE(
+        0,
+        pcu_api_get_precharge_percentage(),
+        "Precharge percentage should be 0 when battery voltage is 0 to avoid division by zero");
+}
+
 void test_pcu_set_state_from_ecu_handle_null(void) {
     pcu_handler.event.type = FSM_EVENT_TYPE_IGNORED;
     pcu_api_set_state_from_ecu_handle(NULL);
@@ -256,6 +268,7 @@ int main(void) {
     RUN_TEST(test_prv_pcu_api_airn_timeout_sets_event_type);
     RUN_TEST(test_prv_pcu_api_precharge_timeout_sets_event_type);
     RUN_TEST(test_prv_pcu_api_airp_timeout_sets_event_type);
+    RUN_TEST(test_pcu_get_precharge_percentage_zero_batt);
     RUN_TEST(test_pcu_set_state_from_ecu_handle_null);
     RUN_TEST(test_pcu_set_state_from_ecu_handle_on);
     RUN_TEST(test_pcu_set_state_from_ecu_handle_off);

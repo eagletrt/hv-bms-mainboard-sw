@@ -18,9 +18,9 @@
 #include "eagletrt-api.h"
 
 /*! \brief PCU pins timeouts in ms */
-#define pcu_api_airn_TIMEOUT_MS (1000U)
+#define PCU_AIRN_TIMEOUT_MS (1000U)
 #define PCU_PRECHARGE_TIMEOUT_MS (15000U)
-#define pcu_api_airp_TIMEOUT_MS (1000U)
+#define PCU_AIRP_TIMEOUT_MS (1000U)
 
 /*! \brief Precharge threshold percentage */
 #define PCU_PRECHARGE_THRESHOLD_PERCENT (0.95f)

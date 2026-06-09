@@ -45,7 +45,7 @@ void prv_pcu_api_init_watchdogs(void) {
     const milliseconds_t res = timebase_get_resolution();
     watchdog_init(
         &pcu_handler.airn_watchdog,
-        TIMEBASE_TIME_TO_TICKS(pcu_api_airn_TIMEOUT_MS, res),
+        TIMEBASE_TIME_TO_TICKS(PCU_AIRN_TIMEOUT_MS, res),
         prv_pcu_api_airn_timeout);
     watchdog_init(
         &pcu_handler.precharge_watchdog,
@@ -53,7 +53,7 @@ void prv_pcu_api_init_watchdogs(void) {
         prv_pcu_api_precharge_timeout);
     watchdog_init(
         &pcu_handler.airp_watchdog,
-        TIMEBASE_TIME_TO_TICKS(pcu_api_airp_TIMEOUT_MS, res),
+        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, res),
         prv_pcu_api_airp_timeout);
 }
 /*! \brief Uninitialize all the watchdogs to be able to use them again */
@@ -142,6 +142,11 @@ void pcu_api_ams_deactivate(void) {
 precise_percentage_t pcu_api_get_precharge_percentage(void) {
     volt_t tractive_system = internal_voltage_get_ts();
     volt_t batt = internal_voltage_get_pack();
+
+    if (batt == 0) {
+        return 0;
+    }
+
     return tractive_system / batt;
 }
 
