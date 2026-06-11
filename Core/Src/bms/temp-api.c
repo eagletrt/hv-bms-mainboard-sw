@@ -11,7 +11,7 @@
 
 #include <string.h>
 #include "eagletrt-api.h"
-#include "error.h"
+#include "error-api.h"
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
@@ -55,15 +55,15 @@ EAGLETRT_STATIC_INLINE int32_t prv_temp_cell_position_from_index(size_t index) {
 EAGLETRT_STATIC_INLINE void prv_temp_check_value(const CellboardId cellboard_id, const size_t offset, const celsius_t value) {
     size_t index = (cellboard_id * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) + offset;
     if (value < TEMP_MIN_C) {
-        error_set(ERROR_GROUP_UNDER_TEMPERATURE, (error_instance_t)index);
+        error_api_set(ERROR_GROUP_UNDER_TEMPERATURE, (error_instance)index);
     } else {
-        error_reset(ERROR_GROUP_UNDER_TEMPERATURE, (error_instance_t)index);
+        error_api_reset(ERROR_GROUP_UNDER_TEMPERATURE, (error_instance)index);
     }
 
     if (value > TEMP_MAX_C) {
-        error_set(ERROR_GROUP_OVER_TEMPERATURE, (error_instance_t)index);
+        error_api_set(ERROR_GROUP_OVER_TEMPERATURE, (error_instance)index);
     } else {
-        error_reset(ERROR_GROUP_OVER_TEMPERATURE, (error_instance_t)index);
+        error_api_reset(ERROR_GROUP_OVER_TEMPERATURE, (error_instance)index);
     }
 }
 

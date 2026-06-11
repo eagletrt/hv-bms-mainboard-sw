@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include "error.h"
+#include "error-api.h"
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
@@ -32,13 +32,13 @@ celsius_t _cooling_temp_volt_to_celsius(volt_t value) {
     const double v4 = v2 * v2;
     const double v5 = v4 * v;
     const double v6 = v3 * v3;
-    return COOLING_TEMP_COEFF_0 + 
-        COOLING_TEMP_COEFF_1 * v + 
-        COOLING_TEMP_COEFF_2 * v2 + 
-        COOLING_TEMP_COEFF_3 * v3 + 
-        COOLING_TEMP_COEFF_4 * v4 + 
-        COOLING_TEMP_COEFF_5 * v5 +
-        COOLING_TEMP_COEFF_6 * v6;
+    return COOLING_TEMP_COEFF_0 +
+           COOLING_TEMP_COEFF_1 * v +
+           COOLING_TEMP_COEFF_2 * v2 +
+           COOLING_TEMP_COEFF_3 * v3 +
+           COOLING_TEMP_COEFF_4 * v4 +
+           COOLING_TEMP_COEFF_5 * v5 +
+           COOLING_TEMP_COEFF_6 * v6;
 }
 
 /**
@@ -48,13 +48,13 @@ celsius_t _cooling_temp_volt_to_celsius(volt_t value) {
  */
 _STATIC_INLINE void _cooling_temp_check_value(const size_t index, const celsius_t value) {
     if (value <= COOLING_TEMP_MIN_C)
-        (void)error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+        (void)error_api_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
     else
-        (void)error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
+        (void)error_api_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, index);
     if (value >= COOLING_TEMP_MAX_C)
-        (void)error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+        (void)error_api_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
     else
-        (void)error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
+        (void)error_api_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, index);
 }
 
 CoolingTempReturnCode cooling_temp_init(void) {
@@ -77,10 +77,9 @@ CoolingTempReturnCode cooling_temp_update_value(const size_t index, const celsiu
     return COOLING_TEMP_OK;
 }
 
-const cooling_temp_t * cooling_temp_get_values(void) {
+const cooling_temp_t *cooling_temp_get_values(void) {
     return &hcoolingtemp.temperatures;
 }
-
 
 celsius_t cooling_temp_get_min(void) {
     celsius_t min = COOLING_TEMP_MAX_C;
@@ -110,11 +109,11 @@ celsius_t cooling_temp_get_avg(void) {
     return cooling_temp_get_sum() / COOLING_TEMP_COUNT;
 }
 
-primary_hv_cooling_temperature_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size) {
+primary_hv_cooling_temperature_converted_t *cooling_temp_get_temperatures_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL)
         *byte_size = sizeof(hcoolingtemp.cooling_temp_can_payload);
 
-    const celsius_t * temps = hcoolingtemp.temperatures;
+    const celsius_t *temps = hcoolingtemp.temperatures;
     hcoolingtemp.cooling_temp_can_payload.inlet = temps[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
     hcoolingtemp.cooling_temp_can_payload.outlet_0 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
     hcoolingtemp.cooling_temp_can_payload.outlet_1 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
@@ -127,20 +126,20 @@ primary_hv_cooling_temperature_converted_t * cooling_temp_get_temperatures_canli
 
 #ifdef CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
 
-_STATIC char * cooling_temp_module_name = "cooling temperature";
+_STATIC char *cooling_temp_module_name = "cooling temperature";
 
-_STATIC char * cooling_temp_return_code_name[] = {
+_STATIC char *cooling_temp_return_code_name[] = {
     [COOLING_TEMP_OK] = "ok",
     [COOLING_TEMP_NULL_POINTER] = "null pointer",
     [COOLING_TEMP_OUT_OF_BOUNDS] = "out of bounds"
 };
 
-_STATIC char * cooling_temp_return_code_description[] = {
+_STATIC char *cooling_temp_return_code_description[] = {
     [COOLING_TEMP_OK] = "executed successfully",
     [COOLING_TEMP_NULL_POINTER] = "attempt to dereference a null pointer"
-    [COOLING_TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
+        [COOLING_TEMP_OUT_OF_BOUNDS] = "attempt to access an invalid memory region"
 };
 
-#endif  //  CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
+#endif //  CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
 
-#endif  //  CONF_COOLING_TEMPERATURE_MODULE_ENABLE
+#endif //  CONF_COOLING_TEMPERATURE_MODULE_ENABLE

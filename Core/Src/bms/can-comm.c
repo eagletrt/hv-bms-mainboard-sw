@@ -20,7 +20,7 @@
 #include "identity-api.h"
 #include "temp-api.h"
 #include "bal-api.h"
-#include "error.h"
+#include "error-api.h"
 
 #include "canlib_device.h"
 
@@ -35,7 +35,7 @@ _STATIC _CanCommHandler hcan_comm;
  *
  * @return error_instance_t The error instance or 0 on error
  */
-error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork network) {
+error_instance _can_comm_get_error_instance_from_network(const CanNetwork network) {
     switch (network) {
         case CAN_NETWORK_BMS:
             return ERROR_CAN_COMMUNICATION_INSTANCE_BMS;
@@ -62,10 +62,6 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
             return (can_comm_canlib_payload_handle_callback_t)volt_api_cells_voltage_handle;
         case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)temp_api_cells_temperature_handle;
-        case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_api_cellboard_flash_response_handle;
-        case BMS_CELLBOARD_STATUS_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
         case BMS_CELLBOARD_VERSION_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)identity_api_cellboard_version_handle;
         case BMS_CELLBOARD_BALANCING_STATUS_INDEX:
@@ -73,7 +69,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
         case BMS_IVT_MSG_RESULT_I_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)current_api_handle;
         case BMS_CELLBOARD_ERROR_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)error_cellboard_handle;
+            return (can_comm_canlib_payload_handle_callback_t)error_api_cellboard_handle;
         default:
             return NULL;
     }
@@ -361,7 +357,7 @@ CanCommReturnCode can_comm_routine(void) {
                 // Do nothing
                 break;
             case CAN_COMM_OK:
-                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                (void)error_api_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
                 break;
             default:
                 // (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));

@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-#include "error.h"
+#include "error-api.h"
 #include "eagletrt-api.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
@@ -28,15 +28,15 @@ EAGLETRT_STATIC struct VoltHandler volt_handler;
 EAGLETRT_STATIC_INLINE void prv_volt_check_value(const CellboardId cellboard_id, const size_t offset, const volt_t value) {
     size_t index = (cellboard_id * CELLBOARD_SEGMENT_SERIES_COUNT) + offset;
     if (value < VOLT_MIN_V) {
-        error_set(ERROR_GROUP_UNDER_VOLTAGE, (error_instance_t)index);
+        error_api_set(ERROR_GROUP_UNDER_VOLTAGE, (error_instance)index);
     } else {
-        error_reset(ERROR_GROUP_UNDER_VOLTAGE, (error_instance_t)index);
+        error_api_reset(ERROR_GROUP_UNDER_VOLTAGE, (error_instance)index);
     }
 
     if (value > VOLT_MAX_V) {
-        error_set(ERROR_GROUP_OVER_VOLTAGE, (error_instance_t)index);
+        error_api_set(ERROR_GROUP_OVER_VOLTAGE, (error_instance)index);
     } else {
-        error_reset(ERROR_GROUP_OVER_VOLTAGE, (error_instance_t)index);
+        error_api_reset(ERROR_GROUP_OVER_VOLTAGE, (error_instance)index);
     }
 }
 

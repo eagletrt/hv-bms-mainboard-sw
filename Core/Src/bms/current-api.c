@@ -12,7 +12,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "error.h"
+#include "error-api.h"
 #include "internal-voltage-api.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
@@ -23,7 +23,7 @@ EAGLETRT_STATIC struct CurrentHandler current_api_handler;
  * \brief Timeout callback for the sensor communication watchdog
  */
 EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
-    error_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
+    error_api_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
 }
 
 /*!
@@ -33,15 +33,15 @@ EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
  */
 EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
     if (value <= CURRENT_MIN_A || value >= CURRENT_MAX_A) {
-        error_set(ERROR_GROUP_OVER_CURRENT, 0U);
+        error_api_set(ERROR_GROUP_OVER_CURRENT, 0U);
     } else {
-        error_reset(ERROR_GROUP_OVER_CURRENT, 0U);
+        error_api_reset(ERROR_GROUP_OVER_CURRENT, 0U);
     }
 
     if (fabsf(current_api_get_power()) >= CURRENT_MAX_POWER_KW) {
-        error_set(ERROR_GROUP_OVER_POWER, 0U);
+        error_api_set(ERROR_GROUP_OVER_POWER, 0U);
     } else {
-        error_reset(ERROR_GROUP_OVER_POWER, 0U);
+        error_api_reset(ERROR_GROUP_OVER_POWER, 0U);
     }
 }
 

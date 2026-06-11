@@ -27,7 +27,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "programmer-api.h"
 #include "feedback.h"
 #include "bal-api.h"
-#include "error.h"
+#include "error-api.h"
 /*** USER CODE END MACROS ***/
 
 // GLOBALS
@@ -150,7 +150,7 @@ fsm_state_t fsm_do_init(fsm_state_data_t *data) {
             next_state = FSM_STATE_IDLE;
             break;
         default:
-            error_set(ERROR_GROUP_POST, 0U);
+            error_api_set(ERROR_GROUP_POST, 0U);
             next_state = FSM_STATE_FATAL;
             break;
     }
@@ -184,7 +184,7 @@ fsm_state_t fsm_do_idle(fsm_state_data_t *data) {
         timebase_get_tick());
 
     // Check for errors
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     // Check for events
     else if (fsm_is_event_triggered()) {
@@ -281,7 +281,7 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     const enum ProgrammerReturnCode code = programmer_api_routine();
 
     // Check for errors
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     else if (code == PROGRAMMER_RC_TIMEOUT || code == PROGRAMMER_RC_OK)
         next_state = FSM_STATE_IDLE;
@@ -322,7 +322,7 @@ fsm_state_t fsm_do_balancing(fsm_state_data_t *data) {
         100U,
         timebase_get_tick());
 
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
@@ -357,7 +357,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data_t *data) {
     (void)can_comm_routine();
 
     FeedbackId id = FEEDBACK_ID_UNKNOWN;
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
@@ -449,7 +449,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
     (void)display_set_digit(perc);
 
     FeedbackId id = FEEDBACK_ID_UNKNOWN;
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
@@ -533,7 +533,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data_t *data) {
     (void)can_comm_routine();
 
     FeedbackId id = FEEDBACK_ID_UNKNOWN;
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
@@ -621,7 +621,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data_t *data) {
         timebase_get_tick());
 
     FeedbackId id = FEEDBACK_ID_UNKNOWN;
-    if (error_get_expired() > 0)
+    if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
     else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL)
