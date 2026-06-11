@@ -24,9 +24,9 @@ Functions and types have been generated with prefix "fsm_"
 #include "post.h"
 #include "can-comm.h"
 #include "timebase.h"
-#include "programmer.h"
+#include "programmer-api.h"
 #include "feedback.h"
-#include "bal.h"
+#include "bal-api.h"
 #include "error-api.h"
 /*** USER CODE END MACROS ***/
 
@@ -278,12 +278,12 @@ fsm_state_t fsm_do_flash(fsm_state_data_t *data) {
     /*** USER CODE BEGIN DO_FLASH ***/
     MAINBOARD_UNUSED(data);
 
-    const ProgrammerReturnCode code = programmer_routine();
+    const enum ProgrammerReturnCode code = programmer_api_routine();
 
     // Check for errors
     if (error_api_get_expired() > 0)
         next_state = FSM_STATE_FATAL;
-    else if (code == PROGRAMMER_TIMEOUT || code == PROGRAMMER_OK)
+    else if (code == PROGRAMMER_RC_TIMEOUT || code == PROGRAMMER_RC_OK)
         next_state = FSM_STATE_IDLE;
 
     // Check for events
@@ -710,7 +710,7 @@ void fsm_start_balancing(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // TODO: Handle watchog error
-    BalReturnCode code = bal_start();
+    enum BalReturnCode code = bal_api_start();
     MAINBOARD_UNUSED(code);
     /*** USER CODE END START_BALANCING ***/
 }
@@ -748,7 +748,7 @@ void fsm_handle_fatal_error(fsm_state_data_t *data) {
     pcu_airp_open();
 
     // Stop balancing in case it is running
-    (void)bal_stop();
+    (void)bal_api_stop();
     /*** USER CODE END HANDLE_FATAL_ERROR ***/
 }
 
@@ -768,7 +768,7 @@ void fsm_stop_balancing(fsm_state_data_t *data) {
     /*** USER CODE BEGIN STOP_BALANCING ***/
     MAINBOARD_UNUSED(data);
 
-    (void)bal_stop();
+    (void)bal_api_stop();
     /*** USER CODE END STOP_BALANCING ***/
 }
 
