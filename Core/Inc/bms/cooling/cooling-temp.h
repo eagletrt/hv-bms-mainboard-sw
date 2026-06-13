@@ -1,9 +1,10 @@
-/**
- * @file cooling-temp.h
- * @date 2024-09-24
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file cooling-temp.h
+ * \date 2024-09-24
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
+ * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * @brief Cooling temperature measurment and control
+ * \brief Cooling temperature measurment and control
  */
 
 #ifndef COOLING_TEMP_H
@@ -12,170 +13,73 @@
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
+#include "eagletrt-api.h"
+
 #include "primary_network.h"
 #include "bms_network.h"
 
-/** @brief Total number of cooling temperatures handled */
+/*! \brief Total number of cooling temperatures handled */
 #define COOLING_TEMP_COUNT (COOLING_TEMP_INDEX_COUNT)
 
-/** @brief Minimum and maximum allowed cooling temperature in celsius */
+/*! \brief Minimum and maximum allowed cooling temperature in celsius */
 // TODO: Set the allowed temperature range
 #define COOLING_TEMP_MIN_C (-10.f)
 #define COOLING_TEMP_MAX_C (60.f)
 
-/**
- * @brief Minimum and maximum limit for the temperature voltages in V
+/*!
+ * \brief Minimum and maximum limit for the temperature voltages in V
  *
- * @details This limit is applied to fit into the polynomial conversion
+ * \details This limit is applied to fit into the polynomial conversion
  * to get a plausible temperature value
  */
 #define COOLING_TEMP_MIN_LIMIT_V (0.f)
 #define COOLING_TEMP_MAX_LIMIT_V (3.f)
 
-
-/** @brief Coefficients used for the polynomial conversion of the NTC cooling temperatures values */
-#define COOLING_TEMP_COEFF_0 ( 162.9947f)
+/*! \brief Coefficients used for the polynomial conversion of the NTC cooling temperatures values */
+#define COOLING_TEMP_COEFF_0 (162.9947f)
 #define COOLING_TEMP_COEFF_1 (-289.0887f)
-#define COOLING_TEMP_COEFF_2 ( 353.5436f)
+#define COOLING_TEMP_COEFF_2 (353.5436f)
 #define COOLING_TEMP_COEFF_3 (-276.9361f)
-#define COOLING_TEMP_COEFF_4 ( 125.8228f)
-#define COOLING_TEMP_COEFF_5 (- 30.5363f)
-#define COOLING_TEMP_COEFF_6 (   3.0394f)
+#define COOLING_TEMP_COEFF_4 (125.8228f)
+#define COOLING_TEMP_COEFF_5 (-30.5363f)
+#define COOLING_TEMP_COEFF_6 (3.0394f)
 
-/**
- * @brief Return code for the cooling temperature module functions
- *
- * @details
- *     - COOLING_TEMP_OK the function executed successfully
- *     - COOLING_TEMP_BUSY the module is busy and cannot execute the requested function
- *     - COOLING_TEMP_NULL_POINTER a NULL pointer is given as parameter or used inside the function
- *     - COOLING_TEMP_OUT_OF_BOUNDS an index (or pointer) value is greater/lower than the maximum/minimum allowed value
+/*!
+ * \brief Return code for the cooling temperature module functions
  */
-typedef enum {
-    COOLING_TEMP_OK,
-    COOLING_TEMP_NULL_POINTER,
-    COOLING_TEMP_BUSY,
-    COOLING_TEMP_OUT_OF_BOUNDS
-} CoolingTempReturnCode;
+enum CoolingTempReturnCode {
+    COOLING_TEMP_RC_OK,           /*!< Executed successfully */
+    COOLING_TEMP_RC_NULL_POINTER, /*!< A NULL pointer is given as parameter or used inside the function */
+    COOLING_TEMP_RC_BUSY,         /*!< The module is busy and cannot execute the requested function */
+    COOLING_TEMP_RC_OUT_OF_BOUNDS /*!< An index (or pointer) value is greater/lower than the maximum/minimum allowed value */
+};
 
-/**
- * Indices of the cooling temperatures
- *
- * @details Temperatures of the inlet and outlet liquid of the cooling
+/*!
+ * \brief Indices of the cooling temperatures
  */
-typedef enum {
-    COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE,
-    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1,
-    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2,
-    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3,
-    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4,
-    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5,
-    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6,
-    COOLING_TEMP_INDEX_COUNT
-} CoolingTempIndex;
+enum CoolingTempIndex {
+    COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE,    /*<! Inlet liquid temperature */
+    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1, /*<! Outlet liquid temperature 1 */
+    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2, /*<! Outlet liquid temperature 2 */
+    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3, /*<! Outlet liquid temperature 3 */
+    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4, /*<! Outlet liquid temperature 4 */
+    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5, /*<! Outlet liquid temperature 5 */
+    COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6, /*<! Outlet liquid temperature 6 */
+    COOLING_TEMP_INDEX_COUNT                        /*<! Total number of cooling temperature values */
+};
 
-/**
- * @brief Type definition for an array of cooling temperatures in °C
+/*!
+ * \brief Type definition for an array of cooling temperatures in °C
  */
-typedef celsius_t cooling_temp_t[COOLING_TEMP_COUNT];
+typedef celsius_t cooling_temps[COOLING_TEMP_COUNT];
 
-/**
- * @brief Type definition for the cooling temperatures module handler structure
- *
- * @param temperatures The array of temperatures in °C
+/*!
+ * \brief Type definition for the cooling temperatures module handler structure
  */
-typedef struct {
-    cooling_temp_t temperatures;
+struct CoolingTempHandler {
+    cooling_temps temperatures; /*!< Array of cooling temperatures in °C */
 
-    primary_hv_cooling_temperature_converted_t cooling_temp_can_payload;
-} _CoolingTempHandler;
+    primary_hv_cooling_temperature_converted_t cooling_temp_can_payload; /*!< CAN payload structure for the cooling temperatures */
+};
 
-#ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
-
-/**
- * @brief Initialize the cooling temperature module
- *
- * @return CoolingTempReturnCode
- *     - COOLING_TEMP_OK
- */
-CoolingTempReturnCode cooling_temp_init(void);
-
-/**
- * @brief Notify the cooling temperature module that the conversion is completed
- *
- * @param index The idx of the value to be upfated
- * @param value The voltage to copy in V
- */
-CoolingTempReturnCode cooling_temp_notify_conversion_complete(size_t index, const volt_t value);
-
-/**
- * @brief Update a single temperature value
- *
- * @param index The index of the value to update
- * @param value The new value
- *
- * @return TempReturnCode
- *     - COOLING_TEMP_OUT_OF_BOUNDS if the index is greater than the total number of values
- *     - COOLING_TEMP_OK otherwise
- */
-CoolingTempReturnCode cooling_temp_update_value(const size_t index, const celsius_t value);
-
-/**
- * @brief Get a pointer to the array where the temperature values are stored
- *
- * @return cooling_temp_t* The pointer to the array
- */
-const cooling_temp_t * cooling_temp_get_values(void);
-
-
-/**
- * @brief Get the minimum temperature in the cooling loop
- *
- * @return celsius_t The minimum temperature value in °C
- */
-celsius_t cooling_temp_get_min(void);
-
-/**
- * @brief Get the maximum temperature in the cooling loop
- *
- * @return celsius_t The maximum temperature value in °C
- */
-celsius_t cooling_temp_get_max(void);
-
-/**
- * @brief Get the sum of the temperatures of the cooling loop
- *
- * @return celsius_t The sum of the temperatures in °C
- */
-celsius_t cooling_temp_get_sum(void);
-
-/**
- * @brief Get the average temperature of the cooling loop
- *
- * @return celsius_t The average temperature in °C
- */
-celsius_t cooling_temp_get_avg(void);
-
-/**
- * @brief Get a pointer to the CAN payload of the cooling temperatures
- *
- * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * @return primary_hv_cooling_temperature_converted_t* A pointer to the payload
- */
-primary_hv_cooling_temperature_converted_t * cooling_temp_get_temperatures_canlib_payload(size_t * const byte_size);
-
-#else
-
-#define cooling_temp_init() (COOLING_TEMP_OK)
-#define cooling_temp_notify_conversion_complete(index, value) (COOLING_TEMP_OK)
-#define cooling_temp_get_values() (NULL)
-#define cooling_temp_get_min() (NULL)
-#define cooling_temp_get_max() (NULL)
-#define cooling_temp_get_sum() (NULL)
-#define cooling_temp_get_avg() (NULL)
-#define cooling_temp_get_temperatures_canlib_payload(byte_size) (NULL)
-
-#endif  // CONF_COOLING_TEMPERATURE_MODULE_ENABLE
-
-#endif  // COOLING_TEMP_H
+#endif // COOLING_TEMP_H
