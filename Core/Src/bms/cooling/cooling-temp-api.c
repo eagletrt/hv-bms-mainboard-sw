@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-#include "error.h"
+#include "error-api.h"
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
@@ -54,14 +54,14 @@ celsius_t prv_cooling_temp_volt_to_celsius(volt_t value) {
  */
 EAGLETRT_STATIC_INLINE void prv_cooling_temp_check_value(const size_t index, const celsius_t value) {
     if (value <= COOLING_TEMP_MIN_C) {
-        (void)error_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, (error_instance_t)index);
+        (void)error_api_set(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, (error_instance)index);
     } else {
-        (void)error_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, (error_instance_t)index);
+        (void)error_api_reset(ERROR_GROUP_COOLING_UNDER_TEMPERATURE, (error_instance)index);
     }
     if (value >= COOLING_TEMP_MAX_C) {
-        (void)error_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, (error_instance_t)index);
+        (void)error_api_set(ERROR_GROUP_COOLING_OVER_TEMPERATURE, (error_instance)index);
     } else {
-        (void)error_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, (error_instance_t)index);
+        (void)error_api_reset(ERROR_GROUP_COOLING_OVER_TEMPERATURE, (error_instance)index);
     }
 }
 

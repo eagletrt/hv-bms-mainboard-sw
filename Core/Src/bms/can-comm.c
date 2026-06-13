@@ -11,16 +11,16 @@
 #include <string.h>
 
 #include "fsm.h"
-#include "programmer.h"
+#include "programmer-api.h"
 #include "watchdog.h"
 #include "timebase.h"
-#include "current.h"
+#include "current-api.h"
 #include "pcu.h"
-#include "identity.h"
-#include "volt.h"
-#include "temp.h"
-#include "bal.h"
-#include "error.h"
+#include "volt-api.h"
+#include "identity-api.h"
+#include "temp-api.h"
+#include "bal-api.h"
+#include "error-api.h"
 
 #include "canlib_device.h"
 
@@ -35,11 +35,11 @@ _STATIC _CanCommHandler hcan_comm;
  *
  * @return error_instance_t The error instance or 0 on error
  */
-error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork network) {
+error_instance _can_comm_get_error_instance_from_network(const CanNetwork network) {
     switch (network) {
-        case CAN_NETWORK_BMS: 
+        case CAN_NETWORK_BMS:
             return ERROR_CAN_COMMUNICATION_INSTANCE_BMS;
-        case CAN_NETWORK_PRIMARY: 
+        case CAN_NETWORK_PRIMARY:
             return ERROR_CAN_COMMUNICATION_INSTANCE_PRIMARY;
         case CAN_NETWORK_SECONDARY:
             return ERROR_CAN_COMMUNICATION_INSTANCE_SECONDARY;
@@ -52,56 +52,51 @@ error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork netw
  * @brief Handle the message payload received from the BMS internal CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
 can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can_index_t index) {
     switch (index) {
-        case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:     
-            return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
-        case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:     
-            return (can_comm_canlib_payload_handle_callback_t)temp_cells_temperature_handle;
-        case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_cellboard_flash_response_handle;
-        case BMS_CELLBOARD_STATUS_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
+        case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)volt_api_cells_voltage_handle;
+        case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)temp_api_cells_temperature_handle;
         case BMS_CELLBOARD_VERSION_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)identity_cellboard_version_handle;
+            return (can_comm_canlib_payload_handle_callback_t)identity_api_cellboard_version_handle;
         case BMS_CELLBOARD_BALANCING_STATUS_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_cellboard_balancing_status_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_cellboard_balancing_status_handle;
         case BMS_IVT_MSG_RESULT_I_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)current_handle;
+            return (can_comm_canlib_payload_handle_callback_t)current_api_handle;
         case BMS_CELLBOARD_ERROR_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)error_cellboard_handle;
+            return (can_comm_canlib_payload_handle_callback_t)error_api_cellboard_handle;
         default:
             return NULL;
     }
-
 }
 
 /**
  * @brief Handle the message payload received from the primary CAN network of the car
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
 can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const can_index_t index) {
     switch (index) {
         case PRIMARY_HV_FLASH_REQUEST_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_flash_request_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_api_flash_request_handle;
         case PRIMARY_HV_FLASH_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_flash_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_api_flash_handle;
         case PRIMARY_HV_SET_STATUS_ECU_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_ecu_handle;
         case PRIMARY_HV_SET_STATUS_HANDCART_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_handcart_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_STEERING_WHEEL_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_steering_wheel_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_steering_wheel_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_HANDCART_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_handcart_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_handcart_handle;
         default:
             return NULL;
     }
@@ -111,7 +106,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
  * @brief Handle the message payload received from a CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
@@ -145,8 +140,7 @@ CanCommReturnCode can_comm_init(const can_comm_transmit_callback_t send) {
         &hcan_comm.rx_raw,
         bms_MAX_STRUCT_SIZE_RAW,
         &hcan_comm.rx_conv,
-        bms_MAX_STRUCT_SIZE_CONVERSION
-    );
+        bms_MAX_STRUCT_SIZE_CONVERSION);
     return CAN_COMM_OK;
 }
 
@@ -184,9 +178,8 @@ CanCommReturnCode can_comm_send_immediate(
     const CanNetwork network,
     const can_index_t index,
     const CanFrameType frame_type,
-    uint8_t * const data,
-    const size_t size)
-{
+    uint8_t *const data,
+    const size_t size) {
     if (!CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT))
         return CAN_COMM_DISABLED;
 
@@ -204,7 +197,6 @@ CanCommReturnCode can_comm_send_immediate(
     //     return CAN_COMM_INVALID_PAYLOAD_SIZE;
     if (data == NULL && frame_type != CAN_FRAME_TYPE_REMOTE)
         return CAN_COMM_NULL_POINTER;
-
 
     // Prepare and push message to the buffer
     CanMessage msg = {
@@ -229,9 +221,8 @@ CanCommReturnCode can_comm_tx_add(
     const CanNetwork network,
     const can_index_t index,
     const CanFrameType frame_type,
-    uint8_t * const data,
-    const size_t size)
-{
+    uint8_t *const data,
+    const size_t size) {
     if (!CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT))
         return CAN_COMM_DISABLED;
 
@@ -275,9 +266,8 @@ CanCommReturnCode can_comm_rx_add(
     const CanNetwork network,
     const can_index_t index,
     const CanFrameType frame_type,
-    uint8_t * const data,
-    const size_t size)
-{    
+    uint8_t *const data,
+    const size_t size) {
     if (!CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_RX_ENABLE_BIT))
         return CAN_COMM_DISABLED;
 
@@ -320,8 +310,7 @@ CanCommReturnCode can_comm_routine(void) {
     CanCommReturnCode ret = CAN_COMM_OK;
     CanMessage tx_msg, rx_msg;
     while (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_TX_ENABLE_BIT) &&
-        ring_buffer_pop_front(&hcan_comm.tx_buf, &tx_msg) == RING_BUFFER_OK)
-    {
+           ring_buffer_pop_front(&hcan_comm.tx_buf, &tx_msg) == RING_BUFFER_OK) {
         // Reset the busy flag to notify that the message is not inside the buffer anymore
         hcan_comm.tx_busy[tx_msg.network][tx_msg.index] = false;
 
@@ -343,8 +332,7 @@ CanCommReturnCode can_comm_routine(void) {
             size = serialize_from_id(
                 tx_msg.payload.tx,
                 can_id,
-                data
-            );
+                data);
             if (size < 0)
                 return CAN_COMM_CONVERSION_ERROR;
         }
@@ -355,8 +343,7 @@ CanCommReturnCode can_comm_routine(void) {
             can_id,
             tx_msg.frame_type,
             data,
-            size
-        );
+            size);
 
         /*
          * Set an error in case of problems with CAN communication
@@ -370,7 +357,7 @@ CanCommReturnCode can_comm_routine(void) {
                 // Do nothing
                 break;
             case CAN_COMM_OK:
-                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                (void)error_api_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
                 break;
             default:
                 // (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
@@ -378,8 +365,7 @@ CanCommReturnCode can_comm_routine(void) {
         }
     }
     while (CAN_COMM_IS_ENABLED(hcan_comm.enabled, CAN_COMM_RX_ENABLE_BIT) &&
-        ring_buffer_pop_front(&hcan_comm.rx_buf, &rx_msg) == RING_BUFFER_OK)
-    {
+           ring_buffer_pop_front(&hcan_comm.rx_buf, &rx_msg) == RING_BUFFER_OK) {
         // Reset the busy flag to notify that the message is not inside the buffer anymore
         hcan_comm.rx_busy[rx_msg.network][rx_msg.index] = false;
 
@@ -404,8 +390,7 @@ CanCommReturnCode can_comm_routine(void) {
             can_comm_canlib_payload_handle_callback_t handle_payload = _can_comm_payload_handle(rx_msg.network, rx_msg.index);
             if (handle_payload != NULL)
                 handle_payload(hcan_comm.rx_device.message);
-        }
-        else { 
+        } else {
             // TODO: Handler remote requests
         }
     }
@@ -415,9 +400,9 @@ CanCommReturnCode can_comm_routine(void) {
 
 #ifdef CONF_CAN_COMM_STRINGS_ENABLE
 
-_STATIC char * can_comm_module_name = "can communication";
+_STATIC char *can_comm_module_name = "can communication";
 
-_STATIC char * can_comm_return_code_name[] = {
+_STATIC char *can_comm_return_code_name[] = {
     [CAN_COMM_OK] = "ok",
     [CAN_COMM_NULL_POINTER] = "null pointer",
     [CAN_COMM_DISABLED] = "disabled",
@@ -429,14 +414,14 @@ _STATIC char * can_comm_return_code_name[] = {
     [CAN_COMM_TRANSMISSION_ERROR] = "transmission error"
 };
 
-_STATIC char * can_comm_return_code_description[] = {
+_STATIC char *can_comm_return_code_description[] = {
     [CAN_COMM_OK] = "executed succesfully",
     [CAN_COMM_NULL_POINTER] = "attempt to dereference a null pointer"
-    [CAN_COMM_DISABLED] = "the can manager is not enabled"
-    [CAN_COMM_OVERRUN] = "the transmission buffer is full"
-    [CAN_COMM_INVALID_INDEX] = "the given index does not correspond to any valid message",
+        [CAN_COMM_DISABLED] = "the can manager is not enabled"
+            [CAN_COMM_OVERRUN] = "the transmission buffer is full"
+                [CAN_COMM_INVALID_INDEX] = "the given index does not correspond to any valid message",
     [CAN_COMM_INVALID_PAYLOAD_SIZE] = "the payload size is greater than the maximum allowed length"
-    [CAN_COMM_INVALID_FRAME_TYPE] = "the given frame type does not correspond to any existing can frame type",
+        [CAN_COMM_INVALID_FRAME_TYPE] = "the given frame type does not correspond to any existing can frame type",
     [CAN_COMM_CONVERSION_ERROR] = "can't convert the message correctly",
     [CAN_COMM_TRANSMISSION_ERROR] = "error during message transmission"
 };
