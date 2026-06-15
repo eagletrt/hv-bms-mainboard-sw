@@ -18,7 +18,7 @@
 #include "feedback.h"
 #include "internal-voltage-api.h"
 #include "bal-api.h"
-#include "imd.h"
+#include "imd-api.h"
 #include "temp-api.h"
 #include "error-api.h"
 #include "cooling-temp-api.h"
