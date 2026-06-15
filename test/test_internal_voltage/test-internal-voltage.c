@@ -24,7 +24,7 @@ FAKE_VOID_FUNC(spi_send_receive, const SpiNetwork, uint8_t *const, uint8_t *cons
 void test_internal_voltage_init_ok() {
     struct InternalVoltageHandler expected_handler;
     memset(&expected_handler, 0U, sizeof(expected_handler));
-    (void)max22530_init(&expected_handler.max22530, spi_send, spi_send_receive);
+    (void)max22530_api_init(&expected_handler.max22530, spi_send, spi_send_receive);
 
     enum InternalVoltageReturnCode rc = internal_voltage_api_init(spi_send, spi_send_receive);
 
