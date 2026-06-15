@@ -13,7 +13,7 @@
 
 #include "timebase.h"
 #include "fsm.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -140,8 +140,8 @@ void pcu_api_ams_deactivate(void) {
 }
 
 precise_percentage_t pcu_api_get_precharge_percentage(void) {
-    volt_t tractive_system = internal_voltage_get_ts();
-    volt_t batt = internal_voltage_get_pack();
+    volt_t tractive_system = internal_voltage_api_get_ts();
+    volt_t batt = internal_voltage_api_get_pack();
 
     if (batt == 0) {
         return 0;
@@ -177,12 +177,12 @@ EAGLETRT_STATIC char *pcu_module_name = "pcu";
 
 EAGLETRT_STATIC char *pcu_return_code_name[] = {
     [PCU_RC_OK] = "ok",
-    [PCU_RC_NULL_POINTER] = "null pointer",
+    [PCU_RC_NULL_POINTER] = "null pointer"
 };
 
 EAGLETRT_STATIC char *pcu_return_code_description[] = {
     [PCU_RC_OK] = "executed succesfully",
-    [PCU_RC_NULL_POINTER] = "attempt to dereference a NULL pointer",
+    [PCU_RC_NULL_POINTER] = "attempt to dereference a NULL pointer"
 };
 
 #endif // CONF_PCU_STRING_ENABLE

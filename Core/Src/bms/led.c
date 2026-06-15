@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include "identity.h"
+#include "identity-api.h"
 
 #ifdef CONF_LED_MODULE_ENABLE
 
@@ -43,16 +43,16 @@ LedReturnCode led_toggle_status(const LedId id) {
 
 #ifdef CONF_LED_STRINGS_ENABLE
 
-_STATIC char * led_module_name = "led";
+_STATIC char *led_module_name = "led";
 
-_STATIC char * led_return_code_name[] = {
+_STATIC char *led_return_code_name[] = {
     [LED_OK] = "ok",
     [LED_NULL_POINTER] = "null pointer",
     [LED_INVALID_ID] = "invalid id",
     [LED_INVALID_STATUS] = "invalid status"
 };
 
-_STATIC char * led_return_code_description[] = {
+_STATIC char *led_return_code_description[] = {
     [LED_OK] = "executed succesfully",
     [LED_NULL_POINTER] = "attempt to dereference a NULL pointer",
     [LED_INVALID_ID] = "the led identifier does not correspond to any existing led",

@@ -11,7 +11,7 @@
 #include "fsm.h"
 #include "fff.h"
 #include "timebase.h"
-#include "internal-voltage.h"
+#include "internal-voltage-api.h"
 DEFINE_FFF_GLOBALS;
 
 #include <stdint.h>
@@ -19,7 +19,7 @@ DEFINE_FFF_GLOBALS;
 #include <string.h>
 
 extern struct PcuHandler pcu_handler;
-extern _InternalVoltageHandler internal_volt_handler;
+extern struct InternalVoltageHandler internal_volt_handler;
 
 extern void prv_pcu_api_airn_timeout(void);
 extern void prv_pcu_api_precharge_timeout(void);

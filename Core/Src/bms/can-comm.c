@@ -11,16 +11,16 @@
 #include <string.h>
 
 #include "fsm.h"
-#include "programmer.h"
+#include "programmer-api.h"
 #include "watchdog.h"
 #include "timebase.h"
-#include "current.h"
+#include "current-api.h"
 #include "pcu-api.h"
-#include "identity.h"
-#include "volt.h"
-#include "temp.h"
-#include "bal.h"
-#include "error.h"
+#include "volt-api.h"
+#include "identity-api.h"
+#include "temp-api.h"
+#include "bal-api.h"
+#include "error-api.h"
 
 #include "canlib_device.h"
 
@@ -35,7 +35,7 @@ _STATIC _CanCommHandler hcan_comm;
  *
  * @return error_instance_t The error instance or 0 on error
  */
-error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork network) {
+error_instance _can_comm_get_error_instance_from_network(const CanNetwork network) {
     switch (network) {
         case CAN_NETWORK_BMS:
             return ERROR_CAN_COMMUNICATION_INSTANCE_BMS;
@@ -52,28 +52,28 @@ error_instance_t _can_comm_get_error_instance_from_network(const CanNetwork netw
  * @brief Handle the message payload received from the BMS internal CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
 can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can_index_t index) {
     switch (index) {
         case BMS_CELLBOARD_CELLS_VOLTAGE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)volt_cells_voltage_handle;
+            return (can_comm_canlib_payload_handle_callback_t)volt_api_cells_voltage_handle;
         case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)temp_cells_temperature_handle;
+            return (can_comm_canlib_payload_handle_callback_t)temp_api_cells_temperature_handle;
         case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_cellboard_flash_response_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_api_cellboard_flash_response_handle;
         case BMS_CELLBOARD_STATUS_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
         case BMS_CELLBOARD_VERSION_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)identity_cellboard_version_handle;
+            return (can_comm_canlib_payload_handle_callback_t)identity_api_cellboard_version_handle;
         case BMS_CELLBOARD_BALANCING_STATUS_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_cellboard_balancing_status_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_cellboard_balancing_status_handle;
         case BMS_IVT_MSG_RESULT_I_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)current_handle;
+            return (can_comm_canlib_payload_handle_callback_t)current_api_handle;
         case BMS_CELLBOARD_ERROR_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)error_cellboard_handle;
+            return (can_comm_canlib_payload_handle_callback_t)error_api_cellboard_handle;
         default:
             return NULL;
     }
@@ -83,24 +83,24 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
  * @brief Handle the message payload received from the primary CAN network of the car
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
 can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const can_index_t index) {
     switch (index) {
         case PRIMARY_HV_FLASH_REQUEST_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_flash_request_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_api_flash_request_handle;
         case PRIMARY_HV_FLASH_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)programmer_flash_handle;
+            return (can_comm_canlib_payload_handle_callback_t)programmer_api_flash_handle;
         case PRIMARY_HV_SET_STATUS_ECU_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)pcu_api_set_state_from_ecu_handle;
         case PRIMARY_HV_SET_STATUS_HANDCART_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)pcu_api_set_state_from_handcart_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_STEERING_WHEEL_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_steering_wheel_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_steering_wheel_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_HANDCART_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)bal_set_balancing_state_from_handcart_handle;
+            return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_handcart_handle;
         default:
             return NULL;
     }
@@ -110,7 +110,7 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
  * @brief Handle the message payload received from a CAN network
  *
  * @param index The canlib index of the message
- * 
+ *
  * @return can_comm_canlib_payload_handle_callback_t A pointer to the function callback used to handle the canlib payload
  * or NULL if the index is not valid
  */
@@ -361,7 +361,7 @@ CanCommReturnCode can_comm_routine(void) {
                 // Do nothing
                 break;
             case CAN_COMM_OK:
-                (void)error_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
+                (void)error_api_reset(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));
                 break;
             default:
                 // (void)error_set(ERROR_GROUP_CAN_COMMUNICATION, _can_comm_get_error_instance_from_network(tx_msg.network));

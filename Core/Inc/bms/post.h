@@ -13,7 +13,7 @@
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 
-#include "error.h"
+#include "error-api.h"
 #include "can-comm.h"
 #include "led.h"
 #include "imd.h"
