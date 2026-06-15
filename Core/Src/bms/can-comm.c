@@ -15,7 +15,7 @@
 #include "watchdog.h"
 #include "timebase.h"
 #include "current-api.h"
-#include "pcu.h"
+#include "pcu-api.h"
 #include "volt-api.h"
 #include "identity-api.h"
 #include "temp-api.h"
@@ -62,6 +62,10 @@ can_comm_canlib_payload_handle_callback_t _can_comm_bms_payload_handle(const can
             return (can_comm_canlib_payload_handle_callback_t)volt_api_cells_voltage_handle;
         case BMS_CELLBOARD_CELLS_TEMPERATURE_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)temp_api_cells_temperature_handle;
+        case BMS_CELLBOARD_FLASH_RESPONSE_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)programmer_api_cellboard_flash_response_handle;
+        case BMS_CELLBOARD_STATUS_INDEX:
+            return (can_comm_canlib_payload_handle_callback_t)fsm_cellboard_state_handle;
         case BMS_CELLBOARD_VERSION_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)identity_api_cellboard_version_handle;
         case BMS_CELLBOARD_BALANCING_STATUS_INDEX:
@@ -90,9 +94,9 @@ can_comm_canlib_payload_handle_callback_t _can_comm_primary_payload_handle(const
         case PRIMARY_HV_FLASH_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)programmer_api_flash_handle;
         case PRIMARY_HV_SET_STATUS_ECU_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_ecu_handle;
+            return (can_comm_canlib_payload_handle_callback_t)pcu_api_set_state_from_ecu_handle;
         case PRIMARY_HV_SET_STATUS_HANDCART_INDEX:
-            return (can_comm_canlib_payload_handle_callback_t)pcu_set_state_from_handcart_handle;
+            return (can_comm_canlib_payload_handle_callback_t)pcu_api_set_state_from_handcart_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_STEERING_WHEEL_INDEX:
             return (can_comm_canlib_payload_handle_callback_t)bal_api_set_balancing_state_from_steering_wheel_handle;
         case PRIMARY_HV_SET_BALANCING_STATUS_HANDCART_INDEX:
