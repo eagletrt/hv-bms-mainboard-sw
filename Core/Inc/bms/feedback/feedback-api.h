@@ -192,11 +192,11 @@ const char *const feedback_api_get_feedback_id_name(enum FeedbackId id);
 
 #else // CONF_FEEDBACK_MODULE_ENABLE
 
-#define feedback_api_init(read_all, start_conversion) (FEEDBACK_OK)
-#define feedback_api_update_digital_feedback_all() (FEEDBACK_OK)
-#define feedback_api_start_analog_conversion_all() (FEEDBACK_OK)
-#define feedback_api_update_analog_feedback(index, value) (FEEDBACK_OK)
-#define feedback_api_update_status() (FEEDBACK_OK)
+#define feedback_api_init(read_all, start_conversion) (FEEDBACK_RC_OK)
+#define feedback_api_update_digital_feedback_all() (FEEDBACK_RC_OK)
+#define feedback_api_start_analog_conversion_all() (FEEDBACK_RC_OK)
+#define feedback_api_update_analog_feedback(index, value) (FEEDBACK_RC_OK)
+#define feedback_api_update_status() (FEEDBACK_RC_OK)
 #define feedback_api_get_digital(bit) (false)
 #define feedback_api_get_analog(index) (0.f)
 #define feedback_api_get_status(id) (FEEDBACK_STATUS_ERROR)

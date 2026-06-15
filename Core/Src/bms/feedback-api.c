@@ -438,15 +438,15 @@ primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(const 
 EAGLETRT_STATIC char *feedback_module_name = "feedback";
 
 EAGLETRT_STATIC char *feedback_return_code_name[] = {
-    [FEEDBACK_OK] = "ok",
-    [FEEDBACK_NULL_POINTER] = "null pointer",
-    [FEEDBACK_INVALID_INDEX] = "invalid index"
+    [FEEDBACK_RC_OK] = "ok",
+    [FEEDBACK_RC_NULL_POINTER] = "null pointer",
+    [FEEDBACK_RC_INVALID_INDEX] = "invalid index"
 };
 
 EAGLETRT_STATIC char *feedback_return_code_description[] = {
-    [FEEDBACK_OK] = "executed succesfully",
-    [FEEDBACK_NULL_POINTER] = "attempt to dereference a null pointer",
-    [FEEDBACK_INVALID_INDEX] = "the given index is not valid"
+    [FEEDBACK_RC_OK] = "executed succesfully",
+    [FEEDBACK_RC_NULL_POINTER] = "attempt to dereference a null pointer",
+    [FEEDBACK_RC_INVALID_INDEX] = "the given index is not valid"
 };
 
 EAGLETRT_STATIC char *feedback_id_name[] = {

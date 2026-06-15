@@ -254,7 +254,7 @@ enum FeedbackReturnCode {
 /*!
  * \brief Type definition of the feedback identifiers
  */
-enum FeedbackId : int8_t {
+enum FeedbackId : uint8_t {
     FEEDBACK_ID_AIRN_OPEN_COM = 0,         /*!< Opposite of the AIR- commanded state */
     FEEDBACK_ID_PRECHARGE_OPEN_COM,        /*!< Opposite of the PRECHARGE commanded state */
     FEEDBACK_ID_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
@@ -292,7 +292,7 @@ enum FeedbackId : int8_t {
  * \details Can be used to change or check bit flags, the feedback id is used as
  * the position of the bit
  */
-enum FeedbackBit : int32_t {
+enum FeedbackBit : uint32_t {
     FEEDBACK_BIT_AIRN_OPEN_COM = (1U << FEEDBACK_ID_AIRN_OPEN_COM),                         /*!< Opposite of the AIR- commanded state (bit definition)*/
     FEEDBACK_BIT_PRECHARGE_OPEN_COM = (1U << FEEDBACK_ID_PRECHARGE_OPEN_COM),               /*!< Opposite of the PRECHARGE commanded state (bit definition)*/
     FEEDBACK_BIT_AIRP_OPEN_COM = (1U << FEEDBACK_ID_AIRP_OPEN_COM),                         /*!< Opposite of the AIR+ commanded state (bit definition)*/
@@ -325,7 +325,7 @@ enum FeedbackBit : int32_t {
 /*!
  * \brief Bit position of the digital feedbacks inside the bit flag
  */
-enum FeedbackDigitalBit : int8_t {
+enum FeedbackDigitalBit : uint8_t {
     FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM = 0U,        /*!< Opposite of the AIR- commanded state */
     FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
     FEEDBACK_DIGITAL_BIT_SD_IMD_FB,                 /*!< Shutdown IMD node feedback */
@@ -350,7 +350,7 @@ enum FeedbackDigitalBit : int8_t {
 /*!
  * \brief Indices of the analog feedbacks
  */
-enum FeedbackAnalogIndex : int8_t {
+enum FeedbackAnalogIndex : uint8_t {
     FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC = 0U, /*!< Mechanical status of the AIR- */
     FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC,      /*!< Mechanical status of the AIR+ */
     FEEDBACK_ANALOG_INDEX_IMD_OK,             /*!< Status of the IMD */
@@ -368,7 +368,7 @@ enum FeedbackAnalogIndex : int8_t {
 /*!
  * \brief Status of the feedbacks
  */
-enum FeedbackStatus : int8_t {
+enum FeedbackStatus : uint8_t {
     FEEDBACK_STATUS_LOW,   /*!< The feedback value is considered as logically low */
     FEEDBACK_STATUS_ERROR, /*!< The feedback value is not in a valid state */
     FEEDBACK_STATUS_HIGH   /*!< The feedback value is considered as logically high */
