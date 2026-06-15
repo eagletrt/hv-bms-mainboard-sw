@@ -375,6 +375,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
                         FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
                         FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
                         &feedback_id);
+                    [[fallthrough]];
                     // !!! BREAK INTENTIONALLY MISSING !!!
                 case FSM_EVENT_TYPE_TS_OFF:
                     next_state = FSM_STATE_IDLE;
@@ -469,6 +470,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
                         FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
                         &feedback_id);
                     // !!! BREAK INTENTIONALLY MISSING !!!
+                    [[fallthrough]];
                 case FSM_EVENT_TYPE_TS_OFF:
                     next_state = FSM_STATE_IDLE;
                     break;
@@ -553,6 +555,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
                         FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
                         &feedback_id);
                     // !!! BREAK INTENTIONALLY MISSING !!!
+                    [[fallthrough]];
                 case FSM_EVENT_TYPE_TS_OFF:
                     next_state = FSM_STATE_IDLE;
                     break;
