@@ -19,7 +19,7 @@
 #include "imd.h"
 #include "pcu.h"
 #include "feedback.h"
-#include "display.h"
+#include "display-api.h"
 
 /**
  * @brief Return code for the post module functions
@@ -72,8 +72,8 @@ typedef struct {
     pcu_toggle_state_callback_t pcu_toggle;
     feedback_read_digital_all_callback_t feedback_read_all;
     feedback_start_analog_conversion_callback_t feedback_start_conversion;
-    display_segment_set_state_callback_t display_set;
-    display_segment_toggle_state_callback_t display_toggle;
+    display_segment_set_state_callback display_set;
+    display_segment_toggle_state_callback display_toggle;
     spi_send_callback_t spi_send;
     spi_send_receive_callback_t spi_send_receive;
 } PostInitData;
