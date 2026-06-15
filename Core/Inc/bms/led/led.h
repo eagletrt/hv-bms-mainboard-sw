@@ -41,14 +41,14 @@ enum LedId {
  * \param led The LED to select
  * \param state The state to set the LED to
  */
-typedef void (*led_set_state_callback_t)(const enum LedId led, const enum LedStatus state);
+typedef void (*led_set_state_callback)(const enum LedId led, const enum LedStatus state);
 
 /*!
  * \brief Callback used to toggle the state of the LED
  *
  * \param led The LED to select
  */
-typedef void (*led_toggle_state_callback_t)(const enum LedId led);
+typedef void (*led_toggle_state_callback)(const enum LedId led);
 
 /*!
  * \brief Return code for the LED module functions
@@ -66,8 +66,8 @@ enum LedReturnCode {
  * \warning This structure should never be used outside of this file
  */
 struct LedHandler {
-    led_set_state_callback_t set;       /*!< A pointer to the function callback used to set the led state */
-    led_toggle_state_callback_t toggle; /*!< A pointer to the function callback used to toggle the led state */
+    led_set_state_callback set;       /*!< A pointer to the function callback used to set the led state */
+    led_toggle_state_callback toggle; /*!< A pointer to the function callback used to toggle the led state */
 };
 
 #endif // LED_H

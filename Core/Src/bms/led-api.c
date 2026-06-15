@@ -15,7 +15,7 @@
 
 EAGLETRT_STATIC struct LedHandler led_handler;
 
-enum LedReturnCode led_init(const led_set_state_callback_t set, const led_toggle_state_callback_t toggle) {
+enum LedReturnCode led_init(const led_set_state_callback set, const led_toggle_state_callback toggle) {
     if (set == NULL || toggle == NULL) {
         return LED_RC_NULL_POINTER;
     }

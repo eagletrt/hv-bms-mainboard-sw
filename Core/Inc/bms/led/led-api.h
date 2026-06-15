@@ -25,7 +25,7 @@
  * \retval LED_RC_NULL_POINTER if the set or toggle callbacks are NULL
  * \retval LED_RC_OK otherwise
  */
-enum LedReturnCode led_init(led_set_state_callback_t set, led_toggle_state_callback_t toggle);
+enum LedReturnCode led_init(led_set_state_callback set, led_toggle_state_callback toggle);
 
 /*!
  * \brief Set the status of the selected LED
