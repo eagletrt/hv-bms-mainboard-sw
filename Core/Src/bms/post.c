@@ -44,7 +44,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
      * always OK or some assertion can be made (like for the NULL checks)
      */
     (void)timebase_init(1U);
-    (void)pcu_init(data->pcu_set, data->pcu_toggle);
+    (void)pcu_api_init(data->pcu_set, data->pcu_toggle);
     (void)volt_api_init();
     (void)current_api_init();
     (void)can_comm_init(data->can_send);
@@ -59,7 +59,7 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
 }
 
 PostReturnCode _post_module_setup(void) {
-    pcu_reset_all();
+    pcu_api_reset_all();
     timebase_set_enable(true);
     can_comm_enable_all();
 

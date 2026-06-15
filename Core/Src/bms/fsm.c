@@ -444,7 +444,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
     (void)can_comm_routine();
 
     // Display the precharge percentage from 0 to 10 (in hex)
-    const percentage_t perc = (percentage_t)floorf(pcu_get_precharge_percentage() * 10.f);
+    const percentage_t perc = (percentage_t)floorf(pcu_api_get_precharge_percentage() * 10.f);
     (void)display_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
     (void)display_set_digit(perc);
 
@@ -490,7 +490,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data) {
                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
                  &id) &&
-             pcu_is_precharge_complete()) {
+             pcu_api_is_precharge_complete()) {
         next_state = FSM_STATE_AIRP_CHECK;
     }
 
@@ -688,7 +688,7 @@ void fsm_idle_to_fatal(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // Activate the AMS
-    pcu_ams_activate();
+    pcu_api_ams_activate();
     /*** USER CODE END IDLE_TO_FATAL ***/
 }
 
@@ -723,7 +723,7 @@ void fsm_close_airn(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // Close the AIR-
-    pcu_airn_close();
+    pcu_api_airn_close();
     /*** USER CODE END CLOSE_AIRN ***/
 }
 
@@ -741,11 +741,11 @@ void fsm_handle_fatal_error(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // Activate the AMS
-    pcu_ams_activate();
+    pcu_api_ams_activate();
 
-    pcu_precharge_stop();
-    pcu_airn_open();
-    pcu_airp_open();
+    pcu_api_precharge_stop();
+    pcu_api_airn_open();
+    pcu_api_airp_open();
 
     // Stop balancing in case it is running
     (void)bal_api_stop();
@@ -782,7 +782,7 @@ void fsm_ts_off(fsm_state_data_t *data) {
     /*** USER CODE BEGIN TS_OFF ***/
     MAINBOARD_UNUSED(data);
 
-    pcu_reset_all();
+    pcu_api_reset_all();
     /*** USER CODE END TS_OFF ***/
 }
 
@@ -794,8 +794,8 @@ void fsm_start_precharge(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // Stop the AIR- watchdog and start the precharge
-    pcu_airn_stop_watchdog();
-    pcu_precharge_start();
+    pcu_api_airn_stop_watchdog();
+    pcu_api_precharge_start();
     /*** USER CODE END START_PRECHARGE ***/
 }
 
@@ -807,8 +807,8 @@ void fsm_close_airp(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // Stop the precharge watchdog and close the AIR+
-    pcu_precharge_stop_watchdog();
-    pcu_airp_close();
+    pcu_api_precharge_stop_watchdog();
+    pcu_api_airp_close();
     /*** USER CODE END CLOSE_AIRP ***/
 }
 
@@ -820,7 +820,7 @@ void fsm_ts_on(fsm_state_data_t *data) {
     MAINBOARD_UNUSED(data);
 
     // Stop the AIR+ watchdog
-    pcu_airp_stop_watchdog();
+    pcu_api_airp_stop_watchdog();
     /*** USER CODE END TS_ON ***/
 }
 

@@ -32,7 +32,7 @@ extern "C" {
 
 #include "led.h"
 #include "display.h"
-#include "pcu.h"
+#include "pcu-api.h"
 
 /* USER CODE END Includes */
 
@@ -80,14 +80,14 @@ void gpio_display_segment_toggle_state(const DisplaySegment segment);
  * @param pin The pin to select
  * @parma state The new state of the pin to set
  */
-void gpio_pcu_set_state(const PcuPin pin, const PcuPinStatus state);
+void gpio_pcu_set_state(const enum PcuPin pin, const enum PcuPinStatus state);
 
 /**
  * @brief Toggle the state of a pin controlled by the PCU
  *
  * @param pin The pin to select
  */
-void gpio_pcu_toggle_state(const PcuPin pin);
+void gpio_pcu_toggle_state(const enum PcuPin pin);
 
 /**
  * @brief Read all the digital feedbacks in one go
@@ -102,4 +102,3 @@ bit_flag32_t gpio_feedback_read_all(void);
 }
 #endif
 #endif /*__ GPIO_H__ */
-
