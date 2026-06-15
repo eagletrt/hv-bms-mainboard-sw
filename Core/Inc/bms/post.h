@@ -15,7 +15,7 @@
 
 #include "error-api.h"
 #include "can-comm.h"
-#include "led.h"
+#include "led-api.h"
 #include "imd.h"
 #include "pcu.h"
 #include "feedback.h"

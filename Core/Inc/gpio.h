@@ -30,7 +30,7 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
-#include "led.h"
+#include "led-api.h"
 #include "display.h"
 #include "pcu.h"
 
@@ -50,14 +50,14 @@ void MX_GPIO_Init(void);
  * @param led The LED to select
  * @param state The new state of the LED to set
  */
-void gpio_led_set_state(const LedId led, const LedStatus state);
+void gpio_led_set_state(const enum LedId led, const enum LedStatus state);
 
 /**
  * @brief Toggle the state of a LED
  *
  * @param led The LED to select
  */
-void gpio_led_toggle_state(const LedId led);
+void gpio_led_toggle_state(const enum LedId led);
 
 /**
  * @brief Set the state of a segment of the 7-segment display
@@ -102,4 +102,3 @@ bit_flag32_t gpio_feedback_read_all(void);
 }
 #endif
 #endif /*__ GPIO_H__ */
-
