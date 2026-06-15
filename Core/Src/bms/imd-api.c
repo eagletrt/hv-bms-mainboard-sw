@@ -75,6 +75,7 @@ primary_hv_imd_status_converted_t *imd_get_status_canlib_payload(size_t *const b
     }
     // The value of the IMD status of the canlib differs by one from the IMD status
     // of the BMS
+    // TODO: fix when canlib is updated
     imd_handler.status_can_payload.status = (primary_hv_imd_status_status)(imd_get_status() + 1U);
     imd_handler.status_can_payload.frequency = imd_get_frequency();
     imd_handler.status_can_payload.duty_cycle = imd_get_duty_cycle();
@@ -111,10 +112,12 @@ EAGLETRT_STATIC char *imd_status_name[] = {
 };
 
 const char *const imd_get_imd_status_name(const enum ImdStatus status) {
-    if (status > IMD_STATUS_COUNT)
+    if (status > IMD_STATUS_COUNT) {
         return "unknown";
-    if (status == IMD_STATUS_UNKNOWN)
+    }
+    if (status == IMD_STATUS_UNKNOWN) {
         return imd_status_unknown_name;
+    }
     return imd_status_name[status];
 }
 

@@ -4,7 +4,7 @@
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Insulation Monitoring Device (IMD) handing functions
+ * \brief Insulation Monitoring Device (IMD) handling functions
  */
 
 #ifndef IMD_API_H
