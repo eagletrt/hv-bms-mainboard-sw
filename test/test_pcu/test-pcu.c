@@ -28,11 +28,6 @@ extern void prv_pcu_api_airp_timeout(void);
 FAKE_VOID_FUNC(pcu_set, const enum PcuPin, const enum PcuPinStatus);
 FAKE_VOID_FUNC(pcu_toggle, const enum PcuPin);
 
-static inline void assert_set_call(const uint32_t idx, const enum PcuPin pin, const enum PcuPinStatus status, const char *msg) {
-    TEST_ASSERT_EQUAL_MESSAGE(pin, pcu_set_fake.arg0_history[idx], msg);
-    TEST_ASSERT_EQUAL_MESSAGE(status, pcu_set_fake.arg1_history[idx], msg);
-}
-
 void test_pcu_init_null_set_callback(void) {
     TEST_ASSERT_EQUAL_MESSAGE(PCU_RC_NULL_POINTER, pcu_api_init(NULL, pcu_toggle), "pcu_init should return PCU_NULL_POINTER when set callback is NULL");
 }
@@ -51,10 +46,12 @@ void test_pcu_init_ok(void) {
     TEST_ASSERT_EQUAL_MESSAGE(FSM_EVENT_TYPE_IGNORED, pcu_handler.event.type, "the toggle function should be initialized");
 
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(4U, pcu_set_fake.call_count, "pcu_init should reset  pins");
-    assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH, "AIR- default state mismatch");
-    assert_set_call(1U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH, "Precharge default state mismatch");
-    assert_set_call(2U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH, "AIR+ default state mismatch");
-    assert_set_call(3U, PCU_PIN_AMS, PCU_PIN_STATUS_HIGH, "AMS default state mismatch");
+
+    enum PcuPin expected_pins[] = { PCU_PIN_AIR_NEGATIVE, PCU_PIN_PRECHARGE, PCU_PIN_AIR_POSITIVE, PCU_PIN_AMS };
+    enum PcuPinStatus expected_status[] = { PCU_PIN_STATUS_HIGH, PCU_PIN_STATUS_HIGH, PCU_PIN_STATUS_HIGH, PCU_PIN_STATUS_HIGH };
+
+    TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(expected_status, pcu_set_fake.arg1_history, 4, "Wrong init calls");
+    TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(expected_pins, pcu_set_fake.arg0_history, 4, "Wrong init calls");
 }
 
 void test_pcu_reset_all_sets_default_pins_high(void) {
@@ -62,10 +59,12 @@ void test_pcu_reset_all_sets_default_pins_high(void) {
     pcu_api_reset_all();
 
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(4U, pcu_set_fake.call_count, "pcu_reset_all should write 4 pins");
-    assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH, "AIR- reset mismatch");
-    assert_set_call(1U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH, "Precharge reset mismatch");
-    assert_set_call(2U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH, "AIR+ reset mismatch");
-    assert_set_call(3U, PCU_PIN_AMS, PCU_PIN_STATUS_HIGH, "AMS reset mismatch");
+
+    enum PcuPin expected_pins[] = { PCU_PIN_AIR_NEGATIVE, PCU_PIN_PRECHARGE, PCU_PIN_AIR_POSITIVE, PCU_PIN_AMS };
+    enum PcuPinStatus expected_status[] = { PCU_PIN_STATUS_HIGH, PCU_PIN_STATUS_HIGH, PCU_PIN_STATUS_HIGH, PCU_PIN_STATUS_HIGH };
+
+    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(expected_pins, pcu_set_fake.arg0_history, 4, "Wrong reset calls");
+    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(expected_status, pcu_set_fake.arg1_history, 4, "Wrong reset calls");
 }
 
 void test_pcu_airn_open_sets_high(void) {
@@ -73,7 +72,8 @@ void test_pcu_airn_open_sets_high(void) {
     pcu_api_airn_open();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH, "pcu_airn_open mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_AIR_NEGATIVE, pcu_set_fake.arg0_history[0], "pcu_airn_open should set AIR- pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_HIGH, pcu_set_fake.arg1_history[0], "pcu_airn_open should set AIR- pin high");
 }
 
 void test_pcu_airn_close_sets_low(void) {
@@ -81,7 +81,8 @@ void test_pcu_airn_close_sets_low(void) {
     pcu_api_airn_close();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_LOW, "pcu_airn_close mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_AIR_NEGATIVE, pcu_set_fake.arg0_history[0], "pcu_airn_close should set AIR- pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_LOW, pcu_set_fake.arg1_history[0], "pcu_airn_close should set AIR- pin low");
 }
 
 void test_pcu_airp_open_sets_high(void) {
@@ -89,7 +90,8 @@ void test_pcu_airp_open_sets_high(void) {
     pcu_api_airp_open();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH, "pcu_airp_open mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_AIR_POSITIVE, pcu_set_fake.arg0_history[0], "pcu_airp_open should set AIR+ pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_HIGH, pcu_set_fake.arg1_history[0], "pcu_airp_open should set AIR+ pin high");
 }
 
 void test_pcu_airp_close_sets_low(void) {
@@ -97,7 +99,8 @@ void test_pcu_airp_close_sets_low(void) {
     pcu_api_airp_close();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW, "pcu_airp_close mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_AIR_POSITIVE, pcu_set_fake.arg0_history[0], "pcu_airp_close should set AIR+ pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_LOW, pcu_set_fake.arg1_history[0], "pcu_airp_close should set AIR+ pin low");
 }
 
 void test_pcu_precharge_start_sets_low(void) {
@@ -105,7 +108,8 @@ void test_pcu_precharge_start_sets_low(void) {
     pcu_api_precharge_start();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW, "pcu_precharge_start mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_PRECHARGE, pcu_set_fake.arg0_history[0], "pcu_precharge_start should set PRECHARGE pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_LOW, pcu_set_fake.arg1_history[0], "pcu_precharge_start should set PRECHARGE pin low");
 }
 
 void test_pcu_precharge_stop_sets_high(void) {
@@ -113,7 +117,8 @@ void test_pcu_precharge_stop_sets_high(void) {
     pcu_api_precharge_stop();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH, "pcu_precharge_stop mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_PRECHARGE, pcu_set_fake.arg0_history[0], "pcu_precharge_stop should set PRECHARGE pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_HIGH, pcu_set_fake.arg1_history[0], "pcu_precharge_stop should set PRECHARGE pin high");
 }
 
 void test_pcu_ams_activate_sets_low(void) {
@@ -121,7 +126,8 @@ void test_pcu_ams_activate_sets_low(void) {
     pcu_api_ams_activate();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_AMS, PCU_PIN_STATUS_LOW, "pcu_ams_activate mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_AMS, pcu_set_fake.arg0_history[0], "pcu_ams_activate should set AMS pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_LOW, pcu_set_fake.arg1_history[0], "pcu_ams_activate should set AMS pin low");
 }
 
 void test_pcu_ams_deactivate_sets_high(void) {
@@ -129,7 +135,8 @@ void test_pcu_ams_deactivate_sets_high(void) {
     pcu_api_ams_deactivate();
 
     TEST_ASSERT_EQUAL_UINT32(1U, pcu_set_fake.call_count);
-    assert_set_call(0U, PCU_PIN_AMS, PCU_PIN_STATUS_HIGH, "pcu_ams_deactivate mismatch");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_AMS, pcu_set_fake.arg0_history[0], "pcu_ams_deactivate should set AMS pin");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(PCU_PIN_STATUS_HIGH, pcu_set_fake.arg1_history[0], "pcu_ams_deactivate should set AMS pin high");
 }
 
 void test_prv_pcu_api_airn_timeout_sets_event_type(void) {
