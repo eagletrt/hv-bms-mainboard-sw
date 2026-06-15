@@ -18,7 +18,7 @@
 #include "feedback.h"
 #include "internal-voltage-api.h"
 #include "bal-api.h"
-#include "imd.h"
+#include "imd-api.h"
 #include "temp-api.h"
 #include "error-api.h"
 #include "cooling-temp-api.h"
@@ -297,7 +297,7 @@ TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)
         resolution = 1U;
 
-    // Initialize the tasks with the X macro
+        // Initialize the tasks with the X macro
 #define TASKS_X(NAME, ENABLED, START, INTERVAL, EXEC)                                                 \
     do {                                                                                              \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].enabled = (ENABLED);                                     \

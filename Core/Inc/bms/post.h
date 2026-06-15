@@ -16,7 +16,7 @@
 #include "error-api.h"
 #include "can-comm.h"
 #include "led.h"
-#include "imd.h"
+#include "imd-api.h"
 #include "pcu.h"
 #include "feedback.h"
 #include "display.h"
@@ -67,7 +67,7 @@ typedef struct {
     can_comm_transmit_callback_t can_send;
     led_set_state_callback_t led_set;
     led_toggle_state_callback_t led_toggle;
-    imd_pwm_start_callback_t imd_start;
+    imd_pwm_start_callback imd_start;
     pcu_set_state_callback_t pcu_set;
     pcu_toggle_state_callback_t pcu_toggle;
     feedback_read_digital_all_callback_t feedback_read_all;
