@@ -1,0 +1,296 @@
+/*!
+ * \file test_can-comm.c
+ * \date 2024-06-23
+ * \author Alessandro Giustina [giustinalessandro@gmail.com]
+ *
+ * \brief Test functions for the can-comm module
+ */
+
+#include "unity.h"
+#include "can-comm-api.h"
+#include "identity-api.h"
+#include "mainboard-def.h"
+#include "fff.h"
+DEFINE_FFF_GLOBALS;
+
+/* Updated signature: now includes CanNetwork as first parameter */
+FAKE_VALUE_FUNC(enum CanCommReturnCode, send, CanNetwork, can_id_t, CanFrameType, const uint8_t *, size_t);
+
+extern struct CanCommHandler can_comm_handler;
+
+// --- init ---
+
+void test_can_comm_init_null_send(void) {
+    enum CanCommReturnCode code = can_comm_init(NULL);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_NULL_POINTER, code, "can_comm_init should return CAN_COMM_RC_NULL_POINTER when send callback is NULL");
+}
+
+void test_can_comm_init_ok(void) {
+    enum CanCommReturnCode code = can_comm_init(send);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_OK, code, "can_comm_init should return CAN_COMM_RC_OK with a valid send callback");
+    TEST_ASSERT_EQUAL_MESSAGE(0x00, can_comm_handler.enabled, "can_comm_init should leave the handler in the disabled state");
+}
+
+// --- enable/disable all ---
+
+void test_can_comm_enable_all(void) {
+    can_comm_enable_all();
+
+    TEST_ASSERT_EQUAL_MESSAGE(0x03, can_comm_handler.enabled, "can_comm_enable_all should set the enabled bitmask to 0x03");
+}
+
+void test_can_comm_disable_all(void) {
+    can_comm_enable_all();
+    can_comm_disable_all();
+
+    TEST_ASSERT_EQUAL_MESSAGE(0x00, can_comm_handler.enabled, "can_comm_disable_all should clear the enabled bitmask to 0x00");
+}
+
+// --- enable/disable single bit ---
+
+void test_can_comm_enable_sets_bits(void) {
+    can_comm_enable(0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(0b01, can_comm_handler.enabled, "can_comm_enable should set each bit individually");
+}
+
+void test_can_comm_disable_clears_bits(void) {
+    can_comm_enable_all();
+    can_comm_disable(0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(0b10, can_comm_handler.enabled, "can_comm_disable should clear each bit individually");
+}
+
+void test_can_comm_enable_invalid_bit(void) {
+    can_comm_enable(2);
+
+    TEST_ASSERT_EQUAL_MESSAGE(0b00, can_comm_handler.enabled, "can_comm_enable should ignore invalid bits");
+}
+
+void test_can_comm_disable_invalid_bit(void) {
+    can_comm_enable_all();
+    can_comm_disable(2);
+
+    TEST_ASSERT_EQUAL_MESSAGE(0b11, can_comm_handler.enabled, "can_comm_disable should ignore invalid bits");
+}
+
+// --- send immediate ---
+
+void test_can_comm_send_immediate_disabled(void) {
+    can_comm_disable_all();
+
+    enum CanCommReturnCode code = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_DISABLED, code, "can_comm_send_immediate should return CAN_COMM_RC_DISABLED when TX is not enabled");
+}
+
+void test_can_comm_send_immediate_invalid_network(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_send_immediate(CAN_NETWORK_COUNT, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_NETWORK, code, "can_comm_send_immediate should return CAN_COMM_RC_INVALID_NETWORK for an out-of-bounds network");
+}
+
+void test_can_comm_send_immediate_invalid_index(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_send_immediate(CAN_NETWORK_BMS, bms_MESSAGE_COUNT, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_INDEX, code, "can_comm_send_immediate should return CAN_COMM_RC_INVALID_INDEX for an out-of-bounds index");
+}
+
+void test_can_comm_send_immediate_invalid_frame_type(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_COUNT + 1, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_FRAME_TYPE, code, "can_comm_send_immediate should return CAN_COMM_RC_INVALID_FRAME_TYPE for an invalid frame type");
+}
+
+void test_can_comm_send_immediate_null_data(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, NULL, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_NULL_POINTER, code, "can_comm_send_immediate should return CAN_COMM_RC_NULL_POINTER when data is NULL");
+}
+
+void test_can_comm_send_immediate_ok(void) {
+    send_fake.return_val = CAN_COMM_RC_OK;
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_send_immediate(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_OK, code, "can_comm_send_immediate should return CAN_COMM_RC_OK with valid parameters");
+    TEST_ASSERT_EQUAL_MESSAGE(1, send_fake.call_count, "can_comm_send_immediate should invoke the send callback exactly once");
+}
+
+void test_can_comm_send_immediate_invalid_payload_size(void) {
+    TEST_IGNORE_MESSAGE("Test for invalid payload size is currently disabled due to TODO in can_comm_send_immediate");
+}
+
+// --- rx add ---
+
+void test_can_comm_rx_add_disabled(void) {
+    can_comm_disable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_DISABLED, code, "can_comm_rx_add should return CAN_COMM_RC_DISABLED when RX is not enabled");
+}
+
+void test_can_comm_rx_add_invalid_network(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_COUNT, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_NETWORK, code, "can_comm_rx_add should return CAN_COMM_RC_INVALID_NETWORK for an out-of-bounds network");
+}
+
+void test_can_comm_rx_add_invalid_index(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_BMS, bms_MESSAGE_COUNT, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_INDEX, code, "can_comm_rx_add should return CAN_COMM_RC_INVALID_INDEX for an out-of-bounds index");
+}
+
+void test_can_comm_rx_add_null_data(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, NULL, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_NULL_POINTER, code, "can_comm_rx_add should return CAN_COMM_RC_NULL_POINTER when data is NULL");
+}
+
+void test_can_comm_rx_add_invalid_payload_size(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, CAN_COMM_MAX_PAYLOAD_BYTE_SIZE + 1);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_PAYLOAD_SIZE, code, "can_comm_rx_add should return CAN_COMM_RC_INVALID_PAYLOAD_SIZE when size exceeds the maximum");
+}
+
+void test_can_comm_rx_add_invalid_frame_type(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_COUNT + 1, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_FRAME_TYPE, code, "can_comm_rx_add should return CAN_COMM_RC_INVALID_FRAME_TYPE for an invalid frame type");
+}
+
+void test_can_comm_rx_add_ok(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_rx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_OK, code, "can_comm_rx_add should return CAN_COMM_RC_OK with valid parameters");
+    TEST_ASSERT_TRUE_MESSAGE(can_comm_handler.rx_busy[CAN_NETWORK_BMS][0], "can_comm_rx_add should set the rx_busy flag for the given network and index");
+}
+
+// --- tx add ---
+
+void test_can_comm_tx_add_disabled(void) {
+    can_comm_disable_all();
+
+    enum CanCommReturnCode code = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_DISABLED, code, "can_comm_tx_add should return CAN_COMM_RC_DISABLED when TX is not enabled");
+}
+
+void test_can_comm_tx_add_invalid_network(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_tx_add(CAN_NETWORK_COUNT, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_NETWORK, code, "can_comm_tx_add should return CAN_COMM_RC_INVALID_NETWORK for an out-of-bounds network");
+}
+
+void test_can_comm_tx_add_invalid_index(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_tx_add(CAN_NETWORK_BMS, bms_MESSAGE_COUNT, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_INDEX, code, "can_comm_tx_add should return CAN_COMM_RC_INVALID_INDEX for an out-of-bounds index");
+}
+
+void test_can_comm_tx_add_null_data(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, NULL, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_NULL_POINTER, code, "can_comm_tx_add should return CAN_COMM_RC_NULL_POINTER when data is NULL");
+}
+
+void test_can_comm_tx_add_invalid_frame_type(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_COUNT + 1, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_INVALID_FRAME_TYPE, code, "can_comm_tx_add should return CAN_COMM_RC_INVALID_FRAME_TYPE for an invalid frame type");
+}
+
+void test_can_comm_tx_add_ok(void) {
+    can_comm_enable_all();
+
+    enum CanCommReturnCode code = can_comm_tx_add(CAN_NETWORK_BMS, 0, CAN_FRAME_TYPE_DATA, (void *)0x01, 0);
+
+    TEST_ASSERT_EQUAL_MESSAGE(CAN_COMM_RC_OK, code, "can_comm_tx_add should return CAN_COMM_RC_OK with valid parameters");
+    TEST_ASSERT_TRUE_MESSAGE(can_comm_handler.tx_busy[CAN_NETWORK_BMS][0], "can_comm_tx_add should set the tx_busy flag for the given network and index");
+}
+
+void test_can_comm_tx_add_invalid_payload_size(void) {
+    TEST_IGNORE_MESSAGE("Test for invalid payload size is currently disabled due to TODO in can_comm_tx_add");
+}
+
+void setUp(void) {
+    RESET_FAKE(send);
+    can_comm_init(send);
+}
+
+void tearDown(void) {
+}
+
+int main(void) {
+    UNITY_BEGIN();
+
+    RUN_TEST(test_can_comm_init_null_send);
+    RUN_TEST(test_can_comm_init_ok);
+
+    RUN_TEST(test_can_comm_enable_all);
+    RUN_TEST(test_can_comm_disable_all);
+
+    RUN_TEST(test_can_comm_enable_sets_bits);
+    RUN_TEST(test_can_comm_disable_clears_bits);
+    RUN_TEST(test_can_comm_enable_invalid_bit);
+    RUN_TEST(test_can_comm_disable_invalid_bit);
+
+    RUN_TEST(test_can_comm_send_immediate_disabled);
+    RUN_TEST(test_can_comm_send_immediate_invalid_network);
+    RUN_TEST(test_can_comm_send_immediate_invalid_index);
+    RUN_TEST(test_can_comm_send_immediate_invalid_frame_type);
+    RUN_TEST(test_can_comm_send_immediate_null_data);
+    RUN_TEST(test_can_comm_send_immediate_ok);
+    RUN_TEST(test_can_comm_send_immediate_invalid_payload_size);
+
+    RUN_TEST(test_can_comm_rx_add_disabled);
+    RUN_TEST(test_can_comm_rx_add_invalid_network);
+    RUN_TEST(test_can_comm_rx_add_invalid_index);
+    RUN_TEST(test_can_comm_rx_add_null_data);
+    RUN_TEST(test_can_comm_rx_add_invalid_payload_size);
+    RUN_TEST(test_can_comm_rx_add_invalid_frame_type);
+    RUN_TEST(test_can_comm_rx_add_ok);
+
+    RUN_TEST(test_can_comm_tx_add_disabled);
+    RUN_TEST(test_can_comm_tx_add_invalid_network);
+    RUN_TEST(test_can_comm_tx_add_invalid_index);
+    RUN_TEST(test_can_comm_tx_add_null_data);
+    RUN_TEST(test_can_comm_tx_add_invalid_frame_type);
+    RUN_TEST(test_can_comm_tx_add_ok);
+    RUN_TEST(test_can_comm_tx_add_invalid_payload_size);
+
+    return UNITY_END();
+}

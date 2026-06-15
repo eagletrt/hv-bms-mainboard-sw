@@ -22,7 +22,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "primary_network.h"
 
 #include "post.h"
-#include "can-comm.h"
+#include "can-comm-api.h"
 #include "timebase.h"
 #include "programmer-api.h"
 #include "feedback.h"

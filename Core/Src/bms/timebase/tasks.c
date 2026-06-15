@@ -9,7 +9,7 @@
 #include "tasks.h"
 
 #include "bms_network.h"
-#include "can-comm.h"
+#include "can-comm-api.h"
 #include "identity-api.h"
 #include "timebase.h"
 #include "fsm.h"
@@ -297,7 +297,7 @@ TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)
         resolution = 1U;
 
-    // Initialize the tasks with the X macro
+        // Initialize the tasks with the X macro
 #define TASKS_X(NAME, ENABLED, START, INTERVAL, EXEC)                                                 \
     do {                                                                                              \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].enabled = (ENABLED);                                     \

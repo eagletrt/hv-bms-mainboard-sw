@@ -24,7 +24,7 @@
 
 #include <string.h>
 
-#include "can-comm.h"
+#include "can-comm-api.h"
 
 /* USER CODE END 0 */
 
@@ -32,235 +32,221 @@ CAN_HandleTypeDef hcan1;
 CAN_HandleTypeDef hcan2;
 
 /* CAN1 init function */
-void MX_CAN1_Init(void)
-{
+void MX_CAN1_Init(void) {
 
-  /* USER CODE BEGIN CAN1_Init 0 */
+    /* USER CODE BEGIN CAN1_Init 0 */
 
-  /* USER CODE END CAN1_Init 0 */
+    /* USER CODE END CAN1_Init 0 */
 
-  /* USER CODE BEGIN CAN1_Init 1 */
+    /* USER CODE BEGIN CAN1_Init 1 */
 
-  /* USER CODE END CAN1_Init 1 */
-  hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 3;
-  hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
-  hcan1.Init.TimeTriggeredMode = DISABLE;
-  hcan1.Init.AutoBusOff = DISABLE;
-  hcan1.Init.AutoWakeUp = DISABLE;
-  hcan1.Init.AutoRetransmission = DISABLE;
-  hcan1.Init.ReceiveFifoLocked = DISABLE;
-  hcan1.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CAN1_Init 2 */
-  /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+    /* USER CODE END CAN1_Init 1 */
+    hcan1.Instance = CAN1;
+    hcan1.Init.Prescaler = 3;
+    hcan1.Init.Mode = CAN_MODE_NORMAL;
+    hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
+    hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+    hcan1.Init.TimeTriggeredMode = DISABLE;
+    hcan1.Init.AutoBusOff = DISABLE;
+    hcan1.Init.AutoWakeUp = DISABLE;
+    hcan1.Init.AutoRetransmission = DISABLE;
+    hcan1.Init.ReceiveFifoLocked = DISABLE;
+    hcan1.Init.TransmitFifoPriority = DISABLE;
+    if (HAL_CAN_Init(&hcan1) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN CAN1_Init 2 */
+    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
       as the combination of: 
       STDID + RTR + IDE + 4 most significant bits of EXTID
   */
-  CAN_FilterTypeDef filter = {
-      .FilterActivation = CAN_FILTER_ENABLE,
-      .FilterBank = 0,
-      .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-      .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-      .FilterIdLow = 0, // Take all ids from 0
-      .FilterMaskIdHigh = 0,
-      .FilterMaskIdLow = 0,
-      .FilterMode = CAN_FILTERMODE_IDMASK,
-      .FilterScale = CAN_FILTERSCALE_16BIT,
-      .SlaveStartFilterBank = 14
-  };
-  
-  // Enable filters and start CAN
-  HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
-  HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_Start(&HCAN_PRIMARY);
-  /* USER CODE END CAN1_Init 2 */
+    CAN_FilterTypeDef filter = {
+        .FilterActivation = CAN_FILTER_ENABLE,
+        .FilterBank = 0,
+        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
+        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+        .FilterIdLow = 0,                      // Take all ids from 0
+        .FilterMaskIdHigh = 0,
+        .FilterMaskIdLow = 0,
+        .FilterMode = CAN_FILTERMODE_IDMASK,
+        .FilterScale = CAN_FILTERSCALE_16BIT,
+        .SlaveStartFilterBank = 14
+    };
 
+    // Enable filters and start CAN
+    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
+    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_Start(&HCAN_PRIMARY);
+    /* USER CODE END CAN1_Init 2 */
 }
 /* CAN2 init function */
-void MX_CAN2_Init(void)
-{
+void MX_CAN2_Init(void) {
 
-  /* USER CODE BEGIN CAN2_Init 0 */
+    /* USER CODE BEGIN CAN2_Init 0 */
 
-  /* USER CODE END CAN2_Init 0 */
+    /* USER CODE END CAN2_Init 0 */
 
-  /* USER CODE BEGIN CAN2_Init 1 */
+    /* USER CODE BEGIN CAN2_Init 1 */
 
-  /* USER CODE END CAN2_Init 1 */
-  hcan2.Instance = CAN2;
-  hcan2.Init.Prescaler = 3;
-  hcan2.Init.Mode = CAN_MODE_NORMAL;
-  hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan2.Init.TimeSeg1 = CAN_BS1_12TQ;
-  hcan2.Init.TimeSeg2 = CAN_BS2_2TQ;
-  hcan2.Init.TimeTriggeredMode = DISABLE;
-  hcan2.Init.AutoBusOff = DISABLE;
-  hcan2.Init.AutoWakeUp = DISABLE;
-  hcan2.Init.AutoRetransmission = DISABLE;
-  hcan2.Init.ReceiveFifoLocked = DISABLE;
-  hcan2.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CAN2_Init 2 */
-  /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+    /* USER CODE END CAN2_Init 1 */
+    hcan2.Instance = CAN2;
+    hcan2.Init.Prescaler = 3;
+    hcan2.Init.Mode = CAN_MODE_NORMAL;
+    hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    hcan2.Init.TimeSeg1 = CAN_BS1_12TQ;
+    hcan2.Init.TimeSeg2 = CAN_BS2_2TQ;
+    hcan2.Init.TimeTriggeredMode = DISABLE;
+    hcan2.Init.AutoBusOff = DISABLE;
+    hcan2.Init.AutoWakeUp = DISABLE;
+    hcan2.Init.AutoRetransmission = DISABLE;
+    hcan2.Init.ReceiveFifoLocked = DISABLE;
+    hcan2.Init.TransmitFifoPriority = DISABLE;
+    if (HAL_CAN_Init(&hcan2) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN CAN2_Init 2 */
+    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
       as the combination of: 
       STDID + RTR + IDE + 4 most significant bits of EXTID
   */
-  CAN_FilterTypeDef filter = {
-      .FilterActivation = CAN_FILTER_ENABLE,
-      .FilterBank = 14,
-      .FilterFIFOAssignment = CAN_FILTER_FIFO1,
-      .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-      .FilterIdLow = 0, // Take all ids from 0
-      .FilterMaskIdHigh = 0,
-      .FilterMaskIdLow = 0,
-      .FilterMode = CAN_FILTERMODE_IDMASK,
-      .FilterScale = CAN_FILTERSCALE_16BIT,
-      .SlaveStartFilterBank = 14
-  };
-  
-  // Enable filters and start CAN
-  HAL_CAN_ConfigFilter(&HCAN_BMS, &filter);
-  HAL_CAN_ActivateNotification(&HCAN_BMS, CAN_IT_ERROR | CAN_IT_RX_FIFO1_MSG_PENDING);
-  HAL_CAN_Start(&HCAN_BMS);
-  /* USER CODE END CAN2_Init 2 */
+    CAN_FilterTypeDef filter = {
+        .FilterActivation = CAN_FILTER_ENABLE,
+        .FilterBank = 14,
+        .FilterFIFOAssignment = CAN_FILTER_FIFO1,
+        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+        .FilterIdLow = 0,                      // Take all ids from 0
+        .FilterMaskIdHigh = 0,
+        .FilterMaskIdLow = 0,
+        .FilterMode = CAN_FILTERMODE_IDMASK,
+        .FilterScale = CAN_FILTERSCALE_16BIT,
+        .SlaveStartFilterBank = 14
+    };
 
+    // Enable filters and start CAN
+    HAL_CAN_ConfigFilter(&HCAN_BMS, &filter);
+    HAL_CAN_ActivateNotification(&HCAN_BMS, CAN_IT_ERROR | CAN_IT_RX_FIFO1_MSG_PENDING);
+    HAL_CAN_Start(&HCAN_BMS);
+    /* USER CODE END CAN2_Init 2 */
 }
 
-static uint32_t HAL_RCC_CAN1_CLK_ENABLED=0;
+static uint32_t HAL_RCC_CAN1_CLK_ENABLED = 0;
 
-void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
-{
+void HAL_CAN_MspInit(CAN_HandleTypeDef *canHandle) {
 
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(canHandle->Instance==CAN1)
-  {
-  /* USER CODE BEGIN CAN1_MspInit 0 */
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    if (canHandle->Instance == CAN1) {
+        /* USER CODE BEGIN CAN1_MspInit 0 */
 
-  /* USER CODE END CAN1_MspInit 0 */
-    /* CAN1 clock enable */
-    HAL_RCC_CAN1_CLK_ENABLED++;
-    if(HAL_RCC_CAN1_CLK_ENABLED==1){
-      __HAL_RCC_CAN1_CLK_ENABLE();
-    }
+        /* USER CODE END CAN1_MspInit 0 */
+        /* CAN1 clock enable */
+        HAL_RCC_CAN1_CLK_ENABLED++;
+        if (HAL_RCC_CAN1_CLK_ENABLED == 1) {
+            __HAL_RCC_CAN1_CLK_ENABLE();
+        }
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**CAN1 GPIO Configuration
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        /**CAN1 GPIO Configuration
     PA11     ------> CAN1_RX
     PA12     ------> CAN1_TX
     */
-    GPIO_InitStruct.Pin = CAN_PRIMARY_RX_Pin|CAN_PRIMARY_TX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        GPIO_InitStruct.Pin = CAN_PRIMARY_RX_Pin | CAN_PRIMARY_TX_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    /* CAN1 interrupt Init */
-    HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
-    HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
-  /* USER CODE BEGIN CAN1_MspInit 1 */
+        /* CAN1 interrupt Init */
+        HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+        HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+        /* USER CODE BEGIN CAN1_MspInit 1 */
 
-  /* USER CODE END CAN1_MspInit 1 */
-  }
-  else if(canHandle->Instance==CAN2)
-  {
-  /* USER CODE BEGIN CAN2_MspInit 0 */
+        /* USER CODE END CAN1_MspInit 1 */
+    } else if (canHandle->Instance == CAN2) {
+        /* USER CODE BEGIN CAN2_MspInit 0 */
 
-  /* USER CODE END CAN2_MspInit 0 */
-    /* CAN2 clock enable */
-    __HAL_RCC_CAN2_CLK_ENABLE();
-    HAL_RCC_CAN1_CLK_ENABLED++;
-    if(HAL_RCC_CAN1_CLK_ENABLED==1){
-      __HAL_RCC_CAN1_CLK_ENABLE();
-    }
+        /* USER CODE END CAN2_MspInit 0 */
+        /* CAN2 clock enable */
+        __HAL_RCC_CAN2_CLK_ENABLE();
+        HAL_RCC_CAN1_CLK_ENABLED++;
+        if (HAL_RCC_CAN1_CLK_ENABLED == 1) {
+            __HAL_RCC_CAN1_CLK_ENABLE();
+        }
 
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**CAN2 GPIO Configuration
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        /**CAN2 GPIO Configuration
     PB12     ------> CAN2_RX
     PB13     ------> CAN2_TX
     */
-    GPIO_InitStruct.Pin = CAN_BMS_RX_Pin|CAN_BMS_TX_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        GPIO_InitStruct.Pin = CAN_BMS_RX_Pin | CAN_BMS_TX_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    /* CAN2 interrupt Init */
-    HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
-    HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
-  /* USER CODE BEGIN CAN2_MspInit 1 */
+        /* CAN2 interrupt Init */
+        HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
+        HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
+        /* USER CODE BEGIN CAN2_MspInit 1 */
 
-  /* USER CODE END CAN2_MspInit 1 */
-  }
+        /* USER CODE END CAN2_MspInit 1 */
+    }
 }
 
-void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
-{
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle) {
 
-  if(canHandle->Instance==CAN1)
-  {
-  /* USER CODE BEGIN CAN1_MspDeInit 0 */
+    if (canHandle->Instance == CAN1) {
+        /* USER CODE BEGIN CAN1_MspDeInit 0 */
 
-  /* USER CODE END CAN1_MspDeInit 0 */
-    /* Peripheral clock disable */
-    HAL_RCC_CAN1_CLK_ENABLED--;
-    if(HAL_RCC_CAN1_CLK_ENABLED==0){
-      __HAL_RCC_CAN1_CLK_DISABLE();
-    }
+        /* USER CODE END CAN1_MspDeInit 0 */
+        /* Peripheral clock disable */
+        HAL_RCC_CAN1_CLK_ENABLED--;
+        if (HAL_RCC_CAN1_CLK_ENABLED == 0) {
+            __HAL_RCC_CAN1_CLK_DISABLE();
+        }
 
-    /**CAN1 GPIO Configuration
+        /**CAN1 GPIO Configuration
     PA11     ------> CAN1_RX
     PA12     ------> CAN1_TX
     */
-    HAL_GPIO_DeInit(GPIOA, CAN_PRIMARY_RX_Pin|CAN_PRIMARY_TX_Pin);
+        HAL_GPIO_DeInit(GPIOA, CAN_PRIMARY_RX_Pin | CAN_PRIMARY_TX_Pin);
 
-    /* CAN1 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
-    HAL_NVIC_DisableIRQ(CAN1_RX1_IRQn);
-  /* USER CODE BEGIN CAN1_MspDeInit 1 */
+        /* CAN1 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
+        HAL_NVIC_DisableIRQ(CAN1_RX1_IRQn);
+        /* USER CODE BEGIN CAN1_MspDeInit 1 */
 
-  /* USER CODE END CAN1_MspDeInit 1 */
-  }
-  else if(canHandle->Instance==CAN2)
-  {
-  /* USER CODE BEGIN CAN2_MspDeInit 0 */
+        /* USER CODE END CAN1_MspDeInit 1 */
+    } else if (canHandle->Instance == CAN2) {
+        /* USER CODE BEGIN CAN2_MspDeInit 0 */
 
-  /* USER CODE END CAN2_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_CAN2_CLK_DISABLE();
-    HAL_RCC_CAN1_CLK_ENABLED--;
-    if(HAL_RCC_CAN1_CLK_ENABLED==0){
-      __HAL_RCC_CAN1_CLK_DISABLE();
-    }
+        /* USER CODE END CAN2_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_CAN2_CLK_DISABLE();
+        HAL_RCC_CAN1_CLK_ENABLED--;
+        if (HAL_RCC_CAN1_CLK_ENABLED == 0) {
+            __HAL_RCC_CAN1_CLK_DISABLE();
+        }
 
-    /**CAN2 GPIO Configuration
+        /**CAN2 GPIO Configuration
     PB12     ------> CAN2_RX
     PB13     ------> CAN2_TX
     */
-    HAL_GPIO_DeInit(GPIOB, CAN_BMS_RX_Pin|CAN_BMS_TX_Pin);
+        HAL_GPIO_DeInit(GPIOB, CAN_BMS_RX_Pin | CAN_BMS_TX_Pin);
 
-    /* CAN2 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
-    HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
-  /* USER CODE BEGIN CAN2_MspDeInit 1 */
+        /* CAN2 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
+        HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
+        /* USER CODE BEGIN CAN2_MspDeInit 1 */
 
-  /* USER CODE END CAN2_MspDeInit 1 */
-  }
+        /* USER CODE END CAN2_MspDeInit 1 */
+    }
 }
 
 /* USER CODE BEGIN 1 */
@@ -273,7 +259,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
  * @return CAN_HandleTypeDef * A pointer to the CAN handler or NULL if the network
  * does not corresponds to any valid handler
  */
-CAN_HandleTypeDef * _can_get_peripheral_from_network(const CanNetwork network) {
+CAN_HandleTypeDef *_can_get_peripheral_from_network(const CanNetwork network) {
     switch (network) {
         case CAN_NETWORK_BMS:
             return &HCAN_BMS;
@@ -333,8 +319,7 @@ void MX_CAN1_Init_250K(void) {
     hcan1.Init.AutoRetransmission = DISABLE;
     hcan1.Init.ReceiveFifoLocked = DISABLE;
     hcan1.Init.TransmitFifoPriority = DISABLE;
-    if (HAL_CAN_Init(&hcan1) != HAL_OK)
-    {
+    if (HAL_CAN_Init(&hcan1) != HAL_OK) {
         Error_Handler();
     }
     /* HAL considers IdLow and IdHigh not as just the ID of the can message but
@@ -346,7 +331,7 @@ void MX_CAN1_Init_250K(void) {
         .FilterBank = 0,
         .FilterFIFOAssignment = CAN_FILTER_FIFO0,
         .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-        .FilterIdLow = 0, // Take all ids from 0
+        .FilterIdLow = 0,                      // Take all ids from 0
         .FilterMaskIdHigh = 0,
         .FilterMaskIdLow = 0,
         .FilterMode = CAN_FILTERMODE_IDMASK,
@@ -360,69 +345,67 @@ void MX_CAN1_Init_250K(void) {
 }
 
 void MX_CAN1_Init_1M(void) {
-  hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 3;
-  hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
-  hcan1.Init.TimeTriggeredMode = DISABLE;
-  hcan1.Init.AutoBusOff = DISABLE;
-  hcan1.Init.AutoWakeUp = DISABLE;
-  hcan1.Init.AutoRetransmission = DISABLE;
-  hcan1.Init.ReceiveFifoLocked = DISABLE;
-  hcan1.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+    hcan1.Instance = CAN1;
+    hcan1.Init.Prescaler = 3;
+    hcan1.Init.Mode = CAN_MODE_NORMAL;
+    hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
+    hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+    hcan1.Init.TimeTriggeredMode = DISABLE;
+    hcan1.Init.AutoBusOff = DISABLE;
+    hcan1.Init.AutoWakeUp = DISABLE;
+    hcan1.Init.AutoRetransmission = DISABLE;
+    hcan1.Init.ReceiveFifoLocked = DISABLE;
+    hcan1.Init.TransmitFifoPriority = DISABLE;
+    if (HAL_CAN_Init(&hcan1) != HAL_OK) {
+        Error_Handler();
+    }
+    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
       as the combination of: 
       STDID + RTR + IDE + 4 most significant bits of EXTID
   */
-  CAN_FilterTypeDef filter = {
-      .FilterActivation = CAN_FILTER_ENABLE,
-      .FilterBank = 0,
-      .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-      .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-      .FilterIdLow = 0, // Take all ids from 0
-      .FilterMaskIdHigh = 0,
-      .FilterMaskIdLow = 0,
-      .FilterMode = CAN_FILTERMODE_IDMASK,
-      .FilterScale = CAN_FILTERSCALE_16BIT,
-      .SlaveStartFilterBank = 14
-  };
-  // Enable filters and start CAN
-  HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
-  HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
-  HAL_CAN_Start(&HCAN_PRIMARY);
+    CAN_FilterTypeDef filter = {
+        .FilterActivation = CAN_FILTER_ENABLE,
+        .FilterBank = 0,
+        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
+        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+        .FilterIdLow = 0,                      // Take all ids from 0
+        .FilterMaskIdHigh = 0,
+        .FilterMaskIdLow = 0,
+        .FilterMode = CAN_FILTERMODE_IDMASK,
+        .FilterScale = CAN_FILTERSCALE_16BIT,
+        .SlaveStartFilterBank = 14
+    };
+    // Enable filters and start CAN
+    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
+    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_Start(&HCAN_PRIMARY);
 }
 
 // TODO: Return and check errors
-CanCommReturnCode can_send(
+enum CanCommReturnCode can_send(
     const CanNetwork network,
     const can_id_t id,
     const CanFrameType frame_type,
-    const uint8_t * const data,
-    const size_t size)
-{
+    const uint8_t *const data,
+    const size_t size) {
     if (network >= CAN_NETWORK_COUNT)
-        return CAN_COMM_INVALID_NETWORK;
+        return CAN_COMM_RC_INVALID_NETWORK;
     if (id > CAN_COMM_ID_MASK)
-        return CAN_COMM_INVALID_INDEX;
+        return CAN_COMM_RC_INVALID_INDEX;
     if (size > CAN_COMM_MAX_PAYLOAD_BYTE_SIZE)
-        return CAN_COMM_INVALID_PAYLOAD_SIZE;
+        return CAN_COMM_RC_INVALID_PAYLOAD_SIZE;
 
     // Get and check the CAN handler
-    CAN_HandleTypeDef * const hcan = _can_get_peripheral_from_network(network);
+    CAN_HandleTypeDef *const hcan = _can_get_peripheral_from_network(network);
     if (hcan == NULL)
-        return CAN_COMM_INVALID_NETWORK;
+        return CAN_COMM_RC_INVALID_NETWORK;
 
     // Get and check the frame type
     const int32_t type = _can_get_rtr_from_frame_type(frame_type);
     if (type < 0)
-        return CAN_COMM_INVALID_FRAME_TYPE;
- 
+        return CAN_COMM_RC_INVALID_FRAME_TYPE;
+
     // Setup transmission header
     const CAN_TxHeaderTypeDef header = {
         .StdId = id,
@@ -436,13 +419,12 @@ CanCommReturnCode can_send(
     // Send message
     uint32_t mailbox = 0U;
     if (HAL_CAN_AddTxMessage(hcan, &header, data, &mailbox) != HAL_OK)
-        return CAN_COMM_TRANSMISSION_ERROR;
-    return CAN_COMM_OK;
+        return CAN_COMM_RC_TRANSMISSION_ERROR;
+    return CAN_COMM_RC_OK;
 }
 
-
 // TODO: Define CAN RX callbacks
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan) {
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     if (hcan->Instance != HCAN_PRIMARY.Instance)
         return;
 
@@ -464,9 +446,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef * hcan) {
         primary_index_from_id(header.StdId),
         frame_type,
         data,
-        header.DLC
-    );
-
+        header.DLC);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
@@ -491,8 +471,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
         bms_index_from_id(header.StdId),
         frame_type,
         data,
-        header.DLC
-    );
+        header.DLC);
 }
 
 /* USER CODE END 1 */
