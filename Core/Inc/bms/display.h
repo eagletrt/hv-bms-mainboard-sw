@@ -15,7 +15,7 @@
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
-#include "tdsr0760.h"
+#include "tdsr0760-api.h"
 
 /** @brief Total number of intraframes of a display animation */
 #define DISPLAY_INTRAFRAME_VERTICAL_COUNT (5U)
@@ -78,7 +78,7 @@ typedef enum {
  *
  * @details The position of the bit for each segment is defined by the DisplaySegment enum
  */
-typedef enum { 
+typedef enum {
     DISPLAY_SEGMENT_BIT_NONE = 0U,
     DISPLAY_SEGMENT_BIT_TOP = 1U << DISPLAY_SEGMENT_TOP,
     DISPLAY_SEGMENT_BIT_TOP_RIGHT = 1U << DISPLAY_SEGMENT_TOP_RIGHT,
@@ -158,7 +158,7 @@ typedef enum {
     DISPLAY_CHARACTER_CODE_J_UPCASE = DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT |
                                       DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM,
     DISPLAY_CHARACTER_CODE_J_DOWNCASE = DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT |
-                                      DISPLAY_SEGMENT_BIT_BOTTOM,
+                                        DISPLAY_SEGMENT_BIT_BOTTOM,
     DISPLAY_CHARACTER_CODE_K_UPCASE = DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_LEFT |
                                       DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT |
                                       DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
@@ -210,14 +210,14 @@ typedef enum {
  * @param segment The segment to select
  * @param state The new state to set
  */
-typedef void (* display_segment_set_state_callback_t)(const DisplaySegment segment, const DisplaySegmentStatus state);
+typedef void (*display_segment_set_state_callback_t)(const DisplaySegment segment, const DisplaySegmentStatus state);
 
 /**
  * @brief Type definition for a function callback that should toggle the state of the display segment
  *
  * @param segment The segment to select
  */
-typedef void (* display_segment_toggle_state_callback_t)(const DisplaySegment segment);
+typedef void (*display_segment_toggle_state_callback_t)(const DisplaySegment segment);
 
 /**
  * @brief 7-segment display handler structure
@@ -232,7 +232,7 @@ typedef struct {
     display_segment_set_state_callback_t set;
     display_segment_toggle_state_callback_t toggle;
 
-    Tdsr0760Handler tdsr0760;
+    struct Tdsr0760Handler tdsr0760;
 } _Display;
 
 #ifdef CONF_DISPLAY_MODULE_ENABLE
@@ -279,9 +279,7 @@ DisplayCharacterCode display_get_code_from_hex_digit(const uint8_t digit);
 DisplayCharacterCode display_get_code_from_character(
     const char c,
     const bool ignore_case,
-    const bool prefer_upcase
-);
-
+    const bool prefer_upcase);
 
 /**
  * @brief Get the status of a single segment of the 7-segment display
@@ -363,8 +361,7 @@ DisplayReturnCode display_set_digit(const uint8_t digit);
 DisplayReturnCode display_set_character(
     const char c,
     const bool ignore_case,
-    const bool prefer_upcase
-);
+    const bool prefer_upcase);
 
 /**
  * @brief Run a single step of an animation on the 7-segment display
@@ -380,11 +377,10 @@ DisplayReturnCode display_set_character(
  *     - DISPLAY_OK otherwise
  */
 DisplayReturnCode display_run_animation(
-    const DisplaySegmentBit * const animation,
+    const DisplaySegmentBit *const animation,
     const size_t size,
     ticks_t ticks_per_frame,
-    const ticks_t t
-);
+    const ticks_t t);
 
 /**
  * @brief Run a single step of an animation that shows the character of a string
@@ -401,13 +397,12 @@ DisplayReturnCode display_run_animation(
  *     - DISPLAY_OK otherwise
  */
 DisplayReturnCode display_run_animation_string(
-    const char * const string,
+    const char *const string,
     const size_t size,
     ticks_t ticks_per_frame,
-    const ticks_t t
-);
+    const ticks_t t);
 
-#else  // CONF_DISPLAY_MODULE_ENABLE
+#else // CONF_DISPLAY_MODULE_ENABLE
 
 #define display_init(set, toggle) (DISPLAY_OK)
 #define display_get_code_from_hex_digit(digit) (DISPLAY_CHARACTER_CODE_SPACE)
@@ -423,4 +418,4 @@ DisplayReturnCode display_run_animation_string(
 
 #endif // CONF_DISPLAY_MODULE_ENABLE
 
-#endif  // DISPLAY_H
+#endif // DISPLAY_H
