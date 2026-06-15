@@ -13,8 +13,8 @@
 #include <string.h>
 #include "eagletrt-api.h"
 
-constexpr uint8_t first_half_mask = 0xff;
-constexpr uint16_t second_half_mask = 0xff00;
+constexpr uint8_t low_half_mask = 0xff;
+constexpr uint16_t high_half_mask = 0xff00;
 constexpr uint8_t second_half_shift = 8U;
 
 /*!
@@ -30,8 +30,8 @@ enum Max22530ReturnCode prv_max22530_api_write(struct Max22530Handler *const han
 
     uint8_t cmd[MAX22530_COMMAND_BYTE_SIZE] = {
         (address << 2U) | (MAX22530_COMMAND_WRITE << 1U),
-        (data & second_half_mask) >> second_half_shift,
-        data & first_half_mask
+        (data & high_half_mask) >> second_half_shift,
+        data & low_half_mask
     };
     handler->send(SPI_NETWORK_ADC, cmd, MAX22530_COMMAND_BYTE_SIZE);
     return MAX22530_RC_OK;
@@ -148,7 +148,7 @@ volt_t max22530_api_read_channel(struct Max22530Handler *const handler, const en
     }
     // Get the channel register address
     max22530_address address = (int)filtered ? MAX22530_REGISTER_FILTERED_ADC : MAX22530_REGISTER_ADC;
-    address += channel;
+    address += (uint8_t)channel;
 
     // Get data
     const raw_volt_t data = prv_max22530_api_read(handler, address);

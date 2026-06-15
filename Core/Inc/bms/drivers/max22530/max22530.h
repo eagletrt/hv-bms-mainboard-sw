@@ -22,7 +22,7 @@
 #define MAX22530_ID (0x00U)
 
 /*! \brief Reference voltage of the ADC */
-#define MAX22530_VREF (1.8f)
+#define MAX22530_VREF (1.8F)
 
 /*! \brief ADC resolution in bits */
 #define MAX22530_RESOLUTION (12U)
@@ -137,7 +137,7 @@ enum Max22530Channel {
  *
  * \details This flag is set to one only after a power-on or an hardware reset
  */
-enum Max22530PowerOnReset {
+enum Max22530PowerOnReset : int8_t {
     MAX22530_POWER_ON_RESET_OFF = 0, /*!< Power-on reset is off */
     MAX22530_POWER_ON_RESET_ON       /*!< Power-on reset is on */
 };
