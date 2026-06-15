@@ -254,8 +254,9 @@ enum FeedbackReturnCode {
 /*!
  * \brief Type definition of the feedback identifiers
  */
-enum FeedbackId : uint8_t {
-    FEEDBACK_ID_AIRN_OPEN_COM = 0,         /*!< Opposite of the AIR- commanded state */
+enum FeedbackId : int8_t {
+    FEEDBACK_ID_UNKNOWN = -1,              /*!< Feedback used for initialization or as return value */
+    FEEDBACK_ID_AIRN_OPEN_COM,             /*!< Opposite of the AIR- commanded state */
     FEEDBACK_ID_PRECHARGE_OPEN_COM,        /*!< Opposite of the PRECHARGE commanded state */
     FEEDBACK_ID_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
     FEEDBACK_ID_AIRN_OPEN_MEC,             /*!< Mechanical status of the AIR- */
@@ -283,7 +284,7 @@ enum FeedbackId : uint8_t {
     FEEDBACK_ID_SD_END,                    /*!< Shutdown end */
     FEEDBACK_ID_V5_MCU,                    /*!< 5V line feedback */
     FEEDBACK_ID_COUNT,                     /*!< Total number of feedbacks */
-    FEEDBACK_ID_UNKNOWN                    /*!< Feedback used for initialization or as return value */
+
 };
 
 /*!
@@ -325,8 +326,9 @@ enum FeedbackBit : uint32_t {
 /*!
  * \brief Bit position of the digital feedbacks inside the bit flag
  */
-enum FeedbackDigitalBit : uint8_t {
-    FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM = 0U,        /*!< Opposite of the AIR- commanded state */
+enum FeedbackDigitalBit : int8_t {
+    FEEDBACK_DIGITAL_BIT_UNKNOWN = -1,              /*!< Feedback used for initialization or as return value */
+    FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM,             /*!< Opposite of the AIR- commanded state */
     FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
     FEEDBACK_DIGITAL_BIT_SD_IMD_FB,                 /*!< Shutdown IMD node feedback */
     FEEDBACK_DIGITAL_BIT_SD_BMS_FB,                 /*!< Shutdown AMS node feedback */
@@ -344,14 +346,14 @@ enum FeedbackDigitalBit : uint8_t {
     FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED,         /*!< IMD fault latched */
     FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED,         /*!< External fault latched */
     FEEDBACK_DIGITAL_BIT_COUNT,                     /*!< Total number of digital feedbacks */
-    FEEDBACK_DIGITAL_BIT_UNKNOWN                    /*!< Feedback used for initialization or as return value */
 };
 
 /*!
  * \brief Indices of the analog feedbacks
  */
-enum FeedbackAnalogIndex : uint8_t {
-    FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC = 0U, /*!< Mechanical status of the AIR- */
+enum FeedbackAnalogIndex : int8_t {
+    FEEDBACK_ANALOG_INDEX_UNKNOWN = -1,       /*!< Feedback used for initialization or as return value */
+    FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC,      /*!< Mechanical status of the AIR- */
     FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC,      /*!< Mechanical status of the AIR+ */
     FEEDBACK_ANALOG_INDEX_IMD_OK,             /*!< Status of the IMD */
     FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC, /*!< Plausible state after the RC circuit */
@@ -362,7 +364,6 @@ enum FeedbackAnalogIndex : uint8_t {
     FEEDBACK_ANALOG_INDEX_SD_END,             /*!< Shutdown end */
     FEEDBACK_ANALOG_INDEX_V5_MCU,             /*!< Feedback on the 5V line */
     FEEDBACK_ANALOG_INDEX_COUNT,              /*!< Total number of analog feedbacks */
-    FEEDBACK_ANALOG_INDEX_UNKNOWN             /*!< Feedback used for initialization or as return value */
 };
 
 /*!
