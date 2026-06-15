@@ -25,7 +25,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "can-comm.h"
 #include "timebase.h"
 #include "programmer-api.h"
-#include "feedback.h"
+#include "feedback-api.h"
 #include "bal-api.h"
 #include "error-api.h"
 /*** USER CODE END MACROS ***/
@@ -194,8 +194,8 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST) {
             next_state = FSM_STATE_FLASH;
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
-            FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
-            if (feedback_check_values(
+            enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+            if (feedback_api_check_values(
                     FEEDBACK_IDLE_TO_AIRN_CHECK_MASK,
                     FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH,
                     &feedback_id)) {
@@ -203,7 +203,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
             } else {
                 // If there is a problem during the TS on procedure send info about the problematic feedback
                 size_t byte_size = 0U;
-                uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(feedback_id, &byte_size);
+                uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
                 (void)can_comm_tx_add(
                     CAN_NETWORK_PRIMARY,
                     PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -361,7 +361,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     (void)timebase_routine();
     (void)can_comm_routine();
 
-    FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -371,7 +371,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
             switch (fsm_fired_event->type) {
                 case FSM_EVENT_TYPE_AIRN_TIMEOUT:
                     // Check values to update feedback enzomma
-                    feedback_check_values(
+                    feedback_api_check_values(
                         FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
                         FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
                         &feedback_id);
@@ -395,7 +395,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-    else if (!feedback_check_values(
+    else if (!feedback_api_check_values(
                  FEEDBACK_BIT_SD_END,
                  FEEDBACK_BIT_SD_END,
                  &feedback_id)) {
@@ -405,7 +405,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok start the precharge
    */
-    else if (feedback_check_values(
+    else if (feedback_api_check_values(
                  FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK,
                  FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH,
                  &feedback_id)) {
@@ -415,7 +415,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
         size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(feedback_id, &byte_size);
+        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
         (void)can_comm_tx_add(
             CAN_NETWORK_PRIMARY,
             PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -451,11 +451,11 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
     (void)can_comm_routine();
 
     // Display the precharge percentage from 0 to 10 (in hex)
-    const percentage_t perc = (percentage_t)floorf(pcu_get_precharge_percentage() * 10.F);
+    const percentage_t perc = (percentage_t)floorf(pcu_api_get_precharge_percentage() * 10.F);
     (void)display_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
     (void)display_set_digit(perc);
 
-    FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -465,7 +465,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
             switch (fsm_fired_event->type) {
                 case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
                     // Check values to update feedback enzomma
-                    feedback_check_values(
+                    feedback_api_check_values(
                         FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
                         FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
                         &feedback_id);
@@ -484,7 +484,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-    else if (!feedback_check_values(
+    else if (!feedback_api_check_values(
                  FEEDBACK_BIT_SD_END,
                  FEEDBACK_BIT_SD_END,
                  &feedback_id)) {
@@ -494,18 +494,18 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
    * Wait until every feedback inside the mask has the expected value and the precharge is complete
    * If all the feedbacks are ok close the AIR+
    */
-    else if (feedback_check_values(
+    else if (feedback_api_check_values(
                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK,
                  FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH,
                  &feedback_id) &&
-             pcu_is_precharge_complete()) {
+             pcu_api_is_precharge_complete()) {
         next_state = FSM_STATE_AIRP_CHECK;
     }
 
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
         size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(feedback_id, &byte_size);
+        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
         (void)can_comm_tx_add(
             CAN_NETWORK_PRIMARY,
             PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -540,7 +540,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     (void)timebase_routine();
     (void)can_comm_routine();
 
-    FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -550,7 +550,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
             switch (fsm_fired_event->type) {
                 case FSM_EVENT_TYPE_AIRP_TIMEOUT:
                     // Check values to update feedback enzomma
-                    feedback_check_values(
+                    feedback_api_check_values(
                         FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
                         FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
                         &feedback_id);
@@ -569,7 +569,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
    * If the shutdown circuit is opened, immediately go to the IDLE state
    * to drop the voltage on the TS
    */
-    else if (!feedback_check_values(
+    else if (!feedback_api_check_values(
                  FEEDBACK_BIT_SD_END,
                  FEEDBACK_BIT_SD_END,
                  &feedback_id)) {
@@ -579,7 +579,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
    * Wait until every feedback inside the mask has the expected value
    * If all the feedbacks are ok go to the TS on state
    */
-    else if (feedback_check_values(
+    else if (feedback_api_check_values(
                  FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK,
                  FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH,
                  &feedback_id)) {
@@ -589,7 +589,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
         size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(feedback_id, &byte_size);
+        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
         (void)can_comm_tx_add(
             CAN_NETWORK_PRIMARY,
             PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -629,7 +629,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
         timebase_get_tick());
 
-    FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -638,13 +638,13 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF) {
             next_state = FSM_STATE_IDLE;
         }
-    } else if (!feedback_check_values(
+    } else if (!feedback_api_check_values(
                    FEEDBACK_TS_ON_MASK,
                    FEEDBACK_TS_ON_HIGH,
                    &feedback_id)) {
         // If there is a problem during the TS on procedure send info about the problematic feedback
         size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_get_enzomma_payload(feedback_id, &byte_size);
+        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
         (void)can_comm_tx_add(
             CAN_NETWORK_PRIMARY,
             PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
@@ -698,7 +698,7 @@ void fsm_idle_to_fatal(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     // Activate the AMS
-    pcu_ams_activate();
+    pcu_api_ams_activate();
     /*** USER CODE END IDLE_TO_FATAL ***/
 }
 
@@ -733,7 +733,7 @@ void fsm_close_airn(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     // Close the AIR-
-    pcu_airn_close();
+    pcu_api_airn_close();
     /*** USER CODE END CLOSE_AIRN ***/
 }
 
@@ -751,11 +751,11 @@ void fsm_handle_fatal_error(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     // Activate the AMS
-    pcu_ams_activate();
+    pcu_api_ams_activate();
 
-    pcu_precharge_stop();
-    pcu_airn_open();
-    pcu_airp_open();
+    pcu_api_precharge_stop();
+    pcu_api_airn_open();
+    pcu_api_airp_open();
 
     // Stop balancing in case it is running
     (void)bal_api_stop();
@@ -792,7 +792,7 @@ void fsm_ts_off(fsm_state_data *data) {
     /*** USER CODE BEGIN TS_OFF ***/
     MAINBOARD_UNUSED(data);
 
-    pcu_reset_all();
+    pcu_api_reset_all();
     /*** USER CODE END TS_OFF ***/
 }
 
@@ -804,8 +804,8 @@ void fsm_start_precharge(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     // Stop the AIR- watchdog and start the precharge
-    pcu_airn_stop_watchdog();
-    pcu_precharge_start();
+    pcu_api_airn_stop_watchdog();
+    pcu_api_precharge_start();
     /*** USER CODE END START_PRECHARGE ***/
 }
 
@@ -817,8 +817,8 @@ void fsm_close_airp(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     // Stop the precharge watchdog and close the AIR+
-    pcu_precharge_stop_watchdog();
-    pcu_airp_close();
+    pcu_api_precharge_stop_watchdog();
+    pcu_api_airp_close();
     /*** USER CODE END CLOSE_AIRP ***/
 }
 
@@ -830,7 +830,7 @@ void fsm_ts_on(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     // Stop the AIR+ watchdog
-    pcu_airp_stop_watchdog();
+    pcu_api_airp_stop_watchdog();
     /*** USER CODE END TS_ON ***/
 }
 
