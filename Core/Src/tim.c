@@ -24,7 +24,7 @@
 
 #include "mainboard-def.h"
 
-#include "imd.h"
+#include "imd-api.h"
 #include "timebase.h"
 
 /* USER CODE END 0 */
