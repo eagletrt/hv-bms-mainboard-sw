@@ -25,7 +25,7 @@
 #include "mainboard-conf.h"
 
 #include "feedback-api.h"
-#include "cooling-temp.h"
+#include "cooling-temp-api.h"
 
 /* USER CODE END 0 */
 
@@ -517,7 +517,7 @@ enum FeedbackAnalogIndex _adc_get_feedback_index_from_adc_2_channel(Adc2ChannelI
  *
  * @return The cooling temperature index, or -1 if not found
  */
-CoolingTempIndex _adc_get_cooling_temp_index_from_adc_1_channel(Adc1ChannelIndex ch) {
+enum CoolingTempIndex _adc_get_cooling_temp_index_from_adc_1_channel(Adc1ChannelIndex ch) {
     switch (ch) {
         case ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMPERATURE:
             return COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE;
@@ -574,10 +574,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
         };
         // Copy all cooling temperature values
         for (size_t i = 0U; i < temp_size; ++i) {
-            const CoolingTempIndex index = _adc_get_cooling_temp_index_from_adc_1_channel(temp_channels[i]);
+            const enum CoolingTempIndex index = _adc_get_cooling_temp_index_from_adc_1_channel(temp_channels[i]);
             // if (index < 0) { // Handle error }
             const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[temp_channels[i]], ADC_VREF, ADC_RESOLUTION);
-            cooling_temp_notify_conversion_complete(index, volt);
+            cooling_temp_api_notify_conversion_complete(index, volt);
         }
     } else if (hadc->Instance == HADC_2.Instance) {
         const size_t size = 6U;
