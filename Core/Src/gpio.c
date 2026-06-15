@@ -164,7 +164,7 @@ void MX_GPIO_Init(void) {
  *
  * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the id is not valid
  */
-GPIO_TypeDef *_gpio_get_port_from_led_id(const LedId led) {
+GPIO_TypeDef *_gpio_get_port_from_led_id(const enum LedId led) {
     switch (led) {
         case LED_ID_1:
             return LED_1_GPIO_Port;
@@ -182,7 +182,7 @@ GPIO_TypeDef *_gpio_get_port_from_led_id(const LedId led) {
  *
  * @return int16_t The GPIO pin, or -1 if the id is not valid
  */
-int16_t _gpio_get_pin_from_led_id(const LedId led) {
+int16_t _gpio_get_pin_from_led_id(const enum LedId led) {
     switch (led) {
         case LED_ID_1:
             return LED_1_Pin;
@@ -297,7 +297,7 @@ int16_t _gpio_get_pin_from_pcu_pin(const enum PcuPin pin) {
     }
 }
 
-void gpio_led_set_state(const LedId led, const LedStatus state) {
+void gpio_led_set_state(const enum LedId led, const enum LedStatus state) {
     if (led >= LED_ID_COUNT)
         return;
     GPIO_TypeDef *const port = _gpio_get_port_from_led_id(led);
@@ -305,7 +305,7 @@ void gpio_led_set_state(const LedId led, const LedStatus state) {
     HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
 }
 
-void gpio_led_toggle_state(const LedId led) {
+void gpio_led_toggle_state(const enum LedId led) {
     if (led >= LED_ID_COUNT)
         return;
     GPIO_TypeDef *const port = _gpio_get_port_from_led_id(led);
