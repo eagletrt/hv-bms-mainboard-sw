@@ -10,7 +10,7 @@
 #include <string.h>
 
 #include "imd-api.h"
-#include "feedback.h"
+#include "feedback-api.h"
 #include "eagletrt-api.h"
 
 #ifdef CONF_IMD_MODULE_ENABLE
@@ -57,7 +57,7 @@ enum ImdReturnCode imd_update(const ticks_t source_frequency, const ticks_t peri
      *              │      │                   │
      *              │      └─ CCR2 = CNT       └─ CCR1 = CNT (period)
      *              |         (high_count)          IRQ → callback fires
-     *              │                               
+     *              │
      *              │
      *              └─ CNT = 0
      */
@@ -79,8 +79,8 @@ primary_hv_imd_status_converted_t *imd_get_status_canlib_payload(size_t *const b
     imd_handler.status_can_payload.status = (primary_hv_imd_status_status)(imd_get_status() + 1U);
     imd_handler.status_can_payload.frequency = imd_get_frequency();
     imd_handler.status_can_payload.duty_cycle = imd_get_duty_cycle();
-    imd_handler.status_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
-    imd_handler.status_can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
+    imd_handler.status_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_api_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
+    imd_handler.status_can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_api_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
     return &imd_handler.status_can_payload;
 }
 

@@ -18,7 +18,7 @@
 #include "led-api.h"
 #include "imd-api.h"
 #include "pcu-api.h"
-#include "feedback.h"
+#include "feedback-api.h"
 #include "display.h"
 
 /**
@@ -70,8 +70,8 @@ typedef struct {
     imd_pwm_start_callback imd_start;
     pcu_set_state_callback pcu_set;
     pcu_toggle_state_callback pcu_toggle;
-    feedback_read_digital_all_callback_t feedback_read_all;
-    feedback_start_analog_conversion_callback_t feedback_start_conversion;
+    feedback_read_digital_all_callback feedback_read_all;
+    feedback_start_analog_conversion_callback feedback_start_conversion;
     display_segment_set_state_callback_t display_set;
     display_segment_toggle_state_callback_t display_toggle;
     spi_send_callback_t spi_send;
