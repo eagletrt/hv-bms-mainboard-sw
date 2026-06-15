@@ -109,9 +109,9 @@ enum DisplayReturnCode display_init(const display_segment_set_state_callback set
 
 enum DisplayCharacterCode display_get_code_from_hex_digit(const uint8_t digit) {
 
-    constexpr uint8_t ilnumerosedici = 0x0F;
+    constexpr uint8_t hex_digit_max = 0xF;
 
-    if (digit > ilnumerosedici) {
+    if (digit > hex_digit_max) {
         return DISPLAY_CHARACTER_CODE_SPACE;
     }
     return display_digit_codes[digit];
@@ -155,7 +155,7 @@ enum DisplaySegmentStatus display_get_segment(const enum DisplaySegment segment)
 }
 
 enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, const enum DisplaySegmentStatus status) {
-    if (segment >= DISPLAY_SEGMENT_COUNT) {
+    if (segment >= DISPLAY_SEGMENT_COUNT || segment < 0) {
         return DISPLAY_RC_INVALID_SEGMENT;
     }
     if (status == DISPLAY_SEGMENT_STATUS_UNKNOWN) {
@@ -173,7 +173,7 @@ enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, co
 }
 
 enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment) {
-    if (segment >= DISPLAY_SEGMENT_COUNT) {
+    if (segment >= DISPLAY_SEGMENT_COUNT || segment < 0) {
         return DISPLAY_RC_INVALID_SEGMENT;
     }
     const Tdsr0760ReturnCode code = tdsr0760_toggle_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
@@ -191,7 +191,7 @@ enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment)
 enum DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
     enum DisplayReturnCode code = DISPLAY_RC_OK;
     for (Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
-        const Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
+        const Tdsr0760SegmentStatus status = EAGLETRT_API_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
         const Tdsr0760ReturnCode ret = tdsr0760_set_segment(
             &display_handler.tdsr0760,
             segment,
@@ -207,9 +207,9 @@ enum DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
 
 enum DisplayReturnCode display_set_digit(const uint8_t digit) {
 
-    constexpr uint8_t ilnumerosedici = 16;
+    constexpr uint8_t hex_digit_max = 0xF;
 
-    if (digit > ilnumerosedici) {
+    if (digit > hex_digit_max) {
         return DISPLAY_RC_INVALID_CHARACTER;
     }
     const enum DisplayCharacterCode code = display_get_code_from_hex_digit(digit);
@@ -246,13 +246,6 @@ enum DisplayReturnCode display_run_animation_string(const char *const string, co
     if (ticks_per_frame <= 0U) {
         ticks_per_frame = 1U;
     }
-
-    // TODO: Add intraframe to make the animation smoother
-    // Calculate the number of intraframe based on directions
-    // const size_t intraframe_count = (dir == DISPLAY_DIRECTION_UP ||
-    //     dir == DISPLAY_DIRECTION_DOWN) ?
-    //     DISPLAY_INTRAFRAME_VERTICAL_COUNT :
-    //     DISPLAY_INTRAFRAME_HORIZONTAL_COUNT;
 
     // Display a step of the animation based on the current time
     const size_t frame = ticks / ticks_per_frame;

@@ -38,12 +38,20 @@ void test_display_init_null_pointer_toggle(void) {
 }
 
 void test_display_get_code_from_hex_digit_valid(void) {
+
+    enum DisplayCharacterCode actual_codes[16];
+
     for (uint8_t digit = 0; digit <= 15; ++digit) {
-        enum DisplayCharacterCode code = display_get_code_from_hex_digit(digit);
-        char assert_message[50];
-        snprintf(assert_message, sizeof(assert_message), "Failed for digit: %u", digit);
-        TEST_ASSERT_NOT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, code, assert_message);
+        actual_codes[digit] = display_get_code_from_hex_digit(digit);
     }
+
+    int space_count = 0;
+    for (int i = 0; i < 16; ++i) {
+        if (actual_codes[i] == DISPLAY_CHARACTER_CODE_SPACE) {
+            ++space_count;
+        }
+    }
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, space_count, "All valid hex digits (0-15) should map to a non-SPACE character code");
 }
 
 void test_display_get_code_from_hex_digit_invalid(void) {
@@ -53,22 +61,32 @@ void test_display_get_code_from_hex_digit_invalid(void) {
 
 void test_display_get_code_from_character_valid(void) {
     const char *valid_chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_";
-    for (size_t i = 0; i < strlen(valid_chars); ++i) {
-        enum DisplayCharacterCode code = display_get_code_from_character(valid_chars[i], true);
-        char assert_message[50];
-        snprintf(assert_message, sizeof(assert_message), "Failed for character: %c", valid_chars[i]);
-        TEST_ASSERT_NOT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, code, assert_message);
+    const size_t len = strlen(valid_chars);
+
+    enum DisplayCharacterCode actual_codes[len];
+    for (size_t i = 0; i < len; ++i) {
+        actual_codes[i] = display_get_code_from_character(valid_chars[i], true);
     }
+
+    int space_count = 0;
+    for (size_t i = 0; i < len; ++i) {
+        if (actual_codes[i] == DISPLAY_CHARACTER_CODE_SPACE) {
+            ++space_count;
+        }
+    }
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, space_count, "All valid characters should map to a non-SPACE character code");
 }
 
 void test_display_get_code_from_character_invalid(void) {
     const char *invalid_chars = "!@#^&*()+=[]{}|;:,<>/?`~ ";
-    for (size_t i = 0; i < strlen(invalid_chars); ++i) {
-        enum DisplayCharacterCode code = display_get_code_from_character(invalid_chars[i], true);
-        char assert_message[50];
-        snprintf(assert_message, sizeof(assert_message), "Failed for invalid character: %c", invalid_chars[i]);
-        TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, code, assert_message);
+    const size_t len = strlen(invalid_chars);
+
+    enum DisplayCharacterCode actual_codes[len];
+    for (size_t i = 0; i < len; ++i) {
+        actual_codes[i] = display_get_code_from_character(invalid_chars[i], true);
     }
+
+    TEST_ASSERT_EACH_EQUAL_INT_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, actual_codes, len, "All invalid characters should map to DISPLAY_CHARACTER_CODE_SPACE");
 }
 
 void test_display_get_segment_invalid(void) {
@@ -122,35 +140,47 @@ void test_display_set_segment_all_ok(void) {
         printf("Call %d: Segment = %d, Status = %d\n", i, display_set_fake.arg0_history[i], display_set_fake.arg1_history[i]);
     }
 
+    printf("Expected Segments: ");
+    for (int i = 0; i < DISPLAY_SEGMENT_COUNT; ++i) {
+        printf("%d , %d \n", expected_segment[i], display_set_fake.arg0_history[i]);
+    }
+    printf("\n");
+
     TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_RC_OK, rc, "display_set_segment_all should return DISPLAY_RC_OK for valid code");
     TEST_ASSERT_TRUE_MESSAGE(display_set_fake.call_count > 0, "Expected call to display_set_fake was not made");
-    TEST_ASSERT_EQUAL_UINT32_ARRAY_MESSAGE(expected_segment, display_set_fake.arg0_history, DISPLAY_SEGMENT_COUNT, "Segments do not match expected");
-    TEST_ASSERT_EQUAL_UINT32_ARRAY_MESSAGE(expected_status, display_set_fake.arg1_history, DISPLAY_SEGMENT_COUNT, "Statuses do not match expected");
+    TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(expected_segment, display_set_fake.arg0_history, DISPLAY_SEGMENT_COUNT, "Segments do not match expected");
+    TEST_ASSERT_EQUAL_INT32_ARRAY_MESSAGE(expected_status, display_set_fake.arg1_history, DISPLAY_SEGMENT_COUNT, "Statuses do not match expected");
 }
 
 void test_display_set_digit_valid(void) {
+    enum DisplayReturnCode actual_rcs[16];
     for (uint8_t digit = 0; digit <= 15; ++digit) {
-        enum DisplayReturnCode rc = display_set_digit(digit);
-        TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_RC_OK, rc, "display_set_digit should return DISPLAY_RC_OK for valid digit");
+        actual_rcs[digit] = display_set_digit(digit);
     }
+
+    TEST_ASSERT_EACH_EQUAL_INT_MESSAGE(DISPLAY_RC_OK, actual_rcs, 16, "display_set_digit should return DISPLAY_RC_OK for all valid digits (0-15)");
 }
 
 void test_display_set_digit_invalid(void) {
     enum DisplayReturnCode rc = display_set_digit(16);
-    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, rc, "display_set_digit should return DISPLAY_RC_INVALID_CHARACTER for invalid digit");
+    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_RC_INVALID_CHARACTER, rc, "display_set_digit should return DISPLAY_RC_INVALID_CHARACTER for invalid digit");
 }
 
 void test_display_set_character_valid(void) {
     const char *valid_chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_";
-    for (size_t i = 0; i < strlen(valid_chars); ++i) {
-        enum DisplayReturnCode rc = display_set_character(valid_chars[i], true);
-        TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_RC_OK, rc, "display_set_character should return DISPLAY_RC_OK for valid character");
+    const size_t len = strlen(valid_chars);
+
+    enum DisplayReturnCode actual_rcs[len];
+    for (size_t i = 0; i < len; ++i) {
+        actual_rcs[i] = display_set_character(valid_chars[i], true);
     }
+
+    TEST_ASSERT_EACH_EQUAL_INT_MESSAGE(DISPLAY_RC_OK, actual_rcs, len, "display_set_character should return DISPLAY_RC_OK for all valid characters");
 }
 
 void test_display_set_character_invalid(void) {
     enum DisplayReturnCode rc = display_set_character('!', true);
-    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, rc, "display_set_character should return DISPLAY_RC_INVALID_CHARACTER for invalid character");
+    TEST_ASSERT_EQUAL_MESSAGE(DISPLAY_CHARACTER_CODE_SPACE, rc, "display_set_character should return DISPLAY_CHARACTER_CODE_SPACE for invalid character");
 }
 
 void test_display_run_animation_null_pointer(void) {
