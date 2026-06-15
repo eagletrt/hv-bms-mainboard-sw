@@ -1,6 +1,7 @@
 /*!
  * \file test-max22530.c
  * \date 2024-08-02
+ * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
  * \brief Test functions for the MAX22530 ADC driver
  */
