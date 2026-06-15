@@ -15,7 +15,7 @@
 
 #include "primary_network.h"
 
-#include "ir1553204.h"
+#include "ir1553204-api.h"
 
 /*! \brief Type definition for the callback function that should start the PWM measurements */
 typedef void (*imd_pwm_start_callback)(void);
@@ -24,9 +24,9 @@ typedef void (*imd_pwm_start_callback)(void);
  * \brief Return code for the IMD module functions
  */
 enum ImdReturnCode {
-    IMD_RC_OK = IR1553204_OK,                       /*!< Executed successfully */
-    IMD_RC_NULL_POINTER = IR1553204_NULL_POINTER,   /*!< A NULL pointer was given to a function */
-    IMD_RC_INVALID_DATA = IR1553204_RC_INVALID_DATA /*!< The given data is not valid */
+    IMD_RC_OK = IR1553204_RC_OK,                     /*!< Executed successfully */
+    IMD_RC_NULL_POINTER = IR1553204_RC_NULL_POINTER, /*!< A NULL pointer was given to a function */
+    IMD_RC_INVALID_DATA = IR1553204_RC_INVALID_DATA  /*!< The given data is not valid */
 };
 
 /*!
@@ -51,7 +51,7 @@ enum ImdStatus {
 struct ImdHandler {
     imd_pwm_start_callback start; /*< A pointer to the callback used to start the PWM to read from the IMD */
 
-    Ir1553204Handler ir1153204; /*< Handler structure of the IMD driver */
+    struct Ir1553204Handler ir1153204; /*< Handler structure of the IMD driver */
 
     primary_hv_imd_status_converted_t status_can_payload; /*< The canlib payload used to send the IMD status */
 };
