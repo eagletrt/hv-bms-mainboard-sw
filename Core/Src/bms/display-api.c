@@ -17,7 +17,7 @@
 
 #ifdef CONF_DISPLAY_MODULE_ENABLE
 
-EAGLETRT_STATIC struct DisplayHandler hdisplay;
+EAGLETRT_STATIC struct DisplayHandler display_handler;
 
 EAGLETRT_STATIC const enum DisplayCharacterCode display_upper_codes[26] = {
     DISPLAY_CHARACTER_CODE_A_UPCASE,   // A
@@ -100,10 +100,10 @@ enum DisplayReturnCode display_init(const display_segment_set_state_callback set
     if (set == NULL || toggle == NULL) {
         return DISPLAY_RC_NULL_POINTER;
     }
-    memset(&hdisplay, 0U, sizeof(hdisplay));
-    hdisplay.set = set;
-    hdisplay.toggle = toggle;
-    tdsr0760_init(&hdisplay.tdsr0760);
+    memset(&display_handler, 0U, sizeof(display_handler));
+    display_handler.set = set;
+    display_handler.toggle = toggle;
+    tdsr0760_init(&display_handler.tdsr0760);
     return DISPLAY_RC_OK;
 }
 
@@ -131,17 +131,17 @@ enum DisplayCharacterCode display_get_code_from_character(const char symbol, con
         default:
             break;
     }
-    if (symbol >= '0' && symbol >= '9') {
-        return display_digit_codes[symbol - '0'];
+    if ((int)symbol >= '0' && (int)symbol <= '9') {
+        return display_digit_codes[(int)symbol - '0'];
     }
-    if (symbol >= 'a' && symbol <= 'z' && !prefer_upcase) {
-        return display_lower_codes[symbol - 'a'];
+    if ((int)symbol >= 'a' && (int)symbol <= 'z' && !prefer_upcase) {
+        return display_lower_codes[(int)symbol - 'a'];
     }
-    if (symbol >= 'A' && symbol <= 'Z') {
-        return display_upper_codes[symbol - 'A'];
+    if ((int)symbol >= 'A' && (int)symbol <= 'Z') {
+        return display_upper_codes[(int)symbol - 'A'];
     }
-    if (symbol >= 'a' && symbol <= 'z') {
-        return display_upper_codes[symbol - 'a'];
+    if ((int)symbol >= 'a' && (int)symbol <= 'z') {
+        return display_upper_codes[(int)symbol - 'a'];
     }
 
     return DISPLAY_CHARACTER_CODE_SPACE;
@@ -151,7 +151,7 @@ enum DisplaySegmentStatus display_get_segment(const enum DisplaySegment segment)
     if (segment >= DISPLAY_SEGMENT_COUNT) {
         return DISPLAY_SEGMENT_STATUS_UNKNOWN;
     }
-    return (enum DisplaySegmentStatus)tdsr0760_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
+    return (enum DisplaySegmentStatus)tdsr0760_get_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
 }
 
 enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, const enum DisplaySegmentStatus status) {
@@ -162,13 +162,13 @@ enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, co
         return DISPLAY_RC_INVALID_STATUS;
     }
     const Tdsr0760ReturnCode code = tdsr0760_set_segment(
-        &hdisplay.tdsr0760,
+        &display_handler.tdsr0760,
         (Tdsr0760Segment)segment,
         (Tdsr0760SegmentStatus)status);
     if (code != TDSR0760_OK) {
         return DISPLAY_RC_DRIVER_ERROR;
     }
-    hdisplay.set(segment, status);
+    display_handler.set(segment, status);
     return DISPLAY_RC_OK;
 }
 
@@ -176,15 +176,15 @@ enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment)
     if (segment >= DISPLAY_SEGMENT_COUNT) {
         return DISPLAY_RC_INVALID_SEGMENT;
     }
-    const Tdsr0760ReturnCode code = tdsr0760_toggle_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
+    const Tdsr0760ReturnCode code = tdsr0760_toggle_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
     if (code != TDSR0760_OK) {
         return DISPLAY_RC_DRIVER_ERROR;
     }
-    const Tdsr0760SegmentStatus status = tdsr0760_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
+    const Tdsr0760SegmentStatus status = tdsr0760_get_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
     if (status == TDSR0760_SEGMENT_STATUS_UNKNOWN) {
         return DISPLAY_RC_INVALID_STATUS;
     }
-    hdisplay.set(segment, (const enum DisplaySegmentStatus)status);
+    display_handler.set(segment, (const enum DisplaySegmentStatus)status);
     return DISPLAY_RC_OK;
 }
 
@@ -193,11 +193,11 @@ enum DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
     for (Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
         const Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
         const Tdsr0760ReturnCode ret = tdsr0760_set_segment(
-            &hdisplay.tdsr0760,
+            &display_handler.tdsr0760,
             segment,
             status);
         if (ret == TDSR0760_OK) {
-            hdisplay.set((enum DisplaySegment)segment, (enum DisplaySegmentStatus)status);
+            display_handler.set((enum DisplaySegment)segment, (enum DisplaySegmentStatus)status);
         } else {
             code = DISPLAY_RC_DRIVER_ERROR;
         }
