@@ -69,7 +69,7 @@ EAGLETRT_STATIC struct FsmHandler hfsm = { .fsm_state = FSM_STATE_INIT };
 
 // TODO: Move animation in separate file
 // 7-segment display animation for various states
-const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SIZE] = {
+const enum DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SIZE] = {
     DISPLAY_SEGMENT_BIT_TOP_LEFT,
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
     DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_BOTTOM,
@@ -82,7 +82,7 @@ const DisplaySegmentBit fsm_idle_display_animation[FSM_IDLE_DISPLAY_ANIMATION_SI
     DISPLAY_SEGMENT_BIT_BOTTOM_LEFT | DISPLAY_SEGMENT_BIT_TOP_LEFT,
 };
 
-const DisplaySegmentBit fsm_ts_on_display_animation[FSM_TS_ON_DISPLAY_ANIMATION_SIZE] = {
+const enum DisplaySegmentBit fsm_ts_on_display_animation[FSM_TS_ON_DISPLAY_ANIMATION_SIZE] = {
     DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
     DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT,
     DISPLAY_SEGMENT_BIT_BOTTOM_RIGHT | DISPLAY_SEGMENT_BIT_BOTTOM,
@@ -91,7 +91,7 @@ const DisplaySegmentBit fsm_ts_on_display_animation[FSM_TS_ON_DISPLAY_ANIMATION_
     DISPLAY_SEGMENT_BIT_TOP_LEFT | DISPLAY_SEGMENT_BIT_TOP
 };
 
-const DisplaySegmentBit fsm_balancing_display_animation[FSM_BALANCING_DISPLAY_ANIMATION_SIZE] = {
+const enum DisplaySegmentBit fsm_balancing_display_animation[FSM_BALANCING_DISPLAY_ANIMATION_SIZE] = {
     DISPLAY_SEGMENT_BIT_TOP | DISPLAY_SEGMENT_BIT_TOP_RIGHT,
     DISPLAY_SEGMENT_BIT_TOP_RIGHT | DISPLAY_SEGMENT_BIT_MIDDLE,
     DISPLAY_SEGMENT_BIT_MIDDLE | DISPLAY_SEGMENT_BIT_BOTTOM_LEFT,
