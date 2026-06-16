@@ -36,8 +36,8 @@ void test_imd_update_ok(void) {
     enum ImdReturnCode code = imd_update(1000, 100, 50);
     TEST_ASSERT_EQUAL_MESSAGE(IMD_RC_OK, code, "imd_update should return IMD_RC_OK when given valid parameters");
 
-    TEST_ASSERT_EQUAL_MESSAGE(10, ir1553204_get_frequency(&imd_handler.ir1153204), "imd_update should set the frequency correctly");
-    TEST_ASSERT_EQUAL_MESSAGE(0.5, ir1553204_get_duty_cycle(&imd_handler.ir1153204), "imd_update should set the duty cycle correctly");
+    TEST_ASSERT_EQUAL_MESSAGE(10, ir1553204_api_get_frequency(&imd_handler.ir1153204), "imd_update should set the frequency correctly");
+    TEST_ASSERT_EQUAL_MESSAGE(0.5, ir1553204_api_get_duty_cycle(&imd_handler.ir1153204), "imd_update should set the duty cycle correctly");
 }
 
 void test_imd_get_status_canlib_payload_null(void) {

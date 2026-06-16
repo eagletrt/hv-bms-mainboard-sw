@@ -23,25 +23,25 @@ enum ImdReturnCode imd_init(const imd_pwm_start_callback start) {
     }
     memset(&imd_handler, 0U, sizeof(imd_handler));
     imd_handler.start = start;
-    const enum ImdReturnCode code = (const enum ImdReturnCode)ir1553204_init(&imd_handler.ir1153204);
+    const enum ImdReturnCode code = (const enum ImdReturnCode)ir1553204_api_init(&imd_handler.ir1153204);
     start();
     return code;
 }
 
 precise_percentage_t imd_get_duty_cycle(void) {
-    return ir1553204_get_duty_cycle(&imd_handler.ir1153204);
+    return ir1553204_api_get_duty_cycle(&imd_handler.ir1153204);
 }
 
 hertz_t imd_get_frequency() {
-    return ir1553204_get_frequency(&imd_handler.ir1153204);
+    return ir1553204_api_get_frequency(&imd_handler.ir1153204);
 }
 
 milliseconds_t imd_get_period() {
-    return ir1553204_get_period(&imd_handler.ir1153204);
+    return ir1553204_api_get_period(&imd_handler.ir1153204);
 }
 
 enum ImdStatus imd_get_status() {
-    return (enum ImdStatus)ir1553204_get_status(&imd_handler.ir1153204);
+    return (enum ImdStatus)ir1553204_api_get_status(&imd_handler.ir1153204);
 }
 
 enum ImdReturnCode imd_update(const ticks_t source_frequency, const ticks_t period_count, const ticks_t high_count) {
@@ -64,8 +64,8 @@ enum ImdReturnCode imd_update(const ticks_t source_frequency, const ticks_t peri
 
     hertz_t frequency = (float)source_frequency / (float)period_count;
     precise_percentage_t duty_cycle = (float)high_count / (float)period_count;
-    (void)ir1553204_set_frequency(&imd_handler.ir1153204, frequency);
-    (void)ir1553204_set_duty_cycle(&imd_handler.ir1153204, duty_cycle);
+    (void)ir1553204_api_set_frequency(&imd_handler.ir1153204, frequency);
+    (void)ir1553204_api_set_duty_cycle(&imd_handler.ir1153204, duty_cycle);
     return IMD_RC_OK;
 }
 
