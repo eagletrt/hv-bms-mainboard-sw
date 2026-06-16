@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "eagletrt-api.h"
+#include "max22530/max22530.h"
 
 constexpr uint8_t low_half_mask = 0xFF;
 constexpr uint16_t high_half_mask = 0xFF00;
@@ -134,7 +135,7 @@ enum Max22530PowerOnReset max22530_api_get_power_on_reset(struct Max22530Handler
     constexpr uint16_t por_mask = 0x80;
 
     if (handler == NULL) {
-        return -1;
+        return MAX22530_POWER_ON_RESET_INVALID;
     }
     const uint16_t data = prv_max22530_api_read(handler, MAX22530_REGISTER_ID);
     return (data & por_mask) >> por_shift;

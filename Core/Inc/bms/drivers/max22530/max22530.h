@@ -138,8 +138,9 @@ enum Max22530Channel {
  * \details This flag is set to one only after a power-on or an hardware reset
  */
 enum Max22530PowerOnReset : int8_t {
-    MAX22530_POWER_ON_RESET_OFF = 0, /*!< Power-on reset is off */
-    MAX22530_POWER_ON_RESET_ON       /*!< Power-on reset is on */
+    MAX22530_POWER_ON_RESET_INVALID = -1, /*!< Invalid power-on reset value */
+    MAX22530_POWER_ON_RESET_OFF = 0,      /*!< Power-on reset is off */
+    MAX22530_POWER_ON_RESET_ON = 1        /*!< Power-on reset is on */
 };
 
 /*!
