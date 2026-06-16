@@ -284,7 +284,7 @@ DisplayCharacterCode display_get_code_from_character(
 DisplaySegmentStatus display_get_segment(const DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return DISPLAY_SEGMENT_STATUS_UNKNOWN;
-    return (DisplaySegmentStatus)tdsr0760_api_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
+    return (DisplaySegmentStatus)tdsr0760_api_get_segment(&hdisplay.tdsr0760, (enum Tdsr0760Segment)segment);
 }
 
 DisplayReturnCode display_set_segment(const DisplaySegment segment, const DisplaySegmentStatus status) {
@@ -294,7 +294,7 @@ DisplayReturnCode display_set_segment(const DisplaySegment segment, const Displa
         return DISPLAY_INVALID_STATUS;
     const enum Tdsr0760ReturnCode code = tdsr0760_api_set_segment(
         &hdisplay.tdsr0760,
-        (Tdsr0760Segment)segment,
+        (enum Tdsr0760Segment)segment,
         (enum Tdsr0760SegmentStatus)status);
     if (code != TDSR0760_RC_OK)
         return DISPLAY_DRIVER_ERROR;
@@ -305,10 +305,10 @@ DisplayReturnCode display_set_segment(const DisplaySegment segment, const Displa
 DisplayReturnCode display_toggle_segment(const DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return DISPLAY_INVALID_SEGMENT;
-    const enum Tdsr0760ReturnCode code = tdsr0760_api_toggle_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
+    const enum Tdsr0760ReturnCode code = tdsr0760_api_toggle_segment(&hdisplay.tdsr0760, (enum Tdsr0760Segment)segment);
     if (code != TDSR0760_RC_OK)
         return DISPLAY_DRIVER_ERROR;
-    const enum Tdsr0760SegmentStatus status = tdsr0760_api_get_segment(&hdisplay.tdsr0760, (Tdsr0760Segment)segment);
+    const enum Tdsr0760SegmentStatus status = tdsr0760_api_get_segment(&hdisplay.tdsr0760, (enum Tdsr0760Segment)segment);
     if (status == TDSR0760_SEGMENT_STATUS_UNKNOWN)
         return DISPLAY_INVALID_STATUS;
     hdisplay.set(segment, (const DisplaySegmentStatus)status);
@@ -317,7 +317,7 @@ DisplayReturnCode display_toggle_segment(const DisplaySegment segment) {
 
 DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
     DisplayReturnCode code = DISPLAY_OK;
-    for (Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
+    for (enum Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
         const enum Tdsr0760SegmentStatus status = MAINBOARD_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
         const enum Tdsr0760ReturnCode ret = tdsr0760_api_set_segment(
             &hdisplay.tdsr0760,

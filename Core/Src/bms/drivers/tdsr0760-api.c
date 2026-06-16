@@ -23,7 +23,7 @@ enum Tdsr0760ReturnCode tdsr0760_api_init(struct Tdsr0760Handler *const handler)
     return TDSR0760_RC_OK;
 }
 
-enum Tdsr0760SegmentStatus tdsr0760_api_get_segment(struct Tdsr0760Handler *const handler, const Tdsr0760Segment segment) {
+enum Tdsr0760SegmentStatus tdsr0760_api_get_segment(struct Tdsr0760Handler *const handler, const enum Tdsr0760Segment segment) {
     if (handler == NULL || segment >= TDSR0760_SEGMENT_COUNT) {
         return TDSR0760_SEGMENT_STATUS_UNKNOWN;
     }
@@ -32,7 +32,7 @@ enum Tdsr0760SegmentStatus tdsr0760_api_get_segment(struct Tdsr0760Handler *cons
 
 enum Tdsr0760ReturnCode tdsr0760_api_set_segment(
     struct Tdsr0760Handler *const handler,
-    const Tdsr0760Segment segment,
+    const enum Tdsr0760Segment segment,
     const enum Tdsr0760SegmentStatus state) {
     if (handler == NULL) {
         return TDSR0760_RC_NULL_POINTER;
@@ -44,7 +44,7 @@ enum Tdsr0760ReturnCode tdsr0760_api_set_segment(
     return TDSR0760_RC_OK;
 }
 
-enum Tdsr0760ReturnCode tdsr0760_api_toggle_segment(struct Tdsr0760Handler *const handler, const Tdsr0760Segment segment) {
+enum Tdsr0760ReturnCode tdsr0760_api_toggle_segment(struct Tdsr0760Handler *const handler, const enum Tdsr0760Segment segment) {
     if (handler == NULL) {
         return TDSR0760_RC_NULL_POINTER;
     }

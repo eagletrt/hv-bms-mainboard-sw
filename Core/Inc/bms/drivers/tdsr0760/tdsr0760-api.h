@@ -31,7 +31,7 @@ enum Tdsr0760ReturnCode tdsr0760_api_init(struct Tdsr0760Handler *handler);
  * \returns enum Tdsr0760SegmentStatus The current status of the segment, or
  * TDSR0760_SEGMENT_STATUS_UNKOWN on error
  */
-enum Tdsr0760SegmentStatus tdsr0760_api_get_segment(struct Tdsr0760Handler *handler, Tdsr0760Segment segment);
+enum Tdsr0760SegmentStatus tdsr0760_api_get_segment(struct Tdsr0760Handler *handler, enum Tdsr0760Segment segment);
 
 /*!
  * \brief Set the status of a single segment
@@ -44,7 +44,7 @@ enum Tdsr0760SegmentStatus tdsr0760_api_get_segment(struct Tdsr0760Handler *hand
  * \retval TDSR0760_RC_INVALID_SEGMENT if the selected segment does not exists
  * \retval TDSR0760_RC_OK otherwise
  */
-enum Tdsr0760ReturnCode tdsr0760_api_set_segment(struct Tdsr0760Handler *handler, Tdsr0760Segment segment, enum Tdsr0760SegmentStatus state);
+enum Tdsr0760ReturnCode tdsr0760_api_set_segment(struct Tdsr0760Handler *handler, enum Tdsr0760Segment segment, enum Tdsr0760SegmentStatus state);
 
 /*!
  * \brief Toggle the status of a single segment
@@ -58,6 +58,6 @@ enum Tdsr0760ReturnCode tdsr0760_api_set_segment(struct Tdsr0760Handler *handler
  * \retval TDSR0760_RC_INVALID_SEGMENT if the selected segment does not exists
  * \retval TDSR0760_RC_OK otherwise
  */
-enum Tdsr0760ReturnCode tdsr0760_api_toggle_segment(struct Tdsr0760Handler *handler, Tdsr0760Segment segment);
+enum Tdsr0760ReturnCode tdsr0760_api_toggle_segment(struct Tdsr0760Handler *handler, enum Tdsr0760Segment segment);
 
 #endif // TDSR0760_API_H

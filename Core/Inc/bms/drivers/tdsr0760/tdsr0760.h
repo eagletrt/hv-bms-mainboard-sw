@@ -35,7 +35,7 @@ enum Tdsr0760SegmentStatus {
  * exception of the decimal point
  * There are also aliases based on the phisycal position of the segments
  */
-typedef enum {
+enum Tdsr0760Segment {
     TDSR0760_SEGMENT_A = 0,
     TDSR0760_SEGMENT_B = 1,
     TDSR0760_SEGMENT_C = 2,
@@ -54,7 +54,7 @@ typedef enum {
     TDSR0760_SEGMENT_BOTTOM_LEFT = TDSR0760_SEGMENT_E,
     TDSR0760_SEGMENT_TOP_LEFT = TDSR0760_SEGMENT_F,
     TDSR0760_SEGMENT_MIDDLE = TDSR0760_SEGMENT_G
-} Tdsr0760Segment;
+};
 
 /*!
  * \brief Tdsr0760 handler structure definition
