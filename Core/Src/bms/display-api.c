@@ -3,7 +3,7 @@
  * \date 2024-07-04
  * \author Ettore Beltrame [ettore.beltrame@studenti.unitn.com]
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
- * \author Alessandro Giustina [giustinalessandro@gmail.com] 
+ * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
  * \brief 7-segment display handling functions
  */
@@ -103,7 +103,7 @@ enum DisplayReturnCode display_init(const display_segment_set_state_callback set
     memset(&display_handler, 0U, sizeof(display_handler));
     display_handler.set = set;
     display_handler.toggle = toggle;
-    tdsr0760_init(&display_handler.tdsr0760);
+    tdsr0760_api_init(&display_handler.tdsr0760);
     return DISPLAY_RC_OK;
 }
 
@@ -151,7 +151,7 @@ enum DisplaySegmentStatus display_get_segment(const enum DisplaySegment segment)
     if (segment >= DISPLAY_SEGMENT_COUNT) {
         return DISPLAY_SEGMENT_STATUS_UNKNOWN;
     }
-    return (enum DisplaySegmentStatus)tdsr0760_get_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
+    return (enum DisplaySegmentStatus)tdsr0760_api_get_segment(&display_handler.tdsr0760, (enum Tdsr0760Segment)segment);
 }
 
 enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, const enum DisplaySegmentStatus status) {
@@ -161,11 +161,11 @@ enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, co
     if (status == DISPLAY_SEGMENT_STATUS_UNKNOWN) {
         return DISPLAY_RC_INVALID_STATUS;
     }
-    const Tdsr0760ReturnCode code = tdsr0760_set_segment(
+    const enum Tdsr0760ReturnCode code = tdsr0760_api_set_segment(
         &display_handler.tdsr0760,
-        (Tdsr0760Segment)segment,
-        (Tdsr0760SegmentStatus)status);
-    if (code != TDSR0760_OK) {
+        (enum Tdsr0760Segment)segment,
+        (enum Tdsr0760SegmentStatus)status);
+    if (code != TDSR0760_RC_OK) {
         return DISPLAY_RC_DRIVER_ERROR;
     }
     display_handler.set(segment, status);
@@ -176,11 +176,11 @@ enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment)
     if (segment >= DISPLAY_SEGMENT_COUNT || segment < 0) {
         return DISPLAY_RC_INVALID_SEGMENT;
     }
-    const Tdsr0760ReturnCode code = tdsr0760_toggle_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
-    if (code != TDSR0760_OK) {
+    const enum Tdsr0760ReturnCode code = tdsr0760_api_toggle_segment(&display_handler.tdsr0760, (enum Tdsr0760Segment)segment);
+    if (code != TDSR0760_RC_OK) {
         return DISPLAY_RC_DRIVER_ERROR;
     }
-    const Tdsr0760SegmentStatus status = tdsr0760_get_segment(&display_handler.tdsr0760, (Tdsr0760Segment)segment);
+    const enum Tdsr0760SegmentStatus status = tdsr0760_api_get_segment(&display_handler.tdsr0760, (enum Tdsr0760Segment)segment);
     if (status == TDSR0760_SEGMENT_STATUS_UNKNOWN) {
         return DISPLAY_RC_INVALID_STATUS;
     }
@@ -190,13 +190,13 @@ enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment)
 
 enum DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
     enum DisplayReturnCode code = DISPLAY_RC_OK;
-    for (Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
-        const Tdsr0760SegmentStatus status = EAGLETRT_API_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
-        const Tdsr0760ReturnCode ret = tdsr0760_set_segment(
+    for (enum Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
+        const enum Tdsr0760SegmentStatus status = EAGLETRT_API_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
+        const enum Tdsr0760ReturnCode ret = tdsr0760_api_set_segment(
             &display_handler.tdsr0760,
             segment,
             status);
-        if (ret == TDSR0760_OK) {
+        if (ret == TDSR0760_RC_OK) {
             display_handler.set((enum DisplaySegment)segment, (enum DisplaySegmentStatus)status);
         } else {
             code = DISPLAY_RC_DRIVER_ERROR;

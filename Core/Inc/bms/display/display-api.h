@@ -17,7 +17,7 @@
 
 /*!
  * \brief Initialization of the 7-segment display internal structure
- * 
+ *
  * \param set A pointer to the function callback that should set the state of the chosen segment
  * \param toggle A pointer to the function callback that should toggle the state of the chosen segment
  *
@@ -95,7 +95,7 @@ enum DisplayReturnCode display_toggle_segment(enum DisplaySegment segment);
  * \details The bit index of the bitflag is defined inside the enum DisplaySegment enum
  *
  * \param bits A bitflag where each bit represents a single segment
- * 
+ *
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
@@ -113,10 +113,10 @@ enum DisplayReturnCode display_set_segment_all(bit_flag8_t bits);
 enum DisplayReturnCode display_set_digit(uint8_t digit);
 
 /*!
- * \brief Shows a character on the 7-segment display 
+ * \brief Shows a character on the 7-segment display
  *
  * \attention Only supports a small subset of all the ASCII characters
- * 
+ *
  * \param symbol The character to show
  * \param prefer_upcase Flag used to prefer upper case or lower case codes if the
  * code for the case sensitive character does not exists

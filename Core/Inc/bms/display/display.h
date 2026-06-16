@@ -16,7 +16,7 @@
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
-#include "tdsr0760.h"
+#include "tdsr0760-api.h"
 
 /*! \brief Total number of intraframes of a display animation */
 #define DISPLAY_INTRAFRAME_VERTICAL_COUNT (5U)
@@ -209,14 +209,14 @@ typedef void (*display_segment_toggle_state_callback)(const enum DisplaySegment 
 
 /*!
  * \brief 7-segment display handler structure
- * 
+ *
  * \attention Do not use this struct outside this module
  */
 struct DisplayHandler {
     display_segment_set_state_callback set;       /*!< Pointer to the function callback that should set the state of a selected segment */
     display_segment_toggle_state_callback toggle; /*!< Pointer to the function callback that should toggle the state of a selected segment */
 
-    Tdsr0760Handler tdsr0760; /*!< Handler structure of the 7-segment display driver */
+    struct Tdsr0760Handler tdsr0760;
 };
 
 #endif // DISPLAY_H
