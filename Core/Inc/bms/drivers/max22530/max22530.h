@@ -45,7 +45,7 @@
 #define MAX22530_BURST_CRC_BYTE_SIZE (12U)
 
 /*! \brief Value treated as unused and that is ignored if received by the chip */
-#define MAX22530_BYTE_UNUSED (0xff)
+#define MAX22530_BYTE_UNUSED (0xFF)
 
 /*! \brief Type definition for an ADC register address */
 typedef uint8_t max22530_address;

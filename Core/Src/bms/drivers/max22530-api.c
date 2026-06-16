@@ -13,8 +13,8 @@
 #include <string.h>
 #include "eagletrt-api.h"
 
-constexpr uint8_t low_half_mask = 0xff;
-constexpr uint16_t high_half_mask = 0xff00;
+constexpr uint8_t low_half_mask = 0xFF;
+constexpr uint16_t high_half_mask = 0xFF00;
 constexpr uint8_t second_half_shift = 8U;
 
 /*!
@@ -88,8 +88,17 @@ enum Max22530ReturnCode prv_max22530_api_burst(
     constexpr uint8_t byte_mask = 0x0f;
 
     for (size_t i = 0U; i < MAX22530_CHANNEL_COUNT + 1U; ++i) {
-        out[i] = ((cmd[(i * 2U) + 1U] & byte_mask) << second_half_shift) | cmd[(i * 2U) + 2U];
+        // 1. Calculate the base index for this channel's data
+        size_t cmd_idx = (i * 2U) + 1U;
+
+        // 2. Extract the two bytes
+        uint16_t high_byte = cmd[cmd_idx] & byte_mask;
+        uint16_t low_byte = cmd[cmd_idx + 1U];
+
+        // 3. Assemble the final word
+        out[i] = (high_byte << second_half_shift) | low_byte;
     }
+
     return MAX22530_RC_OK;
 }
 
