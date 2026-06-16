@@ -18,7 +18,7 @@ DEFINE_FFF_GLOBALS;
 #include <string.h>
 
 extern struct ProgrammerHandler programmer_handler;
-extern _FsmHandler hfsm;
+extern struct FsmHandler hfsm;
 
 extern bool prv_programmer_cellboard_ready_all(void);
 extern void prv_programmer_flash_timeout(void);

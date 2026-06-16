@@ -200,7 +200,7 @@ int16_t _gpio_get_pin_from_led_id(const enum LedId led) {
  *
  * @return GPIO_TypeDef* A pointer to the GPIO port, or NULL if the id is not valid
  */
-GPIO_TypeDef *_gpio_get_port_from_display_segment(const DisplaySegment segment) {
+GPIO_TypeDef *_gpio_get_port_from_display_segment(const enum DisplaySegment segment) {
     switch (segment) {
         case DISPLAY_SEGMENT_TOP:
             return SEG7_S1_GPIO_Port;
@@ -230,7 +230,7 @@ GPIO_TypeDef *_gpio_get_port_from_display_segment(const DisplaySegment segment) 
  *
  * @return int16_t The GPIO pin, or -1 if the id is not valid
  */
-int16_t _gpio_get_pin_from_display_segment(const DisplaySegment segment) {
+int16_t _gpio_get_pin_from_display_segment(const enum DisplaySegment segment) {
     switch (segment) {
         case DISPLAY_SEGMENT_TOP:
             return SEG7_S1_Pin;
@@ -313,7 +313,7 @@ void gpio_led_toggle_state(const enum LedId led) {
     HAL_GPIO_TogglePin(port, pin);
 }
 
-void gpio_display_segment_set_state(const DisplaySegment segment, const DisplaySegmentStatus state) {
+void gpio_display_segment_set_state(const enum DisplaySegment segment, const enum DisplaySegmentStatus state) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return;
     GPIO_TypeDef *const port = _gpio_get_port_from_display_segment(segment);
@@ -321,7 +321,7 @@ void gpio_display_segment_set_state(const DisplaySegment segment, const DisplayS
     HAL_GPIO_WritePin(port, pin, (GPIO_PinState)state);
 }
 
-void gpio_display_segment_toggle_state(const DisplaySegment segment) {
+void gpio_display_segment_toggle_state(const enum DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT)
         return;
     GPIO_TypeDef *const port = _gpio_get_port_from_display_segment(segment);
