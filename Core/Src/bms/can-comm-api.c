@@ -144,8 +144,7 @@ enum CanCommReturnCode can_comm_init(const can_comm_transmit_callback send) {
     if (send == NULL) {
         return CAN_COMM_RC_NULL_POINTER;
     }
-
-    CAN_COMM_DISABLE_ALL(can_comm_handler.enabled);
+    can_comm_disable_all();
     can_comm_handler.send = send;
 
     // Return values are ignored becuase the buffer addresses are always not NULL
@@ -165,11 +164,11 @@ enum CanCommReturnCode can_comm_init(const can_comm_transmit_callback send) {
 }
 
 void can_comm_enable_all(void) {
-    CAN_COMM_ENABLE_ALL(can_comm_handler.enabled);
+    (can_comm_handler.enabled) |= ((1U << CAN_COMM_RX_ENABLE_BIT) | (1U << CAN_COMM_TX_ENABLE_BIT));
 }
 
 void can_comm_disable_all(void) {
-    CAN_COMM_DISABLE_ALL(can_comm_handler.enabled);
+    (can_comm_handler.enabled) &= ~((1U << CAN_COMM_RX_ENABLE_BIT) | (1U << CAN_COMM_TX_ENABLE_BIT));
 }
 
 bool can_comm_is_enabled_all(void) {
@@ -370,8 +369,8 @@ enum CanCommReturnCode can_comm_routine(void) {
         can_comm_handler.tx_busy[tx_msg.network][tx_msg.index] = false;
 
         // Get the right canlib function for the serialization
-        id_from_index id_from_index = bms_id_from_index;
-        serialize_from_id serialize_from_id = bms_serialize_from_id;
+        id_from_index_function id_from_index = bms_id_from_index;
+        serialize_from_id_function serialize_from_id = bms_serialize_from_id;
 
         if (tx_msg.network == CAN_NETWORK_PRIMARY) {
             id_from_index = primary_id_from_index;
@@ -426,8 +425,8 @@ enum CanCommReturnCode can_comm_routine(void) {
         can_comm_handler.rx_busy[rx_msg.network][rx_msg.index] = false;
 
         // Get the right canlib function for the serialization
-        id_from_index id_from_index = bms_id_from_index;
-        deserialize_from_id deserialize_from_id = bms_devices_deserialize_from_id;
+        id_from_index_function id_from_index = bms_id_from_index;
+        deserialize_from_id_function deserialize_from_id = bms_devices_deserialize_from_id;
 
         if (rx_msg.network == CAN_NETWORK_PRIMARY) {
             id_from_index = primary_id_from_index;

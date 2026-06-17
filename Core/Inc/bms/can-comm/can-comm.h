@@ -74,18 +74,6 @@
 #define CAN_COMM_IS_ENABLED(FLAG, BIT) EAGLETRT_API_BIT_GET(FLAG, BIT)
 
 /*!
- * \brief Enable all the bits of the internal flag
- *
- * \param FLAG The internal flag
- */
-#define CAN_COMM_ENABLE_ALL(FLAG) ((FLAG) |= CAN_COMM_ENABLED_ALL_MASK)
-/*!
- * \brief Disable all the bits of the internal flag
- *
- * \param FLAG The internal flag
- */
-#define CAN_COMM_DISABLE_ALL(FLAG) ((FLAG) &= ~CAN_COMM_ENABLED_ALL_MASK)
-/*!
  * \brief Toggle all the bits of the internal flag
  *
  * \param FLAG The internal flag
@@ -199,8 +187,8 @@ struct CanCommHandler {
 typedef void (*can_comm_canlib_payload_handle_callback)(void *const payload);
 
 /*! \brief Type definitions for the canlib device functions */
-typedef int (*id_from_index)(int);
-typedef int (*serialize_from_id)(void *, uint16_t, uint8_t *);
-typedef void (*deserialize_from_id)(device_t *, uint16_t, uint8_t *);
+typedef int (*id_from_index_function)(int);
+typedef int (*serialize_from_id_function)(void *, uint16_t, uint8_t *);
+typedef void (*deserialize_from_id_function)(device_t *, uint16_t, uint8_t *);
 
 #endif // CAN_COMM_H
