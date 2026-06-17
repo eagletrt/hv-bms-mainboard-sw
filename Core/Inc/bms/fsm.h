@@ -27,43 +27,30 @@ Functions and types have been generated with prefix "fsm_"
 #include "mainboard-def.h"
 #include "mainboard-conf.h"
 
-// TODO: Move defines in separate file
 // Size of the 7-segment display animations
 #define FSM_IDLE_DISPLAY_ANIMATION_SIZE (10U)
 #define FSM_TS_ON_DISPLAY_ANIMATION_SIZE (6U)
 #define FSM_BALANCING_DISPLAY_ANIMATION_SIZE (8U)
+#define FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME (100U)
 
-// TODO: Define feedback masks and expected values
-
-/**
- * @brief Definition of the possible events types
+/*!
+ * \brief Definition of the possible events types
  *
- * @details The FSM_EVENT_TYPE_IGNORED should only be used for initialization purposes
+ * \details The FSM_EVENT_TYPE_IGNORED should only be used for initialization purposes
  * and it is not counted as part of the other events
- *
- * @details
- *     - FSM_EVENT_TYPE_FLASH_REQUEST the request for the start of a flash procedure
- *     - FSM_EVENT_TYPE_TS_ON request for the TS on
- *     - FSM_EVENT_TYPE_TS_OFF request for the TS off
- *     - FSM_EVENT_TYPE_AIRN_TIMEOUT the AIR- watchdog has timed out
- *     - FSM_EVENT_TYPE_PRECHARGE_TIMEOUT the precharge watchdog has timed out
- *     - FSM_EVENT_TYPE_AIRP_TIMEOUT the AIR+ watchdog has timed out
- *     - FSM_EVENT_TYPE_BALANCING_START start the balancing procedure
- *     - FSM_EVENT_TYPE_BALANCING_STOP stop the balancing procedure
- *     - FSM_EVENT_TYPE_IGNORED event that should be ignored
  */
 typedef enum {
-    FSM_EVENT_TYPE_FLASH_REQUEST,
-    FSM_EVENT_TYPE_TS_ON,
-    FSM_EVENT_TYPE_TS_OFF,
-    FSM_EVENT_TYPE_AIRN_TIMEOUT,
-    FSM_EVENT_TYPE_PRECHARGE_TIMEOUT,
-    FSM_EVENT_TYPE_AIRP_TIMEOUT,
-    FSM_EVENT_TYPE_BALANCING_START,
-    FSM_EVENT_TYPE_BALANCING_STOP,
-    FSM_EVENT_TYPE_CELLBOARD_FATAL,
-    FSM_EVENT_TYPE_COUNT,
-    FSM_EVENT_TYPE_IGNORED
+    FSM_EVENT_TYPE_FLASH_REQUEST,     /*!< The request for the start of a flash procedure */
+    FSM_EVENT_TYPE_TS_ON,             /*!< Request for the TS on */
+    FSM_EVENT_TYPE_TS_OFF,            /*!< Request for the TS off */
+    FSM_EVENT_TYPE_AIRN_TIMEOUT,      /*!< The AIR- watchdog has timed out */
+    FSM_EVENT_TYPE_PRECHARGE_TIMEOUT, /*!< The precharge watchdog has timed out */
+    FSM_EVENT_TYPE_AIRP_TIMEOUT,      /*!< The AIR+ watchdog has timed out */
+    FSM_EVENT_TYPE_BALANCING_START,   /*!< Start the balancing procedure */
+    FSM_EVENT_TYPE_BALANCING_STOP,    /*!< Stop the balancing procedure */
+    FSM_EVENT_TYPE_CELLBOARD_FATAL,   /*!< A cellboard has reported a fatal error */
+    FSM_EVENT_TYPE_COUNT,             /*!< The number of events, not an actual event */
+    FSM_EVENT_TYPE_IGNORED            /*!< Event that should be ignored */
 } FsmEventType;
 /*** USER CODE END MACROS ***/
 
@@ -71,16 +58,16 @@ typedef enum {
 // By default set to void; override this typedef or load the proper
 // header if you need
 /*** USER STATE DATA TYPE BEGIN ***/
-typedef void fsm_state_data_t;
+typedef void fsm_state_data;
 /*** USER STATE DATA TYPE END ***/
 // Event data object
 // By default the struct is empty; put the data of the event inside
 // the structure if you need or leave it empty
 typedef struct {
-  
-  /*** USER CODE BEGIN EVENT_DATA ***/
-  FsmEventType type;
-  /*** USER CODE END EVENT_DATA ***/
+
+    /*** USER CODE BEGIN EVENT_DATA ***/
+    FsmEventType type;
+    /*** USER CODE END EVENT_DATA ***/
 
 } fsm_event_data_t;
 
@@ -88,50 +75,44 @@ typedef struct {
 
 // List of states
 typedef enum {
-  FSM_STATE_INIT = 0,  
-  FSM_STATE_IDLE,  
-  FSM_STATE_FATAL,  
-  FSM_STATE_FLASH,  
-  FSM_STATE_BALANCING,  
-  FSM_STATE_AIRN_CHECK,  
-  FSM_STATE_PRECHARGE_CHECK,  
-  FSM_STATE_AIRP_CHECK,  
-  FSM_STATE_TS_ON,  
-  FSM_NUM_STATES,
-  FSM_NO_CHANGE
+    FSM_STATE_INIT = 0,
+    FSM_STATE_IDLE,
+    FSM_STATE_FATAL,
+    FSM_STATE_FLASH,
+    FSM_STATE_BALANCING,
+    FSM_STATE_AIRN_CHECK,
+    FSM_STATE_PRECHARGE_CHECK,
+    FSM_STATE_AIRP_CHECK,
+    FSM_STATE_TS_ON,
+    FSM_NUM_STATES,
+    FSM_NO_CHANGE
 } fsm_state_t;
 
 // State human-readable names
 extern const char *fsm_state_names[];
 
 // State function and state transition prototypes
-typedef fsm_state_t fsm_state_func_t(fsm_state_data_t *data);
-typedef void transition_func_t(fsm_state_data_t *data);
+typedef fsm_state_t fsm_state_func_t(fsm_state_data *data);
+typedef void transition_func_t(fsm_state_data *data);
 
 /*** USER CODE BEGIN TYPES ***/
-/**
- * @brief Type definition for the FSM handler structure
+/*!
+ * \brief Type definition for the FSM handler structure
  *
- * @attention Do not use this structure outside of this module
- *
- * @param fsm_state The current state of the FSM
- * @param event The event data
- * @param status_can_payload The canlib payload for the status of the FSM
- * @param flash_can_payload The canlib payload for the flash response
- * @param cellboard_status The status of the cellboards
+ * \attention Do not use this structure outside of this module
  */
-typedef struct {
-    fsm_state_t fsm_state;
-    fsm_event_data_t event;
+struct FsmHandler {
+    fsm_state_t fsm_state;  /*!< The current state of the FSM */
+    fsm_event_data_t event; /*!< The event data of the FSM */
 
-    fsm_event_data_t fatal_event;
+    fsm_event_data_t fatal_event; /*!< The event data that caused the transition to the fatal state, used for debugging purposes */
 
     // Canlib paylaods
-    primary_hv_status_converted_t status_can_payload;
-    primary_hv_flash_response_converted_t flash_can_payload;
+    primary_hv_status_converted_t status_can_payload;        /*!< The canlib payload for the status of the FSM */
+    primary_hv_flash_response_converted_t flash_can_payload; /*!< The canlib payload for the flash response */
 
     bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
-} _FsmHandler;
+};
 /*** USER CODE END TYPES ***/
 
 // Functions to check and trigger an event
@@ -142,88 +123,85 @@ void fsm_event_trigger(fsm_event_data_t *event);
 
 // Function to be executed in state init
 // valid return states: FSM_STATE_IDLE, FSM_STATE_FATAL
-fsm_state_t fsm_do_init(fsm_state_data_t *data);
+fsm_state_t fsm_do_init(fsm_state_data *data);
 
 // Function to be executed in state idle
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_FLASH, FSM_STATE_BALANCING, FSM_STATE_AIRN_CHECK, FSM_STATE_FATAL
-fsm_state_t fsm_do_idle(fsm_state_data_t *data);
+fsm_state_t fsm_do_idle(fsm_state_data *data);
 
 // Function to be executed in state fatal
 // valid return states: FSM_NO_CHANGE, FSM_STATE_FLASH, FSM_STATE_FATAL
-fsm_state_t fsm_do_fatal(fsm_state_data_t *data);
+fsm_state_t fsm_do_fatal(fsm_state_data *data);
 
 // Function to be executed in state flash
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_FLASH, FSM_STATE_FATAL
-fsm_state_t fsm_do_flash(fsm_state_data_t *data);
+fsm_state_t fsm_do_flash(fsm_state_data *data);
 
 // Function to be executed in state balancing
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_BALANCING, FSM_STATE_FATAL
-fsm_state_t fsm_do_balancing(fsm_state_data_t *data);
+fsm_state_t fsm_do_balancing(fsm_state_data *data);
 
 // Function to be executed in state airn_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_AIRN_CHECK, FSM_STATE_PRECHARGE_CHECK, FSM_STATE_FATAL
-fsm_state_t fsm_do_airn_check(fsm_state_data_t *data);
+fsm_state_t fsm_do_airn_check(fsm_state_data *data);
 
 // Function to be executed in state precharge_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_PRECHARGE_CHECK, FSM_STATE_AIRP_CHECK, FSM_STATE_FATAL
-fsm_state_t fsm_do_precharge_check(fsm_state_data_t *data);
+fsm_state_t fsm_do_precharge_check(fsm_state_data *data);
 
 // Function to be executed in state airp_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_AIRP_CHECK, FSM_STATE_TS_ON, FSM_STATE_FATAL
-fsm_state_t fsm_do_airp_check(fsm_state_data_t *data);
+fsm_state_t fsm_do_airp_check(fsm_state_data *data);
 
 // Function to be executed in state ts_on
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_TS_ON, FSM_STATE_FATAL
-fsm_state_t fsm_do_ts_on(fsm_state_data_t *data);
-
+fsm_state_t fsm_do_ts_on(fsm_state_data *data);
 
 // List of state functions
 extern fsm_state_func_t *const fsm_state_table[FSM_NUM_STATES];
 
-
 // Transition functions
-void fsm_start(fsm_state_data_t *data);
-void fsm_idle_to_fatal(fsm_state_data_t *data);
-void fsm_start_flash_procedure(fsm_state_data_t *data);
-void fsm_start_balancing(fsm_state_data_t *data);
-void fsm_close_airn(fsm_state_data_t *data);
-void fsm_handle_fatal_error(fsm_state_data_t *data);
-void fsm_stop_flash_procedure(fsm_state_data_t *data);
-void fsm_stop_balancing(fsm_state_data_t *data);
-void fsm_ts_off(fsm_state_data_t *data);
-void fsm_start_precharge(fsm_state_data_t *data);
-void fsm_close_airp(fsm_state_data_t *data);
-void fsm_ts_on(fsm_state_data_t *data);
+void fsm_start(fsm_state_data *data);
+void fsm_idle_to_fatal(fsm_state_data *data);
+void fsm_start_flash_procedure(fsm_state_data *data);
+void fsm_start_balancing(fsm_state_data *data);
+void fsm_close_airn(fsm_state_data *data);
+void fsm_handle_fatal_error(fsm_state_data *data);
+void fsm_stop_flash_procedure(fsm_state_data *data);
+void fsm_stop_balancing(fsm_state_data *data);
+void fsm_ts_off(fsm_state_data *data);
+void fsm_start_precharge(fsm_state_data *data);
+void fsm_close_airp(fsm_state_data *data);
+void fsm_ts_on(fsm_state_data *data);
 
 // Table of transition functions
 extern transition_func_t *const fsm_transition_table[FSM_NUM_STATES][FSM_NUM_STATES];
 
 // state manager
-fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data_t *data);
+fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data *data);
 
 /*** USER CODE BEGIN FUNCTIONS ***/
-/**
- * @brief Get the current status of the FSM
+/*!
+ * \brief Get the current status of the FSM
  *
- * @return fsm_state_t The FSM status
+ * \returns fsm_state_t The FSM status
  */
 fsm_state_t fsm_get_status(void);
 
-/**
- * @brief Handle the received cellboard status
- *
- * @param payload A pointer to the canlib payload
+/*!
+ * \brief Handle the received cellboard status
+ * \param payload A pointer to the canlib payload
  */
-void fsm_cellboard_state_handle(bms_cellboard_status_converted_t * const payload);
+void fsm_cellboard_state_handle(bms_cellboard_status_converted_t *payload);
 
-/**
- * @brief Get a pointer to the CAN payload structure of the FSM status
+/*!
+ * \brief Get a pointer to the CAN payload structure of the FSM status
  *
- * @param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * @return primary_hv_status_converted_t* A pointer to the payload
+ * \returns primary_hv_status_converted_t* A pointer to the payload
  */
-primary_hv_status_converted_t * fsm_get_canlib_payload(size_t * const byte_size);
+primary_hv_status_converted_t *fsm_get_canlib_payload(size_t *byte_size);
 /*** USER CODE END FUNCTIONS ***/
 
 #endif

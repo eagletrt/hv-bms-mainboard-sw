@@ -31,7 +31,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 
 #include "led-api.h"
-#include "display.h"
+#include "display-api.h"
 #include "pcu-api.h"
 
 /* USER CODE END Includes */
@@ -65,14 +65,14 @@ void gpio_led_toggle_state(const enum LedId led);
  * @param segment The segment to select
  * @param state The new state of the segment to set
  */
-void gpio_display_segment_set_state(const DisplaySegment segment, const DisplaySegmentStatus state);
+void gpio_display_segment_set_state(const enum DisplaySegment segment, const enum DisplaySegmentStatus state);
 
 /**
  * @brief Toggle the state of a segment of the 7-segment display
  *
  * @param segment The segment to select
  */
-void gpio_display_segment_toggle_state(const DisplaySegment segment);
+void gpio_display_segment_toggle_state(const enum DisplaySegment segment);
 
 /**
  * @brief Set the state of a pin controlled by the PCU
