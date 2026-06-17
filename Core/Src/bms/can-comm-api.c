@@ -168,7 +168,7 @@ void can_comm_enable_all(void) {
 }
 
 void can_comm_disable_all(void) {
-    (can_comm_handler.enabled) &= ~((1U << CAN_COMM_RX_ENABLE_BIT) | (1U << CAN_COMM_TX_ENABLE_BIT));
+    (can_comm_handler.enabled) &= (bit_flag8_t) ~((1U << CAN_COMM_RX_ENABLE_BIT) | (1U << CAN_COMM_TX_ENABLE_BIT));
 }
 
 bool can_comm_is_enabled_all(void) {
@@ -407,7 +407,9 @@ enum CanCommReturnCode can_comm_routine(void) {
          */
         switch (ret) {
             case CAN_COMM_RC_INVALID_INDEX:
+                [[fallthrough]];
             case CAN_COMM_RC_INVALID_PAYLOAD_SIZE:
+                [[fallthrough]];
             case CAN_COMM_RC_INVALID_FRAME_TYPE:
                 // Do nothing
                 break;
