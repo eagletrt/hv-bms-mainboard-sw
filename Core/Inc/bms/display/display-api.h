@@ -24,7 +24,7 @@
  * \retval DISPLAY_RC_NULL_POINTER if any of the given parameter is NULL
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_init(display_segment_set_state_callback set, display_segment_toggle_state_callback toggle);
+enum DisplayReturnCode display_api_init(display_segment_set_state_callback set, display_segment_toggle_state_callback toggle);
 
 /*!
  * \brief Get the hexadecimal digit code of the display from a number
@@ -36,7 +36,7 @@ enum DisplayReturnCode display_init(display_segment_set_state_callback set, disp
  * \returns enum DisplayCharacterCode The code corresponding to the digit or
  * DISPLAY_CHARACTER_CODE_SPACE if not valid
  */
-enum DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit);
+enum DisplayCharacterCode display_api_get_code_from_hex_digit(uint8_t digit);
 
 /*!
  * \brief Get the hexadecimal digit code of the display from a number
@@ -52,7 +52,7 @@ enum DisplayCharacterCode display_get_code_from_hex_digit(uint8_t digit);
  * \returns enum DisplayCharacterCode The code corresponding to the character or
  * DISPLAY_CHARACTER_CODE_SPACE if not valid
  */
-enum DisplayCharacterCode display_get_code_from_character(char symbol, bool prefer_upcase);
+enum DisplayCharacterCode display_api_get_code_from_character(char symbol, bool prefer_upcase);
 
 /*!
  * \brief Get the status of a single segment of the 7-segment display
@@ -62,7 +62,7 @@ enum DisplayCharacterCode display_get_code_from_character(char symbol, bool pref
  * \returns enum DisplaySegmentStatus The current status of the display segment, or
  * DISPLAY_SEGMENT_STATUS_UNKNOWN on error
  */
-enum DisplaySegmentStatus display_get_segment(enum DisplaySegment segment);
+enum DisplaySegmentStatus display_api_get_segment(enum DisplaySegment segment);
 
 /*!
  * \brief Set the status of a single segment of the 7-segment display
@@ -75,7 +75,7 @@ enum DisplaySegmentStatus display_get_segment(enum DisplaySegment segment);
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_set_segment(enum DisplaySegment segment, enum DisplaySegmentStatus status);
+enum DisplayReturnCode display_api_set_segment(enum DisplaySegment segment, enum DisplaySegmentStatus status);
 
 /*!
  * \brief Set the status of a single segment of the 7-segment display
@@ -87,7 +87,7 @@ enum DisplayReturnCode display_set_segment(enum DisplaySegment segment, enum Dis
  * \retval DISPLAY_RC_INVALID_STATUS the new segment status is not valid
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_toggle_segment(enum DisplaySegment segment);
+enum DisplayReturnCode display_api_toggle_segment(enum DisplaySegment segment);
 
 /*!
  * \brief Set the status of all the segment of the 7-segment display
@@ -99,7 +99,7 @@ enum DisplayReturnCode display_toggle_segment(enum DisplaySegment segment);
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_set_segment_all(bit_flag8_t bits);
+enum DisplayReturnCode display_api_set_segment_all(bit_flag8_t bits);
 
 /*!
  * \brief Shows an hexadecimal digit on the 7-segment display
@@ -110,7 +110,7 @@ enum DisplayReturnCode display_set_segment_all(bit_flag8_t bits);
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_set_digit(uint8_t digit);
+enum DisplayReturnCode display_api_set_digit(uint8_t digit);
 
 /*!
  * \brief Shows a character on the 7-segment display
@@ -124,7 +124,7 @@ enum DisplayReturnCode display_set_digit(uint8_t digit);
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_set_character(char symbol, bool prefer_upcase);
+enum DisplayReturnCode display_api_set_character(char symbol, bool prefer_upcase);
 
 /*!
  * \brief Run a single step of an animation on the 7-segment display
@@ -138,7 +138,7 @@ enum DisplayReturnCode display_set_character(char symbol, bool prefer_upcase);
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_run_animation(
+enum DisplayReturnCode display_api_run_animation(
     const enum DisplaySegmentBit *animation,
     size_t size,
     ticks_t ticks_per_frame,
@@ -157,21 +157,21 @@ enum DisplayReturnCode display_run_animation(
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_run_animation_string(const char *string, size_t size, ticks_t ticks_per_frame, ticks_t ticks);
+enum DisplayReturnCode display_api_run_animation_string(const char *string, size_t size, ticks_t ticks_per_frame, ticks_t ticks);
 
 #else // CONF_DISPLAY_MODULE_ENABLE
 
-#define display_init(set, toggle) (DISPLAY_RC_OK)
-#define display_get_code_from_hex_digit(digit) (DISPLAY_CHARACTER_CODE_SPACE)
-#define display_get_code_from_character(c, ignore_case, prefer_upcase) (DISPLAY_CHARACTER_CODE_SPACE)
-#define display_get_segment(segment) (DISPLAY_SEGMENT_STATUS_UNKOWN)
-#define display_set_segment(segment, status) (DISPLAY_RC_OK)
-#define display_toggle_segment(segment) (DISPLAY_RC_OK)
-#define display_set_segment_all(bits) (DISPLAY_RC_OK)
-#define display_set_digit(digit) (DISPLAY_RC_OK)
-#define display_set_character(c, ignore_case, prefer_upcase) (DISPLAY_RC_OK)
-#define display_run_animation(animation, size, ticks_per_frame, t) (DISPLAY_RC_OK)
-#define display_run_animation_string(string, size, ticks_per_frame, t) (DISPLAY_RC_OK)
+#define display_api_init(set, toggle) (DISPLAY_RC_OK)
+#define display_api_get_code_from_hex_digit(digit) (DISPLAY_CHARACTER_CODE_SPACE)
+#define display_api_get_code_from_character(c, ignore_case, prefer_upcase) (DISPLAY_CHARACTER_CODE_SPACE)
+#define display_api_get_segment(segment) (DISPLAY_SEGMENT_STATUS_UNKOWN)
+#define display_api_set_segment(segment, status) (DISPLAY_RC_OK)
+#define display_api_toggle_segment(segment) (DISPLAY_RC_OK)
+#define display_api_set_segment_all(bits) (DISPLAY_RC_OK)
+#define display_api_set_digit(digit) (DISPLAY_RC_OK)
+#define display_api_set_character(c, ignore_case, prefer_upcase) (DISPLAY_RC_OK)
+#define display_api_run_animation(animation, size, ticks_per_frame, t) (DISPLAY_RC_OK)
+#define display_api_run_animation_string(string, size, ticks_per_frame, t) (DISPLAY_RC_OK)
 
 #endif // CONF_DISPLAY_MODULE_ENABLE
 

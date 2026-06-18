@@ -22,35 +22,35 @@
  * \retval IMD_RC_NULL_POINTER if any of the given parameter is NULL
  * \retval IMD_RC_OK otherwise
  */
-enum ImdReturnCode imd_init(imd_pwm_start_callback start);
+enum ImdReturnCode imd_api_init(imd_pwm_start_callback start);
 
 /*!
  * \brief Get the duty cycle percentage of the IMD signal
  *
  * \returns precise_percentage_t The duty cycle percentage from 0 to 1, or 0 on error
  */
-precise_percentage_t imd_get_duty_cycle(void);
+precise_percentage_t imd_api_get_duty_cycle(void);
 
 /*!
  * \brief Get the frequency of the IMD signal
  *
  * \returns hertz_t The frequency in Hz, or 0 on error
  */
-hertz_t imd_get_frequency(void);
+hertz_t imd_api_get_frequency(void);
 
 /*!
  * \brief Get the period of the IMD signal
  *
  * \returns milliseconds_t The period in ms, or 0 on error
  */
-milliseconds_t imd_get_period(void);
+milliseconds_t imd_api_get_period(void);
 
 /*!
  * \brief Get the status of the IMD
  *
  * \returns enum ImdStatus The current status of the IMD
  */
-enum ImdStatus imd_get_status(void);
+enum ImdStatus imd_api_get_status(void);
 
 /*!
  * \brief Update the internal handler with a new PWM measurement
@@ -62,7 +62,7 @@ enum ImdStatus imd_get_status(void);
  * \retval IMD_RC_INVALID_DATA if the parameters are not valid
  * \retval IMD_RC_OK otherwise
  */
-enum ImdReturnCode imd_update(ticks_t source_frequency, ticks_t period_count, ticks_t high_count);
+enum ImdReturnCode imd_api_update(ticks_t source_frequency, ticks_t period_count, ticks_t high_count);
 
 /*!
  * \brief Get a pointer to the CAN payload of the IMD
@@ -71,27 +71,27 @@ enum ImdReturnCode imd_update(ticks_t source_frequency, ticks_t period_count, ti
  *
  * \return primary_hv_imd_status_converted_t* A pointer to the payload
  */
-primary_hv_imd_status_converted_t *imd_get_status_canlib_payload(size_t *byte_size);
+primary_hv_imd_status_converted_t *imd_api_get_status_canlib_payload(size_t *byte_size);
 
 #ifdef CONF_IMD_STRINGS_ENABLE
 
-const char *const imd_get_imd_status_name(const enum ImdStatus status);
+const char *const imd_api_get_imd_status_name(const enum ImdStatus status);
 
 #else // CONF_IMD_STRINGS_ENABLE
 
-#define imd_get_imd_status_name(status) ""
+#define imd_api_get_imd_status_name(status) ""
 
 #endif // CONF_IMD_STRINGS_ENABLE
 
 #else // CONF_IMD_MODULE_ENABLE
 
-#define imd_init(start) (IMD_RC_OK)
-#define imd_get_duty_cycle() (0U)
-#define imd_get_frequency() (0U)
-#define imd_get_period() (0U)
-#define imd_get_status() (IMD_STATUS_NORMAL)
-#define imd_update(source_frequency, period_count, high_count) (IMD_RC_OK)
-#define imd_get_status_canlib_payload(byte_size) (NULL)
+#define imd_api_init(start) (IMD_RC_OK)
+#define imd_api_get_duty_cycle() (0U)
+#define imd_api_get_frequency() (0U)
+#define imd_api_get_period() (0U)
+#define imd_api_get_status() (IMD_STATUS_NORMAL)
+#define imd_api_update(source_frequency, period_count, high_count) (IMD_RC_OK)
+#define imd_api_get_status_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_IMD_MODULE_ENABLE
 

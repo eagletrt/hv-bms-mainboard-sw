@@ -15,7 +15,7 @@
 
 EAGLETRT_STATIC struct LedHandler led_handler;
 
-enum LedReturnCode led_init(const led_set_state_callback set, const led_toggle_state_callback toggle) {
+enum LedReturnCode led_api_init(const led_set_state_callback set, const led_toggle_state_callback toggle) {
     if (set == NULL || toggle == NULL) {
         return LED_RC_NULL_POINTER;
     }
@@ -25,7 +25,7 @@ enum LedReturnCode led_init(const led_set_state_callback set, const led_toggle_s
     return LED_RC_OK;
 }
 
-enum LedReturnCode led_set_status(const enum LedId led_id, const enum LedStatus status) {
+enum LedReturnCode led_api_set_status(const enum LedId led_id, const enum LedStatus status) {
     if (led_id >= LED_ID_COUNT) {
         return LED_RC_INVALID_ID;
     }
@@ -36,7 +36,7 @@ enum LedReturnCode led_set_status(const enum LedId led_id, const enum LedStatus 
     return LED_RC_OK;
 }
 
-enum LedReturnCode led_toggle_status(const enum LedId led_id) {
+enum LedReturnCode led_api_toggle_status(const enum LedId led_id) {
     if (led_id >= LED_ID_COUNT) {
         return LED_RC_INVALID_ID;
     }

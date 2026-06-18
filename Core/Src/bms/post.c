@@ -49,10 +49,10 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     (void)current_api_init();
     (void)can_comm_init(data->can_send);
     (void)programmer_api_init(data->system_reset);
-    (void)led_init(data->led_set, data->led_toggle);
-    (void)imd_init(data->imd_start);
+    (void)led_api_init(data->led_set, data->led_toggle);
+    (void)imd_api_init(data->imd_start);
     (void)feedback_api_init(data->feedback_read_all, data->feedback_start_conversion);
-    (void)display_init(data->display_set, data->display_toggle);
+    (void)display_api_init(data->display_set, data->display_toggle);
     (void)internal_voltage_api_init(data->spi_send, data->spi_send_receive);
     (void)bal_api_init();
     return POST_OK;

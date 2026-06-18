@@ -96,7 +96,7 @@ EAGLETRT_STATIC const enum DisplayCharacterCode display_digit_codes[16] = {
     DISPLAY_CHARACTER_CODE_F_UPCASE,   // F (15)
 };
 
-enum DisplayReturnCode display_init(const display_segment_set_state_callback set, const display_segment_toggle_state_callback toggle) {
+enum DisplayReturnCode display_api_init(const display_segment_set_state_callback set, const display_segment_toggle_state_callback toggle) {
     if (set == NULL || toggle == NULL) {
         return DISPLAY_RC_NULL_POINTER;
     }
@@ -107,7 +107,7 @@ enum DisplayReturnCode display_init(const display_segment_set_state_callback set
     return DISPLAY_RC_OK;
 }
 
-enum DisplayCharacterCode display_get_code_from_hex_digit(const uint8_t digit) {
+enum DisplayCharacterCode display_api_get_code_from_hex_digit(const uint8_t digit) {
 
     constexpr uint8_t hex_digit_max = 0xF;
 
@@ -117,7 +117,7 @@ enum DisplayCharacterCode display_get_code_from_hex_digit(const uint8_t digit) {
     return display_digit_codes[digit];
 }
 
-enum DisplayCharacterCode display_get_code_from_character(const char symbol, const bool prefer_upcase) {
+enum DisplayCharacterCode display_api_get_code_from_character(const char symbol, const bool prefer_upcase) {
     switch (symbol) {
         // Symbols
         case ' ':
@@ -147,14 +147,14 @@ enum DisplayCharacterCode display_get_code_from_character(const char symbol, con
     return DISPLAY_CHARACTER_CODE_SPACE;
 }
 
-enum DisplaySegmentStatus display_get_segment(const enum DisplaySegment segment) {
+enum DisplaySegmentStatus display_api_get_segment(const enum DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT) {
         return DISPLAY_SEGMENT_STATUS_UNKNOWN;
     }
     return (enum DisplaySegmentStatus)tdsr0760_api_get_segment(&display_handler.tdsr0760, (enum Tdsr0760Segment)segment);
 }
 
-enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, const enum DisplaySegmentStatus status) {
+enum DisplayReturnCode display_api_set_segment(const enum DisplaySegment segment, const enum DisplaySegmentStatus status) {
     if (segment >= DISPLAY_SEGMENT_COUNT || segment < 0) {
         return DISPLAY_RC_INVALID_SEGMENT;
     }
@@ -172,7 +172,7 @@ enum DisplayReturnCode display_set_segment(const enum DisplaySegment segment, co
     return DISPLAY_RC_OK;
 }
 
-enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment) {
+enum DisplayReturnCode display_api_toggle_segment(const enum DisplaySegment segment) {
     if (segment >= DISPLAY_SEGMENT_COUNT || segment < 0) {
         return DISPLAY_RC_INVALID_SEGMENT;
     }
@@ -188,7 +188,7 @@ enum DisplayReturnCode display_toggle_segment(const enum DisplaySegment segment)
     return DISPLAY_RC_OK;
 }
 
-enum DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
+enum DisplayReturnCode display_api_set_segment_all(const bit_flag8_t bits) {
     enum DisplayReturnCode code = DISPLAY_RC_OK;
     for (enum Tdsr0760Segment segment = 0U; segment < TDSR0760_SEGMENT_COUNT; ++segment) {
         const enum Tdsr0760SegmentStatus status = EAGLETRT_API_BIT_GET(bits, segment) ? TDSR0760_SEGMENT_STATUS_ON : TDSR0760_SEGMENT_STATUS_OFF;
@@ -205,25 +205,25 @@ enum DisplayReturnCode display_set_segment_all(const bit_flag8_t bits) {
     return code;
 }
 
-enum DisplayReturnCode display_set_digit(const uint8_t digit) {
+enum DisplayReturnCode display_api_set_digit(const uint8_t digit) {
 
     constexpr uint8_t hex_digit_max = 0xF;
 
     if (digit > hex_digit_max) {
         return DISPLAY_RC_INVALID_CHARACTER;
     }
-    const enum DisplayCharacterCode code = display_get_code_from_hex_digit(digit);
-    return display_set_segment_all(code);
+    const enum DisplayCharacterCode code = display_api_get_code_from_hex_digit(digit);
+    return display_api_set_segment_all(code);
 }
 
-enum DisplayReturnCode display_set_character(
+enum DisplayReturnCode display_api_set_character(
     const char symbol,
     const bool prefer_upcase) {
-    const enum DisplayCharacterCode code = display_get_code_from_character(symbol, prefer_upcase);
-    return display_set_segment_all(code);
+    const enum DisplayCharacterCode code = display_api_get_code_from_character(symbol, prefer_upcase);
+    return display_api_set_segment_all(code);
 }
 
-enum DisplayReturnCode display_run_animation(
+enum DisplayReturnCode display_api_run_animation(
     const enum DisplaySegmentBit *const animation,
     const size_t size,
     ticks_t ticks_per_frame,
@@ -236,10 +236,10 @@ enum DisplayReturnCode display_run_animation(
     }
     // Display a step of the animation based on the current time
     const size_t frame = (ticks / ticks_per_frame) % size;
-    return display_set_segment_all(animation[frame]);
+    return display_api_set_segment_all(animation[frame]);
 }
 
-enum DisplayReturnCode display_run_animation_string(const char *const string, const size_t size, ticks_t ticks_per_frame, const ticks_t ticks) {
+enum DisplayReturnCode display_api_run_animation_string(const char *const string, const size_t size, ticks_t ticks_per_frame, const ticks_t ticks) {
     if (string == NULL) {
         return DISPLAY_RC_NULL_POINTER;
     }
@@ -252,12 +252,12 @@ enum DisplayReturnCode display_run_animation_string(const char *const string, co
     // const size_t intraframe = ticks / (ticks_per_frame / intraframe_count);
     const size_t letter = frame % size;
     // const size_t j = intraframe % intraframe_count;
-    return display_set_character(string[letter], true);
+    return display_api_set_character(string[letter], true);
 }
 
 #ifdef CONF_DISPLAY_STRINGS_ENABLE
 
-EAGLETRT_STATIC char *display_module_name = "display";
+EAGLETRT_STATIC char *display_api_module_name = "display";
 
 EAGLETRT_STATIC char *display_return_code_name[] = {
     [DISPLAY_RC_OK] = "ok",
@@ -268,7 +268,7 @@ EAGLETRT_STATIC char *display_return_code_name[] = {
     [DISPLAY_RC_DRIVER_ERROR] = "driver error"
 };
 
-EAGLETRT_STATIC char *display_return_code_description[] = {
+EAGLETRT_STATIC char *display_api_return_code_description[] = {
     [DISPLAY_RC_OK] = "executed succefully",
     [DISPLAY_RC_NULL_POINTER] = "attempt to dereference a null pointer",
     [DISPLAY_RC_INVALID_SEGMENT] = "the selected segment does not exist",

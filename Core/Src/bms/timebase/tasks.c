@@ -240,7 +240,7 @@ void _tasks_send_hv_feedback_analog_sd(void) {
 /** @brief Send the IMD status via CAN */
 void _tasks_send_hv_imd_status(void) {
     size_t byte_size = 0U;
-    uint8_t *const payload = (uint8_t *const)imd_get_status_canlib_payload(&byte_size);
+    uint8_t *const payload = (uint8_t *const)imd_api_get_status_canlib_payload(&byte_size);
     can_comm_tx_add(
         CAN_NETWORK_PRIMARY,
         PRIMARY_HV_IMD_STATUS_INDEX,
@@ -297,7 +297,7 @@ TasksReturnCode tasks_init(milliseconds_t resolution) {
     if (resolution == 0U)
         resolution = 1U;
 
-    // Initialize the tasks with the X macro
+        // Initialize the tasks with the X macro
 #define TASKS_X(NAME, ENABLED, START, INTERVAL, EXEC)                                                 \
     do {                                                                                              \
         htasks.tasks[TASKS_NAME_TO_ID(NAME)].enabled = (ENABLED);                                     \

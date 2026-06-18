@@ -178,7 +178,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
 
     (void)timebase_routine();
     (void)can_comm_routine();
-    (void)display_run_animation(
+    (void)display_api_run_animation(
         fsm_idle_display_animation,
         FSM_IDLE_DISPLAY_ANIMATION_SIZE,
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
@@ -246,14 +246,14 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     // TODO: Display error group name
     // ErrorInfo info = error_get_expired_info();
     // const char * const error_group_name = error_get_group_name_string(info.group);
-    // (void)display_run_animation_string(
+    // (void)display_api_run_animation_string(
     //     error_group_name,
     //     strlen(error_group_name),
     //     700U,
     //     timebase_get_tick()
     // );
     const char *const display_animation = "E E EEEE ";
-    (void)display_run_animation_string(
+    (void)display_api_run_animation_string(
         display_animation,
         strlen(display_animation),
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4,
@@ -320,7 +320,7 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
 
     (void)timebase_routine();
     (void)can_comm_routine();
-    (void)display_run_animation(
+    (void)display_api_run_animation(
         fsm_balancing_display_animation,
         FSM_BALANCING_DISPLAY_ANIMATION_SIZE,
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
@@ -452,8 +452,8 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
 
     // Display the precharge percentage from 0 to 10 (in hex)
     const percentage_t perc = (percentage_t)floorf(pcu_api_get_precharge_percentage() * 10.F);
-    (void)display_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
-    (void)display_set_digit(perc);
+    (void)display_api_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
+    (void)display_api_set_digit(perc);
 
     enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
     if (error_api_get_expired() > 0) {
@@ -623,7 +623,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
 
     (void)timebase_routine();
     (void)can_comm_routine();
-    (void)display_run_animation(
+    (void)display_api_run_animation(
         fsm_ts_on_display_animation,
         FSM_TS_ON_DISPLAY_ANIMATION_SIZE,
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
