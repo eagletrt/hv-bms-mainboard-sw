@@ -14,7 +14,7 @@
 #include "mainboard-def.h"
 
 #include "error-api.h"
-#include "can-comm.h"
+#include "can-comm-api.h"
 #include "led-api.h"
 #include "imd-api.h"
 #include "pcu-api.h"
@@ -64,7 +64,7 @@ typedef struct {
     interrupt_critical_section_exit_t cs_exit;
     // error_update_timer_callback_t error_update_timer;
     // error_stop_timer_callback_t error_stop_timer;
-    can_comm_transmit_callback_t can_send;
+    can_comm_transmit_callback can_send;
     led_set_state_callback led_set;
     led_toggle_state_callback led_toggle;
     imd_pwm_start_callback imd_start;
