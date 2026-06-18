@@ -23,13 +23,13 @@ enum InternalVoltageReturnCode internal_voltage_api_init(spi_send_callback_t sen
         return INTERNAL_VOLTAGE_RC_NULL_POINTER;
     }
     memset(&internal_volt_handler, 0U, sizeof(internal_volt_handler));
-    (void)max22530_init(&internal_volt_handler.max22530, send, send_receive);
+    (void)max22530_api_init(&internal_volt_handler.max22530, send, send_receive);
     return INTERNAL_VOLTAGE_RC_OK;
 }
 
 enum InternalVoltageReturnCode internal_voltage_api_read_all(void) {
     volt_t volts[INTERNAL_VOLTAGE_CHANNEL_COUNT];
-    (void)max22530_read_channels_all(&internal_volt_handler.max22530, true, volts, NULL);
+    (void)max22530_api_read_channels_all(&internal_volt_handler.max22530, true, volts, NULL);
     internal_volt_handler.ts = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE]);
     internal_volt_handler.pack = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE]);
     // TODO: Convert and update the IMD TS connected feedback and precharge

@@ -15,7 +15,7 @@
 
 #include "primary_network.h"
 
-#include "max22530.h"
+#include "max22530-api.h"
 
 /*! \brief The period with which internal voltages are updated in ms */
 #define INTERNAL_VOLTAGE_CYCLE_TIME_MS (8U)
@@ -60,7 +60,7 @@ enum InternalVoltageChannel {
  * \attention This structure should not be used outside of this module
  */
 struct InternalVoltageHandler {
-    Max22530Handler max22530; /*!< Handler structure of the external ADC */
+    struct Max22530Handler max22530; /*!< Handler structure of the external ADC */
 
     volt_t ts;   /*!< The voltage of the Tractive System */
     volt_t pack; /*!< The voltage of the battery pack */

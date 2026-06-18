@@ -15,11 +15,11 @@
 
 #include "error-api.h"
 #include "can-comm-api.h"
-#include "led.h"
-#include "imd.h"
-#include "pcu.h"
-#include "feedback.h"
-#include "display.h"
+#include "led-api.h"
+#include "imd-api.h"
+#include "pcu-api.h"
+#include "feedback-api.h"
+#include "display-api.h"
 
 /**
  * @brief Return code for the post module functions
@@ -65,15 +65,15 @@ typedef struct {
     // error_update_timer_callback_t error_update_timer;
     // error_stop_timer_callback_t error_stop_timer;
     can_comm_transmit_callback can_send;
-    led_set_state_callback_t led_set;
-    led_toggle_state_callback_t led_toggle;
-    imd_pwm_start_callback_t imd_start;
-    pcu_set_state_callback_t pcu_set;
-    pcu_toggle_state_callback_t pcu_toggle;
-    feedback_read_digital_all_callback_t feedback_read_all;
-    feedback_start_analog_conversion_callback_t feedback_start_conversion;
-    display_segment_set_state_callback_t display_set;
-    display_segment_toggle_state_callback_t display_toggle;
+    led_set_state_callback led_set;
+    led_toggle_state_callback led_toggle;
+    imd_pwm_start_callback imd_start;
+    pcu_set_state_callback pcu_set;
+    pcu_toggle_state_callback pcu_toggle;
+    feedback_read_digital_all_callback feedback_read_all;
+    feedback_start_analog_conversion_callback feedback_start_conversion;
+    display_segment_set_state_callback display_set;
+    display_segment_toggle_state_callback display_toggle;
     spi_send_callback_t spi_send;
     spi_send_receive_callback_t spi_send_receive;
 } PostInitData;

@@ -96,13 +96,13 @@ primary_hv_power_converted_t *current_api_get_power_canlib_payload(size_t *const
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE
 
-EAGLETRT_STATIC char *current_module_name = "current";
+EAGLETRT_STATIC char *current_api_module_name = "current";
 
-EAGLETRT_STATIC char *current_return_code_name[] = {
+EAGLETRT_STATIC char *current_api_return_code_name[] = {
     [CURRENT_RC_OK] = "ok"
 };
 
-EAGLETRT_STATIC char *current_return_code_description[] = {
+EAGLETRT_STATIC char *current_api_return_code_description[] = {
     [CURRENT_RC_OK] = "executed succesfully"
 };
 

@@ -18,7 +18,7 @@
 #include "watchdog.h"
 #include "timebase.h"
 #include "current-api.h"
-#include "pcu.h"
+#include "pcu-api.h"
 #include "volt-api.h"
 #include "identity-api.h"
 #include "temp-api.h"
@@ -109,9 +109,9 @@ can_comm_canlib_payload_handle_callback prv_can_comm_primary_payload_handle(cons
         case primary_hv_flash_index:
             return (can_comm_canlib_payload_handle_callback)programmer_api_flash_handle;
         case primary_hv_set_status_ecu_index:
-            return (can_comm_canlib_payload_handle_callback)pcu_set_state_from_ecu_handle;
+            return (can_comm_canlib_payload_handle_callback)pcu_api_set_state_from_ecu_handle;
         case primary_hv_set_status_handcart_index:
-            return (can_comm_canlib_payload_handle_callback)pcu_set_state_from_handcart_handle;
+            return (can_comm_canlib_payload_handle_callback)pcu_api_set_state_from_handcart_handle;
         case primary_hv_set_balancing_status_steering_wheel_index:
             return (can_comm_canlib_payload_handle_callback)bal_api_set_balancing_state_from_steering_wheel_handle;
         case primary_hv_set_balancing_status_handcart_index:
@@ -407,9 +407,7 @@ enum CanCommReturnCode can_comm_routine(void) {
          */
         switch (ret) {
             case CAN_COMM_RC_INVALID_INDEX:
-                [[fallthrough]];
             case CAN_COMM_RC_INVALID_PAYLOAD_SIZE:
-                [[fallthrough]];
             case CAN_COMM_RC_INVALID_FRAME_TYPE:
                 // Do nothing
                 break;
