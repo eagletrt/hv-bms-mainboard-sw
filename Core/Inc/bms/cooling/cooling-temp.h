@@ -17,6 +17,7 @@
 
 #include "primary_network.h"
 #include "bms_network.h"
+#include <stdint.h>
 
 /*! \brief Total number of cooling temperatures handled */
 #define COOLING_TEMP_COUNT (COOLING_TEMP_INDEX_COUNT)
@@ -57,7 +58,7 @@ enum CoolingTempReturnCode {
 /*!
  * \brief Indices of the cooling temperatures
  */
-enum CoolingTempIndex {
+enum CoolingTempIndex : uint8_t {
     COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE,    /*<! Inlet liquid temperature */
     COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1, /*<! Outlet liquid temperature 1 */
     COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2, /*<! Outlet liquid temperature 2 */
@@ -65,7 +66,8 @@ enum CoolingTempIndex {
     COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4, /*<! Outlet liquid temperature 4 */
     COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5, /*<! Outlet liquid temperature 5 */
     COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6, /*<! Outlet liquid temperature 6 */
-    COOLING_TEMP_INDEX_COUNT                        /*<! Total number of cooling temperature values */
+    COOLING_TEMP_INDEX_COUNT,                       /*<! Total number of cooling temperature values */
+    COOLING_TEMP_INDEX_INVALID                      /*<! Total number of cooling temperature values */
 };
 
 /*!

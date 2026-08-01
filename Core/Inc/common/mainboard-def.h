@@ -36,7 +36,7 @@
  */
 #ifndef _STATIC
 #define _STATIC static
-#endif  // _STATIC
+#endif // _STATIC
 
 /**
  * @brief Type definition for the inline attribute 
@@ -45,7 +45,7 @@
  */
 #ifndef _STATIC_INLINE
 #define _STATIC_INLINE static inline
-#endif  // _STATIC_INLINE
+#endif // _STATIC_INLINE
 
 /**
  * @brief Type definition for the volatile attribute 
@@ -54,8 +54,7 @@
  */
 #ifndef _VOLATILE
 #define _VOLATILE volatile
-#endif  // _VOLATILE
-
+#endif // _VOLATILE
 
 /*** ######################### CONSTANTS ################################# ***/
 
@@ -89,7 +88,6 @@
 #define CELLBOARD_SEGMENT_CELLS_COUNT ((CELLBOARD_SEGMENT_SERIES_COUNT) * (CELLBOARD_SEGMENT_PARALLELS_COUNT))
 /** @brief Total number of cells series */
 #define CELLBOARD_CELLS_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_CELLS_COUNT))
-
 
 /** @brief Number of temperatures that can be read at the same time from a single segment */
 #define CELLBOARD_SEGMENT_TEMP_CHANNEL_COUNT (3U)
@@ -219,10 +217,7 @@
  * @return The value of the modified variable
  */
 #define MAINBOARD_BIT_TOGGLE_IF(VAR, CONDITION, BIT) ( \
-        (CONDITION) ? \
-        MAINBOARD_BIT_SET(VAR, BIT) : \
-        MAINBOARD_BIT_RESET(VAR, BIT) \
-    )
+    (CONDITION) ? MAINBOARD_BIT_SET(VAR, BIT) : MAINBOARD_BIT_RESET(VAR, BIT))
 
 /**
  * @brief Convert a value gathered from an ADC to a voltage in V
@@ -246,9 +241,7 @@
  * @details If the assertion fails a the cellboard_assert_failed function is
  * called giving the file, line, date and time parameters to get better debug info
  */
-#define MAINBOARD_ASSERT(expression) ((expression) ? \
-    MAINBOARD_NOPE() : \
-    mainboard_assert_failed(__FILE__, __LINE__))
+#define MAINBOARD_ASSERT(expression) ((expression) ? MAINBOARD_NOPE() : mainboard_assert_failed(__FILE__, __LINE__))
 
 /**
  * @brief Debug function called when an assertion fails
@@ -256,13 +249,13 @@
  * @param file The file where the assert failed
  * @param line The line where the assert failed
  */
-void mainboard_assert_failed(const char * file, const int line);
+void mainboard_assert_failed(const char *file, const int line);
 
-#else  // CONF_FULL_ASSERT_ENABLE
+#else // CONF_FULL_ASSERT_ENABLE
 
 #define MAINBOARD_ASSERT(expression) CELLBOARD_NOPE()
 
-#endif  // CONF_FULL_ASSERT_ENABLE
+#endif // CONF_FULL_ASSERT_ENABLE
 
 /** @} */
 
@@ -420,13 +413,13 @@ typedef float watt_t;
 typedef float kilowatt_t;
 
 /** @brief Function callback that resets the microcontroller */
-typedef void (* system_reset_callback_t)(void);
+typedef void (*system_reset_callback_t)(void);
 
 /** @brief Function callback used to enter a critical section */
-typedef void (* interrupt_critical_section_enter_t)(void);
+typedef void (*interrupt_critical_section_enter_t)(void);
 
 /** @brief Function callback used to exit a critical section */
-typedef void (* interrupt_critical_section_exit_t)(void);
+typedef void (*interrupt_critical_section_exit_t)(void);
 
 /**
  * @brief Type definition for the callback used to send data via SPI
@@ -435,11 +428,10 @@ typedef void (* interrupt_critical_section_exit_t)(void);
  * @param data A pointer to the data to send
  * @param size The length of data in bytes
  */
-typedef void (* spi_send_callback_t)(
+typedef void (*spi_send_callback_t)(
     const SpiNetwork network,
-    uint8_t * const data,
-    const size_t size
-);
+    const uint8_t *const data,
+    const size_t size);
 
 /**
  * @brief Type definition for the callback used to send and receive data via SPI
@@ -450,14 +442,13 @@ typedef void (* spi_send_callback_t)(
  * @param size The length of data in bytes
  * @param out_size The number of bytes that should be received
  */
-typedef void (* spi_send_receive_callback_t)(
+typedef void (*spi_send_receive_callback_t)(
     const SpiNetwork network,
-    uint8_t * const data,
-    uint8_t * const out,
+    const uint8_t *const data,
+    uint8_t *const out,
     const size_t size,
-    const size_t out_size
-);
+    const size_t out_size);
 
 /** @} */
 
-#endif  // MAINBOARD_DEF_H
+#endif // MAINBOARD_DEF_H

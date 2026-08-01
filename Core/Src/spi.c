@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "spi.h"
+#include <stdint.h>
 
 /* USER CODE BEGIN 0 */
 
@@ -28,172 +29,165 @@ SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
 /* SPI2 init function */
-void MX_SPI2_Init(void)
-{
+void MX_SPI2_Init(void) {
 
-  /* USER CODE BEGIN SPI2_Init 0 */
+    /* USER CODE BEGIN SPI2_Init 0 */
 
-  /* USER CODE END SPI2_Init 0 */
+    /* USER CODE END SPI2_Init 0 */
 
-  /* USER CODE BEGIN SPI2_Init 1 */
+    /* USER CODE BEGIN SPI2_Init 1 */
 
-  /* USER CODE END SPI2_Init 1 */
-  hspi2.Instance = SPI2;
-  hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi2.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI2_Init 2 */
+    /* USER CODE END SPI2_Init 1 */
+    hspi2.Instance = SPI2;
+    hspi2.Init.Mode = SPI_MODE_MASTER;
+    hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+    hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi2.Init.NSS = SPI_NSS_SOFT;
+    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi2.Init.CRCPolynomial = 10;
+    if (HAL_SPI_Init(&hspi2) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN SPI2_Init 2 */
 
-  /* USER CODE END SPI2_Init 2 */
-
+    /* USER CODE END SPI2_Init 2 */
 }
 /* SPI3 init function */
-void MX_SPI3_Init(void)
-{
+void MX_SPI3_Init(void) {
 
-  /* USER CODE BEGIN SPI3_Init 0 */
+    /* USER CODE BEGIN SPI3_Init 0 */
 
-  /* USER CODE END SPI3_Init 0 */
+    /* USER CODE END SPI3_Init 0 */
 
-  /* USER CODE BEGIN SPI3_Init 1 */
+    /* USER CODE BEGIN SPI3_Init 1 */
 
-  /* USER CODE END SPI3_Init 1 */
-  hspi3.Instance = SPI3;
-  hspi3.Init.Mode = SPI_MODE_MASTER;
-  hspi3.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi3.Init.NSS = SPI_NSS_SOFT;
-  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-  hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi3.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI3_Init 2 */
+    /* USER CODE END SPI3_Init 1 */
+    hspi3.Instance = SPI3;
+    hspi3.Init.Mode = SPI_MODE_MASTER;
+    hspi3.Init.Direction = SPI_DIRECTION_2LINES;
+    hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi3.Init.NSS = SPI_NSS_SOFT;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+    hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi3.Init.CRCPolynomial = 10;
+    if (HAL_SPI_Init(&hspi3) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN SPI3_Init 2 */
 
-  /* USER CODE END SPI3_Init 2 */
-
+    /* USER CODE END SPI3_Init 2 */
 }
 
-void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
-{
+void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
 
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(spiHandle->Instance==SPI2)
-  {
-  /* USER CODE BEGIN SPI2_MspInit 0 */
+    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    if (spiHandle->Instance == SPI2) {
+        /* USER CODE BEGIN SPI2_MspInit 0 */
 
-  /* USER CODE END SPI2_MspInit 0 */
-    /* SPI2 clock enable */
-    __HAL_RCC_SPI2_CLK_ENABLE();
+        /* USER CODE END SPI2_MspInit 0 */
+        /* SPI2 clock enable */
+        __HAL_RCC_SPI2_CLK_ENABLE();
 
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**SPI2 GPIO Configuration
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        /**SPI2 GPIO Configuration
     PB10     ------> SPI2_SCK
     PB14     ------> SPI2_MISO
     PB15     ------> SPI2_MOSI
     */
-    GPIO_InitStruct.Pin = SPI_EEPROM_SCK_Pin|SPI_EEPROM_MISO_Pin|SPI_EEPROM_MOSI_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        GPIO_InitStruct.Pin = SPI2_SCK_MCU_Pin | SPI2_MISO_MCU_Pin | SPI2_MOSI_MCU_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN SPI2_MspInit 1 */
+        /* USER CODE BEGIN SPI2_MspInit 1 */
 
-  /* USER CODE END SPI2_MspInit 1 */
-  }
-  else if(spiHandle->Instance==SPI3)
-  {
-  /* USER CODE BEGIN SPI3_MspInit 0 */
+        /* USER CODE END SPI2_MspInit 1 */
+    } else if (spiHandle->Instance == SPI3) {
+        /* USER CODE BEGIN SPI3_MspInit 0 */
 
-  /* USER CODE END SPI3_MspInit 0 */
-    /* SPI3 clock enable */
-    __HAL_RCC_SPI3_CLK_ENABLE();
+        /* USER CODE END SPI3_MspInit 0 */
+        /* SPI3 clock enable */
+        __HAL_RCC_SPI3_CLK_ENABLE();
 
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    /**SPI3 GPIO Configuration
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+        /**SPI3 GPIO Configuration
     PC10     ------> SPI3_SCK
     PC11     ------> SPI3_MISO
     PC12     ------> SPI3_MOSI
     */
-    GPIO_InitStruct.Pin = SPI_ADC_SCK_Pin|SPI_ADC_MISO_Pin|SPI_ADC_MOSI_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+        GPIO_InitStruct.Pin = SPI3_SCK_Pin | SPI3_MISO_Pin | SPI3_MOSI_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN SPI3_MspInit 1 */
+        /* USER CODE BEGIN SPI3_MspInit 1 */
 
-  /* USER CODE END SPI3_MspInit 1 */
-  }
+        /* USER CODE END SPI3_MspInit 1 */
+    }
 }
 
-void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
-{
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
 
-  if(spiHandle->Instance==SPI2)
-  {
-  /* USER CODE BEGIN SPI2_MspDeInit 0 */
+    if (spiHandle->Instance == SPI2) {
+        /* USER CODE BEGIN SPI2_MspDeInit 0 */
 
-  /* USER CODE END SPI2_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_SPI2_CLK_DISABLE();
+        /* USER CODE END SPI2_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_SPI2_CLK_DISABLE();
 
-    /**SPI2 GPIO Configuration
+        /**SPI2 GPIO Configuration
     PB10     ------> SPI2_SCK
     PB14     ------> SPI2_MISO
     PB15     ------> SPI2_MOSI
     */
-    HAL_GPIO_DeInit(GPIOB, SPI_EEPROM_SCK_Pin|SPI_EEPROM_MISO_Pin|SPI_EEPROM_MOSI_Pin);
+        HAL_GPIO_DeInit(GPIOB, SPI2_SCK_MCU_Pin | SPI2_MISO_MCU_Pin | SPI2_MOSI_MCU_Pin);
 
-  /* USER CODE BEGIN SPI2_MspDeInit 1 */
+        /* USER CODE BEGIN SPI2_MspDeInit 1 */
 
-  /* USER CODE END SPI2_MspDeInit 1 */
-  }
-  else if(spiHandle->Instance==SPI3)
-  {
-  /* USER CODE BEGIN SPI3_MspDeInit 0 */
+        /* USER CODE END SPI2_MspDeInit 1 */
+    } else if (spiHandle->Instance == SPI3) {
+        /* USER CODE BEGIN SPI3_MspDeInit 0 */
 
-  /* USER CODE END SPI3_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_SPI3_CLK_DISABLE();
+        /* USER CODE END SPI3_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_SPI3_CLK_DISABLE();
 
-    /**SPI3 GPIO Configuration
+        /**SPI3 GPIO Configuration
     PC10     ------> SPI3_SCK
     PC11     ------> SPI3_MISO
     PC12     ------> SPI3_MOSI
     */
-    HAL_GPIO_DeInit(GPIOC, SPI_ADC_SCK_Pin|SPI_ADC_MISO_Pin|SPI_ADC_MOSI_Pin);
+        HAL_GPIO_DeInit(GPIOC, SPI3_SCK_Pin | SPI3_MISO_Pin | SPI3_MOSI_Pin);
 
-  /* USER CODE BEGIN SPI3_MspDeInit 1 */
+        /* USER CODE BEGIN SPI3_MspDeInit 1 */
 
-  /* USER CODE END SPI3_MspDeInit 1 */
-  }
+        /* USER CODE END SPI3_MspDeInit 1 */
+    }
 }
 
 /* USER CODE BEGIN 1 */
 
-SPI_HandleTypeDef * _spi_get_peripheral_from_network(const SpiNetwork network) {
+/*!
+ * \brief Get the SPI handler from the SPI network
+ *
+ * \param network The selected SPI network
+ *
+ * \returns The SPI handler or NULL on error
+ */
+SPI_HandleTypeDef *prv_spi_get_peripheral_from_network(const SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return &HSPI_EEPROM;
@@ -204,65 +198,79 @@ SPI_HandleTypeDef * _spi_get_peripheral_from_network(const SpiNetwork network) {
     }
 }
 
-GPIO_TypeDef * _spi_get_port_from_network(const SpiNetwork network) {
+/*!
+ * \brief Get the GPIO Port from the SPI network
+ *
+ * \param network The selected SPI network
+ *
+ * \returns The GPIO Port or NULL on error
+ */
+GPIO_TypeDef *prv_spi_get_port_from_network(const SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
-            return SPI_EEPROM_CS_GPIO_Port;
+            return CS_EEPROM_GPIO_Port;
         case SPI_NETWORK_ADC:
-            return SPI_ADC_CS_GPIO_Port;
+            return CS_ADC_GPIO_Port;
         default:
             return NULL;
     }
 }
 
-uint16_t _spi_get_pin_from_network(const SpiNetwork network) {
+/*!
+ * \brief Get the GPIO Pin from the SPI network
+ *
+ * \param network The selected SPI network
+ *
+ * \returns The GPIO Pin or UINT16_MAX on error
+ */
+uint16_t prv_spi_get_pin_from_network(const SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
-            return SPI_EEPROM_CS_Pin;
+            return CS_EEPROM_Pin;
         case SPI_NETWORK_ADC:
-            return SPI_ADC_CS_Pin;
+            return CS_ADC_Pin;
         default:
             return UINT16_MAX;
     }
 }
 
 // TODO: Return error
-void spi_send(
-    const SpiNetwork network,
-    uint8_t * const data,
-    const size_t size)
-{
-    if (network >= SPI_NETWORK_COUNT)
+void spi_send(const SpiNetwork network, const uint8_t *const data, const size_t size) {
+    if (network >= SPI_NETWORK_COUNT) {
         return;
+    }
 
-    SPI_HandleTypeDef * const hspi = _spi_get_peripheral_from_network(network);
-    GPIO_TypeDef * const port = _spi_get_port_from_network(network);
-    const uint16_t pin = _spi_get_pin_from_network(network);
+    SPI_HandleTypeDef *const hspi = prv_spi_get_peripheral_from_network(network);
+    GPIO_TypeDef *const port = prv_spi_get_port_from_network(network);
+    const uint16_t pin = prv_spi_get_pin_from_network(network);
 
     // Send data
+    const uint32_t timeout = size * 5U;
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(hspi, data, size, size * 5U);
+    HAL_SPI_Transmit(hspi, data, size, timeout);
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
 }
 
 void spi_send_receive(
     const SpiNetwork network,
-    uint8_t * const data,
-    uint8_t * const out,
+    const uint8_t *const data,
+    uint8_t *const out,
     const size_t size,
-    const size_t out_size)
-{
-    if (network >= SPI_NETWORK_COUNT)
+    const size_t out_size) {
+    if (network >= SPI_NETWORK_COUNT) {
         return;
+    }
 
-    SPI_HandleTypeDef * const hspi = _spi_get_peripheral_from_network(network);
-    GPIO_TypeDef * const port = _spi_get_port_from_network(network);
-    const uint16_t pin = _spi_get_pin_from_network(network);
+    SPI_HandleTypeDef *const hspi = prv_spi_get_peripheral_from_network(network);
+    GPIO_TypeDef *const port = prv_spi_get_port_from_network(network);
+    const uint16_t pin = prv_spi_get_pin_from_network(network);
 
     // Send and receive data
+    const uint32_t tx_timeout = size * 5U;
+    const uint32_t rx_timeout = out_size * 5U;
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(hspi, data, size, size * 5U);
-    HAL_SPI_Receive(hspi, out, out_size, out_size * 5U);
+    HAL_SPI_Transmit(hspi, data, size, tx_timeout);
+    HAL_SPI_Receive(hspi, out, out_size, rx_timeout);
     HAL_GPIO_WritePin(port, pin, GPIO_PIN_SET);
 }
 

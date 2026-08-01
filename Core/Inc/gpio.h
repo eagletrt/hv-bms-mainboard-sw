@@ -30,9 +30,9 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
-#include "led-api.h"
-#include "display-api.h"
-#include "pcu-api.h"
+#include "led.h"
+#include "display.h"
+#include "pcu.h"
 
 /* USER CODE END Includes */
 
@@ -44,55 +44,55 @@ void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
-/**
- * @brief Set the state of a LED
+/*!
+ * \brief Set the state of a LED
  *
- * @param led The LED to select
- * @param state The new state of the LED to set
+ * \param led The LED to select
+ * \param state The new state of the LED to set
  */
-void gpio_led_set_state(const enum LedId led, const enum LedStatus state);
+void gpio_led_set_state(enum LedId led, enum LedStatus state);
 
-/**
- * @brief Toggle the state of a LED
+/*!
+ * \brief Toggle the state of a LED
  *
- * @param led The LED to select
+ * \param led The LED to select
  */
-void gpio_led_toggle_state(const enum LedId led);
+void gpio_led_toggle_state(enum LedId led);
 
-/**
- * @brief Set the state of a segment of the 7-segment display
+/*!
+ * \brief Set the state of a segment of the 7-segment display
  *
- * @param segment The segment to select
- * @param state The new state of the segment to set
+ * \param segment The segment to select
+ * \param state The new state of the segment to set
  */
-void gpio_display_segment_set_state(const enum DisplaySegment segment, const enum DisplaySegmentStatus state);
+void gpio_display_segment_set_state(enum DisplaySegment segment, enum DisplaySegmentStatus state);
 
-/**
- * @brief Toggle the state of a segment of the 7-segment display
+/*!
+ * \brief Toggle the state of a segment of the 7-segment display
  *
- * @param segment The segment to select
+ * \param segment The segment to select
  */
-void gpio_display_segment_toggle_state(const enum DisplaySegment segment);
+void gpio_display_segment_toggle_state(enum DisplaySegment segment);
 
-/**
- * @brief Set the state of a pin controlled by the PCU
+/*!
+ * \brief Set the state of a pin controlled by the PCU
  *
- * @param pin The pin to select
- * @parma state The new state of the pin to set
+ * \param pin The pin to select
+ * \parma state The new state of the pin to set
  */
-void gpio_pcu_set_state(const enum PcuPin pin, const enum PcuPinStatus state);
+void gpio_pcu_set_state(enum PcuPin pin, enum PcuPinStatus state);
 
-/**
- * @brief Toggle the state of a pin controlled by the PCU
+/*!
+ * \brief Toggle the state of a pin controlled by the PCU
  *
- * @param pin The pin to select
+ * \param pin The pin to select
  */
-void gpio_pcu_toggle_state(const enum PcuPin pin);
+void gpio_pcu_toggle_state(enum PcuPin pin);
 
-/**
- * @brief Read all the digital feedbacks in one go
+/*!
+ * \brief Read all the digital feedbacks in one go
  *
- * @return bit_flag32_t The state of the feedbacks as a bit flag
+ * \returns The state of the feedbacks as a bit flag
  */
 bit_flag32_t gpio_feedback_read_all(void);
 

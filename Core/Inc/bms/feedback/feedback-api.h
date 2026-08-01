@@ -65,7 +65,7 @@ enum FeedbackReturnCode feedback_api_update_status(void);
  *
  * \param bit The digital feedback to get the value from
  *
- * \returns bool The value of the feedback
+ * \returns The value of the feedback
  */
 bool feedback_api_get_digital(enum FeedbackDigitalBit bit);
 
@@ -74,64 +74,64 @@ bool feedback_api_get_digital(enum FeedbackDigitalBit bit);
  *
  * \param index The index of the analog feedback to get the value from
  *
- * \returns volt_t The feedbacks voltage values
+ * \returns The feedbacks voltage values
  */
 volt_t feedback_api_get_analog(enum FeedbackAnalogIndex index);
 
 /*!
  * \brief Get the status of a single feedback
  *
- * \param id_fb The identifier of the feedback
+ * \param feedback The identifier of the feedback
  *
- * \return enum FeedbackStatus The feedback status
+ * \return The feedback status
  */
-enum FeedbackStatus feedback_api_get_status(enum FeedbackId id_fb);
+enum FeedbackStatus feedback_api_get_status(enum FeedbackId feedback);
 
 /*!
  * \brief Check if the feedbacks specified in the mask are in the expected status
- * 
+ *
  * \param mask The mask used to select the feedbacks to check
  * \param value The expected values of the feedbacks
  * \param out[out] The identifer of the feedback that does not match the expected value
  * or FEEDBACK_ID_UNKNOWN if every feedback is ok (can be NULL)
  *
- * \returns bool True if all the feedbacks match the expected value, false otherwise
+ * \returns True if all the feedbacks match the expected value, false otherwise
  */
 bool feedback_api_check_values(bit_flag32_t mask, bit_flag32_t value, enum FeedbackId *out);
 
 /*!
  * \brief Check if a feedback is digital or analog given its identifier
  *
- * \param id_fb The identifier of the feedback
+ * \param feedback The identifier of the feedback
  *
- * \returns bool True if the feedback is digital, false otherwise
+ * \returns True if the feedback is digital, false otherwise
  */
-bool feedback_api_is_digital(enum FeedbackId id_fb);
+bool feedback_api_is_digital(enum FeedbackId feedback);
 
 /*!
  * \brief Get the feedback digital bit position from its identifier
  *
- * \param id_fb The identifier of the feedback
+ * \param feedback The identifier of the feedback
  *
- * \returns enum FeedbackDigitalBit The bit position of the digital feedback
+ * \returns The bit position of the digital feedback
  */
-enum FeedbackDigitalBit feedback_api_get_digital_bit_from_id(enum FeedbackId id_fb);
+enum FeedbackDigitalBit feedback_api_get_digital_bit_from_id(enum FeedbackId feedback);
 
 /*!
  * \brief Get the feedback analog index from its identifier
  *
- * \param id_fb The identifier of the feedback
+ * \param feedback The identifier of the feedback
  *
- * \returns enum FeedbackAnalogIndex The index of the analog feedback
+ * \returns The index of the analog feedback
  */
-enum FeedbackAnalogIndex feedback_api_get_analog_index_from_id(enum FeedbackId id_fb);
+enum FeedbackAnalogIndex feedback_api_get_analog_index_from_id(enum FeedbackId feedback);
 
 /*!
  * \brief Get a pointer to the CAN payload structure of the feedbacks status
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_feedback_status_converted_t* A pointer to the payload
+ * \returns A pointer to the payload
  */
 primary_hv_feedback_status_converted_t *feedback_api_get_status_payload(size_t *byte_size);
 
@@ -140,7 +140,7 @@ primary_hv_feedback_status_converted_t *feedback_api_get_status_payload(size_t *
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_feedback_digital_converted_t* A pointer to the payload
+ * \returns A pointer to the payload
  */
 primary_hv_feedback_digital_converted_t *feedback_api_get_digital_payload(size_t *byte_size);
 
@@ -149,7 +149,7 @@ primary_hv_feedback_digital_converted_t *feedback_api_get_digital_payload(size_t
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_feedback_analog_converted_t* A pointer to the payload
+ * \returns A pointer to the payload
  */
 primary_hv_feedback_analog_converted_t *feedback_api_get_analog_payload(size_t *byte_size);
 
@@ -158,7 +158,7 @@ primary_hv_feedback_analog_converted_t *feedback_api_get_analog_payload(size_t *
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_feedback_analog_sd_converted_t* A pointer to the payload
+ * \returns A pointer to the payload
  */
 primary_hv_feedback_analog_sd_converted_t *feedback_api_get_analog_sd_payload(size_t *byte_size);
 
@@ -166,12 +166,12 @@ primary_hv_feedback_analog_sd_converted_t *feedback_api_get_analog_sd_payload(si
  * \brief Get a pointer to the CAN payload structure of the feedback that did not
  * allow the BMS to go to the TS ON state
  *
- * \param id_fb The identifier of the feedback
+ * \param feedback The identifier of the feedback
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_feedback_enzomma_converted_t* A pointer to the payload
+ * \returns A pointer to the payload
  */
-primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(enum FeedbackId id_fb, size_t *byte_size);
+primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(enum FeedbackId feedback, size_t *byte_size);
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
@@ -180,9 +180,9 @@ primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(enum F
  *
  * \param id The feedback identifier
  *
- * \returns const char* A pointer to the name of the feedback id
+ * \returns A pointer to the name of the feedback id
  */
-const char *const feedback_api_get_feedback_id_name(enum FeedbackId id);
+const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
 
 #else // CONF_FEEDBACK_STRINGS_ENABLE
 
@@ -199,16 +199,16 @@ const char *const feedback_api_get_feedback_id_name(enum FeedbackId id);
 #define feedback_api_update_status() (FEEDBACK_RC_OK)
 #define feedback_api_get_digital(bit) (false)
 #define feedback_api_get_analog(index) (0.f)
-#define feedback_api_get_status(id) (FEEDBACK_STATUS_ERROR)
+#define feedback_api_get_status(feedback) (FEEDBACK_STATUS_ERROR)
 #define feedback_api_check_values(mask, value, out) (true)
-#define feedback_api_is_digital(id) (true)
-#define feedback_api_get_digital_bit_from_id(id) (FEEDBACK_DIGITAL_BIT_UNKNOWN)
-#define feedback_api_get_analog_index_from_id(id) (FEEDBACK_ANALOG_INDEX_UNKNOWN)
+#define feedback_api_is_digital(feedback) (true)
+#define feedback_api_get_digital_bit_from_id(feedback) (FEEDBACK_DIGITAL_BIT_UNKNOWN)
+#define feedback_api_get_analog_index_from_id(feedback) (FEEDBACK_ANALOG_INDEX_UNKNOWN)
 #define feedback_api_get_status_payload(byte_size) (NULL)
 #define feedback_api_get_digital_payload(byte_size) (NULL)
 #define feedback_api_get_analog_payload(byte_size) (NULL)
 #define feedback_api_get_analog_sd_payload(byte_size) (NULL)
-#define feedback_api_get_enzomma_payload(id, byte_size) (NULL)
+#define feedback_api_get_enzomma_payload(feedback, byte_size) (NULL)
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

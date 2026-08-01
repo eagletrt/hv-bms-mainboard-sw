@@ -65,7 +65,7 @@
  * \details The mask is used to select the feedbacks that have to be checked
  * The high and low macros are the expected states for each feedback, for example if one
  * feedback is put inside the high macro its value is expected to be logically high
- * 
+ *
  * \details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH         \
@@ -106,7 +106,7 @@
  * \details The mask is used to select the feedbacks that have to be checked
  * The high and low macros are the expected states for each feedback, for example if one
  * feedback is put inside the high macro its value is expected to be logically high
- * 
+ *
  * \details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH    \
@@ -145,7 +145,7 @@
  * \details The mask is used to select the feedbacks that have to be checked
  * The high and low macros are the expected states for each feedback, for example if one
  * feedback is put inside the high macro its value is expected to be logically high
- * 
+ *
  * \details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH    \
@@ -184,7 +184,7 @@
  * \details The mask is used to select the feedbacks that have to be checked
  * The high and low macros are the expected states for each feedback, for example if one
  * feedback is put inside the high macro its value is expected to be logically high
- * 
+ *
  * \details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH        \
@@ -223,7 +223,7 @@
  * \details The mask is used to select the feedbacks that have to be checked
  * The high and low macros are the expected states for each feedback, for example if one
  * feedback is put inside the high macro its value is expected to be logically high
- * 
+ *
  * \details Those macros are bitflags where each bit represent the state of a single feedback
  */
 #define FEEDBACK_TS_ON_HIGH (FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH)
@@ -245,7 +245,7 @@ typedef void (*feedback_start_analog_conversion_callback)(void);
 /*!
  * \brief Return code for the feedback module functions
  */
-enum FeedbackReturnCode {
+enum FeedbackReturnCode : uint8_t {
     FEEDBACK_RC_OK,           /*!< Function executed successfully */
     FEEDBACK_RC_NULL_POINTER, /*!< A NULL pointer was given to a function */
     FEEDBACK_RC_INVALID_INDEX /*!< A given index is not valid */
@@ -254,8 +254,7 @@ enum FeedbackReturnCode {
 /*!
  * \brief Type definition of the feedback identifiers
  */
-enum FeedbackId : int8_t {
-    FEEDBACK_ID_UNKNOWN = -1,              /*!< Feedback used for initialization or as return value */
+enum FeedbackId : uint8_t {
     FEEDBACK_ID_AIRN_OPEN_COM,             /*!< Opposite of the AIR- commanded state */
     FEEDBACK_ID_PRECHARGE_OPEN_COM,        /*!< Opposite of the PRECHARGE commanded state */
     FEEDBACK_ID_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
@@ -284,7 +283,7 @@ enum FeedbackId : int8_t {
     FEEDBACK_ID_SD_END,                    /*!< Shutdown end */
     FEEDBACK_ID_V5_MCU,                    /*!< 5V line feedback */
     FEEDBACK_ID_COUNT,                     /*!< Total number of feedbacks */
-
+    FEEDBACK_ID_INVALID                    /*!< Invalid feedback ID */
 };
 
 /*!
@@ -292,46 +291,44 @@ enum FeedbackId : int8_t {
  *
  * \details Can be used to change or check bit flags, the feedback id is used as
  * the position of the bit
+ *
+ * \warning Cannot be used in place of \c FeedbackDigitalBit
  */
 enum FeedbackBit : uint32_t {
-    FEEDBACK_BIT_AIRN_OPEN_COM = (1U << FEEDBACK_ID_AIRN_OPEN_COM),                         /*!< Opposite of the AIR- commanded state (bit definition)*/
-    FEEDBACK_BIT_PRECHARGE_OPEN_COM = (1U << FEEDBACK_ID_PRECHARGE_OPEN_COM),               /*!< Opposite of the PRECHARGE commanded state (bit definition)*/
-    FEEDBACK_BIT_AIRP_OPEN_COM = (1U << FEEDBACK_ID_AIRP_OPEN_COM),                         /*!< Opposite of the AIR+ commanded state (bit definition)*/
-    FEEDBACK_BIT_AIRN_OPEN_MEC = (1U << FEEDBACK_ID_AIRN_OPEN_MEC),                         /*!< Mechanical status of the AIR- (bit definition)*/
-    FEEDBACK_BIT_PRECHARGE_OPEN_MEC = (1U << FEEDBACK_ID_PRECHARGE_OPEN_MEC),               /*!< Mechanical status of the PRECHARGE relay (bit definition)*/
-    FEEDBACK_BIT_AIRP_OPEN_MEC = (1U << FEEDBACK_ID_AIRP_OPEN_MEC),                         /*!< Mechanical status of the AIR+ (bit definition)*/
-    FEEDBACK_BIT_SD_IMD_FB = (1U << FEEDBACK_ID_SD_IMD_FB),                                 /*!< Shutdown IMD node feedback (bit definition)*/
-    FEEDBACK_BIT_SD_BMS_FB = (1U << FEEDBACK_ID_SD_BMS_FB),                                 /*!< Shutdown AMS node feedback (bit definition)*/
-    FEEDBACK_BIT_TS_LESS_THAN_60V = (1U << FEEDBACK_ID_TS_LESS_THAN_60V),                   /*!< Less than 60V on the Tractive System (bit definition)*/
-    FEEDBACK_BIT_PLAUSIBLE_STATE_PERSISTED = (1U << FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED), /*!< Plausible state persisted value (bit definition)*/
-    FEEDBACK_BIT_PLAUSIBLE_STATE = (1U << FEEDBACK_ID_PLAUSIBLE_STATE),                     /*!< Raw plausible state value (bit definition)*/
-    FEEDBACK_BIT_BMS_FAULT_COCKPIT_LED = (1U << FEEDBACK_ID_BMS_FAULT_COCKPIT_LED),         /*!< AMS cockpit LED status (bit definition)*/
-    FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED = (1U << FEEDBACK_ID_IMD_FAULT_COCKPIT_LED),         /*!< IMD cockpit LED status (bit definition)*/
-    FEEDBACK_BIT_INDICATOR_CONNECTED = (1U << FEEDBACK_ID_INDICATOR_CONNECTED),             /*!< Voltage indicator connected (bit definition)*/
-    FEEDBACK_BIT_LATCH_RESET = (1U << FEEDBACK_ID_LATCH_RESET),                             /*!< All the latches are reset (bit definition)*/
-    FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED = (1U << FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED),     /*!< Plausible state latched (bit definition)*/
-    FEEDBACK_BIT_BMS_FAULT_LATCHED = (1U << FEEDBACK_ID_BMS_FAULT_LATCHED),                 /*!< AMS fault latched (bit definition)*/
-    FEEDBACK_BIT_IMD_FAULT_LATCHED = (1U << FEEDBACK_ID_IMD_FAULT_LATCHED),                 /*!< IMD fault latched (bit definition)*/
-    FEEDBACK_BIT_EXT_FAULT_LATCHED = (1U << FEEDBACK_ID_EXT_FAULT_LATCHED),                 /*!< External fault latched (bit definition)*/
-    FEEDBACK_BIT_IMD_OK = (1U << FEEDBACK_ID_IMD_OK),                                       /*!< IMD status (bit definition)*/
-    FEEDBACK_BIT_PLAUSIBLE_STATE_RC = (1U << FEEDBACK_ID_PLAUSIBLE_STATE_RC),               /*!< Plausible state after RC circuit (bit definition)*/
-    FEEDBACK_BIT_TSAL_GREEN = (1U << FEEDBACK_ID_TSAL_GREEN),                               /*!< TSAL status (bit definition)*/
-    FEEDBACK_BIT_PROBING_3V3 = (1U << FEEDBACK_ID_PROBING_3V3),                             /*!< 3V3 probing feedback (bit definition)*/
-    FEEDBACK_BIT_SD_OUT = (1U << FEEDBACK_ID_SD_OUT),                                       /*!< Shutdown out (bit definition)*/
-    FEEDBACK_BIT_SD_IN = (1U << FEEDBACK_ID_SD_IN),                                         /*!< Shutdown in (bit definition)*/
-    FEEDBACK_BIT_SD_END = (1U << FEEDBACK_ID_SD_END),                                       /*!< Shutdown end (bit definition)*/
-    FEEDBACK_BIT_V5_MCU = (1U << FEEDBACK_ID_V5_MCU),                                       /*!< 5V line feedback (bit definition)*/
+    FEEDBACK_BIT_AIRN_OPEN_COM = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_AIRN_OPEN_COM),                         /*!< Opposite of the AIR- commanded state (bit definition)*/
+    FEEDBACK_BIT_PRECHARGE_OPEN_COM = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PRECHARGE_OPEN_COM),               /*!< Opposite of the PRECHARGE commanded state (bit definition)*/
+    FEEDBACK_BIT_AIRP_OPEN_COM = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_AIRP_OPEN_COM),                         /*!< Opposite of the AIR+ commanded state (bit definition)*/
+    FEEDBACK_BIT_AIRN_OPEN_MEC = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_AIRN_OPEN_MEC),                         /*!< Mechanical status of the AIR- (bit definition)*/
+    FEEDBACK_BIT_PRECHARGE_OPEN_MEC = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PRECHARGE_OPEN_MEC),               /*!< Mechanical status of the PRECHARGE relay (bit definition)*/
+    FEEDBACK_BIT_AIRP_OPEN_MEC = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_AIRP_OPEN_MEC),                         /*!< Mechanical status of the AIR+ (bit definition)*/
+    FEEDBACK_BIT_TS_LESS_THAN_60V = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_TS_LESS_THAN_60V),                   /*!< Less than 60V on the Tractive System (bit definition)*/
+    FEEDBACK_BIT_PLAUSIBLE_STATE_PERSISTED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED), /*!< Plausible state persisted value (bit definition)*/
+    FEEDBACK_BIT_PLAUSIBLE_STATE = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PLAUSIBLE_STATE),                     /*!< Raw plausible state value (bit definition)*/
+    FEEDBACK_BIT_BMS_FAULT_COCKPIT_LED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_BMS_FAULT_COCKPIT_LED),         /*!< AMS cockpit LED status (bit definition)*/
+    FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_IMD_FAULT_COCKPIT_LED),         /*!< IMD cockpit LED status (bit definition)*/
+    FEEDBACK_BIT_INDICATOR_CONNECTED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_INDICATOR_CONNECTED),             /*!< Voltage indicator connected (bit definition)*/
+    FEEDBACK_BIT_LATCH_RESET = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_LATCH_RESET),                             /*!< All the latches are reset (bit definition)*/
+    FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED),     /*!< Plausible state latched (bit definition)*/
+    FEEDBACK_BIT_BMS_FAULT_LATCHED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_BMS_FAULT_LATCHED),                 /*!< AMS fault latched (bit definition)*/
+    FEEDBACK_BIT_IMD_FAULT_LATCHED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_IMD_FAULT_LATCHED),                 /*!< IMD fault latched (bit definition)*/
+    FEEDBACK_BIT_EXT_FAULT_LATCHED = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_EXT_FAULT_LATCHED),                 /*!< External fault latched (bit definition)*/
+    FEEDBACK_BIT_IMD_OK = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_IMD_OK),                                       /*!< IMD status (bit definition)*/
+    FEEDBACK_BIT_PLAUSIBLE_STATE_RC = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PLAUSIBLE_STATE_RC),               /*!< Plausible state after RC circuit (bit definition)*/
+    FEEDBACK_BIT_TSAL_GREEN = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_TSAL_GREEN),                               /*!< TSAL status (bit definition)*/
+    FEEDBACK_BIT_PROBING_3V3 = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_PROBING_3V3),                             /*!< 3V3 probing feedback (bit definition)*/
+    FEEDBACK_BIT_SD_OUT = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_SD_OUT),                                       /*!< Shutdown out (bit definition)*/
+    FEEDBACK_BIT_SD_IN = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_SD_IN),                                         /*!< Shutdown in (bit definition)*/
+    FEEDBACK_BIT_SD_END = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_SD_END),                                       /*!< Shutdown end (bit definition)*/
+    FEEDBACK_BIT_V5_MCU = EAGLETRT_API_BIT_SET(0, FEEDBACK_ID_V5_MCU),                                       /*!< 5V line feedback (bit definition)*/
+    FEEDBACK_BIT_INVALID = 0                                                                                 /*!< Invalid feedback bit */
 };
 
 /*!
  * \brief Bit position of the digital feedbacks inside the bit flag
  */
-enum FeedbackDigitalBit : int8_t {
-    FEEDBACK_DIGITAL_BIT_UNKNOWN = -1,              /*!< Feedback used for initialization or as return value */
+enum FeedbackDigitalBit : uint8_t {
     FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM,             /*!< Opposite of the AIR- commanded state */
     FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM,             /*!< Opposite of the AIR+ commanded state */
-    FEEDBACK_DIGITAL_BIT_SD_IMD_FB,                 /*!< Shutdown IMD node feedback */
-    FEEDBACK_DIGITAL_BIT_SD_BMS_FB,                 /*!< Shutdown AMS node feedback */
     FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_COM,        /*!< Opposite of the PRECHARGE commanded state */
     FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC,        /*!< Mechanical status of the PRECHARGE relay */
     FEEDBACK_DIGITAL_BIT_TS_LESS_THAN_60V,          /*!< Less than 60V on the Tractive System */
@@ -346,24 +343,27 @@ enum FeedbackDigitalBit : int8_t {
     FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED,         /*!< IMD fault latched */
     FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED,         /*!< External fault latched */
     FEEDBACK_DIGITAL_BIT_COUNT,                     /*!< Total number of digital feedbacks */
+    FEEDBACK_DIGITAL_BIT_INVALID                    /*!< Invalid feedback digital bit */
 };
 
 /*!
  * \brief Indices of the analog feedbacks
  */
-enum FeedbackAnalogIndex : int8_t {
-    FEEDBACK_ANALOG_INDEX_UNKNOWN = -1,       /*!< Feedback used for initialization or as return value */
+enum FeedbackAnalogIndex : uint8_t {
     FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC,      /*!< Mechanical status of the AIR- */
     FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC,      /*!< Mechanical status of the AIR+ */
     FEEDBACK_ANALOG_INDEX_IMD_OK,             /*!< Status of the IMD */
     FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC, /*!< Plausible state after the RC circuit */
     FEEDBACK_ANALOG_INDEX_TSAL_GREEN,         /*!< Status of the TSAL */
     FEEDBACK_ANALOG_INDEX_PROBING_3V3,        /*!< Feedback on the 3V3 line (comes out of a divider so it should be around 1.6V) */
+    FEEDBACK_ANALOG_INDEX_SD_IMD_FB,          /*!< Shutdown IMD node feedback */
+    FEEDBACK_ANALOG_INDEX_SD_BMS_FB,          /*!< Shutdown AMS node feedback */
     FEEDBACK_ANALOG_INDEX_SD_OUT,             /*!< Shutdown out */
     FEEDBACK_ANALOG_INDEX_SD_IN,              /*!< Shutdown in */
     FEEDBACK_ANALOG_INDEX_SD_END,             /*!< Shutdown end */
     FEEDBACK_ANALOG_INDEX_V5_MCU,             /*!< Feedback on the 5V line */
     FEEDBACK_ANALOG_INDEX_COUNT,              /*!< Total number of analog feedbacks */
+    FEEDBACK_ANALOG_INDEX_INVALID             /*!< Invalid feedback analog index */
 };
 
 /*!
@@ -372,7 +372,8 @@ enum FeedbackAnalogIndex : int8_t {
 enum FeedbackStatus : uint8_t {
     FEEDBACK_STATUS_LOW,   /*!< The feedback value is considered as logically low */
     FEEDBACK_STATUS_ERROR, /*!< The feedback value is not in a valid state */
-    FEEDBACK_STATUS_HIGH   /*!< The feedback value is considered as logically high */
+    FEEDBACK_STATUS_HIGH,  /*!< The feedback value is considered as logically high */
+    FEEDBACK_STATUS_COUNT  /*!< The number of feedback states */
 };
 
 /*!

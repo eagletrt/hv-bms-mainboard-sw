@@ -19,6 +19,7 @@ Functions and types have been generated with prefix "fsm_"
 #include <string.h>
 #include <math.h>
 
+#include "feedback.h"
 #include "primary_network.h"
 
 #include "post.h"
@@ -28,6 +29,8 @@ Functions and types have been generated with prefix "fsm_"
 #include "feedback-api.h"
 #include "bal-api.h"
 #include "error-api.h"
+#include "display-api.h"
+#include "pcu-api.h"
 /*** USER CODE END MACROS ***/
 
 // GLOBALS
@@ -116,14 +119,14 @@ void fsm_event_trigger(fsm_event_data_t *event) {
     fsm_fired_event = event ? event : &(fsm_event_data_t){};
 }
 
-/*  ____  _        _       
- * / ___|| |_ __ _| |_ ___ 
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
  *  ___) | || (_| | ||  __/
  * |____/ \__\__,_|\__\___|
- *                         
- *   __                  _   _                 
- *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___ 
+ *
+ *   __                  _   _
+ *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
@@ -194,7 +197,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST) {
             next_state = FSM_STATE_FLASH;
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_ON) {
-            enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+            enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
             if (feedback_api_check_values(
                     FEEDBACK_IDLE_TO_AIRN_CHECK_MASK,
                     FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH,
@@ -361,7 +364,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     (void)timebase_routine();
     (void)can_comm_routine();
 
-    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -455,7 +458,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
     (void)display_api_set_segment(DISPLAY_SEGMENT_DECIMAL_POINT, DISPLAY_SEGMENT_STATUS_ON);
     (void)display_api_set_digit(perc);
 
-    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -540,7 +543,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     (void)timebase_routine();
     (void)can_comm_routine();
 
-    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -629,7 +632,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
         timebase_get_tick());
 
-    enum FeedbackId feedback_id = FEEDBACK_ID_UNKNOWN;
+    enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
     } else if (fsm_is_event_triggered()) {
@@ -668,14 +671,14 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
     return next_state;
 }
 
-/*  _____                    _ _   _              
- * |_   _| __ __ _ _ __  ___(_) |_(_) ___  _ __   
+/*  _____                    _ _   _
+ * |_   _| __ __ _ _ __  ___(_) |_(_) ___  _ __
  *   | || '__/ _` | '_ \/ __| | __| |/ _ \| '_ \
- *   | || | | (_| | | | \__ \ | |_| | (_) | | | | 
- *   |_||_|  \__,_|_| |_|___/_|\__|_|\___/|_| |_| 
- *                                                
- *   __                  _   _                 
- *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___ 
+ *   | || | | (_| | | | \__ \ | |_| | (_) | | | |
+ *   |_||_|  \__,_|_| |_|___/_|\__|_|\___/|_| |_|
+ *
+ *   __                  _   _
+ *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
@@ -834,18 +837,18 @@ void fsm_ts_on(fsm_state_data *data) {
     /*** USER CODE END TS_ON ***/
 }
 
-/*  ____  _        _        
- * / ___|| |_ __ _| |_ ___  
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
- *  ___) | || (_| | ||  __/ 
- * |____/ \__\__,_|\__\___| 
- *                          
- *                                              
- *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __ 
+ *  ___) | || (_| | ||  __/
+ * |____/ \__\__,_|\__\___|
+ *
+ *
+ *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __
  * | '_ ` _ \ / _` | '_ \ / _` |/ _` |/ _ \ '__|
- * | | | | | | (_| | | | | (_| | (_| |  __/ |   
- * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|   
- *                              |___/           
+ * | | | | | | (_| | | | | (_| | (_| |  __/ |
+ * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|
+ *                              |___/
  */
 
 fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data *data) {

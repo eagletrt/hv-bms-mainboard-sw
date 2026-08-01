@@ -13,13 +13,12 @@
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 
-#include "error-api.h"
-#include "can-comm-api.h"
-#include "led-api.h"
-#include "imd-api.h"
-#include "pcu-api.h"
-#include "feedback-api.h"
-#include "display-api.h"
+#include "can-comm.h"
+#include "led.h"
+#include "imd.h"
+#include "pcu.h"
+#include "feedback.h"
+#include "display.h"
 
 /**
  * @brief Return code for the post module functions
@@ -94,7 +93,7 @@ typedef struct {
  *     - POST_SETUP_ERROR a error occured during the modules setup
  *     - POST_OK otherwise
  */
-PostReturnCode post_run(const PostInitData data);
+PostReturnCode post_run(PostInitData data);
 
 #else // CONF_POST_MODULE_ENABLE
 
