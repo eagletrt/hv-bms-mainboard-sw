@@ -1,9 +1,9 @@
-/**
- * @file post.c
- * @date 2024-04-16
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file post.c
+ * \date 2024-04-16
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
  *
- * @brief Power-On Self Test function to check that every internal system and
+ * \brief Power-On Self Test function to check that every internal system and
  * peripheral is working correctly
  */
 
@@ -17,29 +17,36 @@
 #include "current-api.h"
 #include "internal-voltage-api.h"
 #include "bal-api.h"
+#include "pcu-api.h"
+#include "can-comm-api.h"
+#include "led-api.h"
+#include "imd-api.h"
+#include "feedback-api.h"
+#include "display-api.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
-/**
- * @brief Initialize all the cellboard modules
+/*!
+ * \brief Initialize all the cellboard modules
  *
- * @attention The order in which the init functions are called matters
+ * \attention The order in which the init functions are called matters
  *
- * @param data A pointer to the initialization data
+ * \param data A pointer to the initialization data
  *
- * @return PostReturnCode
+ * \return PostReturnCode
  *     - POST_OK
  */
-PostReturnCode _post_modules_init(const PostInitData *const data) {
+PostReturnCode prv_post_modules_init(const PostInitData *const data) {
     /*
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
      */
-    if (error_api_init() != ERROR_RC_OK)
+    if (error_api_init() != ERROR_RC_OK) {
         return POST_UNINITIALIZED;
+    }
     identity_api_init();
 
-    /**
+    /*!
      * Some of the function return values can be ignored because they are either
      * always OK or some assertion can be made (like for the NULL checks)
      */
@@ -58,17 +65,18 @@ PostReturnCode _post_modules_init(const PostInitData *const data) {
     return POST_OK;
 }
 
-PostReturnCode _post_module_setup(void) {
+PostReturnCode prv_post_module_setup(void) {
     pcu_api_reset_all();
     timebase_set_enable(true);
     can_comm_enable_all();
 
     // Wait for the current sensor to start its normal operation cycle
-    milliseconds_t t = timebase_get_time();
-    while (timebase_get_time() - t <= CURRENT_SENSOR_STARTUP_TIME_MS)
-        ;
-    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_OK)
+    milliseconds_t time = timebase_get_time();
+    while (timebase_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
+    }
+    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_OK) {
         return POST_SETUP_ERROR;
+    }
 
     return POST_OK;
 }
@@ -86,16 +94,18 @@ PostReturnCode post_run(const PostInitData data) {
         data.display_set == NULL ||
         data.display_toggle == NULL ||
         data.spi_send == NULL ||
-        data.spi_send_receive == NULL)
+        data.spi_send_receive == NULL) {
         return POST_NULL_POINTER;
+    }
 
     // Module initialization
-    PostReturnCode post_code = _post_modules_init(&data);
-    if (post_code != POST_OK)
+    PostReturnCode post_code = prv_post_modules_init(&data);
+    if (post_code != POST_OK) {
         return post_code;
+    }
 
     // Module confiuration
-    post_code = _post_module_setup();
+    post_code = prv_post_module_setup();
 
     // TODO: Test that every peripheral is working
 
@@ -104,16 +114,16 @@ PostReturnCode post_run(const PostInitData data) {
 
 #ifdef CONF_POST_STRINGS_ENABLE
 
-_STATIC char *post_module_name = "post";
+EAGLETRT_STATIC char *post_module_name = "post";
 
-_STATIC char *post_return_code_name[] = {
+EAGLETRT_STATIC char *post_return_code_name[] = {
     [POST_OK] = "ok",
     [POST_UNINITIALIZED] = "uninitialized",
     [POST_SETUP_ERROR] = "setup error",
     [POST_NULL_POINTER] = "null pointer"
 };
 
-_STATIC char *post_return_code_description[] = {
+EAGLETRT_STATIC char *post_return_code_description[] = {
     [POST_OK] = "executed successfully",
     [POST_UNINITIALIZED] = "a module has not been initialized correctly",
     [POST_SETUP_ERROR] = "a module has not been configured correctly",

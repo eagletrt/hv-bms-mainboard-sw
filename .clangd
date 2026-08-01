@@ -10,9 +10,9 @@ CompileFlags:
     - -std=gnu23      # clangd uses its own C standard handling
   Add:
     - -std=c23
-    - -DSTM32G4A1xx
-    - -DSTM32G4xx
-    - -DSTM32G4
+    - -DSTM32F446xx
+    - -DSTM32F4xx
+    - -DSTM32F4
     - -Itest/include
     - -I.pio/libdeps/tests/Unity/src
 
@@ -42,5 +42,3 @@ InlayHints:
 
 Hover:
   ShowAKA: true
-
-  

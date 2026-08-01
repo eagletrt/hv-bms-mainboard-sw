@@ -14,15 +14,15 @@
 
 DEFINE_FFF_GLOBALS;
 
-FAKE_VOID_FUNC(mock_send, SpiNetwork, uint8_t *, size_t);
-FAKE_VOID_FUNC(mock_send_receive, const SpiNetwork, uint8_t *, uint8_t *, size_t, size_t);
+FAKE_VOID_FUNC(mock_send, SpiNetwork, const uint8_t *, size_t);
+FAKE_VOID_FUNC(mock_send_receive, const SpiNetwork, const uint8_t *, uint8_t *, size_t, size_t);
 
 static struct Max22530Handler max22530_handler;
 
 static uint8_t mock_rx_buffer[MAX22530_BURST_BYTE_SIZE];
 static uint16_t mock_rx_value;
 
-static void mock_send_receive_custom_fake(SpiNetwork network, uint8_t *tx, uint8_t *rx, size_t tx_size, size_t rx_size) {
+static void mock_send_receive_custom_fake(SpiNetwork network, const uint8_t *tx, uint8_t *rx, size_t tx_size, size_t rx_size) {
     (void)network;
     (void)tx;
     (void)tx_size;

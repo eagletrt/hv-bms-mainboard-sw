@@ -22,10 +22,15 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "cooling-temp.h"
+#include "eagletrt-api.h"
+#include "eagletrt.h"
+#include "feedback.h"
 #include "mainboard-conf.h"
 
 #include "feedback-api.h"
 #include "cooling-temp-api.h"
+#include <stdint.h>
 
 /* USER CODE END 0 */
 
@@ -311,17 +316,17 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *adcHandle) {
     PB0     ------> ADC1_IN8
     PB1     ------> ADC1_IN9
     */
-        GPIO_InitStruct.Pin = COOLING_CONSUMPTION_Pin | ITS_HC_F_Pin | ITS_LC_F_Pin | AUX_TEMP_Pin | OUTLET_LIQUID_TEMP_3_Pin | OUTLET_LIQUID_TEMP_4_Pin;
+        GPIO_InitStruct.Pin = TSAL_GREEN_MCU_Pin | IMD_OK_MCU_Pin | ITS_HC_F_Pin | AUX_TEMP_MCU_Pin | OUTLET_LIQUID_TEMP_3_MCU_Pin | INLET_LIQUID_TEMP_MCU_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-        GPIO_InitStruct.Pin = SD_OUT_Pin | SD_IN_Pin | SD_END_Pin | V5_MCU_Pin | INLET_LIQUID_TEMP_Pin | OUTLET_LIQUID_TEMP_1_Pin | OUTLET_LIQUID_TEMP_2_Pin;
+        GPIO_InitStruct.Pin = ITS_LC_F_Pin | SD_IN_MCU_Pin | SD_END_MCU_Pin | SD_OUT_Pin | OUTLET_LIQUID_TEMP_4_MCU_Pin | OUTLET_LIQUID_TEMP_5_MCU_Pin | OUTLET_LIQUID_TEMP_6_MCU_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-        GPIO_InitStruct.Pin = OUTLET_LIQUID_TEMP_5_Pin | OUTLET_LIQUID_TEMP_6_Pin;
+        GPIO_InitStruct.Pin = OUTLET_LIQUID_TEMP_1_MCU_Pin | OUTLET_LIQUID_TEMP_2_MCU_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -361,10 +366,11 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *adcHandle) {
     PF5     ------> ADC3_IN15
     PF6     ------> ADC3_IN4
     PF7     ------> ADC3_IN5
+    PF8     ------> ADC3_IN6
     PF9     ------> ADC3_IN7
     PF10     ------> ADC3_IN8
     */
-        GPIO_InitStruct.Pin = AIRN_OPEN_MEC_Pin | AIRP_OPEN_MEC_Pin | IMD_OK_Pin | PLAUSIBLE_STATE_RC_Pin | TSAL_GREEN_Pin | AMB_TEMP_Pin | PROBING_3V3_Pin;
+        GPIO_InitStruct.Pin = SD_R_BMS_OUT_MCU_Pin | SD_R_IMD_OUT_MCU_Pin | AIRP_OPEN_MEC_MCU_Pin | AIRN_OPEN_MEC_MCU_Pin | V5_MCU_Pin | PLAUSIBLE_STATE_RC_MCU_Pin | AMB_TEMP_Pin | PROBING_3V3_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
@@ -419,11 +425,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
     PB0     ------> ADC1_IN8
     PB1     ------> ADC1_IN9
     */
-        HAL_GPIO_DeInit(GPIOC, COOLING_CONSUMPTION_Pin | ITS_HC_F_Pin | ITS_LC_F_Pin | AUX_TEMP_Pin | OUTLET_LIQUID_TEMP_3_Pin | OUTLET_LIQUID_TEMP_4_Pin);
+        HAL_GPIO_DeInit(GPIOC, TSAL_GREEN_MCU_Pin | IMD_OK_MCU_Pin | ITS_HC_F_Pin | AUX_TEMP_MCU_Pin | OUTLET_LIQUID_TEMP_3_MCU_Pin | INLET_LIQUID_TEMP_MCU_Pin);
 
-        HAL_GPIO_DeInit(GPIOA, SD_OUT_Pin | SD_IN_Pin | SD_END_Pin | V5_MCU_Pin | INLET_LIQUID_TEMP_Pin | OUTLET_LIQUID_TEMP_1_Pin | OUTLET_LIQUID_TEMP_2_Pin);
+        HAL_GPIO_DeInit(GPIOA, ITS_LC_F_Pin | SD_IN_MCU_Pin | SD_END_MCU_Pin | SD_OUT_Pin | OUTLET_LIQUID_TEMP_4_MCU_Pin | OUTLET_LIQUID_TEMP_5_MCU_Pin | OUTLET_LIQUID_TEMP_6_MCU_Pin);
 
-        HAL_GPIO_DeInit(GPIOB, OUTLET_LIQUID_TEMP_5_Pin | OUTLET_LIQUID_TEMP_6_Pin);
+        HAL_GPIO_DeInit(GPIOB, OUTLET_LIQUID_TEMP_1_MCU_Pin | OUTLET_LIQUID_TEMP_2_MCU_Pin);
 
         /* ADC1 DMA DeInit */
         HAL_DMA_DeInit(adcHandle->DMA_Handle);
@@ -443,10 +449,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
     PF5     ------> ADC3_IN15
     PF6     ------> ADC3_IN4
     PF7     ------> ADC3_IN5
+    PF8     ------> ADC3_IN6
     PF9     ------> ADC3_IN7
     PF10     ------> ADC3_IN8
     */
-        HAL_GPIO_DeInit(GPIOF, AIRN_OPEN_MEC_Pin | AIRP_OPEN_MEC_Pin | IMD_OK_Pin | PLAUSIBLE_STATE_RC_Pin | TSAL_GREEN_Pin | AMB_TEMP_Pin | PROBING_3V3_Pin);
+        HAL_GPIO_DeInit(GPIOF, SD_R_BMS_OUT_MCU_Pin | SD_R_IMD_OUT_MCU_Pin | AIRP_OPEN_MEC_MCU_Pin | AIRN_OPEN_MEC_MCU_Pin | V5_MCU_Pin | PLAUSIBLE_STATE_RC_MCU_Pin | AMB_TEMP_Pin | PROBING_3V3_Pin);
 
         /* ADC3 DMA DeInit */
         HAL_DMA_DeInit(adcHandle->DMA_Handle);
@@ -458,83 +465,86 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 /* USER CODE BEGIN 1 */
 
-_STATIC _VOLATILE raw_volt_t dma_data_1[ADC_1_CHANNEL_COUNT];
-_STATIC _VOLATILE raw_volt_t dma_data_2[ADC_2_CHANNEL_COUNT];
+EAGLETRT_STATIC EAGLETRT_VOLATILE raw_volt_t dma_data_1[ADC_1_CHANNEL_COUNT];
+EAGLETRT_STATIC EAGLETRT_VOLATILE raw_volt_t dma_data_2[ADC_2_CHANNEL_COUNT];
 
-/**
- * @brief Get the feedback analog index from the first ADC channel index
+/*!
+ * \brief Get the feedback analog index from the first ADC channel index
  *
- * @param ch The ADC channel index
+ * \param channel The ADC channel index
  *
- * @return The feedback analog index, or -1 if not found
+ * \return The feedback analog index
  */
-enum FeedbackAnalogIndex _adc_get_feedback_index_from_adc_1_channel(Adc1ChannelIndex ch) {
-    switch (ch) {
+enum FeedbackAnalogIndex prv_adc_get_feedback_index_from_adc_1_channel(enum Adc1ChannelIndex channel) {
+    switch (channel) {
+        case ADC_1_CHANNEL_INDEX_SD_IN_MCU:
+            return FEEDBACK_ANALOG_INDEX_SD_IN;
+        case ADC_1_CHANNEL_INDEX_SD_END_MCU:
+            return FEEDBACK_ANALOG_INDEX_SD_END;
         case ADC_1_CHANNEL_INDEX_SD_OUT:
             return FEEDBACK_ANALOG_INDEX_SD_OUT;
-        case ADC_1_CHANNEL_INDEX_SD_IN:
-            return FEEDBACK_ANALOG_INDEX_SD_IN;
-        case ADC_1_CHANNEL_INDEX_SD_END:
-            return FEEDBACK_ANALOG_INDEX_SD_END;
-        case ADC_1_CHANNEL_INDEX_V5_MCU:
-            return FEEDBACK_ANALOG_INDEX_V5_MCU;
-        default:
-            return -1;
-    }
-}
-
-/**
- * @brief Get the feedback analog index from the second ADC channel index
- *
- * @param ch The ADC channel index
- *
- * @return The feedback analog index, or -1 if not found
- */
-enum FeedbackAnalogIndex _adc_get_feedback_index_from_adc_2_channel(Adc2ChannelIndex ch) {
-    switch (ch) {
-        // Feedbacks
-        case ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC:
-            return FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC;
-        case ADC_2_CHANNEL_INDEX_TSAL_GREEN:
+        case ADC_1_CHANNEL_INDEX_TSAL_GREEN_MCU:
             return FEEDBACK_ANALOG_INDEX_TSAL_GREEN;
-        case ADC_2_CHANNEL_INDEX_PROBING_3V3:
-            return FEEDBACK_ANALOG_INDEX_PROBING_3V3;
-        case ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC:
-            return FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC;
-        case ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC:
-            return FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC;
-        case ADC_2_CHANNEL_INDEX_IMD_OK:
+        case ADC_1_CHANNEL_INDEX_IMD_OK_MCU:
             return FEEDBACK_ANALOG_INDEX_IMD_OK;
         default:
-            return -1;
+            return FEEDBACK_ANALOG_INDEX_INVALID;
     }
 }
 
-/**
- * @brief Get the cooling temperature index from the first ADC channel index
+/*!
+ * \brief Get the feedback analog index from the second ADC channel index
  *
- * @param ch The ADC channel index
+ * \param channel The ADC channel index
  *
- * @return The cooling temperature index, or -1 if not found
+ * \return The feedback analog index
  */
-enum CoolingTempIndex _adc_get_cooling_temp_index_from_adc_1_channel(Adc1ChannelIndex ch) {
-    switch (ch) {
-        case ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMPERATURE:
+enum FeedbackAnalogIndex prv_adc_get_feedback_index_from_adc_2_channel(enum Adc2ChannelIndex channel) {
+    switch (channel) {
+        case ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC_MCU:
+            return FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC;
+        case ADC_2_CHANNEL_INDEX_V5_MCU:
+            return FEEDBACK_ANALOG_INDEX_V5_MCU;
+        case ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC_MCU:
+            return FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC;
+        case ADC_2_CHANNEL_INDEX_PROBING_3V3:
+            return FEEDBACK_ANALOG_INDEX_PROBING_3V3;
+        case ADC_2_CHANNEL_INDEX_SD_R_BMS_OUT_MCU:
+            return FEEDBACK_ANALOG_INDEX_SD_BMS_FB;
+        case ADC_2_CHANNEL_INDEX_SD_R_IMD_OUT_MCU:
+            return FEEDBACK_ANALOG_INDEX_SD_IMD_FB;
+        case ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC_MCU:
+            return FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC;
+        default:
+            return FEEDBACK_ANALOG_INDEX_INVALID;
+    }
+}
+
+/*!
+ * \brief Get the cooling temperature index from the first ADC channel index
+ *
+ * \param channel The ADC channel index
+ *
+ * \return The cooling temperature index
+ */
+enum CoolingTempIndex prv_adc_get_cooling_temp_index_from_adc_1_channel(enum Adc1ChannelIndex channel) {
+    switch (channel) {
+        case ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMP_MCU:
             return COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_1:
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_1_MCU:
             return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_2:
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_2_MCU:
             return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_3:
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_3_MCU:
             return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_4:
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_4_MCU:
             return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_5:
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_5_MCU:
             return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_6:
+        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_6_MCU:
             return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6;
         default:
-            return -1;
+            return COOLING_TEMP_INDEX_INVALID;
     }
 }
 
@@ -546,56 +556,64 @@ void adc_start_feedback_conversion(void) {
 // TODO: Handle return codes
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if (hadc->Instance == HADC_1.Instance) {
-        const size_t fb_size = 4U;
-        const Adc1ChannelIndex fb_channels[] = {
+        constexpr uint16_t feedback_count = 5U;
+        const enum Adc1ChannelIndex feedback_channels[feedback_count] = {
+            ADC_1_CHANNEL_INDEX_SD_IN_MCU,
+            ADC_1_CHANNEL_INDEX_SD_END_MCU,
             ADC_1_CHANNEL_INDEX_SD_OUT,
-            ADC_1_CHANNEL_INDEX_SD_IN,
-            ADC_1_CHANNEL_INDEX_SD_END,
-            ADC_1_CHANNEL_INDEX_V5_MCU
+            ADC_1_CHANNEL_INDEX_TSAL_GREEN_MCU,
+            ADC_1_CHANNEL_INDEX_IMD_OK_MCU
         };
 
         // Copy all feedbacks values
-        for (size_t i = 0U; i < fb_size; ++i) {
-            const enum FeedbackAnalogIndex index = _adc_get_feedback_index_from_adc_1_channel(fb_channels[i]);
-            // if (index < 0) { // TODO: Handle error }
-            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[fb_channels[i]], ADC_VREF, ADC_RESOLUTION);
-            (void)feedback_api_update_analog_feedback(index, volt);
+        for (uint16_t i = 0U; i < feedback_count; ++i) {
+            const enum Adc1ChannelIndex channel = feedback_channels[i];
+            const enum FeedbackAnalogIndex index = prv_adc_get_feedback_index_from_adc_1_channel(channel);
+            if (index < FEEDBACK_ANALOG_INDEX_COUNT) {
+                const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[channel], ADC_VREF, ADC_RESOLUTION);
+                EAGLETRT_API_UNUSED(feedback_api_update_analog_feedback(index, volt));
+            }
         }
 
-        const size_t temp_size = 7U;
-        const Adc1ChannelIndex temp_channels[] = {
-            ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMPERATURE,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_1,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_2,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_3,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_4,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_5,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMPERATURE_6
+        constexpr uint16_t cooling_count = 7U;
+        const enum Adc1ChannelIndex cooling_channels[cooling_count] = {
+            ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMP_MCU,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_1_MCU,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_2_MCU,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_3_MCU,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_4_MCU,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_5_MCU,
+            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_6_MCU
         };
         // Copy all cooling temperature values
-        for (size_t i = 0U; i < temp_size; ++i) {
-            const enum CoolingTempIndex index = _adc_get_cooling_temp_index_from_adc_1_channel(temp_channels[i]);
-            // if (index < 0) { // Handle error }
-            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[temp_channels[i]], ADC_VREF, ADC_RESOLUTION);
-            cooling_temp_api_notify_conversion_complete(index, volt);
+        for (uint16_t i = 0U; i < cooling_count; ++i) {
+            const enum Adc1ChannelIndex channel = cooling_channels[i];
+            const enum CoolingTempIndex index = prv_adc_get_cooling_temp_index_from_adc_1_channel(channel);
+            if (index < COOLING_TEMP_INDEX_COUNT) {
+                const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[channel], ADC_VREF, ADC_RESOLUTION);
+                EAGLETRT_API_UNUSED(cooling_temp_api_notify_conversion_complete(index, volt));
+            }
         }
     } else if (hadc->Instance == HADC_2.Instance) {
-        const size_t size = 6U;
-        const Adc2ChannelIndex channels[] = {
-            ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC,
-            ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC,
-            ADC_2_CHANNEL_INDEX_IMD_OK,
-            ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC,
-            ADC_2_CHANNEL_INDEX_TSAL_GREEN,
-            ADC_2_CHANNEL_INDEX_PROBING_3V3
+        constexpr uint16_t feedback_count = 7U;
+        const enum Adc2ChannelIndex channels[feedback_count] = {
+            ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC_MCU,
+            ADC_2_CHANNEL_INDEX_V5_MCU,
+            ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC_MCU,
+            ADC_2_CHANNEL_INDEX_PROBING_3V3,
+            ADC_2_CHANNEL_INDEX_SD_R_BMS_OUT_MCU,
+            ADC_2_CHANNEL_INDEX_SD_R_IMD_OUT_MCU,
+            ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC_MCU
         };
 
         // Copy all feedbacks values
-        for (size_t i = 0U; i < size; ++i) {
-            const enum FeedbackAnalogIndex index = _adc_get_feedback_index_from_adc_2_channel(channels[i]);
-            // if (index < 0) { // TODO: Handle error }
-            const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_2[channels[i]], ADC_VREF, ADC_RESOLUTION);
-            feedback_api_update_analog_feedback(index, volt);
+        for (uint16_t i = 0U; i < feedback_count; ++i) {
+            const enum Adc2ChannelIndex channel = channels[i];
+            const enum FeedbackAnalogIndex index = prv_adc_get_feedback_index_from_adc_2_channel(channel);
+            if (index < FEEDBACK_ANALOG_INDEX_COUNT) {
+                const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_2[channel], ADC_VREF, ADC_RESOLUTION);
+                feedback_api_update_analog_feedback(index, volt);
+            }
         }
     }
 }
