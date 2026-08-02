@@ -63,7 +63,7 @@ kilowatt_t current_api_get_power(void) {
     return (kilowatt_t)(current_api_handler.current * internal_voltage_api_get_ts() * w_to_kw);
 }
 
-WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
+enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
     return watchdog_start(&current_api_handler.sensor_wdg);
 }
 

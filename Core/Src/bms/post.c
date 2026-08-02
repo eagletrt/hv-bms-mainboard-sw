@@ -9,6 +9,7 @@
 
 #include "post.h"
 
+#include "eagletrt-api.h"
 #include "error-api.h"
 #include "identity-api.h"
 #include "programmer-api.h"
@@ -50,18 +51,18 @@ PostReturnCode prv_post_modules_init(const PostInitData *const data) {
      * Some of the function return values can be ignored because they are either
      * always OK or some assertion can be made (like for the NULL checks)
      */
-    (void)timebase_init(1U);
-    (void)pcu_api_init(data->pcu_set, data->pcu_toggle);
-    (void)volt_api_init();
-    (void)current_api_init();
-    (void)can_comm_init(data->can_send);
-    (void)programmer_api_init(data->system_reset);
-    (void)led_api_init(data->led_set, data->led_toggle);
-    (void)imd_api_init(data->imd_start);
-    (void)feedback_api_init(data->feedback_read_all, data->feedback_start_conversion);
-    (void)display_api_init(data->display_set, data->display_toggle);
-    (void)internal_voltage_api_init(data->spi_send, data->spi_send_receive);
-    (void)bal_api_init();
+    EAGLETRT_API_UNUSED(timebase_init(1U));
+    EAGLETRT_API_UNUSED(pcu_api_init(data->pcu_set, data->pcu_toggle));
+    EAGLETRT_API_UNUSED(volt_api_init());
+    EAGLETRT_API_UNUSED(current_api_init());
+    EAGLETRT_API_UNUSED(can_comm_init(data->can_send));
+    EAGLETRT_API_UNUSED(programmer_api_init(data->system_reset));
+    EAGLETRT_API_UNUSED(led_api_init(data->led_set, data->led_toggle));
+    EAGLETRT_API_UNUSED(imd_api_init(data->imd_start));
+    EAGLETRT_API_UNUSED(feedback_api_init(data->feedback_read_all, data->feedback_start_conversion));
+    EAGLETRT_API_UNUSED(display_api_init(data->display_set, data->display_toggle));
+    EAGLETRT_API_UNUSED(internal_voltage_api_init(data->spi_send, data->spi_send_receive));
+    EAGLETRT_API_UNUSED(bal_api_init());
     return POST_OK;
 }
 
@@ -74,7 +75,7 @@ PostReturnCode prv_post_module_setup(void) {
     milliseconds_t time = timebase_get_time();
     while (timebase_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
     }
-    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_OK) {
+    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_RC_OK) {
         return POST_SETUP_ERROR;
     }
 

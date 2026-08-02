@@ -44,7 +44,7 @@ kilowatt_t current_api_get_power(void);
  * \retval WATCHDOG_UNAVAILABLE if the watchdog can't be registered
  * \retval WATCHDOG_OK otherwise
  */
-WatchdogReturnCode current_api_start_sensor_communication_watchdog(void);
+enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void);
 
 /*!
  * \brief Handle the received response from the current sensor

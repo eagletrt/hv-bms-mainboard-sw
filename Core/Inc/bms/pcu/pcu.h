@@ -80,9 +80,9 @@ struct PcuHandler {
     fsm_event_data_t event;         /*!< The event data used to trigger the state machine of the PCU */
     fsm_event_data_t timeout_event; /*!< The event data used to trigger the timeout of the PCU */
 
-    Watchdog airn_watchdog;      /*!< The watchdog for the AIR- pin */
-    Watchdog precharge_watchdog; /*!< The watchdog for the precharge pin */
-    Watchdog airp_watchdog;      /*!< The watchdog for the AIR+ pin */
+    struct Watchdog airn_watchdog;      /*!< The watchdog for the AIR- pin */
+    struct Watchdog precharge_watchdog; /*!< The watchdog for the precharge pin */
+    struct Watchdog airp_watchdog;      /*!< The watchdog for the AIR+ pin */
 };
 
 #endif // PCU_H

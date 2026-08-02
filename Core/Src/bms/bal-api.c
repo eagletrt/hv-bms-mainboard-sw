@@ -59,8 +59,8 @@ enum BalReturnCode bal_api_start(void) {
     }
 
     // Start watchdog
-    const WatchdogReturnCode code = watchdog_restart(&balancing_handler.watchdog);
-    if (code == WATCHDOG_UNAVAILABLE) {
+    const enum WatchdogReturnCode code = watchdog_restart(&balancing_handler.watchdog);
+    if (code == WATCHDOG_RC_UNAVAILABLE) {
         return BAL_RC_WATCHDOG_ERROR;
     }
 
@@ -109,8 +109,8 @@ void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balan
     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
 
     // Reset watchdog for each new message
-    const WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
-    if (code == WATCHDOG_UNAVAILABLE) {
+    const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
+    if (code == WATCHDOG_RC_UNAVAILABLE) {
         return;
     }
 
@@ -143,8 +143,8 @@ void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_s
     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
 
     // Reset watchdog for each new message
-    const WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
-    if (code == WATCHDOG_UNAVAILABLE) {
+    const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
+    if (code == WATCHDOG_RC_UNAVAILABLE) {
         return;
     }
     // Send event to the FSM

@@ -10,7 +10,7 @@
 #ifndef BAL_API_H
 #define BAL_API_H
 
-#include <bal.h>
+#include "bal.h"
 #include "eagletrt-api.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE

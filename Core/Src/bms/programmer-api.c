@@ -67,6 +67,7 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
     prv_programmer_flash_reset_flags();
 
     // Initialize watchdogs
+    // TODO: Handle watchdog return code
     (void)watchdog_init(
         &programmer_handler.watchdog,
         TIMEBASE_TIME_TO_TICKS(PROGRAMMER_FLASH_TIMEOUT_MS, timebase_get_resolution()),
@@ -107,7 +108,7 @@ void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response
     if (!programmer_handler.flash_request) {
         return;
     }
-    if (payload->cellboard_id >= CELLBOARD_COUNT) {
+    if ((CellboardId)payload->cellboard_id >= CELLBOARD_COUNT) {
         return;
     }
 

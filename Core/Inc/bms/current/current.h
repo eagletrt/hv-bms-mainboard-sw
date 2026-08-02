@@ -64,7 +64,7 @@ enum CurrentReturnCode {
 struct CurrentHandler {
     ampere_t current; /*!< The current value in A */
 
-    Watchdog sensor_wdg; /*!< Watchdog used to check if the current sensor is connected */
+    struct Watchdog sensor_wdg; /*!< Watchdog used to check if the current sensor is connected */
 
     primary_hv_current_converted_t current_can_payload; /*!< The canlib payload used to send the current value via CAN */
     primary_hv_power_converted_t power_can_payload;     /*!< The canlib payload used to send the power value via CAN */

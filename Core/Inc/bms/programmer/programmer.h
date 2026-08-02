@@ -26,7 +26,7 @@
 #define PROGRAMMER_CELLBOARD_READY_MASK ((1U << CELLBOARD_COUNT) - 1U)
 
 /*!
- * \brief Return code for the programmer module functions 
+ * \brief Return code for the programmer module functions
  */
 enum ProgrammerReturnCode {
     PROGRAMMER_RC_OK,          /*!< The function executed successfully */
@@ -52,7 +52,7 @@ struct ProgrammerHandler {
 
     bit_flag8_t cellboard_ready; /*!< A bit flag where each bit represent a cellboard; if 1 the cellboard is ready for the flash procedure, otherwise the flash procedure cannot be started */
 
-    Watchdog watchdog; /*!< The watchdog used for the flash procedure */
+    struct Watchdog watchdog; /*!< The watchdog used for the flash procedure */
 };
 
 #endif // PROGRAMMER_H

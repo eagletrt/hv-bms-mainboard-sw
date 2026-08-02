@@ -58,7 +58,7 @@ struct BalHandler {
     fsm_event_data_t event;                                                /*!< The FSM event data */
     bms_cellboard_set_balancing_status_converted_t set_status_can_payload; /*!< The set balancing status message canlib payload */
     primary_hv_balancing_status_converted_t status_can_payload;            /*!< The balancing status message canlib payload */
-    Watchdog watchdog;                                                     /*!< The watchdog that stops the balancing procedure when timed out */
+    struct Watchdog watchdog;                                              /*!< The watchdog that stops the balancing procedure when timed out */
 
     bool active;             /*!< True if the balancing is active, false otherwise */
     struct BalParams params; /*!< The balancing parameters */

@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
+#include "eagletrt.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -116,7 +117,7 @@ void usart_log(const char *const fmt, ...) {
 }
 
 void usart_log_ms(const milliseconds_t interval, const char *const fmt, ...) {
-    _STATIC uint32_t t = 0U;
+    EAGLETRT_STATIC uint32_t t = 0U;
     if (HAL_GetTick() - t >= interval) {
         va_list args;
         va_start(args, fmt);
