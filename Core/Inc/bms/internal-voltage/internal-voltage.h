@@ -39,19 +39,20 @@
  * \brief Return code for the internal voltage module functions
  */
 enum InternalVoltageReturnCode {
-    INTERNAL_VOLTAGE_RC_OK,          /*!< Function executed successfully */
-    INTERNAL_VOLTAGE_RC_NULL_POINTER /*!< NULL pointer was given to a function */
+    INTERNAL_VOLTAGE_RC_OK,           /*!< Function executed successfully */
+    INTERNAL_VOLTAGE_RC_NULL_POINTER, /*!< NULL pointer was given to a function */
+    INTERNAL_VOLTAGE_RC_DRIVER_ERROR  /*!< The driver was not able to parse the input data */
 };
 
 /*!
  * \brief Internal voltage channels of the external ADC
  */
 enum InternalVoltageChannel {
-    INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE = MAX22530_CHANNEL_1,            /*!< The voltage of the TS */
-    INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE = MAX22530_CHANNEL_2,          /*!< The voltage of the battery pack */
-    INTERNAL_VOLTAGE_CHANNEL_IMD_TS_CONNECTED = MAX22530_CHANNEL_3,      /*!< Feedback on the TS connection to the IMD */
-    INTERNAL_VOLTAGE_CHANNEL_PRECHARGE_TEMPERATURE = MAX22530_CHANNEL_4, /*!< Temperature of the precharge resistors heatsink */
-    INTERNAL_VOLTAGE_CHANNEL_COUNT = MAX22530_CHANNEL_COUNT              /*!< The number of channels used for internal voltage measurements */
+    INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE = MAX22530_CHANNEL_1,                   /*!< The voltage of the TS */
+    INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE = MAX22530_CHANNEL_2,                 /*!< The voltage of the battery pack */
+    INTERNAL_VOLTAGE_CHANNEL_LINEAR_REGULATOR_TEMPERATURE = MAX22530_CHANNEL_3, /*!< Temperature of the linear regulator mosfet */
+    INTERNAL_VOLTAGE_CHANNEL_PRECHARGE_TEMPERATURE = MAX22530_CHANNEL_4,        /*!< Temperature of the precharge resistors heatsink */
+    INTERNAL_VOLTAGE_CHANNEL_COUNT = MAX22530_CHANNEL_COUNT                     /*!< The number of channels used for internal voltage measurements */
 };
 
 /*!

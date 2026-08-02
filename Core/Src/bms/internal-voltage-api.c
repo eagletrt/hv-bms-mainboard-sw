@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "eagletrt-api.h"
+#include "max22530.h"
 #include "volt-api.h"
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
@@ -29,11 +30,12 @@ enum InternalVoltageReturnCode internal_voltage_api_init(spi_send_callback_t sen
 
 enum InternalVoltageReturnCode internal_voltage_api_read_all(void) {
     volt_t volts[INTERNAL_VOLTAGE_CHANNEL_COUNT];
-    (void)max22530_api_read_channels_all(&internal_volt_handler.max22530, true, volts, NULL);
+    enum Max22530ReturnCode result = max22530_api_read_channels_all(&internal_volt_handler.max22530, true, volts, NULL);
+    if (result != MAX22530_RC_OK) {
+        return INTERNAL_VOLTAGE_RC_DRIVER_ERROR;
+    }
     internal_volt_handler.ts = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_TS_VOLTAGE]);
     internal_volt_handler.pack = INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(volts[INTERNAL_VOLTAGE_CHANNEL_PACK_VOLTAGE]);
-    // TODO: Convert and update the IMD TS connected feedback and precharge
-    // temperature
     return INTERNAL_VOLTAGE_RC_OK;
 }
 

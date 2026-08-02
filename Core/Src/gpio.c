@@ -354,10 +354,6 @@ void gpio_pcu_toggle_state(const enum PcuPin pcu_pin) {
 }
 
 bit_flag32_t gpio_feedback_read_all(void) {
-    /*
-     * AIR- and AIR+ are swapped in the schematic, the issue is temporarily
-     * solved here by swapping the indices
-     */
     register bit_flag32_t feedbacks = 0U;
     feedbacks = EAGLETRT_API_BIT_TOGGLE_IF(feedbacks, FEEDBACK_DIGITAL_BIT_AIRP_OPEN_COM, HAL_GPIO_ReadPin(AIRP_CLOSE_COM_MCU_GPIO_Port, AIRP_CLOSE_COM_MCU_Pin) == GPIO_PIN_SET);
     feedbacks = EAGLETRT_API_BIT_TOGGLE_IF(feedbacks, FEEDBACK_DIGITAL_BIT_AIRN_OPEN_COM, HAL_GPIO_ReadPin(AIRN_CLOSE_COM_MCU_GPIO_Port, AIRN_CLOSE_COM_MCU_Pin) == GPIO_PIN_SET);
