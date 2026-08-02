@@ -11,8 +11,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "arena-allocator-api.h"
 #include "eagletrt-api.h"
 #include "eagletrt.h"
+#include "min-heap-api.h"
 #include "min-heap.h"
 #include "tasks.h"
 
@@ -71,21 +73,37 @@ enum TimebaseReturnCode timebase_init(const milliseconds_t resolution_ms) {
         return TIMEBASE_RC_TASK_ERROR;
     }
 
-    if (min_heap_init(&htimebase.scheduled_tasks, struct TimebaseScheduledTask, TASKS_COUNT, prv_timebase_task_compare) != MIN_HEAP_OK) {
+    // Setup scheduled tasks buffer
+    arena_allocator_api_init(&htimebase.arena);
+    const enum MinHeapReturnCode tasks_rc = min_heap_api_init(
+        &htimebase.scheduled_tasks,
+        sizeof(struct TimebaseScheduledTask),
+        TASKS_COUNT,
+        prv_timebase_task_compare,
+        &htimebase.arena);
+    if (tasks_rc != MIN_HEAP_RC_OK) {
         return TIMEBASE_RC_BUFFER_ERROR;
     }
+
     // Schedule tasks
     for (size_t i = 0; i < TASKS_COUNT; ++i) {
         struct TimebaseScheduledTask aux = {
             .t = tasks_get_start(i),
             .task = tasks_get_task(i)
         };
-        if (min_heap_insert(&htimebase.scheduled_tasks, &aux) != MIN_HEAP_OK) {
+        if (min_heap_api_insert(&htimebase.scheduled_tasks, &aux) != MIN_HEAP_RC_OK) {
             return TIMEBASE_RC_BUFFER_ERROR;
         }
     }
 
-    if (min_heap_init(&htimebase.scheduled_watchdogs, struct TimebaseScheduledWatchdog, TIMEBASE_RUNNING_WATCHDOG_COUNT, prv_timebase_watchdog_compare) != MIN_HEAP_OK) {
+    // Setup scheduled watchdogs buffer
+    const enum MinHeapReturnCode watchdogs_rc = min_heap_api_init(
+        &htimebase.scheduled_watchdogs,
+        sizeof(struct TimebaseScheduledWatchdog),
+        TIMEBASE_RUNNING_WATCHDOG_COUNT,
+        prv_timebase_watchdog_compare,
+        &htimebase.arena);
+    if (watchdogs_rc != MIN_HEAP_RC_OK) {
         return TIMEBASE_RC_BUFFER_ERROR;
     }
     return TIMEBASE_RC_OK;
@@ -124,12 +142,12 @@ enum TimebaseReturnCode timebase_register_watchdog(struct Watchdog *const watchd
         .t = 0U,
         .watchdog = watchdog
     };
-    if (min_heap_find(&htimebase.scheduled_watchdogs, &aux) >= 0) {
+    if (min_heap_api_find(&htimebase.scheduled_watchdogs, &aux) >= 0) {
         return TIMEBASE_RC_BUSY;
     }
 
     aux.t = htimebase.t + watchdog->timeout;
-    if (min_heap_insert(&htimebase.scheduled_watchdogs, &aux) == MIN_HEAP_FULL) {
+    if (min_heap_api_insert(&htimebase.scheduled_watchdogs, &aux) == MIN_HEAP_RC_FULL) {
         return TIMEBASE_RC_WATCHDOG_UNAVAILABLE;
     }
     return TIMEBASE_RC_OK;
@@ -144,11 +162,11 @@ enum TimebaseReturnCode timebase_unregister_watchdog(struct Watchdog *const watc
         .t = 0U,
         .watchdog = watchdog
     };
-    const int16_t index = min_heap_find(&htimebase.scheduled_watchdogs, &aux);
+    const int16_t index = min_heap_api_find(&htimebase.scheduled_watchdogs, &aux);
     if (index < 0) {
         return TIMEBASE_RC_WATCHDOG_NOT_REGISTERED;
     }
-    if (min_heap_remove(&htimebase.scheduled_watchdogs, index, NULL) != MIN_HEAP_OK) {
+    if (min_heap_api_remove(&htimebase.scheduled_watchdogs, index, NULL) != MIN_HEAP_RC_OK) {
         return TIMEBASE_RC_BUFFER_ERROR;
     }
     return TIMEBASE_RC_OK;
@@ -163,7 +181,7 @@ bool timebase_is_registered_watchdog(struct Watchdog *const watchdog) {
         .t = 0U,
         .watchdog = watchdog
     };
-    return min_heap_find(&htimebase.scheduled_watchdogs, &aux) >= 0;
+    return min_heap_api_find(&htimebase.scheduled_watchdogs, &aux) >= 0;
 }
 
 enum TimebaseReturnCode timebase_update_watchdog(struct Watchdog *const watchdog) {
@@ -176,16 +194,16 @@ enum TimebaseReturnCode timebase_update_watchdog(struct Watchdog *const watchdog
         .t = 0U,
         .watchdog = watchdog
     };
-    const int16_t index = min_heap_find(&htimebase.scheduled_watchdogs, &aux);
+    const int16_t index = min_heap_api_find(&htimebase.scheduled_watchdogs, &aux);
     // Remove, update and re-insert the item in the heap
     if (index < 0) {
         return TIMEBASE_RC_WATCHDOG_NOT_REGISTERED;
     }
-    if (min_heap_remove(&htimebase.scheduled_watchdogs, index, NULL) != MIN_HEAP_OK) {
+    if (min_heap_api_remove(&htimebase.scheduled_watchdogs, index, NULL) != MIN_HEAP_RC_OK) {
         return TIMEBASE_RC_BUFFER_ERROR;
     }
     aux.t = htimebase.t + watchdog->timeout;
-    if (min_heap_insert(&htimebase.scheduled_watchdogs, &aux) == MIN_HEAP_FULL) {
+    if (min_heap_api_insert(&htimebase.scheduled_watchdogs, &aux) == MIN_HEAP_RC_FULL) {
         return TIMEBASE_RC_WATCHDOG_UNAVAILABLE;
     }
     return TIMEBASE_RC_OK;
@@ -200,11 +218,11 @@ enum TimebaseReturnCode timebase_routine(void) {
     enum TimebaseReturnCode result = TIMEBASE_RC_OK;
 
     // Execute all the tasks which interval has already elapsed
-    const struct TimebaseScheduledTask *task_p = (struct TimebaseScheduledTask *)min_heap_peek(&htimebase.scheduled_tasks);
+    const struct TimebaseScheduledTask *task_p = (struct TimebaseScheduledTask *)min_heap_api_peek(&htimebase.scheduled_tasks);
     while (task_p != NULL && task_p->t <= htimebase.t) {
         // Get and execute current task
         struct TimebaseScheduledTask task = { 0 };
-        if (min_heap_remove(&htimebase.scheduled_tasks, 0U, &task) != MIN_HEAP_OK) {
+        if (min_heap_api_remove(&htimebase.scheduled_tasks, 0U, &task) != MIN_HEAP_RC_OK) {
             result = TIMEBASE_RC_BUFFER_ERROR;
             break;
         }
@@ -219,28 +237,28 @@ enum TimebaseReturnCode timebase_routine(void) {
 
         // If the interval is 0 do not insert again the task inside the heap (i.e. runs only once)
         if (task.task->interval > 0U) {
-            if (min_heap_insert(&htimebase.scheduled_tasks, &task) != MIN_HEAP_OK) {
+            if (min_heap_api_insert(&htimebase.scheduled_tasks, &task) != MIN_HEAP_RC_OK) {
                 result = TIMEBASE_RC_BUFFER_ERROR;
                 break;
             }
         }
 
-        task_p = (struct TimebaseScheduledTask *)min_heap_peek(&htimebase.scheduled_tasks);
+        task_p = (struct TimebaseScheduledTask *)min_heap_api_peek(&htimebase.scheduled_tasks);
     }
 
     // Check if the watchdogs has already timed-out
-    const struct TimebaseScheduledWatchdog *wdg_p = (struct TimebaseScheduledWatchdog *)min_heap_peek(&htimebase.scheduled_watchdogs);
+    const struct TimebaseScheduledWatchdog *wdg_p = (struct TimebaseScheduledWatchdog *)min_heap_api_peek(&htimebase.scheduled_watchdogs);
     while (wdg_p != NULL && wdg_p->t <= htimebase.t) {
         // Get the watchdog
         struct TimebaseScheduledWatchdog wdg = { 0 };
-        if (min_heap_remove(&htimebase.scheduled_watchdogs, 0U, &wdg) != MIN_HEAP_OK) {
+        if (min_heap_api_remove(&htimebase.scheduled_watchdogs, 0U, &wdg) != MIN_HEAP_RC_OK) {
             result = TIMEBASE_RC_BUFFER_ERROR;
             break;
         }
 
         // Disable and execute the watchdog timeout callback
         watchdog_timeout(wdg.watchdog);
-        wdg_p = (struct TimebaseScheduledWatchdog *)min_heap_peek(&htimebase.scheduled_watchdogs);
+        wdg_p = (struct TimebaseScheduledWatchdog *)min_heap_api_peek(&htimebase.scheduled_watchdogs);
     }
     return result;
 }

@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "arena-allocator.h"
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 #include "watchdog.h"
@@ -77,11 +78,13 @@ struct TimebaseScheduledWatchdog {
  * \attention This structure should never be used outside of this file
  */
 struct TimebaseHandler {
-    bool enabled;                                                                                   /*!< True if the timebase is running, false otherwise */
-    milliseconds_t resolution;                                                                      /*!< Number of ms that represent one tick */
-    volatile ticks_t t;                                                                             /*!< The current number of ticks */
-    MinHeap(struct TimebaseScheduledTask, TASKS_COUNT) scheduled_tasks;                             /*!< The heap of scheduled tasks that has to be executed */
-    MinHeap(struct TimebaseScheduledWatchdog, TIMEBASE_RUNNING_WATCHDOG_COUNT) scheduled_watchdogs; /*!<  The heap of scheduled watchdogs that are currently running */
+    bool enabled;              /*!< True if the timebase is running, false otherwise */
+    milliseconds_t resolution; /*!< Number of ms that represent one tick */
+    volatile ticks_t t;        /*!< The current number of ticks */
+
+    struct ArenaAllocatorHandler arena;        /*!< Arena allocator used for buffer memory allocation during initialization */
+    struct MinHeapHandler scheduled_tasks;     /*!< The heap of scheduled tasks that has to be executed */
+    struct MinHeapHandler scheduled_watchdogs; /*!< The heap of scheduled watchdogs that are currently running */
 };
 
 #ifdef CONF_TIMEBASE_MODULE_ENABLE
