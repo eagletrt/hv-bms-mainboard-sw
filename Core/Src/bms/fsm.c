@@ -20,9 +20,10 @@ Functions and types have been generated with prefix "fsm_"
 #include <math.h>
 
 #include "feedback.h"
+#include "post.h"
 #include "primary_network.h"
 
-#include "post.h"
+#include "post-api.h"
 #include "can-comm-api.h"
 #include "timebase.h"
 #include "programmer-api.h"
@@ -144,13 +145,17 @@ fsm_state_t fsm_do_init(fsm_state_data *data) {
     hfsm.event.type = FSM_EVENT_TYPE_IGNORED;
 
     // Run the Power-On Self Test
-    const PostReturnCode code = (data == NULL) ? POST_NULL_POINTER : post_run(*(PostInitData *)data);
+    struct PostInitData *post_data = (struct PostInitData *)data;
+    enum PostReturnCode post_result = POST_RC_NULL_POINTER;
+    if (data != NULL) {
+        post_result = post_run(*post_data);
+    }
 
     // Init canlib payloads
     hfsm.flash_can_payload.ready = false;
 
-    switch (code) {
-        case POST_OK:
+    switch (post_result) {
+        case POST_RC_OK:
             next_state = FSM_STATE_IDLE;
             break;
         default:

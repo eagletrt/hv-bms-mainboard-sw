@@ -3,15 +3,16 @@
  * \date 2024-04-16
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  *
- * \brief Power-On Self Test function to check that every internal system and
- * peripheral is working correctly
+ * \brief Power-On Self Test and initialization functions implementation needed
+ *        to make sure that the system is working as expected
  */
 
-#include "post.h"
+#include "post-api.h"
 
 #include "eagletrt-api.h"
 #include "error-api.h"
 #include "identity-api.h"
+#include "post.h"
 #include "programmer-api.h"
 #include "timebase.h"
 #include "volt-api.h"
@@ -34,16 +35,16 @@
  *
  * \param data A pointer to the initialization data
  *
- * \return PostReturnCode
- *     - POST_OK
+ * \retval POST_RC_UNINITIALIZED if any module failed initialization
+ * \retval POST_RC_OK otherwise
  */
-PostReturnCode prv_post_modules_init(const PostInitData *const data) {
+enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data) {
     /*
      * The error and identity initialization functions have to be executed
      * before every other function to ensure the proper functionality
      */
     if (error_api_init() != ERROR_RC_OK) {
-        return POST_UNINITIALIZED;
+        return POST_RC_UNINITIALIZED;
     }
     identity_api_init();
 
@@ -51,7 +52,10 @@ PostReturnCode prv_post_modules_init(const PostInitData *const data) {
      * Some of the function return values can be ignored because they are either
      * always OK or some assertion can be made (like for the NULL checks)
      */
-    EAGLETRT_API_UNUSED(timebase_init(1U));
+    enum PostReturnCode result = POST_RC_OK;
+    if (timebase_init(1U) != TIMEBASE_RC_OK) {
+        result = POST_RC_UNINITIALIZED;
+    }
     EAGLETRT_API_UNUSED(pcu_api_init(data->pcu_set, data->pcu_toggle));
     EAGLETRT_API_UNUSED(volt_api_init());
     EAGLETRT_API_UNUSED(current_api_init());
@@ -63,10 +67,10 @@ PostReturnCode prv_post_modules_init(const PostInitData *const data) {
     EAGLETRT_API_UNUSED(display_api_init(data->display_set, data->display_toggle));
     EAGLETRT_API_UNUSED(internal_voltage_api_init(data->spi_send, data->spi_send_receive));
     EAGLETRT_API_UNUSED(bal_api_init());
-    return POST_OK;
+    return result;
 }
 
-PostReturnCode prv_post_module_setup(void) {
+enum PostReturnCode prv_post_module_setup(void) {
     pcu_api_reset_all();
     timebase_set_enable(true);
     can_comm_enable_all();
@@ -76,13 +80,13 @@ PostReturnCode prv_post_module_setup(void) {
     while (timebase_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
     }
     if (current_api_start_sensor_communication_watchdog() != WATCHDOG_RC_OK) {
-        return POST_SETUP_ERROR;
+        return POST_RC_SETUP_ERROR;
     }
 
-    return POST_OK;
+    return POST_RC_OK;
 }
 
-PostReturnCode post_run(const PostInitData data) {
+enum PostReturnCode post_run(const struct PostInitData data) {
     if (data.system_reset == NULL ||
         data.can_send == NULL ||
         data.led_set == NULL ||
@@ -96,12 +100,12 @@ PostReturnCode post_run(const PostInitData data) {
         data.display_toggle == NULL ||
         data.spi_send == NULL ||
         data.spi_send_receive == NULL) {
-        return POST_NULL_POINTER;
+        return POST_RC_NULL_POINTER;
     }
 
     // Module initialization
-    PostReturnCode post_code = prv_post_modules_init(&data);
-    if (post_code != POST_OK) {
+    enum PostReturnCode post_code = prv_post_modules_init(&data);
+    if (post_code != POST_RC_OK) {
         return post_code;
     }
 
@@ -118,17 +122,17 @@ PostReturnCode post_run(const PostInitData data) {
 EAGLETRT_STATIC char *post_module_name = "post";
 
 EAGLETRT_STATIC char *post_return_code_name[] = {
-    [POST_OK] = "ok",
-    [POST_UNINITIALIZED] = "uninitialized",
-    [POST_SETUP_ERROR] = "setup error",
-    [POST_NULL_POINTER] = "null pointer"
+    [POST_RC_OK] = "ok",
+    [POST_RC_UNINITIALIZED] = "uninitialized",
+    [POST_RC_SETUP_ERROR] = "setup error",
+    [POST_RC_NULL_POINTER] = "null pointer"
 };
 
 EAGLETRT_STATIC char *post_return_code_description[] = {
-    [POST_OK] = "executed successfully",
-    [POST_UNINITIALIZED] = "a module has not been initialized correctly",
-    [POST_SETUP_ERROR] = "a module has not been configured correctly",
-    [POST_NULL_POINTER] = "attempt to dereference a null pointer"
+    [POST_RC_OK] = "executed successfully",
+    [POST_RC_UNINITIALIZED] = "a module has not been initialized correctly",
+    [POST_RC_SETUP_ERROR] = "a module has not been configured correctly",
+    [POST_RC_NULL_POINTER] = "attempt to dereference a null pointer"
 };
 
 #endif // CONF_POST_STRINGS_ENABLE
