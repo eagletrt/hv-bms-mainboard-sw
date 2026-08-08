@@ -15,7 +15,7 @@
 
 /*! \brief Minimum and maximum allowed cell temperature in celsius */
 #define TEMP_MIN_C (-10.f)
-#define TEMP_MAX_C (60.f)
+#define TEMP_MAX_C (56.f)
 
 /*! \brief Number of temperatures sent in a single temp can message */
 #define TEMP_TEMPERATURE_PER_MESSAGE_COUNT (4U)

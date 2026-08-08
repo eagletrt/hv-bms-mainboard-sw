@@ -60,6 +60,11 @@ celsius_t temp_api_get_max(void);
 celsius_t temp_api_get_avg(void);
 
 /*!
+ * \brief Safety check to avoid overtemperature (check ESF 2026)
+ */
+void temp_api_check_temperature(void);
+
+/*!
  * \brief Get a pointer to the CAN payload of the cells temperature stats
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)

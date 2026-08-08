@@ -670,6 +670,11 @@ void prv_tasks_update_feedbacks_status(void) {
     (void)feedback_api_update_status();
 }
 
+/*! \brief Update all the feedbacks status */
+void prv_tasks_check_temperature(void) {
+    temp_api_check_temperature();
+}
+
 /*! \brief Start the internal voltages ADC conversion */
 void prv_tasks_start_internal_voltage_conversion(void) {
     (void)internal_voltage_api_read_all();

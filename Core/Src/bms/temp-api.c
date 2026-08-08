@@ -110,6 +110,15 @@ celsius_t temp_api_get_avg(void) {
     return average / (float)CELLBOARD_TEMP_SENSOR_COUNT;
 }
 
+void temp_api_check_temperature(void) {
+    celsius_t temperature_max = temp_api_get_max();
+    if (temperature_max > TEMP_MAX_C) {
+        error_api_set(ERROR_GROUP_OVER_TEMPERATURE, 0);
+    } else {
+        error_api_reset(ERROR_GROUP_OVER_TEMPERATURE, 0);
+    }
+}
+
 union CanPrimaryMessages *temp_api_get_cells_temperature_info_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
         *byte_size = can_primary_byte_size_tsacmainboardtemperatureinfo;
