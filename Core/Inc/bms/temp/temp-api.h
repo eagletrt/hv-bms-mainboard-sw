@@ -11,7 +11,7 @@
 #define TEMP_API_H
 
 #include "temp.h"
-#include "eagletrt-api.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
@@ -58,11 +58,74 @@ celsius_t temp_api_get_sum(void);
 celsius_t temp_api_get_avg(void);
 
 /*!
+ * \brief Get a pointer to the CAN payload of the cells temperature stats
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload
+ */
+union CanPrimaryMessages *temp_api_get_cells_temperature_info_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard1 cells temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *temp_api_get_cellboard1_temperature_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard2 cells temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *temp_api_get_cellboard2_temperature_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard3 cells temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *temp_api_get_cellboard3_temperature_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard4 cells temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *temp_api_get_cellboard4_temperature_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard5 cells temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *temp_api_get_cellboard5_temperature_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard6 cells temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *temp_api_get_cellboard6_temperature_canlib_payload(size_t *byte_size);
+
+/*!
  * \brief Handle the received cellboard cells temperature
  *
  * \param payload A pointer to the canlib payload
  */
-void temp_api_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *payload);
+// void temp_api_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *payload);
 
 /*!
  * \brief Get a pointer to the CAN payload of the cells temperature
@@ -71,16 +134,7 @@ void temp_api_cells_temperature_handle(bms_cellboard_cells_temperature_converted
  *
  * \returns primary_cellboard_cells_temperature_converted_t* A pointer to the payload
  */
-primary_hv_cells_temperature_converted_t *temp_api_get_cells_temperature_canlib_payload(size_t *byte_size);
-
-/*!
- * \brief Get a pointer to the CAN payload of the cells temperature stats
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns primary_cellboard_cells_temp_stats_converted_t* A pointer to the payload
- */
-primary_hv_cells_temp_stats_converted_t *temp_api_get_cells_temperature_stats_canlib_payload(size_t *byte_size);
+// primary_hv_cells_temperature_converted_t *temp_api_get_cells_temperature_canlib_payload(size_t *byte_size);
 
 #else
 

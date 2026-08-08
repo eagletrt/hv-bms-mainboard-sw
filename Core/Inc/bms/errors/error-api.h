@@ -10,7 +10,9 @@
 #ifndef ERROR_API_H
 #define ERROR_API_H
 
+#include "can-primary.h"
 #include "error.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
@@ -58,20 +60,19 @@ size_t error_api_get_expired(void);
 ErrorInfo error_api_get_expired_info(void);
 
 /*!
+ * \brief Get a pointer to the CAN payload of the mainboard errors
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \return Pointer of the payload
+ */
+union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size);
+/*!
  * \brief Handler can error messages sent from the cellboards
  *
  * \param payload the payload of the error message
  */
-void error_api_cellboard_handle(bms_cellboard_error_t *payload);
-
-/*!
- * \brief Get a pointer to the CAN payload of the last mainboard error 
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \return primary_hv_error_converted_t* A pointer to the payload
- */
-primary_hv_error_converted_t *error_api_get_error_canlib_payload(size_t *const byte_size);
+// void error_api_cellboard_handle(bms_cellboard_error_t *payload);
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 

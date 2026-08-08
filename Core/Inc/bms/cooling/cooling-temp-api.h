@@ -11,6 +11,7 @@
 #define COOLING_TEMP_API_H
 
 #include "cooling-temp.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
@@ -85,7 +86,7 @@ celsius_t cooling_temp_api_get_avg(void);
  *
  * \returns primary_hv_cooling_temperature_converted_t* A pointer to the payload
  */
-primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_canlib_payload(size_t *byte_size);
+// primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_canlib_payload(size_t *byte_size);
 
 #else
 

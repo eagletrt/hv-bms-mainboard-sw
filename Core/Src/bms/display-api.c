@@ -9,11 +9,14 @@
  */
 
 #include "display-api.h"
+#include "display.h"
 
 #include <stdint.h>
 #include <string.h>
-#include "display.h"
+
 #include "eagletrt-api.h"
+#include "tdsr0760-api.h"
+#include "tdsr0760.h"
 
 #ifdef CONF_DISPLAY_MODULE_ENABLE
 

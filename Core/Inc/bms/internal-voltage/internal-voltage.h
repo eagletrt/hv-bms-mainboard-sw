@@ -10,12 +10,10 @@
 #ifndef INTERNAL_VOLTAGE_H
 #define INTERNAL_VOLTAGE_H
 
+#include "can-primary.h"
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
 
-#include "primary_network.h"
-
-#include "max22530-api.h"
+#include "max22530.h"
 
 /*! \brief The period with which internal voltages are updated in ms */
 #define INTERNAL_VOLTAGE_CYCLE_TIME_MS (8U)
@@ -66,7 +64,7 @@ struct InternalVoltageHandler {
     volt_t ts;   /*!< The voltage of the Tractive System */
     volt_t pack; /*!< The voltage of the battery pack */
 
-    primary_hv_ts_voltage_converted_t ts_voltage_can_payload; /*!< The TS voltage info canlib payload */
+    union CanPrimaryMessages libcan_message_voltage; /*!< The TS voltage info canlib payload */
 };
 
 #endif // INTERNAL_VOLTAGE_H

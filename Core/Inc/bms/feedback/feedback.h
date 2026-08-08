@@ -14,10 +14,9 @@
 #include <stdint.h>
 
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
 #include "eagletrt-api.h"
 
-#include "primary_network.h"
+#include "can-primary.h"
 
 /*! \brief Alias for the total number of feedbacks */
 #define FEEDBACK_COUNT (FEEDBACK_ID_COUNT)
@@ -28,7 +27,7 @@
 /*! \brief Voltage reference for the 5V to the MCU and the ShutDown */
 #define FEEDBACK_VREF (3.3f)
 #define FEEDBACK_5V_VREF (5.f)
-#define FEEDBACK_SD_VREF (12.f)
+#define FEEDBACK_SD_VREF (24.f)
 
 /*!
  * \brief Thresholds for the analog feedbacks in V
@@ -390,11 +389,9 @@ struct FeedbackHandler {
 
     enum FeedbackStatus status[FEEDBACK_COUNT]; /*!< Array of all the feedbacks current status */
 
-    primary_hv_feedback_status_converted_t status_can_payload;       /*!< CAN payload of the feedbacks status */
-    primary_hv_feedback_digital_converted_t digital_can_payload;     /*!< CAN payload of the digital feedbacks values */
-    primary_hv_feedback_analog_converted_t analog_can_payload;       /*!< CAN payload of the analog feedbacks values */
-    primary_hv_feedback_analog_sd_converted_t analog_sd_can_payload; /*!< CAN payload of the analog shutdown feedbacks values */
-    primary_hv_feedback_enzomma_converted_t enzomma_can_payload;     /*!< CAN payload of the feedback that did not allow the BMS to go the TS ON state */
+    union CanPrimaryMessages libcan_message_shutdown;
+    union CanPrimaryMessages libcan_message_feedback;
+    union CanPrimaryMessages libcan_message_feedback_shutdown;
 };
 
 #endif // FEEDBACK_H

@@ -10,12 +10,9 @@
 #ifndef IMD_H
 #define IMD_H
 
-#include "mainboard-def.h"
-#include "mainboard-conf.h"
+#include "ir1553204.h"
 
-#include "primary_network.h"
-
-#include "ir1553204-api.h"
+#include "can-primary.h"
 
 /*! \brief Type definition for the callback function that should start the PWM measurements */
 typedef void (*imd_pwm_start_callback)(void);
@@ -53,7 +50,7 @@ struct ImdHandler {
 
     struct Ir1553204Handler ir1153204; /*< Handler structure of the IMD driver */
 
-    primary_hv_imd_status_converted_t status_can_payload; /*< The canlib payload used to send the IMD status */
+    union CanPrimaryMessages libcan_message_imd; /*< The canlib payload used to send the IMD status */
 };
 
 #endif // IMD_H

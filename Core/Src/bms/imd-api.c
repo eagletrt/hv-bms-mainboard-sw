@@ -10,8 +10,10 @@
 #include <string.h>
 
 #include "imd-api.h"
+#include "eagletrt.h"
 #include "feedback-api.h"
-#include "eagletrt-api.h"
+#include "feedback.h"
+#include "ir1553204-api.h"
 
 #ifdef CONF_IMD_MODULE_ENABLE
 
@@ -67,19 +69,17 @@ enum ImdReturnCode imd_api_update(const ticks_t source_frequency, const ticks_t 
     return IMD_RC_OK;
 }
 
-primary_hv_imd_status_converted_t *imd_api_get_status_canlib_payload(size_t *const byte_size) {
+union CanPrimaryMessages *imd_api_get_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(imd_handler.status_can_payload);
+        *byte_size = can_primary_byte_size_tsacmainboardimd;
     }
-    // The value of the IMD status of the canlib differs by one from the IMD status
-    // of the BMS
-    // TODO: fix when canlib is updated
-    imd_handler.status_can_payload.status = (primary_hv_imd_status_status)(imd_api_get_status() + 1U);
-    imd_handler.status_can_payload.frequency = imd_api_get_frequency();
-    imd_handler.status_can_payload.duty_cycle = imd_api_get_duty_cycle();
-    imd_handler.status_can_payload.feedback_not_imd_fault_cockpit_led = (primary_hv_imd_status_feedback_not_imd_fault_cockpit_led)feedback_api_get_status(FEEDBACK_ID_IMD_FAULT_COCKPIT_LED);
-    imd_handler.status_can_payload.feedback_not_imd_fault_latched = (primary_hv_imd_status_feedback_not_imd_fault_latched)feedback_api_get_status(FEEDBACK_ID_IMD_FAULT_LATCHED);
-    return &imd_handler.status_can_payload;
+    struct CanPrimaryTsacmainboardimd *payload = &imd_handler.libcan_message_imd.tsacmainboardimd;
+    payload->status = imd_api_get_status();
+    payload->frequency = imd_api_get_frequency();
+    payload->dutycycle = imd_api_get_duty_cycle();
+    // TODO: Read IMD ok
+    // payload->ok = feedback_api_get_digital(FEEDBACK_DIGITAL_BIT_IMD_OK);
+    return &imd_handler.libcan_message_imd;
 }
 
 #ifdef CONF_IMD_STRINGS_ENABLE

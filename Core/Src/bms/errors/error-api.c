@@ -8,15 +8,18 @@
 
 #include "error-api.h"
 
-#include "tasks.h"
-#include "primary_network.h"
-
+#include <stdint.h>
 #include <string.h>
+#include "can-primary.h"
+#include "eagletrt.h"
+#include "mainboard-def.h"
+#include "tasks.h"
+#include "can-communication.h"
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
 EAGLETRT_STATIC ErrorLibHandler herror;
-EAGLETRT_STATIC primary_hv_error_converted_t error_can_payload;
+EAGLETRT_STATIC union CanPrimaryMessages libcan_message_error;
 
 /*! \brief Total number of instances for each group */
 const size_t instances[] = {
@@ -36,8 +39,8 @@ const size_t instances[] = {
 
 /*!
  * \brief Error thresholds for each group
- * 
- * \details The values are arbitrary and shuold not be too much high 
+ *
+ * \details The values are arbitrary and shuold not be too much high
  */
 const size_t thresholds[] = {
     [ERROR_GROUP_POST] = 1U,
@@ -94,15 +97,6 @@ enum ErrorReturnCode error_api_init(void) {
 
 enum ErrorReturnCode error_api_set(const enum ErrorGroup group, const error_instance instance) {
     ErrorLibReturnCode ret = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
-
-    if (errorlib_get_expired(&herror) > 0U) {
-        ErrorInfo error = errorlib_get_expired_info(&herror);
-        error_can_payload.group = error.group;
-        error_can_payload.instance = error.instance;
-
-        tasks_set_enable(TASKS_ID_SEND_ERRORS, true);
-    }
-
     return ret != ERRORLIB_OK ? ERROR_RC_UNKNOWN : ERROR_RC_OK;
 }
 
@@ -121,20 +115,58 @@ ErrorInfo error_api_get_expired_info(void) {
     return errorlib_get_expired_info(&herror);
 }
 
-void error_api_cellboard_handle(bms_cellboard_error_t *const payload) {
-    // BUG: Open wire during charge
-    if (payload->group == bms_cellboard_error_group_open_wire) {
-        return;
+union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size) {
+    if (byte_size == NULL) {
+        *byte_size = can_primary_byte_size_tsacmainboarderror;
     }
-    error_can_payload.cellboard_group = (primary_hv_error_cellboard_group)payload->group;
-    error_can_payload.cellboard_id = (primary_hv_error_cellboard_id)payload->cellboard_id;
-    error_api_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);
+    bool undervoltage = false;
+    bool overvoltage = false;
+    for (uint16_t i = 0; i < CELLBOARD_SERIES_COUNT; ++i) {
+        undervoltage = undervoltage || error_under_voltage_instances[i];
+        overvoltage = overvoltage || error_over_voltage_instances[i];
+    }
+    bool undertemperature = false;
+    bool overtemperature = false;
+    for (uint16_t i = 0; i < CELLBOARD_TEMP_SENSOR_COUNT; ++i) {
+        undertemperature = undertemperature || error_under_temperature_instances[i];
+        overtemperature = overtemperature || error_over_temperature_instances[i];
+    }
+    bool cooling_undertemperature = false;
+    bool cooling_overtemperature = false;
+    for (uint16_t i = 0; i < CELLBOARD_TEMP_SENSOR_COUNT; ++i) {
+        cooling_undertemperature = cooling_undertemperature || error_cooling_under_temperature_instances[i];
+        cooling_overtemperature = cooling_overtemperature || error_cooling_over_temperature_instances[i];
+    }
+    bool internal = false;
+    for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        internal = internal || error_cellboard_error_instances[cellboard];
+    }
+
+    struct CanPrimaryTsacmainboarderror *payload = &libcan_message_error.tsacmainboarderror;
+    payload->post = error_post_instances[0];
+    payload->overcurrent = error_over_current_instances[0];
+    payload->overpower = error_over_power_instances[0];
+    payload->undervoltage = undervoltage;
+    payload->overvoltage = overvoltage;
+    payload->undertemperature = undertemperature;
+    payload->overtemperature = overtemperature;
+    payload->cancommunication = error_can_communication_instances[CAN_COMMUNICATION_NETWORK_BMS];
+    payload->currentsensorcommunication = error_current_sensor_communication_instances[0];
+    payload->coolingundertemperature = cooling_undertemperature;
+    payload->coolingovertemperature = cooling_overtemperature;
+    payload->cellboard = internal;
+    return &libcan_message_error;
 }
 
-primary_hv_error_converted_t *error_api_get_error_canlib_payload(size_t *const byte_size) {
-    *byte_size = sizeof(error_can_payload);
-    return &error_can_payload;
-}
+// void error_api_cellboard_handle(bms_cellboard_error_t *const payload) {
+//     // BUG: Open wire during charge
+//     if (payload->group == bms_cellboard_error_group_open_wire) {
+//         return;
+//     }
+//     error_can_payload.cellboard_group = (primary_hv_error_cellboard_group)payload->group;
+//     error_can_payload.cellboard_id = (primary_hv_error_cellboard_id)payload->cellboard_id;
+//     error_api_set(ERROR_GROUP_CELLBOARD_ERROR, payload->cellboard_id);
+// }
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 

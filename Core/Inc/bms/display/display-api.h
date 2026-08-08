@@ -12,6 +12,7 @@
 #define DISPLAY_API_H
 
 #include "display.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_DISPLAY_MODULE_ENABLE
 

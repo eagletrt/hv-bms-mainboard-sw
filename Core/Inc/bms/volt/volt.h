@@ -12,11 +12,8 @@
 
 #include <stddef.h>
 
-#include "mainboard-conf.h"
+#include "can-primary.h"
 #include "mainboard-def.h"
-
-#include "primary_network.h"
-#include "bms_network.h"
 
 /*! \brief Minimum and maximum allowed cell voltage in V */
 #define VOLT_MIN_V (2.8F)
@@ -49,10 +46,12 @@ typedef volt_t cells_voltage[CELLBOARD_COUNT][CELLBOARD_SEGMENT_SERIES_COUNT];
 struct VoltHandler {
     cells_voltage voltages; /*!< The array of cells voltages in V */
 
-    CellboardId cellboard_id;                                          /*!< The cellboard identifier */
-    size_t offset;                                                     /*!< The cell offset */
-    primary_hv_cells_voltage_converted_t volt_can_payload;             /*!< The CAN payload for cell voltages */
-    primary_hv_cells_voltage_stats_converted_t volt_stats_can_payload; /*!< The CAN payload for cell voltage stats */
+    union CanPrimaryMessages libcan_message_cellboard1; /*!< The CAN payload for Cellboard 1 cell voltages */
+    union CanPrimaryMessages libcan_message_cellboard2; /*!< The CAN payload for Cellboard 2 cell voltages */
+    union CanPrimaryMessages libcan_message_cellboard3; /*!< The CAN payload for Cellboard 3 cell voltages */
+    union CanPrimaryMessages libcan_message_cellboard4; /*!< The CAN payload for Cellboard 4 cell voltages */
+    union CanPrimaryMessages libcan_message_cellboard5; /*!< The CAN payload for Cellboard 5 cell voltages */
+    union CanPrimaryMessages libcan_message_cellboard6; /*!< The CAN payload for Cellboard 6 cell voltages */
 };
 
 #endif // VOLT_H

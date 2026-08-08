@@ -19,12 +19,17 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
+#include "stm32f4xx_hal_can.h"
 
 /* USER CODE BEGIN 0 */
 
 #include <string.h>
 
-#include "can-comm-api.h"
+#include "can-communication.h"
+#include "can-communication-api.h"
+#include "mainboard-def.h"
+#include "eagletrt.h"
+#include "eagletrt-api.h"
 
 /* USER CODE END 0 */
 
@@ -58,7 +63,7 @@ void MX_CAN1_Init(void) {
     }
     /* USER CODE BEGIN CAN1_Init 2 */
     /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-      as the combination of: 
+      as the combination of:
       STDID + RTR + IDE + 4 most significant bits of EXTID
   */
     CAN_FilterTypeDef filter = {
@@ -107,7 +112,7 @@ void MX_CAN2_Init(void) {
     }
     /* USER CODE BEGIN CAN2_Init 2 */
     /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-      as the combination of: 
+      as the combination of:
       STDID + RTR + IDE + 4 most significant bits of EXTID
   */
     CAN_FilterTypeDef filter = {
@@ -251,61 +256,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle) {
 
 /* USER CODE BEGIN 1 */
 
-/**
- * @brief Get the pointer to the CAN handler from the corresponding canlib network
- *
- * @param network The canlib network
- *
- * @return CAN_HandleTypeDef * A pointer to the CAN handler or NULL if the network
- * does not corresponds to any valid handler
- */
-CAN_HandleTypeDef *_can_get_peripheral_from_network(const CanNetwork network) {
-    switch (network) {
-        case CAN_NETWORK_BMS:
-            return &HCAN_BMS;
-        case CAN_NETWORK_PRIMARY:
-            return &HCAN_PRIMARY;
-        default:
-            return NULL;
-    }
-}
-
-/**
- * @brief Get CAN TxFrameType value from the CanFrameType enum
- *
- * @param type The frame type enum value
- * 
- * @return int32_t The frame type or negative error code
- */
-int32_t _can_get_rtr_from_frame_type(const CanFrameType type) {
-    switch (type) {
-        case CAN_FRAME_TYPE_DATA:
-            return CAN_RTR_DATA;
-        case CAN_FRAME_TYPE_REMOTE:
-            return CAN_RTR_REMOTE;
-        default:
-            return -1;
-    }
-}
-
-/**
- * @brief Get the canFrameType enum value from the CAN TxFrameType
- *
- * @param rtr The CAN frame type value
- * 
- * @return CanFrameType The frame type enum value or negative error code
- */
-CanFrameType _can_get_frame_type_from_rtr(const uint32_t rtr) {
-    switch (rtr) {
-        case CAN_RTR_DATA:
-            return CAN_FRAME_TYPE_DATA;
-        case CAN_RTR_REMOTE:
-            return CAN_FRAME_TYPE_REMOTE;
-        default:
-            return CAN_FRAME_TYPE_INVALID;
-    }
-}
-
 void MX_CAN1_Init_250K(void) {
     hcan1.Instance = CAN1;
     hcan1.Init.Prescaler = 10;
@@ -323,7 +273,7 @@ void MX_CAN1_Init_250K(void) {
         Error_Handler();
     }
     /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-        as the combination of: 
+        as the combination of:
         STDID + RTR + IDE + 4 most significant bits of EXTID
     */
     CAN_FilterTypeDef filter = {
@@ -361,7 +311,7 @@ void MX_CAN1_Init_1M(void) {
         Error_Handler();
     }
     /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-      as the combination of: 
+      as the combination of:
       STDID + RTR + IDE + 4 most significant bits of EXTID
   */
     CAN_FilterTypeDef filter = {
@@ -382,96 +332,103 @@ void MX_CAN1_Init_1M(void) {
     HAL_CAN_Start(&HCAN_PRIMARY);
 }
 
-// TODO: Return and check errors
-enum CanCommReturnCode can_send(
-    const CanNetwork network,
-    const can_id_t id,
-    const CanFrameType frame_type,
-    const uint8_t *const data,
-    const size_t size) {
-    if (network >= CAN_NETWORK_COUNT)
-        return CAN_COMM_RC_INVALID_NETWORK;
-    if (id > CAN_COMM_ID_MASK)
-        return CAN_COMM_RC_INVALID_INDEX;
-    if (size > CAN_COMM_MAX_PAYLOAD_BYTE_SIZE)
-        return CAN_COMM_RC_INVALID_PAYLOAD_SIZE;
-
-    // Get and check the CAN handler
-    CAN_HandleTypeDef *const hcan = _can_get_peripheral_from_network(network);
-    if (hcan == NULL)
-        return CAN_COMM_RC_INVALID_NETWORK;
-
-    // Get and check the frame type
-    const int32_t type = _can_get_rtr_from_frame_type(frame_type);
-    if (type < 0)
-        return CAN_COMM_RC_INVALID_FRAME_TYPE;
-
-    // Setup transmission header
-    const CAN_TxHeaderTypeDef header = {
-        .StdId = id,
-        .IDE = CAN_ID_STD,
-        .RTR = type,
-        .DLC = size,
-        .ExtId = 0U,
-        .TransmitGlobalTime = DISABLE
-    };
-
-    // Send message
-    uint32_t mailbox = 0U;
-    if (HAL_CAN_AddTxMessage(hcan, &header, data, &mailbox) != HAL_OK)
-        return CAN_COMM_RC_TRANSMISSION_ERROR;
-    return CAN_COMM_RC_OK;
+/*!
+ * \brief Returns the native ST HAL CAN handler based on the network enum.
+ * \param[in] network The target network track enum.
+ * \return Pointer to the matched global CAN_HandleTypeDef, or \c NULL if invalid.
+ */
+EAGLETRT_STATIC_INLINE CAN_HandleTypeDef *prv_can_get_handler(enum CanCommunicationNetwork network) {
+    switch (network) {
+        case CAN_COMMUNICATION_NETWORK_BMS:
+            return &HCAN_BMS;
+        case CAN_COMMUNICATION_NETWORK_PRIMARY:
+            return &HCAN_PRIMARY;
+        default:
+            return NULL;
+    }
 }
 
-// TODO: Define CAN RX callbacks
+/*!
+ * \brief Internal unified helper to write an abstract frame out to an ST HAL CAN peripheral.
+ * \param[in] network The network track enum indicating which hardware peripheral to target.
+ * \param[in] frame Pointer to the abstract frame structure containing the payload.
+ *
+ * \retval CAN_COMMUNICATION_RC_OK if the frame was sent successfully.
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if a required pointer configuration is \c NULL.
+ * \retval CAN_COMMUNICATION_RC_INVALID_LENGTH if the frame length exceeds CAN_COMMUNICATION_FRAME_DATA_SIZE.
+ * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the native HAL layer rejects the transmission.
+ */
+EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_send_to_hardware(enum CanCommunicationNetwork network, const struct CanCommunicationFrame *frame) {
+    CAN_HandleTypeDef *hcan = prv_can_get_handler(network);
+
+    if (hcan == NULL || frame == NULL) {
+        return CAN_COMMUNICATION_RC_NULL_POINTER;
+    }
+    if (frame->length > CAN_COMMUNICATION_FRAME_DATA_SIZE) {
+        return CAN_COMMUNICATION_RC_INVALID_LENGTH;
+    }
+
+    CAN_TxHeaderTypeDef tx_header = {
+        .StdId = frame->id,
+        .ExtId = 0U,
+        .IDE = CAN_ID_STD,
+        .RTR = CAN_RTR_DATA,
+        .DLC = frame->length,
+        .TransmitGlobalTime = DISABLE
+    };
+    uint32_t tx_mailbox = 0U;
+    if (HAL_CAN_AddTxMessage(hcan, &tx_header, (uint8_t *)frame->data, &tx_mailbox) != HAL_OK) {
+        return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
+    }
+    return CAN_COMMUNICATION_RC_OK;
+}
+
+enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame *frame) {
+    return prv_can_send_to_hardware(CAN_COMMUNICATION_NETWORK_BMS, frame);
+}
+
+enum CanCommunicationReturnCode can_send_primary(const struct CanCommunicationFrame *frame) {
+    return prv_can_send_to_hardware(CAN_COMMUNICATION_NETWORK_PRIMARY, frame);
+}
+
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    if (hcan->Instance != HCAN_PRIMARY.Instance)
+    if (hcan->Instance != HCAN_PRIMARY.Instance) {
         return;
+    }
 
-    CAN_RxHeaderTypeDef header;
-    uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
-    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, data) != HAL_OK)
-        Error_Handler();
+    CAN_RxHeaderTypeDef header = { 0 };
+    struct CanCommunicationFrame frame = { 0 };
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &header, frame.data) == HAL_OK) {
+        frame.id = (header.IDE == CAN_ID_EXT) ? header.ExtId : header.StdId;
+        frame.length = (uint8_t)header.DLC;
 
-    // Ignore extended IDs
-    if (header.IDE == CAN_ID_EXT)
-        return;
+        // Based on the handler, retrieve the selected network
+        constexpr enum CanCommunicationNetwork network = CAN_COMMUNICATION_NETWORK_PRIMARY;
 
-    const CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
-    if (frame_type < 0)
-        return;
-
-    can_comm_rx_add(
-        CAN_NETWORK_PRIMARY,
-        primary_index_from_id(header.StdId),
-        frame_type,
-        data,
-        header.DLC);
+        /* TODO: Handle return value of RX function */
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_rx(network, &frame));
+    }
+    HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    if (hcan->Instance != HCAN_BMS.Instance)
+    if (hcan->Instance != HCAN_BMS.Instance) {
         return;
+    }
 
-    CAN_RxHeaderTypeDef header;
-    uint8_t data[CAN_COMM_MAX_PAYLOAD_BYTE_SIZE];
-    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &header, data) != HAL_OK)
-        Error_Handler();
+    CAN_RxHeaderTypeDef header = { 0 };
+    struct CanCommunicationFrame frame = { 0 };
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &header, frame.data) == HAL_OK) {
+        frame.id = (header.IDE == CAN_ID_EXT) ? header.ExtId : header.StdId;
+        frame.length = (uint8_t)header.DLC;
 
-    // Ignore extended IDs
-    if (header.IDE == CAN_ID_EXT)
-        return;
+        // Based on the handler, retrieve the selected network
+        constexpr enum CanCommunicationNetwork network = CAN_COMMUNICATION_NETWORK_BMS;
 
-    const CanFrameType frame_type = _can_get_frame_type_from_rtr(header.RTR);
-    if (frame_type < 0)
-        return;
-
-    can_comm_rx_add(
-        CAN_NETWORK_BMS,
-        bms_index_from_id(header.StdId),
-        frame_type,
-        data,
-        header.DLC);
+        /* TODO: Handle return value of RX function */
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_rx(network, &frame));
+    }
+    HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO1_MSG_PENDING);
 }
 
 /* USER CODE END 1 */

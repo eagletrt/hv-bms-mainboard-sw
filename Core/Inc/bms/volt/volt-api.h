@@ -11,7 +11,7 @@
 #define VOLT_API_H
 
 #include "volt.h"
-#include "eagletrt-api.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 
@@ -58,29 +58,65 @@ volt_t volt_api_get_avg(void);
 volt_t volt_api_get_sum(void);
 
 /*!
+ * \brief Get a pointer to the CAN payload of the Cellboard1 cells voltages
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *volt_api_get_cellboard1_voltage_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard2 cells voltages
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *volt_api_get_cellboard2_voltage_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard3 cells voltages
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *volt_api_get_cellboard3_voltage_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard4 cells voltages
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *volt_api_get_cellboard4_voltage_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard5 cells voltages
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *volt_api_get_cellboard5_voltage_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the Cellboard6 cells voltages
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t *byte_size);
+
+/*!
  * \brief Handle the received cellboard cells voltage
  *
  * \param payload A pointer to the canlib payload
  */
-void volt_api_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t *payload);
-
-/*!
- * \brief Get a pointer to the CAN payload of the cells voltages
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns primary_cellboard_cells_voltage_converted_t* A pointer to the payload
- */
-primary_hv_cells_voltage_converted_t *volt_api_get_cells_voltage_canlib_payload(size_t *byte_size);
-
-/*!
- * \brief Get a pointer to the CAN payload of the cells voltage stats
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns primary_cellboard_cells_voltage_stats_converted_t* A pointer to the payload
- */
-primary_hv_cells_voltage_stats_converted_t *volt_api_get_cells_voltage_stats_canlib_payload(size_t *byte_size);
+// void volt_api_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t *payload);
 
 #else // CONF_VOLTAGE_MODULE_ENABLE
 
@@ -92,7 +128,6 @@ primary_hv_cells_voltage_stats_converted_t *volt_api_get_cells_voltage_stats_can
 #define volt_api_get_sum() (VOLT_NOMINAL_V * CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT)
 #define volt_api_cells_voltage_handle(payload) EAGLETRT_API_NOP()
 #define volt_api_get_cells_voltage_canlib_payload(byte_size) (NULL)
-#define volt_api_get_cells_voltage_stats_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_VOLTAGE_MODULE_ENABLE
 

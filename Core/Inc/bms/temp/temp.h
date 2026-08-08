@@ -11,10 +11,7 @@
 #define TEMP_H
 
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
-
-#include "primary_network.h"
-#include "bms_network.h"
+#include "can-primary.h"
 
 /*! \brief Minimum and maximum allowed cell temperature in celsius */
 #define TEMP_MIN_C (-10.f)
@@ -47,10 +44,14 @@ typedef celsius_t cells_temp[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_COUN
 struct TempHandler {
     cells_temp temperatures; /*!< The array of temperatures in °C */
 
-    CellboardId cellboard_id;                                       /*!< The cellboard identifier used when the canlib payload is sent */
-    size_t offset;                                                  /*!< An offset used when the canlib payload is sent */
-    primary_hv_cells_temperature_converted_t temp_can_payload;      /*!< The canlib message payload for the cells temperatures */
-    primary_hv_cells_temp_stats_converted_t temp_stats_can_payload; /*!< The canlib message payload for the cells temperature stats */
+    union CanPrimaryMessages libcan_message_temperature_info; /*!< The canlib message payload for the cells temperature stats */
+
+    union CanPrimaryMessages libcan_message_cellboard1; /*!< The CAN payload for Cellboard 1 cell temperatures */
+    union CanPrimaryMessages libcan_message_cellboard2; /*!< The CAN payload for Cellboard 2 cell temperatures */
+    union CanPrimaryMessages libcan_message_cellboard3; /*!< The CAN payload for Cellboard 3 cell temperatures */
+    union CanPrimaryMessages libcan_message_cellboard4; /*!< The CAN payload for Cellboard 4 cell temperatures */
+    union CanPrimaryMessages libcan_message_cellboard5; /*!< The CAN payload for Cellboard 5 cell temperatures */
+    union CanPrimaryMessages libcan_message_cellboard6; /*!< The CAN payload for Cellboard 6 cell temperatures */
 };
 
 #endif // TEMP_H

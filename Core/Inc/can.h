@@ -30,8 +30,7 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
-#include "mainboard-def.h"
-#include "can-comm-api.h"
+#include "can-communication.h"
 
 /* USER CODE END Includes */
 
@@ -56,29 +55,28 @@ void MX_CAN1_Init_250K(void);
 /* @brief Configure CAN1 peripheral to work with 1M baudrate */
 void MX_CAN1_Init_1M(void);
 
-/**
- * @brief Send a message via the CAN bus
+/*!
+ * \brief Send a CAN frame on the BMS CAN network.
  *
- * @param network The canlib network to select
- * @param id The identifier of the CAN message
- * @param frame_type The frame type of the message (see CanFrameType)
- * @param data A pointer to the data to send
- * @param size The size of the payload in bytes
+ * \param[in] frame The frame to send.
  *
- * @return enum CanCommReturnCode
- *     - CAN_COMM_RC_INVALID_NETWORK if the network is not associated with any existing CAN bus
- *     - CAN_COMM_RC_INVALID_INDEX if the id is not a valid identifier
- *     - CAN_COMM_RC_INVALID_PAYLOAD_SIZE if the payload size exceed the maximum allowd message length
- *     - CAN_COMM_RC_INVALID_FRAME_TYPE the given frame type does not correspond to any existing CAN frame type
- *     - CAN_COMM_RC_TRANSMISSION_ERROR there was an error during the transmission of the message   
- *     - CAN_COMM_RC_OK otherwise
+ * \retval CAN_COMMUNICATION_RC_OK if the frame was sent successfully.
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if the frame pointer was NULL.
+ * \retval CAN_COMMUNICATION_RC_INVALID_LENGTH if the frame length exceeds CAN_COMMUNICATION_FRAME_DATA_SIZE.
+ * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the underlying HAL call reported a failure.
  */
-enum CanCommReturnCode can_send(
-    const CanNetwork network,
-    const can_id_t id,
-    const CanFrameType frame_type,
-    const uint8_t *const data,
-    const size_t size);
+enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame *frame);
+/*!
+ * \brief Send a CAN frame on the primary CAN network.
+ *
+ * \param[in] frame The frame to send.
+ *
+ * \retval CAN_COMMUNICATION_RC_OK if the frame was sent successfully.
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if the frame pointer was NULL.
+ * \retval CAN_COMMUNICATION_RC_INVALID_LENGTH if the frame length exceeds CAN_COMMUNICATION_FRAME_DATA_SIZE.
+ * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the underlying HAL call reported a failure.
+ */
+enum CanCommunicationReturnCode can_send_primary(const struct CanCommunicationFrame *frame);
 
 /* USER CODE END Prototypes */
 

@@ -11,7 +11,8 @@
 #define BAL_API_H
 
 #include "bal.h"
-#include "eagletrt-api.h"
+#include "can-bms.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
 
@@ -45,34 +46,34 @@ enum BalReturnCode bal_api_start(void);
 enum BalReturnCode bal_api_stop(void);
 
 /*!
- * \brief Handle the received set balancing status message sent from the steering wheel
+ * \brief Get a pointer to the set balancing status message canlib payload
  *
- * \param payload A pointer to the canlib paylod
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
  */
-void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *payload);
+union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size);
 
 /*!
  * \brief Handle the received set balancing status message sent from the steering wheel
  *
  * \param payload A pointer to the canlib paylod
  */
-void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *payload);
+// void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *payload);
+
+/*!
+ * \brief Handle the received set balancing status message sent from the steering wheel
+ *
+ * \param payload A pointer to the canlib paylod
+ */
+// void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *payload);
 
 /*!
  * \brief Handle the received balancing status message sent from the cellboards
  *
  * \param payload A pointer to the canlib paylod
  */
-void bal_api_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *payload);
-
-/*!
- * \brief Get a pointer to the set balancing status message canlib payload
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns bms_cellboard_set_balancing_status_converted_t* A pointer to the payload or NULL if the id is not valid
- */
-bms_cellboard_set_balancing_status_converted_t *bal_api_get_set_status_canlib_payload(size_t *byte_size);
+// void bal_api_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *payload);
 
 /*!
  * \brief Get a pointer to the balancing status message canlib payload
@@ -81,7 +82,7 @@ bms_cellboard_set_balancing_status_converted_t *bal_api_get_set_status_canlib_pa
  *
  * \returns primary_hv_balancing_status_converted_t* A pointer to the payload or NULL if the id is not valid
  */
-primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_t *byte_size);
+// primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_t *byte_size);
 
 #else // CONF_BALANCING_MODULE_ENABLE
 

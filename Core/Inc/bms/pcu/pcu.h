@@ -10,12 +10,8 @@
 #ifndef PCU_H
 #define PCU_H
 
-#include "mainboard-def.h"
-#include "mainboard-conf.h"
-
 #include "fsm.h"
 #include "watchdog.h"
-#include "eagletrt-api.h"
 
 /*! \brief PCU pins timeouts in ms */
 #define PCU_AIRN_TIMEOUT_MS (1000U)

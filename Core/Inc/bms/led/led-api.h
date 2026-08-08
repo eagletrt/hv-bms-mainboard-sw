@@ -11,6 +11,7 @@
 #define LED_API_H
 
 #include "led.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_LED_MODULE_ENABLE
 

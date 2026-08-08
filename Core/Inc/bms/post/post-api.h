@@ -11,6 +11,7 @@
 #define POST_API_H
 
 #include "post.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 

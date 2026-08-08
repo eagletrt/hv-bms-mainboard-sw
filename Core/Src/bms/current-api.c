@@ -12,6 +12,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "can-primary.h"
+#include "eagletrt.h"
 #include "error-api.h"
 #include "internal-voltage-api.h"
 
@@ -67,32 +69,25 @@ enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
     return watchdog_start(&current_api_handler.sensor_wdg);
 }
 
-void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
-    watchdog_reset(&current_api_handler.sensor_wdg);
-    if (payload == NULL) {
-        return;
-    }
-
-    constexpr float ma_to_a = 0.001F;
-    current_api_handler.current = (float)payload->ivt_result_i * ma_to_a;
-    prv_current_api_check_value(current_api_handler.current);
-}
-
-primary_hv_current_converted_t *current_api_get_current_canlib_payload(size_t *const byte_size) {
+union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(current_api_handler.current_can_payload);
+        *byte_size = can_primary_byte_size_tsacmainboardcurrentinfo;
     }
-    current_api_handler.current_can_payload.current = current_api_handler.current;
-    return &current_api_handler.current_can_payload;
+    current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.current = current_api_get_current();
+    current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.power = current_api_get_power();
+    return &current_api_handler.libcan_message_current;
 }
 
-primary_hv_power_converted_t *current_api_get_power_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(current_api_handler.power_can_payload);
-    }
-    current_api_handler.power_can_payload.power = current_api_get_power();
-    return &current_api_handler.power_can_payload;
-}
+// void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
+//     watchdog_reset(&current_api_handler.sensor_wdg);
+//     if (payload == NULL) {
+//         return;
+//     }
+//
+//     constexpr float ma_to_a = 0.001F;
+//     current_api_handler.current = (float)payload->ivt_result_i * ma_to_a;
+//     prv_current_api_check_value(current_api_handler.current);
+// }
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE
 

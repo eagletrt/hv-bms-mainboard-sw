@@ -11,6 +11,7 @@
 #define PCU_API_H
 
 #include "pcu.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -80,14 +81,14 @@ bool pcu_api_is_precharge_complete(void);
  *
  * \param payload A pointer to the canlib payload of the response
  */
-void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *payload);
+// void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *payload);
 
 /*!
  * \brief Handle the received set status message sent from the handcart
  *
  * \param payload A pointer to the canlib payload of the response
  */
-void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *payload);
+// void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *payload);
 
 #else // CONF_PCU_MODULE_ENABLE
 

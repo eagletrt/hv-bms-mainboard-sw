@@ -10,14 +10,8 @@
 #ifndef COOLING_TEMP_H
 #define COOLING_TEMP_H
 
-#include "mainboard-def.h"
-#include "mainboard-conf.h"
-
-#include "eagletrt-api.h"
-
-#include "primary_network.h"
-#include "bms_network.h"
 #include <stdint.h>
+#include "mainboard-def.h"
 
 /*! \brief Total number of cooling temperatures handled */
 #define COOLING_TEMP_COUNT (COOLING_TEMP_INDEX_COUNT)
@@ -81,7 +75,7 @@ typedef celsius_t cooling_temps[COOLING_TEMP_COUNT];
 struct CoolingTempHandler {
     cooling_temps temperatures; /*!< Array of cooling temperatures in °C */
 
-    primary_hv_cooling_temperature_converted_t cooling_temp_can_payload; /*!< CAN payload structure for the cooling temperatures */
+    // primary_hv_cooling_temperature_converted_t cooling_temp_can_payload; /*!< CAN payload structure for the cooling temperatures */
 };
 
 #endif // COOLING_TEMP_H

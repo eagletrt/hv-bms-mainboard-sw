@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #include "feedback.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
 
@@ -127,51 +128,31 @@ enum FeedbackDigitalBit feedback_api_get_digital_bit_from_id(enum FeedbackId fee
 enum FeedbackAnalogIndex feedback_api_get_analog_index_from_id(enum FeedbackId feedback);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the feedbacks status
+ * \brief Get a pointer to the CAN payload structure of the feedbacks
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns A pointer to the payload
  */
-primary_hv_feedback_status_converted_t *feedback_api_get_status_payload(size_t *byte_size);
+union CanPrimaryMessages *feedback_api_get_feedaback_payload(size_t *byte_size);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the digital feedbacks values
+ * \brief Get a pointer to the CAN payload structure of the shutdown
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns A pointer to the payload
  */
-primary_hv_feedback_digital_converted_t *feedback_api_get_digital_payload(size_t *byte_size);
+union CanPrimaryMessages *feedback_api_get_shutdown_payload(size_t *byte_size);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the analog feedbacks values
+ * \brief Get a pointer to the CAN payload structure of the shutdown feedbacks
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns A pointer to the payload
  */
-primary_hv_feedback_analog_converted_t *feedback_api_get_analog_payload(size_t *byte_size);
-
-/*!
- * \brief Get a pointer to the CAN payload structure of the analog shutdown feedbacks values
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns A pointer to the payload
- */
-primary_hv_feedback_analog_sd_converted_t *feedback_api_get_analog_sd_payload(size_t *byte_size);
-
-/*!
- * \brief Get a pointer to the CAN payload structure of the feedback that did not
- * allow the BMS to go to the TS ON state
- *
- * \param feedback The identifier of the feedback
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns A pointer to the payload
- */
-primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(enum FeedbackId feedback, size_t *byte_size);
+union CanPrimaryMessages *feedback_api_get_feedback_shutdown_payload(size_t *byte_size);
 
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 

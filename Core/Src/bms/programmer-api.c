@@ -12,8 +12,10 @@
 
 #include <string.h>
 #include <stdbool.h>
-#include "eagletrt-api.h"
+
 #include "mainboard-def.h"
+#include "eagletrt.h"
+#include "timebase.h"
 
 EAGLETRT_STATIC struct ProgrammerHandler programmer_handler;
 
@@ -60,7 +62,7 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
 
     programmer_handler.reset = reset;
     programmer_handler.flash_event.type = FSM_EVENT_TYPE_FLASH_REQUEST;
-    programmer_handler.programmer_can_payload.ready = false;
+    // programmer_handler.programmer_can_payload.ready = false;
 
     // Reset flash procedure data
     programmer_handler.target = MAINBOARD_ID;
@@ -76,69 +78,69 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
     return PROGRAMMER_RC_OK;
 }
 
-void programmer_api_flash_request_handle(primary_hv_flash_request_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    if (programmer_handler.flash_request) {
-        return;
-    }
-    const fsm_state_t status = fsm_get_status();
-    if (status != FSM_STATE_IDLE && status != FSM_STATE_FATAL) {
-        return;
-    }
+// void programmer_api_flash_request_handle(primary_hv_flash_request_converted_t *const payload) {
+//     if (payload == NULL) {
+//         return;
+//     }
+//     if (programmer_handler.flash_request) {
+//         return;
+//     }
+//     const fsm_state_t status = fsm_get_status();
+//     if (status != FSM_STATE_IDLE && status != FSM_STATE_FATAL) {
+//         return;
+//     }
+//
+//     // TODO: Check the payload content
+//
+//     programmer_handler.target = payload->mainboard ? MAINBOARD_ID : (CellboardId)payload->cellboard_id;
+//     programmer_handler.flash_request = true;
+//     programmer_handler.flash_stop = false;
+//     programmer_handler.flashing = false;
+//
+//     watchdog_restart(&programmer_handler.watchdog);
+//
+//     // Trigger event
+//     fsm_event_trigger(&programmer_handler.flash_event);
+// }
 
-    // TODO: Check the payload content
+// void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t *const payload) {
+//     if (payload == NULL) {
+//         return;
+//     }
+//     if (!programmer_handler.flash_request) {
+//         return;
+//     }
+//     if ((CellboardId)payload->cellboard_id >= CELLBOARD_COUNT) {
+//         return;
+//     }
+//
+//     // Set the cellboard ready bit
+//     if (payload->ready == 1U) {
+//         programmer_handler.cellboard_ready = EAGLETRT_API_BIT_SET(programmer_handler.cellboard_ready, payload->cellboard_id);
+//     } else {
+//         programmer_handler.cellboard_ready = EAGLETRT_API_BIT_RESET(programmer_handler.cellboard_ready, payload->cellboard_id);
+//     }
+// }
 
-    programmer_handler.target = payload->mainboard ? MAINBOARD_ID : (CellboardId)payload->cellboard_id;
-    programmer_handler.flash_request = true;
-    programmer_handler.flash_stop = false;
-    programmer_handler.flashing = false;
-
-    watchdog_restart(&programmer_handler.watchdog);
-
-    // Trigger event
-    fsm_event_trigger(&programmer_handler.flash_event);
-}
-
-void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    if (!programmer_handler.flash_request) {
-        return;
-    }
-    if ((CellboardId)payload->cellboard_id >= CELLBOARD_COUNT) {
-        return;
-    }
-
-    // Set the cellboard ready bit
-    if (payload->ready == 1U) {
-        programmer_handler.cellboard_ready = EAGLETRT_API_BIT_SET(programmer_handler.cellboard_ready, payload->cellboard_id);
-    } else {
-        programmer_handler.cellboard_ready = EAGLETRT_API_BIT_RESET(programmer_handler.cellboard_ready, payload->cellboard_id);
-    }
-}
-
-void programmer_api_flash_handle(primary_hv_flash_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    if ((bool)payload->start == programmer_handler.flashing) {
-        return;
-    }
-    if (fsm_get_status() != FSM_STATE_FLASH || !programmer_handler.flash_request) {
-        return;
-    }
-
-    if (payload->start) {
-        watchdog_reset(&programmer_handler.watchdog);
-        programmer_handler.flashing = true;
-    } else {
-        watchdog_stop(&programmer_handler.watchdog);
-        prv_programmer_flash_stop();
-    }
-}
+// void programmer_api_flash_handle(primary_hv_flash_converted_t *const payload) {
+//     if (payload == NULL) {
+//         return;
+//     }
+//     if ((bool)payload->start == programmer_handler.flashing) {
+//         return;
+//     }
+//     if (fsm_get_status() != FSM_STATE_FLASH || !programmer_handler.flash_request) {
+//         return;
+//     }
+//
+//     if (payload->start) {
+//         watchdog_reset(&programmer_handler.watchdog);
+//         programmer_handler.flashing = true;
+//     } else {
+//         watchdog_stop(&programmer_handler.watchdog);
+//         prv_programmer_flash_stop();
+//     }
+// }
 
 enum ProgrammerReturnCode programmer_api_routine(void) {
     if (watchdog_is_timed_out(&programmer_handler.watchdog)) {

@@ -9,10 +9,13 @@
 
 #include "volt-api.h"
 
+#include <stddef.h>
 #include <string.h>
 
+#include "can-primary.h"
 #include "error-api.h"
 #include "eagletrt-api.h"
+#include "mainboard-def.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 
@@ -92,69 +95,308 @@ volt_t volt_api_get_avg(void) {
     return volt_api_get_sum() / CELLBOARD_SERIES_COUNT;
 }
 
-void volt_api_cells_voltage_handle(
-    bms_cellboard_cells_voltage_converted_t *const payload) {
-    const size_t size = 3U;
-    if (payload == NULL ||
-        (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-        payload->offset + size > CELLBOARD_SEGMENT_SERIES_COUNT) {
-        return;
-    }
-
-    // Update voltages
-    const size_t offset = payload->offset;
-    volt_t *volts = volt_handler.voltages[payload->cellboard_id];
-    volts[offset] = payload->voltage_0;
-    volts[offset + 1U] = payload->voltage_1;
-    volts[offset + 2U] = payload->voltage_2;
-
-    for (size_t i = 0U; i < size; ++i) {
-        prv_volt_check_value((CellboardId)payload->cellboard_id, offset + i, volts[offset + i]);
-    }
-}
-
-primary_hv_cells_voltage_converted_t *volt_api_get_cells_voltage_canlib_payload(size_t *const byte_size) {
+union CanPrimaryMessages *volt_api_get_cellboard1_voltage_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(volt_handler.volt_can_payload);
+        *byte_size = can_primary_byte_size_tsaccellboard1voltage;
     }
 
-    const volt_t *const volts = volt_handler.voltages[volt_handler.cellboard_id];
-    // Set payload values
-    volt_handler.volt_can_payload.cellboard_id =
-        (primary_hv_cells_voltage_cellboard_id)volt_handler.cellboard_id;
-    volt_handler.volt_can_payload.offset = volt_handler.offset;
-    volt_handler.volt_can_payload.voltage_0 = volts[volt_handler.offset];
-    volt_handler.volt_can_payload.voltage_1 = volts[volt_handler.offset + 1];
-    volt_handler.volt_can_payload.voltage_2 = volts[volt_handler.offset + 2];
-
-    // Update indices
-    volt_handler.offset += 3;
-    if (volt_handler.offset >= CELLBOARD_SEGMENT_SERIES_COUNT) {
-        volt_handler.offset = 0U;
-        if (++volt_handler.cellboard_id >= CELLBOARD_ID_COUNT) {
-            volt_handler.cellboard_id = 0U;
-        }
+    struct CanPrimaryTsaccellboard1voltage *payload = &volt_handler.libcan_message_cellboard1.tsaccellboard1voltage;
+    const volt_t *const volts = volt_handler.voltages[CELLBOARD_ID_0];
+    payload->group = (payload->group >= 3) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = volts[0];
+            payload->group_payload.mux_0.cell2 = volts[1];
+            payload->group_payload.mux_0.cell3 = volts[2];
+            payload->group_payload.mux_0.cell4 = volts[3];
+            payload->group_payload.mux_0.cell5 = volts[4];
+            payload->group_payload.mux_0.cell6 = volts[5];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell7 = volts[6];
+            payload->group_payload.mux_1.cell8 = volts[7];
+            payload->group_payload.mux_1.cell9 = volts[8];
+            payload->group_payload.mux_1.cell10 = volts[9];
+            payload->group_payload.mux_1.cell11 = volts[10];
+            payload->group_payload.mux_1.cell12 = volts[11];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell13 = volts[12];
+            payload->group_payload.mux_2.cell14 = volts[13];
+            payload->group_payload.mux_2.cell15 = volts[14];
+            payload->group_payload.mux_2.cell16 = volts[15];
+            payload->group_payload.mux_2.cell17 = volts[16];
+            payload->group_payload.mux_2.cell18 = volts[17];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell19 = volts[18];
+            payload->group_payload.mux_3.cell20 = volts[19];
+            payload->group_payload.mux_3.cell21 = volts[20];
+            payload->group_payload.mux_3.cell22 = volts[21];
+            payload->group_payload.mux_3.cell23 = volts[22];
+            payload->group_payload.mux_3.cell24 = volts[23];
+            break;
+        default:
+            break;
     }
-    return &volt_handler.volt_can_payload;
+    return &volt_handler.libcan_message_cellboard1;
 }
 
-primary_hv_cells_voltage_stats_converted_t *volt_api_get_cells_voltage_stats_canlib_payload(size_t *const byte_size) {
+union CanPrimaryMessages *volt_api_get_cellboard2_voltage_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(volt_handler.volt_stats_can_payload);
+        *byte_size = can_primary_byte_size_tsaccellboard2voltage;
     }
 
-    const volt_t max = volt_api_get_max();
-    const volt_t min = volt_api_get_min();
-
-    volt_handler.volt_stats_can_payload.max = max;
-    volt_handler.volt_stats_can_payload.min = min;
-
-    volt_handler.volt_stats_can_payload.delta = max - min;
-
-    volt_handler.volt_stats_can_payload.avg = volt_api_get_avg();
-
-    return &volt_handler.volt_stats_can_payload;
+    struct CanPrimaryTsaccellboard2voltage *payload = &volt_handler.libcan_message_cellboard2.tsaccellboard2voltage;
+    const volt_t *const volts = volt_handler.voltages[CELLBOARD_ID_1];
+    payload->group = (payload->group >= 3) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = volts[0];
+            payload->group_payload.mux_0.cell2 = volts[1];
+            payload->group_payload.mux_0.cell3 = volts[2];
+            payload->group_payload.mux_0.cell4 = volts[3];
+            payload->group_payload.mux_0.cell5 = volts[4];
+            payload->group_payload.mux_0.cell6 = volts[5];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell7 = volts[6];
+            payload->group_payload.mux_1.cell8 = volts[7];
+            payload->group_payload.mux_1.cell9 = volts[8];
+            payload->group_payload.mux_1.cell10 = volts[9];
+            payload->group_payload.mux_1.cell11 = volts[10];
+            payload->group_payload.mux_1.cell12 = volts[11];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell13 = volts[12];
+            payload->group_payload.mux_2.cell14 = volts[13];
+            payload->group_payload.mux_2.cell15 = volts[14];
+            payload->group_payload.mux_2.cell16 = volts[15];
+            payload->group_payload.mux_2.cell17 = volts[16];
+            payload->group_payload.mux_2.cell18 = volts[17];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell19 = volts[18];
+            payload->group_payload.mux_3.cell20 = volts[19];
+            payload->group_payload.mux_3.cell21 = volts[20];
+            payload->group_payload.mux_3.cell22 = volts[21];
+            payload->group_payload.mux_3.cell23 = volts[22];
+            payload->group_payload.mux_3.cell24 = volts[23];
+            break;
+        default:
+            break;
+    }
+    return &volt_handler.libcan_message_cellboard2;
 }
+
+union CanPrimaryMessages *volt_api_get_cellboard3_voltage_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard3voltage;
+    }
+
+    struct CanPrimaryTsaccellboard3voltage *payload = &volt_handler.libcan_message_cellboard3.tsaccellboard3voltage;
+    const volt_t *const volts = volt_handler.voltages[CELLBOARD_ID_2];
+    payload->group = (payload->group >= 3) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = volts[0];
+            payload->group_payload.mux_0.cell2 = volts[1];
+            payload->group_payload.mux_0.cell3 = volts[2];
+            payload->group_payload.mux_0.cell4 = volts[3];
+            payload->group_payload.mux_0.cell5 = volts[4];
+            payload->group_payload.mux_0.cell6 = volts[5];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell7 = volts[6];
+            payload->group_payload.mux_1.cell8 = volts[7];
+            payload->group_payload.mux_1.cell9 = volts[8];
+            payload->group_payload.mux_1.cell10 = volts[9];
+            payload->group_payload.mux_1.cell11 = volts[10];
+            payload->group_payload.mux_1.cell12 = volts[11];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell13 = volts[12];
+            payload->group_payload.mux_2.cell14 = volts[13];
+            payload->group_payload.mux_2.cell15 = volts[14];
+            payload->group_payload.mux_2.cell16 = volts[15];
+            payload->group_payload.mux_2.cell17 = volts[16];
+            payload->group_payload.mux_2.cell18 = volts[17];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell19 = volts[18];
+            payload->group_payload.mux_3.cell20 = volts[19];
+            payload->group_payload.mux_3.cell21 = volts[20];
+            payload->group_payload.mux_3.cell22 = volts[21];
+            payload->group_payload.mux_3.cell23 = volts[22];
+            payload->group_payload.mux_3.cell24 = volts[23];
+            break;
+        default:
+            break;
+    }
+    return &volt_handler.libcan_message_cellboard3;
+}
+
+union CanPrimaryMessages *volt_api_get_cellboard4_voltage_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard4voltage;
+    }
+
+    struct CanPrimaryTsaccellboard4voltage *payload = &volt_handler.libcan_message_cellboard4.tsaccellboard4voltage;
+    const volt_t *const volts = volt_handler.voltages[CELLBOARD_ID_3];
+    payload->group = (payload->group >= 3) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = volts[0];
+            payload->group_payload.mux_0.cell2 = volts[1];
+            payload->group_payload.mux_0.cell3 = volts[2];
+            payload->group_payload.mux_0.cell4 = volts[3];
+            payload->group_payload.mux_0.cell5 = volts[4];
+            payload->group_payload.mux_0.cell6 = volts[5];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell7 = volts[6];
+            payload->group_payload.mux_1.cell8 = volts[7];
+            payload->group_payload.mux_1.cell9 = volts[8];
+            payload->group_payload.mux_1.cell10 = volts[9];
+            payload->group_payload.mux_1.cell11 = volts[10];
+            payload->group_payload.mux_1.cell12 = volts[11];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell13 = volts[12];
+            payload->group_payload.mux_2.cell14 = volts[13];
+            payload->group_payload.mux_2.cell15 = volts[14];
+            payload->group_payload.mux_2.cell16 = volts[15];
+            payload->group_payload.mux_2.cell17 = volts[16];
+            payload->group_payload.mux_2.cell18 = volts[17];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell19 = volts[18];
+            payload->group_payload.mux_3.cell20 = volts[19];
+            payload->group_payload.mux_3.cell21 = volts[20];
+            payload->group_payload.mux_3.cell22 = volts[21];
+            payload->group_payload.mux_3.cell23 = volts[22];
+            payload->group_payload.mux_3.cell24 = volts[23];
+            break;
+        default:
+            break;
+    }
+    return &volt_handler.libcan_message_cellboard4;
+}
+
+union CanPrimaryMessages *volt_api_get_cellboard5_voltage_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard5voltage;
+    }
+
+    struct CanPrimaryTsaccellboard5voltage *payload = &volt_handler.libcan_message_cellboard5.tsaccellboard5voltage;
+    const volt_t *const volts = volt_handler.voltages[CELLBOARD_ID_4];
+    payload->group = (payload->group >= 3) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = volts[0];
+            payload->group_payload.mux_0.cell2 = volts[1];
+            payload->group_payload.mux_0.cell3 = volts[2];
+            payload->group_payload.mux_0.cell4 = volts[3];
+            payload->group_payload.mux_0.cell5 = volts[4];
+            payload->group_payload.mux_0.cell6 = volts[5];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell7 = volts[6];
+            payload->group_payload.mux_1.cell8 = volts[7];
+            payload->group_payload.mux_1.cell9 = volts[8];
+            payload->group_payload.mux_1.cell10 = volts[9];
+            payload->group_payload.mux_1.cell11 = volts[10];
+            payload->group_payload.mux_1.cell12 = volts[11];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell13 = volts[12];
+            payload->group_payload.mux_2.cell14 = volts[13];
+            payload->group_payload.mux_2.cell15 = volts[14];
+            payload->group_payload.mux_2.cell16 = volts[15];
+            payload->group_payload.mux_2.cell17 = volts[16];
+            payload->group_payload.mux_2.cell18 = volts[17];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell19 = volts[18];
+            payload->group_payload.mux_3.cell20 = volts[19];
+            payload->group_payload.mux_3.cell21 = volts[20];
+            payload->group_payload.mux_3.cell22 = volts[21];
+            payload->group_payload.mux_3.cell23 = volts[22];
+            payload->group_payload.mux_3.cell24 = volts[23];
+            break;
+        default:
+            break;
+    }
+    return &volt_handler.libcan_message_cellboard5;
+}
+
+union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard6voltage;
+    }
+
+    struct CanPrimaryTsaccellboard6voltage *payload = &volt_handler.libcan_message_cellboard6.tsaccellboard6voltage;
+    const volt_t *const volts = volt_handler.voltages[CELLBOARD_ID_5];
+    payload->group = (payload->group >= 3) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = volts[0];
+            payload->group_payload.mux_0.cell2 = volts[1];
+            payload->group_payload.mux_0.cell3 = volts[2];
+            payload->group_payload.mux_0.cell4 = volts[3];
+            payload->group_payload.mux_0.cell5 = volts[4];
+            payload->group_payload.mux_0.cell6 = volts[5];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell7 = volts[6];
+            payload->group_payload.mux_1.cell8 = volts[7];
+            payload->group_payload.mux_1.cell9 = volts[8];
+            payload->group_payload.mux_1.cell10 = volts[9];
+            payload->group_payload.mux_1.cell11 = volts[10];
+            payload->group_payload.mux_1.cell12 = volts[11];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell13 = volts[12];
+            payload->group_payload.mux_2.cell14 = volts[13];
+            payload->group_payload.mux_2.cell15 = volts[14];
+            payload->group_payload.mux_2.cell16 = volts[15];
+            payload->group_payload.mux_2.cell17 = volts[16];
+            payload->group_payload.mux_2.cell18 = volts[17];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell19 = volts[18];
+            payload->group_payload.mux_3.cell20 = volts[19];
+            payload->group_payload.mux_3.cell21 = volts[20];
+            payload->group_payload.mux_3.cell22 = volts[21];
+            payload->group_payload.mux_3.cell23 = volts[22];
+            payload->group_payload.mux_3.cell24 = volts[23];
+            break;
+        default:
+            break;
+    }
+    return &volt_handler.libcan_message_cellboard6;
+}
+
+// void volt_api_cells_voltage_handle(
+//     bms_cellboard_cells_voltage_converted_t *const payload) {
+//     const size_t size = 3U;
+//     if (payload == NULL ||
+//         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
+//         payload->offset + size > CELLBOARD_SEGMENT_SERIES_COUNT) {
+//         return;
+//     }
+//
+//     // Update voltages
+//     const size_t offset = payload->offset;
+//     volt_t *volts = volt_handler.voltages[payload->cellboard_id];
+//     volts[offset] = payload->voltage_0;
+//     volts[offset + 1U] = payload->voltage_1;
+//     volts[offset + 2U] = payload->voltage_2;
+//
+//     for (size_t i = 0U; i < size; ++i) {
+//         prv_volt_check_value((CellboardId)payload->cellboard_id, offset + i, volts[offset + i]);
+//     }
+// }
 
 #ifdef CONF_VOLTAGE_STRINGS_ENABLE
 

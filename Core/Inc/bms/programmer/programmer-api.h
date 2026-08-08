@@ -27,21 +27,21 @@ enum ProgrammerReturnCode programmer_api_init(system_reset_callback_t reset);
  *
  * \param payload A pointer to the canlib payload of the request
  */
-void programmer_api_flash_request_handle(primary_hv_flash_request_converted_t *payload);
+// void programmer_api_flash_request_handle(primary_hv_flash_request_converted_t *payload);
 
 /*!
  * \brief Handle the received flash response from the cellboards
  *
  * \param payload A pointer to the canlib payload of the response
  */
-void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t *payload);
+// void programmer_api_cellboard_flash_response_handle(bms_cellboard_flash_response_converted_t *payload);
 
 /*!
  * \brief Handle the received actual flash command
  *
  * \param payload A pointer to the canlib payload of the command
  */
-void programmer_api_flash_handle(primary_hv_flash_converted_t *payload);
+// void programmer_api_flash_handle(primary_hv_flash_converted_t *payload);
 
 /*!
  * \brief Routine that should be called during the flash procedure

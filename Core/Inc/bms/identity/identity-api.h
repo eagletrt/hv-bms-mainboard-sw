@@ -10,8 +10,9 @@
 #ifndef IDENTITY_API_H
 #define IDENTITY_API_H
 
+#include "can-primary.h"
 #include "identity.h"
-#include "eagletrt-api.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_IDENTITY_MODULE_ENABLE
 
@@ -28,30 +29,40 @@ void identity_api_init(void);
 seconds_t identity_api_get_build_time(void);
 
 /*!
- * \brief Get a pointer to the canlib payload of the mainboard identity info
+ * \brief Get a pointer to the payload of the mainboard version
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_mainboard_version_converted_t* A pointer to the payload
+ * \returns Pointer to the payload
  */
-primary_hv_mainboard_version_converted_t *identity_api_get_mainboard_version_payload(size_t *byte_size);
+union CanPrimaryMessages *identity_api_get_mainboard_version_payload(size_t *byte_size);
 
 /*!
- * \brief Get a pointer to the canlib payload of the cellboard identity info
+ * \brief Get a pointer to the payload of the mainboard version info
  *
- * \param cellboard_id The cellboard to get the payload from
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_cellboard_version_converted_t* A pointer to the payload or NULL if the id is not valid
+ * \returns Pointer to the payload
  */
-primary_hv_cellboard_version_converted_t *identity_api_get_cellboard_version_payload(CellboardId cellboard_id, size_t *byte_size);
+union CanPrimaryMessages *identity_api_get_mainboard_version_info_payload(size_t *byte_size);
 
 /*!
- * \brief Handle the received cellboard version
+ * \brief Get a pointer to the payload of the mainboard libcan version
  *
- * \param payload A pointer to the canlib payload
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
  */
-void identity_api_cellboard_version_handle(bms_cellboard_version_converted_t *payload);
+union CanPrimaryMessages *identity_api_get_mainboard_libcan_version_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the canlib payload of the mainboard identity version info
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer to the payload
+ */
+union CanPrimaryMessages *identity_api_get_mainboard_libcan_version_info_payload(size_t *byte_size);
 
 #else // CONF_IDENTITY_MODULE_ENABLE
 

@@ -11,6 +11,7 @@
 #define IMD_API_H
 
 #include "imd.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_IMD_MODULE_ENABLE
 
@@ -69,9 +70,9 @@ enum ImdReturnCode imd_api_update(ticks_t source_frequency, ticks_t period_count
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \return primary_hv_imd_status_converted_t* A pointer to the payload
+ * \return Pointer of the payload
  */
-primary_hv_imd_status_converted_t *imd_api_get_status_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *imd_api_get_canlib_payload(size_t *byte_size);
 
 #ifdef CONF_IMD_STRINGS_ENABLE
 

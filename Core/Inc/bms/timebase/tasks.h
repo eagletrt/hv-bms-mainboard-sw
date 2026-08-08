@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "can-primary.h"
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 
@@ -42,34 +43,37 @@
  * \param interval How often the task should run
  * \param exec A pointer to the task function callback
  */
-#define TASKS_X_LIST                                                                                                                                         \
-    TASKS_X(SEND_MAINBOARD_VERSION, true, 0U, PRIMARY_HV_MAINBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_mainboard_version)                                  \
-    TASKS_X(SEND_CELLBOARD_0_VERSION, true, 0U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_cellboard_0_version)                              \
-    TASKS_X(SEND_CELLBOARD_1_VERSION, true, 1U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_cellboard_1_version)                              \
-    TASKS_X(SEND_CELLBOARD_2_VERSION, true, 2U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_cellboard_2_version)                              \
-    TASKS_X(SEND_CELLBOARD_3_VERSION, true, 3U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_cellboard_3_version)                              \
-    TASKS_X(SEND_CELLBOARD_4_VERSION, true, 4U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_cellboard_4_version)                              \
-    TASKS_X(SEND_CELLBOARD_5_VERSION, true, 5U, PRIMARY_HV_CELLBOARD_VERSION_CYCLE_TIME_MS, prv_tasks_send_cellboard_5_version)                              \
-    TASKS_X(SEND_STATUS, true, 0U, PRIMARY_HV_STATUS_CYCLE_TIME_MS, prv_tasks_send_hv_status)                                                                \
-    TASKS_X(SEND_BALANCING_STATUS, true, 0U, PRIMARY_HV_BALANCING_STATUS_CYCLE_TIME_MS, prv_tasks_send_hv_balancing_status)                                  \
-    TASKS_X(SEND_CURRENT, true, 10U, PRIMARY_HV_CURRENT_CYCLE_TIME_MS, prv_tasks_send_hv_current)                                                            \
-    TASKS_X(SEND_POWER, true, 10U, PRIMARY_HV_POWER_CYCLE_TIME_MS, prv_tasks_send_hv_power)                                                                  \
-    TASKS_X(SEND_TS_VOLTAGE, true, 0U, PRIMARY_HV_TS_VOLTAGE_CYCLE_TIME_MS, prv_tasks_send_hv_ts_voltage)                                                    \
-    TASKS_X(SEND_CELLS_VOLTAGE, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_CYCLE_TIME_MS, prv_tasks_send_hv_cells_voltage)                                          \
-    TASKS_X(START_CELLS_VOLTAGE_STATS, true, 10U, PRIMARY_HV_CELLS_VOLTAGE_STATS_CYCLE_TIME_MS, prv_tasks_send_hv_cells_voltage_stats)                       \
-    TASKS_X(SEND_CELLS_TEMPERATURE, true, 10U, PRIMARY_HV_CELLS_TEMPERATURE_CYCLE_TIME_MS, prv_tasks_send_hv_cells_temperature)                              \
-    TASKS_X(START_CELLS_TEMPERATURE_STATS, true, 10U, PRIMARY_HV_CELLS_TEMP_STATS_CYCLE_TIME_MS, prv_tasks_send_hv_cells_temperature_stats)                  \
-    TASKS_X(SEND_COOLING_TEMPERATURE, true, 10U, 50U, prv_tasks_send_hv_cooling_temperature)                                                                 \
-    TASKS_X(SEND_FEEDBACK_STATUS, true, 10U, PRIMARY_HV_FEEDBACK_STATUS_CYCLE_TIME_MS, prv_tasks_send_hv_feedback_status)                                    \
-    TASKS_X(SEND_FEEDBACK_DIGITAL, true, 10U, PRIMARY_HV_FEEDBACK_DIGITAL_CYCLE_TIME_MS, prv_tasks_send_hv_feedback_digital)                                 \
-    TASKS_X(SEND_FEEDBACK_ANALOG, true, 10U, PRIMARY_HV_FEEDBACK_ANALOG_CYCLE_TIME_MS, prv_tasks_send_hv_feedback_analog)                                    \
-    TASKS_X(SEND_FEEDBACK_ANALOG_SD, true, 10U, PRIMARY_HV_FEEDBACK_ANALOG_SD_CYCLE_TIME_MS, prv_tasks_send_hv_feedback_analog_sd)                           \
-    TASKS_X(SEND_IMD_STATUS, true, 0U, PRIMARY_HV_IMD_STATUS_CYCLE_TIME_MS, prv_tasks_send_hv_imd_status)                                                    \
-    TASKS_X(SEND_CELLBOARD_SET_BALANCING_STATUS, false, 0U, BMS_CELLBOARD_SET_BALANCING_STATUS_CYCLE_TIME_MS, prv_tasks_send_cellboard_set_balancing_status) \
-    TASKS_X(SEND_ERRORS, false, 0U, PRIMARY_HV_ERROR_CYCLE_TIME_MS, prv_tasks_send_errors)                                                                   \
-    TASKS_X(READ_DIGITAL_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_read_digital_feedbacks)                                                      \
-    TASKS_X(START_ANALOG_CONVERSION_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_start_analog_conversion_feedbacks)                                \
-    TASKS_X(UPDATE_FEEDBACKS_STATUS, true, 2U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_update_feedbacks_status)                                                    \
+
+#define TASKS_X_LIST                                                                                                                                           \
+    TASKS_X(SEND_STATUS, true, 0U, can_primary_cycle_time_tsacstatus, prv_tasks_send_hv_status)                                                                \
+    TASKS_X(SEND_MAINBOARD_VERSION, true, 0U, can_primary_cycle_time_tsacmainboardversion, prv_tasks_send_mainboard_version)                                   \
+    TASKS_X(SEND_MAINBOARD_VERSION_INFO, true, 0U, can_primary_cycle_time_tsacmainboardversioninfo, prv_tasks_send_mainboard_version_info)                     \
+    TASKS_X(SEND_MAINBOARD_LIBCAN_VERSION, true, 0U, can_primary_cycle_time_tsacmainboardlibcanversion, prv_tasks_send_mainboard_libcan_version)               \
+    TASKS_X(SEND_MAINBOARD_LIBCAN_VERSION_INFO, true, 0U, can_primary_cycle_time_tsacmainboardlibcanversioninfo, prv_tasks_send_mainboard_libcan_version_info) \
+    TASKS_X(SEND_CURRENT, true, 10U, can_primary_cycle_time_tsacmainboardcurrentinfo, prv_tasks_send_hv_current)                                               \
+    TASKS_X(SEND_VOLTAGE_INFO, true, 0U, can_primary_cycle_time_tsacmainboardvoltageinfo, prv_tasks_send_hv_ts_voltage)                                        \
+    TASKS_X(SEND_CELLBOARD1_VOLTAGE, true, 10U, can_primary_cycle_time_tsaccellboard1voltage, prv_tasks_send_hv_cellboard1_voltage)                            \
+    TASKS_X(SEND_CELLBOARD2_VOLTAGE, true, 10U, can_primary_cycle_time_tsaccellboard2voltage, prv_tasks_send_hv_cellboard2_voltage)                            \
+    TASKS_X(SEND_CELLBOARD3_VOLTAGE, true, 10U, can_primary_cycle_time_tsaccellboard3voltage, prv_tasks_send_hv_cellboard3_voltage)                            \
+    TASKS_X(SEND_CELLBOARD4_VOLTAGE, true, 10U, can_primary_cycle_time_tsaccellboard4voltage, prv_tasks_send_hv_cellboard4_voltage)                            \
+    TASKS_X(SEND_CELLBOARD5_VOLTAGE, true, 10U, can_primary_cycle_time_tsaccellboard5voltage, prv_tasks_send_hv_cellboard5_voltage)                            \
+    TASKS_X(SEND_CELLBOARD6_VOLTAGE, true, 10U, can_primary_cycle_time_tsaccellboard6voltage, prv_tasks_send_hv_cellboard6_voltage)                            \
+    TASKS_X(SEND_TEMPERATURE_INFO, true, 0U, can_primary_cycle_time_tsacmainboardtemperatureinfo, prv_tasks_send_hv_temperature_info)                          \
+    TASKS_X(SEND_CELLBOARD1_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard1temperature, prv_tasks_send_hv_cellboard1_temperature)                \
+    TASKS_X(SEND_CELLBOARD2_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard2temperature, prv_tasks_send_hv_cellboard2_temperature)                \
+    TASKS_X(SEND_CELLBOARD3_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard3temperature, prv_tasks_send_hv_cellboard3_temperature)                \
+    TASKS_X(SEND_CELLBOARD4_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard4temperature, prv_tasks_send_hv_cellboard4_temperature)                \
+    TASKS_X(SEND_CELLBOARD5_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard5temperature, prv_tasks_send_hv_cellboard5_temperature)                \
+    TASKS_X(SEND_CELLBOARD6_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard6temperature, prv_tasks_send_hv_cellboard6_temperature)                \
+    TASKS_X(SEND_IMD_STATUS, true, 0U, can_primary_cycle_time_tsacmainboardimd, prv_tasks_send_hv_imd_status)                                                  \
+    TASKS_X(SEND_FEEDBACK, true, 10U, can_primary_cycle_time_tsacmainboardfeedback, prv_tasks_send_hv_feedback)                                                \
+    TASKS_X(SEND_SHUTDOWN, true, 10U, can_primary_cycle_time_tsacmainboardshutdown, prv_tasks_send_hv_shutdown)                                                \
+    TASKS_X(SEND_FEEDBACK_SHUTDOWN, true, 10U, can_primary_cycle_time_tsacmainboardfeedbackshutdown, prv_tasks_send_hv_feedback_shutdown)                      \
+    TASKS_X(SEND_ERRORS, true, 0U, can_primary_cycle_time_tsacmainboarderror, prv_tasks_send_errors)                                                           \
+    TASKS_X(SEND_CELLBOARD_SET_BALANCING_STATUS, false, 0U, can_bms_cycle_time_tsacmainboardbalancingset, prv_tasks_send_cellboard_set_balancing_status)       \
+    TASKS_X(READ_DIGITAL_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_read_digital_feedbacks)                                                        \
+    TASKS_X(START_ANALOG_CONVERSION_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_start_analog_conversion_feedbacks)                                  \
+    TASKS_X(UPDATE_FEEDBACKS_STATUS, true, 2U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_update_feedbacks_status)                                                      \
     TASKS_X(START_INTERNAL_VOLTAGE_CONVERSION, true, 0U, INTERNAL_VOLTAGE_CYCLE_TIME_MS, prv_tasks_start_internal_voltage_conversion)
 
 /*! \brief Convert a task name to the corresponding TasksId name */

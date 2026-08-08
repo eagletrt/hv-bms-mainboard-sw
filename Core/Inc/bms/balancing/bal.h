@@ -12,14 +12,11 @@
 
 #include <stdbool.h>
 
+#include "can-bms.h"
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
 
 #include "watchdog.h"
 #include "fsm.h"
-
-#include "primary_network.h"
-#include "bms_network.h"
 
 /*! \brief Balancing threshold range in V */
 #define BAL_THRESHOLD_MIN_V (0.005f)
@@ -55,13 +52,15 @@ struct BalParams {
  * \attention This structure should not be used outside of this module
  */
 struct BalHandler {
-    fsm_event_data_t event;                                                /*!< The FSM event data */
-    bms_cellboard_set_balancing_status_converted_t set_status_can_payload; /*!< The set balancing status message canlib payload */
-    primary_hv_balancing_status_converted_t status_can_payload;            /*!< The balancing status message canlib payload */
-    struct Watchdog watchdog;                                              /*!< The watchdog that stops the balancing procedure when timed out */
+    fsm_event_data_t event; /*!< The FSM event data */
+    // primary_hv_balancing_status_converted_t status_can_payload;            /*!< The balancing status message canlib payload */
+    struct Watchdog watchdog; /*!< The watchdog that stops the balancing procedure when timed out */
 
     bool active;             /*!< True if the balancing is active, false otherwise */
     struct BalParams params; /*!< The balancing parameters */
+
+    union CanBmsMessages libcan_message_balancing_set;
+    // bms_cellboard_set_balancing_status_converted_t set_status_can_payload; /*!< The set balancing status message canlib payload */
 };
 
 #endif // BAL_H

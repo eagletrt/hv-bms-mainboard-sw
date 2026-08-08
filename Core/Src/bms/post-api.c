@@ -20,11 +20,11 @@
 #include "internal-voltage-api.h"
 #include "bal-api.h"
 #include "pcu-api.h"
-#include "can-comm-api.h"
 #include "led-api.h"
 #include "imd-api.h"
 #include "feedback-api.h"
 #include "display-api.h"
+#include "can-communication-api.h"
 
 #ifdef CONF_POST_MODULE_ENABLE
 
@@ -59,7 +59,7 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
     EAGLETRT_API_UNUSED(pcu_api_init(data->pcu_set, data->pcu_toggle));
     EAGLETRT_API_UNUSED(volt_api_init());
     EAGLETRT_API_UNUSED(current_api_init());
-    EAGLETRT_API_UNUSED(can_comm_init(data->can_send));
+    can_communication_api_init(data->can_networks);
     EAGLETRT_API_UNUSED(programmer_api_init(data->system_reset));
     EAGLETRT_API_UNUSED(led_api_init(data->led_set, data->led_toggle));
     EAGLETRT_API_UNUSED(imd_api_init(data->imd_start));
@@ -73,7 +73,6 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
 enum PostReturnCode prv_post_module_setup(void) {
     pcu_api_reset_all();
     timebase_set_enable(true);
-    can_comm_enable_all();
 
     // Wait for the current sensor to start its normal operation cycle
     milliseconds_t time = timebase_get_time();
@@ -88,7 +87,7 @@ enum PostReturnCode prv_post_module_setup(void) {
 
 enum PostReturnCode post_run(const struct PostInitData data) {
     if (data.system_reset == NULL ||
-        data.can_send == NULL ||
+        // data.can_send == NULL ||
         data.led_set == NULL ||
         data.led_toggle == NULL ||
         data.imd_start == NULL ||

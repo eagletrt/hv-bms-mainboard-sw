@@ -19,12 +19,16 @@ Functions and types have been generated with prefix "fsm_"
 #include <string.h>
 #include <math.h>
 
+#include "can-bms.h"
+#include "can-communication-api.h"
+#include "can-communication.h"
+#include "can-primary.h"
+#include "eagletrt-api.h"
 #include "feedback.h"
+#include "mainboard-def.h"
 #include "post.h"
-#include "primary_network.h"
 
 #include "post-api.h"
-#include "can-comm-api.h"
 #include "timebase.h"
 #include "programmer-api.h"
 #include "feedback-api.h"
@@ -152,7 +156,12 @@ fsm_state_t fsm_do_init(fsm_state_data *data) {
     }
 
     // Init canlib payloads
-    hfsm.flash_can_payload.ready = false;
+    hfsm.libcan_cellboard1_status = CAN_PRIMARY_TSACSTATUS_CELLBOARD1STATUS_INIT;
+    hfsm.libcan_cellboard2_status = CAN_PRIMARY_TSACSTATUS_CELLBOARD2STATUS_INIT;
+    hfsm.libcan_cellboard3_status = CAN_PRIMARY_TSACSTATUS_CELLBOARD3STATUS_INIT;
+    hfsm.libcan_cellboard4_status = CAN_PRIMARY_TSACSTATUS_CELLBOARD4STATUS_INIT;
+    hfsm.libcan_cellboard5_status = CAN_PRIMARY_TSACSTATUS_CELLBOARD5STATUS_INIT;
+    hfsm.libcan_cellboard6_status = CAN_PRIMARY_TSACSTATUS_CELLBOARD6STATUS_INIT;
 
     switch (post_result) {
         case POST_RC_OK:
@@ -185,7 +194,11 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
     (void)display_api_run_animation(
         fsm_idle_display_animation,
         FSM_IDLE_DISPLAY_ANIMATION_SIZE,
@@ -210,14 +223,14 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
                 next_state = FSM_STATE_AIRN_CHECK;
             } else {
                 // If there is a problem during the TS on procedure send info about the problematic feedback
-                size_t byte_size = 0U;
-                uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
-                (void)can_comm_tx_add(
-                    CAN_NETWORK_PRIMARY,
-                    PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-                    CAN_FRAME_TYPE_DATA,
-                    payload,
-                    byte_size);
+                // size_t byte_size = 0U;
+                // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
+                // (void)can_comm_tx_add(
+                //     CAN_NETWORK_PRIMARY,
+                //     PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+                //     CAN_FRAME_TYPE_DATA,
+                //     payload,
+                //     byte_size);
             }
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_START) {
             next_state = FSM_STATE_BALANCING;
@@ -249,7 +262,11 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
 
     // TODO: Display error group name
     // ErrorInfo info = error_get_expired_info();
@@ -327,7 +344,11 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
     (void)display_api_run_animation(
         fsm_balancing_display_animation,
         FSM_BALANCING_DISPLAY_ANIMATION_SIZE,
@@ -367,7 +388,11 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
 
     enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {
@@ -422,14 +447,14 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
 
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
-        size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
-        (void)can_comm_tx_add(
-            CAN_NETWORK_PRIMARY,
-            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-            CAN_FRAME_TYPE_DATA,
-            payload,
-            byte_size);
+        // size_t byte_size = 0U;
+        // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
+        // (void)can_comm_tx_add(
+        //     CAN_NETWORK_PRIMARY,
+        //     PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+        //     CAN_FRAME_TYPE_DATA,
+        //     payload,
+        //     byte_size);
     }
     /*** USER CODE END DO_AIRN_CHECK ***/
 
@@ -456,7 +481,11 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
 
     // Display the precharge percentage from 0 to 10 (in hex)
     const percentage_t perc = (percentage_t)floorf(pcu_api_get_precharge_percentage() * 10.F);
@@ -512,14 +541,14 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
 
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
-        size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
-        (void)can_comm_tx_add(
-            CAN_NETWORK_PRIMARY,
-            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-            CAN_FRAME_TYPE_DATA,
-            payload,
-            byte_size);
+        // size_t byte_size = 0U;
+        // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
+        // (void)can_comm_tx_add(
+        //     CAN_NETWORK_PRIMARY,
+        //     PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+        //     CAN_FRAME_TYPE_DATA,
+        //     payload,
+        //     byte_size);
     }
     /*** USER CODE END DO_PRECHARGE_CHECK ***/
 
@@ -546,7 +575,11 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
 
     enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {
@@ -596,14 +629,14 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
 
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
-        size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
-        (void)can_comm_tx_add(
-            CAN_NETWORK_PRIMARY,
-            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-            CAN_FRAME_TYPE_DATA,
-            payload,
-            byte_size);
+        // size_t byte_size = 0U;
+        // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
+        // (void)can_comm_tx_add(
+        //     CAN_NETWORK_PRIMARY,
+        //     PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+        //     CAN_FRAME_TYPE_DATA,
+        //     payload,
+        //     byte_size);
     }
     /*** USER CODE END DO_AIRP_CHECK ***/
 
@@ -630,7 +663,11 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
     MAINBOARD_UNUSED(data);
 
     (void)timebase_routine();
-    (void)can_comm_routine();
+    for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
+        // TODO: Handle return codes
+        EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
+        EAGLETRT_API_UNUSED(can_communication_api_process_tx(network));
+    }
     (void)display_api_run_animation(
         fsm_ts_on_display_animation,
         FSM_TS_ON_DISPLAY_ANIMATION_SIZE,
@@ -651,14 +688,14 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
                    FEEDBACK_TS_ON_HIGH,
                    &feedback_id)) {
         // If there is a problem during the TS on procedure send info about the problematic feedback
-        size_t byte_size = 0U;
-        uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
-        (void)can_comm_tx_add(
-            CAN_NETWORK_PRIMARY,
-            PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
-            CAN_FRAME_TYPE_DATA,
-            payload,
-            byte_size);
+        // size_t byte_size = 0U;
+        // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
+        // (void)can_comm_tx_add(
+        //     CAN_NETWORK_PRIMARY,
+        //     PRIMARY_HV_FEEDBACK_ENZOMMA_INDEX,
+        //     CAN_FRAME_TYPE_DATA,
+        //     payload,
+        //     byte_size);
         next_state = FSM_STATE_IDLE;
     }
     /*** USER CODE END DO_TS_ON ***/
@@ -883,32 +920,67 @@ fsm_state_t fsm_get_status(void) {
     return hfsm.fsm_state;
 }
 
-void fsm_cellboard_state_handle(bms_cellboard_status_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-
-    if (payload->status == BMS_CELLBOARD_STATUS_STATUS_FATAL_CHOICE) {
+void fsm_cellboard1_state_handle(enum CanBmsTsaccellboard1fsmStatus status) {
+    if (status == CAN_BMS_TSACCELLBOARD1FSM_STATUS_ERROR) {
         hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
         fsm_event_trigger(&hfsm.fatal_event);
     }
-
-    hfsm.cellboard_status[payload->cellboard_id] = payload->status;
+    hfsm.libcan_cellboard1_status = (enum CanPrimaryTsacstatusCellboard1status)status;
 }
 
-primary_hv_status_converted_t *fsm_get_canlib_payload(size_t *const byte_size) {
+void fsm_cellboard2_state_handle(enum CanBmsTsaccellboard2fsmStatus status) {
+    if (status == CAN_BMS_TSACCELLBOARD2FSM_STATUS_ERROR) {
+        hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
+        fsm_event_trigger(&hfsm.fatal_event);
+    }
+    hfsm.libcan_cellboard2_status = (enum CanPrimaryTsacstatusCellboard2status)status;
+}
+
+void fsm_cellboard3_state_handle(enum CanBmsTsaccellboard3fsmStatus status) {
+    if (status == CAN_BMS_TSACCELLBOARD3FSM_STATUS_ERROR) {
+        hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
+        fsm_event_trigger(&hfsm.fatal_event);
+    }
+    hfsm.libcan_cellboard3_status = (enum CanPrimaryTsacstatusCellboard3status)status;
+}
+
+void fsm_cellboard4_state_handle(enum CanBmsTsaccellboard4fsmStatus status) {
+    if (status == CAN_BMS_TSACCELLBOARD4FSM_STATUS_ERROR) {
+        hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
+        fsm_event_trigger(&hfsm.fatal_event);
+    }
+    hfsm.libcan_cellboard4_status = (enum CanPrimaryTsacstatusCellboard4status)status;
+}
+
+void fsm_cellboard5_state_handle(enum CanBmsTsaccellboard5fsmStatus status) {
+    if (status == CAN_BMS_TSACCELLBOARD5FSM_STATUS_ERROR) {
+        hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
+        fsm_event_trigger(&hfsm.fatal_event);
+    }
+    hfsm.libcan_cellboard5_status = (enum CanPrimaryTsacstatusCellboard5status)status;
+}
+
+void fsm_cellboard6_state_handle(enum CanBmsTsaccellboard6fsmStatus status) {
+    if (status == CAN_BMS_TSACCELLBOARD6FSM_STATUS_ERROR) {
+        hfsm.fatal_event.type = FSM_EVENT_TYPE_CELLBOARD_FATAL;
+        fsm_event_trigger(&hfsm.fatal_event);
+    }
+    hfsm.libcan_cellboard6_status = (enum CanPrimaryTsacstatusCellboard6status)status;
+}
+
+union CanPrimaryMessages *fsm_get_canlib_payload(size_t *const byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(hfsm.status_can_payload);
+        *byte_size = can_primary_byte_size_tsacstatus;
     }
     // Copy mainboard and cellboard status
-    hfsm.status_can_payload.status = (primary_hv_status_status)hfsm.fsm_state;
-    hfsm.status_can_payload.cellboard_0 = (primary_hv_status_cellboard_0)hfsm.cellboard_status[0];
-    hfsm.status_can_payload.cellboard_1 = (primary_hv_status_cellboard_1)hfsm.cellboard_status[1];
-    hfsm.status_can_payload.cellboard_2 = (primary_hv_status_cellboard_2)hfsm.cellboard_status[2];
-    hfsm.status_can_payload.cellboard_3 = (primary_hv_status_cellboard_3)hfsm.cellboard_status[3];
-    hfsm.status_can_payload.cellboard_4 = (primary_hv_status_cellboard_4)hfsm.cellboard_status[4];
-    hfsm.status_can_payload.cellboard_5 = (primary_hv_status_cellboard_5)hfsm.cellboard_status[5];
-    return &hfsm.status_can_payload;
+    hfsm.libcan_message_tsac_status.tsacstatus.mainboardstatus = hfsm.fsm_state;
+    hfsm.libcan_message_tsac_status.tsacstatus.cellboard1status = hfsm.libcan_cellboard1_status;
+    hfsm.libcan_message_tsac_status.tsacstatus.cellboard2status = hfsm.libcan_cellboard2_status;
+    hfsm.libcan_message_tsac_status.tsacstatus.cellboard3status = hfsm.libcan_cellboard3_status;
+    hfsm.libcan_message_tsac_status.tsacstatus.cellboard4status = hfsm.libcan_cellboard4_status;
+    hfsm.libcan_message_tsac_status.tsacstatus.cellboard5status = hfsm.libcan_cellboard5_status;
+    hfsm.libcan_message_tsac_status.tsacstatus.cellboard6status = hfsm.libcan_cellboard6_status;
+    return &hfsm.libcan_message_tsac_status;
 }
 /*** USER CODE END FUNCTIONS ***/
 

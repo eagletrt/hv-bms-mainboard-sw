@@ -30,13 +30,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "mainboard-conf.h"
-#include "mainboard-def.h"
-
 #include "fsm.h"
 #include "post.h"
 
 #include "stm32f4xx_it.h"
+
+#include "can-communication-router-api.h"
 
 /* USER CODE END Includes */
 
@@ -134,12 +133,24 @@ int main(void) {
 
     // Prepare data for the POST procedure
     struct PostInitData init_data = {
+        .can_networks = {
+            [CAN_COMMUNICATION_NETWORK_BMS] = {
+                .send = can_send_bms,
+                .on_receive = can_communication_router_api_receive_bms,
+                .cs_enter = __disable_irq,
+                .cs_exit = __enable_irq,
+            },
+            [CAN_COMMUNICATION_NETWORK_PRIMARY] = {
+                .send = can_send_primary,
+                .on_receive = can_communication_router_api_receive_primary,
+                .cs_enter = __disable_irq,
+                .cs_exit = __enable_irq,
+            } },
         .system_reset = system_reset,
         .cs_enter = it_cs_enter,
         .cs_exit = it_cs_exit,
         // .error_update_timer = tim_update_error_timer,
         // .error_stop_timer = tim_stop_error_timer,
-        .can_send = can_send,
         .led_set = gpio_led_set_state,
         .led_toggle = gpio_led_toggle_state,
         .imd_start = tim_start_pwm_imd,

@@ -11,12 +11,8 @@
 #ifndef PROGRAMMER_H
 #define PROGRAMMER_H
 
-#include "primary_network.h"
-#include "bms_network.h"
 #include "mainboard-def.h"
 #include "watchdog.h"
-#include "identity.h"
-#include "timebase.h"
 #include "fsm.h"
 
 /*! \brief The programmer flash timeout in ms */
@@ -41,9 +37,9 @@ enum ProgrammerReturnCode {
  * \warning This structure should never be used outside of this file
  */
 struct ProgrammerHandler {
-    system_reset_callback_t reset;                                /*!< A pointer to a function that resets the microcontroller */
-    fsm_event_data_t flash_event;                                 /*!< The FSM event data used to trigger the flash procedure */
-    primary_hv_flash_response_converted_t programmer_can_payload; /*!< The canlib payload used to send the flash response to the mainboard */
+    system_reset_callback_t reset; /*!< A pointer to a function that resets the microcontroller */
+    fsm_event_data_t flash_event;  /*!< The FSM event data used to trigger the flash procedure */
+    // primary_hv_flash_response_converted_t programmer_can_payload; /*!< The canlib payload used to send the flash response to the mainboard */
 
     CellboardId target; /*!< The identifier of the cellboard(or mainboard) to flash */
     bool flash_request; /*!< True if a flash request is received, false otherwise */

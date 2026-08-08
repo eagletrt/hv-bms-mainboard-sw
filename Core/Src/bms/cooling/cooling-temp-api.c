@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "error-api.h"
+#include "eagletrt-api.h"
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
@@ -117,21 +118,21 @@ celsius_t cooling_temp_api_get_avg(void) {
     return cooling_temp_api_get_sum() / COOLING_TEMP_COUNT;
 }
 
-primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(cooling_temp_handler.cooling_temp_can_payload);
-    }
-
-    const celsius_t *temps = cooling_temp_handler.temperatures;
-    cooling_temp_handler.cooling_temp_can_payload.inlet = temps[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
-    cooling_temp_handler.cooling_temp_can_payload.outlet_0 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
-    cooling_temp_handler.cooling_temp_can_payload.outlet_1 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
-    cooling_temp_handler.cooling_temp_can_payload.outlet_2 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3];
-    cooling_temp_handler.cooling_temp_can_payload.outlet_3 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4];
-    cooling_temp_handler.cooling_temp_can_payload.outlet_4 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5];
-    cooling_temp_handler.cooling_temp_can_payload.outlet_5 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6];
-    return &cooling_temp_handler.cooling_temp_can_payload;
-}
+// primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_canlib_payload(size_t *const byte_size) {
+//     if (byte_size != NULL) {
+//         *byte_size = sizeof(cooling_temp_handler.cooling_temp_can_payload);
+//     }
+//
+//     const celsius_t *temps = cooling_temp_handler.temperatures;
+//     cooling_temp_handler.cooling_temp_can_payload.inlet = temps[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE];
+//     cooling_temp_handler.cooling_temp_can_payload.outlet_0 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1];
+//     cooling_temp_handler.cooling_temp_can_payload.outlet_1 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2];
+//     cooling_temp_handler.cooling_temp_can_payload.outlet_2 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3];
+//     cooling_temp_handler.cooling_temp_can_payload.outlet_3 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4];
+//     cooling_temp_handler.cooling_temp_can_payload.outlet_4 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5];
+//     cooling_temp_handler.cooling_temp_can_payload.outlet_5 = temps[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6];
+//     return &cooling_temp_handler.cooling_temp_can_payload;
+// }
 
 #ifdef CONF_COOLING_TEMPERATURE_STRINGS_ENABLE
 

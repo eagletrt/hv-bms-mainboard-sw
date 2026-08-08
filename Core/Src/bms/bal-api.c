@@ -8,11 +8,11 @@
 
 #include "bal-api.h"
 
-#include "eagletrt-api.h"
 #include <string.h>
 
+#include "can-bms.h"
 #include "timebase.h"
-#include "volt-api.h"
+#include "eagletrt.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
 
@@ -32,9 +32,9 @@ enum BalReturnCode bal_api_init(void) {
     balancing_handler.event.type = FSM_EVENT_TYPE_IGNORED;
 
     // Set default calib payload data
-    balancing_handler.set_status_can_payload.start = false;
-    balancing_handler.set_status_can_payload.target = BAL_TARGET_MAX_V;
-    balancing_handler.set_status_can_payload.threshold = BAL_THRESHOLD_MAX_V;
+    // balancing_handler.set_status_can_payload.start = false;
+    // balancing_handler.set_status_can_payload.target = BAL_TARGET_MAX_V;
+    // balancing_handler.set_status_can_payload.threshold = BAL_THRESHOLD_MAX_V;
 
     // Set default balancing parameters
     balancing_handler.params.target = BAL_TARGET_MAX_V;
@@ -86,122 +86,124 @@ enum BalReturnCode bal_api_stop(void) {
     return BAL_RC_OK;
 }
 
-void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    // Ignore stop command if not balancing
-    if (!balancing_handler.active && !payload->status) {
-        return;
-    }
-
-    // Update data
-    const volt_t target = volt_api_get_min();
-    const volt_t thr = payload->threshold;
-
-    constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
-    constexpr volt_t bal_target_max = BAL_TARGET_MAX_V;
-
-    constexpr volt_t bal_threshold_min = BAL_THRESHOLD_MIN_V;
-    constexpr volt_t bal_threshold_max = BAL_THRESHOLD_MAX_V;
-
-    balancing_handler.params.target = EAGLETRT_API_CLAMP(target, bal_target_min, bal_target_max);
-    balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
-
-    // Reset watchdog for each new message
-    const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
-    if (code == WATCHDOG_RC_UNAVAILABLE) {
-        return;
-    }
-
-    // Send event to the FSM
-    if (balancing_handler.active != (bool)(payload->status == 1)) {
-        balancing_handler.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
-        fsm_event_trigger(&balancing_handler.event);
-    }
-}
-
-void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    // Ignore stop command if not balancing
-    if (!balancing_handler.active && !payload->status) {
-        return;
-    }
-
-    // Update data
-    const volt_t target = volt_api_get_min();
-    const volt_t thr = payload->threshold;
-
-    constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
-    constexpr volt_t bal_target_max = BAL_TARGET_MAX_V;
-    constexpr volt_t bal_threshold_min = BAL_THRESHOLD_MIN_V;
-    constexpr volt_t bal_threshold_max = BAL_THRESHOLD_MAX_V;
-
-    balancing_handler.params.target = EAGLETRT_API_CLAMP(target, bal_target_min, bal_target_max);
-    balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
-
-    // Reset watchdog for each new message
-    const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
-    if (code == WATCHDOG_RC_UNAVAILABLE) {
-        return;
-    }
-    // Send event to the FSM
-    if (balancing_handler.active != (bool)(payload->status == 1)) {
-        balancing_handler.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
-        fsm_event_trigger(&balancing_handler.event);
-    }
-}
-
-void bal_api_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    // Forward balancing status info to the primary network
-    balancing_handler.status_can_payload.status = (primary_hv_balancing_status_status)payload->status;
-    balancing_handler.status_can_payload.cellboard_id = (primary_hv_balancing_status_cellboard_id)payload->cellboard_id;
-    balancing_handler.status_can_payload.discharging_cell_0 = payload->discharging_cell_0;
-    balancing_handler.status_can_payload.discharging_cell_1 = payload->discharging_cell_1;
-    balancing_handler.status_can_payload.discharging_cell_2 = payload->discharging_cell_2;
-    balancing_handler.status_can_payload.discharging_cell_3 = payload->discharging_cell_3;
-    balancing_handler.status_can_payload.discharging_cell_4 = payload->discharging_cell_4;
-    balancing_handler.status_can_payload.discharging_cell_5 = payload->discharging_cell_5;
-    balancing_handler.status_can_payload.discharging_cell_6 = payload->discharging_cell_6;
-    balancing_handler.status_can_payload.discharging_cell_7 = payload->discharging_cell_7;
-    balancing_handler.status_can_payload.discharging_cell_8 = payload->discharging_cell_8;
-    balancing_handler.status_can_payload.discharging_cell_9 = payload->discharging_cell_9;
-    balancing_handler.status_can_payload.discharging_cell_10 = payload->discharging_cell_10;
-    balancing_handler.status_can_payload.discharging_cell_11 = payload->discharging_cell_11;
-    balancing_handler.status_can_payload.discharging_cell_12 = payload->discharging_cell_12;
-    balancing_handler.status_can_payload.discharging_cell_13 = payload->discharging_cell_13;
-    balancing_handler.status_can_payload.discharging_cell_14 = payload->discharging_cell_14;
-    balancing_handler.status_can_payload.discharging_cell_15 = payload->discharging_cell_15;
-    balancing_handler.status_can_payload.discharging_cell_16 = payload->discharging_cell_16;
-    balancing_handler.status_can_payload.discharging_cell_17 = payload->discharging_cell_17;
-    balancing_handler.status_can_payload.discharging_cell_18 = payload->discharging_cell_18;
-    balancing_handler.status_can_payload.discharging_cell_19 = payload->discharging_cell_19;
-    balancing_handler.status_can_payload.discharging_cell_20 = payload->discharging_cell_20;
-    balancing_handler.status_can_payload.discharging_cell_21 = payload->discharging_cell_21;
-    balancing_handler.status_can_payload.discharging_cell_22 = payload->discharging_cell_22;
-    balancing_handler.status_can_payload.discharging_cell_23 = payload->discharging_cell_23;
-}
-
-bms_cellboard_set_balancing_status_converted_t *bal_api_get_set_status_canlib_payload(size_t *const byte_size) {
+union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(balancing_handler.set_status_can_payload);
+        *byte_size = can_bms_byte_size_tsacmainboardbalancingset;
     }
-    balancing_handler.set_status_can_payload.start = balancing_handler.active;
-    balancing_handler.set_status_can_payload.target = balancing_handler.params.target;
-    balancing_handler.set_status_can_payload.threshold = balancing_handler.params.threshold;
-    return &balancing_handler.set_status_can_payload;
+
+    struct CanBmsTsacmainboardbalancingset *payload = &balancing_handler.libcan_message_balancing_set.tsacmainboardbalancingset;
+    payload->start = balancing_handler.active;
+    payload->target = balancing_handler.params.target;
+    payload->threshold = balancing_handler.params.threshold;
+    return &balancing_handler.libcan_message_balancing_set;
 }
 
-primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(balancing_handler.status_can_payload);
-    }
-    return &balancing_handler.status_can_payload;
-}
+// void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *const payload) {
+//     if (payload == NULL) {
+//         return;
+//     }
+//     // Ignore stop command if not balancing
+//     if (!balancing_handler.active && !payload->status) {
+//         return;
+//     }
+//
+//     // Update data
+//     const volt_t target = volt_api_get_min();
+//     const volt_t thr = payload->threshold;
+//
+//     constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
+//     constexpr volt_t bal_target_max = BAL_TARGET_MAX_V;
+//
+//     constexpr volt_t bal_threshold_min = BAL_THRESHOLD_MIN_V;
+//     constexpr volt_t bal_threshold_max = BAL_THRESHOLD_MAX_V;
+//
+//     balancing_handler.params.target = EAGLETRT_API_CLAMP(target, bal_target_min, bal_target_max);
+//     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
+//
+//     // Reset watchdog for each new message
+//     const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
+//     if (code == WATCHDOG_RC_UNAVAILABLE) {
+//         return;
+//     }
+//
+//     // Send event to the FSM
+//     if (balancing_handler.active != (bool)(payload->status == 1)) {
+//         balancing_handler.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
+//         fsm_event_trigger(&balancing_handler.event);
+//     }
+// }
+//
+// void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *const payload) {
+//     if (payload == NULL) {
+//         return;
+//     }
+//     // Ignore stop command if not balancing
+//     if (!balancing_handler.active && !payload->status) {
+//         return;
+//     }
+//
+//     // Update data
+//     const volt_t target = volt_api_get_min();
+//     const volt_t thr = payload->threshold;
+//
+//     constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
+//     constexpr volt_t bal_target_max = BAL_TARGET_MAX_V;
+//     constexpr volt_t bal_threshold_min = BAL_THRESHOLD_MIN_V;
+//     constexpr volt_t bal_threshold_max = BAL_THRESHOLD_MAX_V;
+//
+//     balancing_handler.params.target = EAGLETRT_API_CLAMP(target, bal_target_min, bal_target_max);
+//     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
+//
+//     // Reset watchdog for each new message
+//     const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
+//     if (code == WATCHDOG_RC_UNAVAILABLE) {
+//         return;
+//     }
+//     // Send event to the FSM
+//     if (balancing_handler.active != (bool)(payload->status == 1)) {
+//         balancing_handler.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
+//         fsm_event_trigger(&balancing_handler.event);
+//     }
+// }
+//
+// void bal_api_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *const payload) {
+//     if (payload == NULL) {
+//         return;
+//     }
+//     // Forward balancing status info to the primary network
+//     balancing_handler.status_can_payload.status = (primary_hv_balancing_status_status)payload->status;
+//     balancing_handler.status_can_payload.cellboard_id = (primary_hv_balancing_status_cellboard_id)payload->cellboard_id;
+//     balancing_handler.status_can_payload.discharging_cell_0 = payload->discharging_cell_0;
+//     balancing_handler.status_can_payload.discharging_cell_1 = payload->discharging_cell_1;
+//     balancing_handler.status_can_payload.discharging_cell_2 = payload->discharging_cell_2;
+//     balancing_handler.status_can_payload.discharging_cell_3 = payload->discharging_cell_3;
+//     balancing_handler.status_can_payload.discharging_cell_4 = payload->discharging_cell_4;
+//     balancing_handler.status_can_payload.discharging_cell_5 = payload->discharging_cell_5;
+//     balancing_handler.status_can_payload.discharging_cell_6 = payload->discharging_cell_6;
+//     balancing_handler.status_can_payload.discharging_cell_7 = payload->discharging_cell_7;
+//     balancing_handler.status_can_payload.discharging_cell_8 = payload->discharging_cell_8;
+//     balancing_handler.status_can_payload.discharging_cell_9 = payload->discharging_cell_9;
+//     balancing_handler.status_can_payload.discharging_cell_10 = payload->discharging_cell_10;
+//     balancing_handler.status_can_payload.discharging_cell_11 = payload->discharging_cell_11;
+//     balancing_handler.status_can_payload.discharging_cell_12 = payload->discharging_cell_12;
+//     balancing_handler.status_can_payload.discharging_cell_13 = payload->discharging_cell_13;
+//     balancing_handler.status_can_payload.discharging_cell_14 = payload->discharging_cell_14;
+//     balancing_handler.status_can_payload.discharging_cell_15 = payload->discharging_cell_15;
+//     balancing_handler.status_can_payload.discharging_cell_16 = payload->discharging_cell_16;
+//     balancing_handler.status_can_payload.discharging_cell_17 = payload->discharging_cell_17;
+//     balancing_handler.status_can_payload.discharging_cell_18 = payload->discharging_cell_18;
+//     balancing_handler.status_can_payload.discharging_cell_19 = payload->discharging_cell_19;
+//     balancing_handler.status_can_payload.discharging_cell_20 = payload->discharging_cell_20;
+//     balancing_handler.status_can_payload.discharging_cell_21 = payload->discharging_cell_21;
+//     balancing_handler.status_can_payload.discharging_cell_22 = payload->discharging_cell_22;
+//     balancing_handler.status_can_payload.discharging_cell_23 = payload->discharging_cell_23;
+// }
+//
+// primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_t *const byte_size) {
+//     if (byte_size != NULL) {
+//         *byte_size = sizeof(balancing_handler.status_can_payload);
+//     }
+//     return &balancing_handler.status_can_payload;
+// }
 
 #endif // CONF_BALANCING_MODULE_ENABLE

@@ -3,7 +3,7 @@
  * \date 2024-07-03
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
- * 
+ *
  * \brief Driver for the IR155-3204 Insulation Monitoring Device (IMD)
  */
 
