@@ -199,6 +199,12 @@ enum FeedbackReturnCode feedback_api_update_status(void) {
             } else {
                 error_api_set(ERROR_GROUP_CONNECTOR_DISCONNECTED, 0);
             }
+        } else if (feedback == FEEDBACK_ID_IMD_OK) {
+            if (feedback_handler.status[feedback] == FEEDBACK_STATUS_HIGH) {
+                error_api_reset(ERROR_GROUP_IMD, 0);
+            } else {
+                error_api_set(ERROR_GROUP_IMD, 0);
+            }
         }
     }
 

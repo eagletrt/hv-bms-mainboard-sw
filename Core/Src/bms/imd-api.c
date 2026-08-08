@@ -77,8 +77,7 @@ union CanPrimaryMessages *imd_api_get_canlib_payload(size_t *const byte_size) {
     payload->status = imd_api_get_status();
     payload->frequency = imd_api_get_frequency();
     payload->dutycycle = imd_api_get_duty_cycle();
-    // TODO: Read IMD ok
-    // payload->ok = feedback_api_get_digital(FEEDBACK_DIGITAL_BIT_IMD_OK);
+    payload->ok = feedback_api_get_status(FEEDBACK_ID_IMD_OK) == FEEDBACK_STATUS_HIGH;
     return &imd_handler.libcan_message_imd;
 }
 
