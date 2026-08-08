@@ -65,6 +65,12 @@
     TASKS_X(SEND_CELLBOARD4_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard4temperature, prv_tasks_send_hv_cellboard4_temperature)                \
     TASKS_X(SEND_CELLBOARD5_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard5temperature, prv_tasks_send_hv_cellboard5_temperature)                \
     TASKS_X(SEND_CELLBOARD6_TEMPERATURE, true, 10U, can_primary_cycle_time_tsaccellboard6temperature, prv_tasks_send_hv_cellboard6_temperature)                \
+    TASKS_X(SEND_CELLBOARD1_BALANCING, true, 10U, can_primary_cycle_time_tsaccellboard1balancing, prv_tasks_send_hv_cellboard1_balancing)                      \
+    TASKS_X(SEND_CELLBOARD2_BALANCING, true, 10U, can_primary_cycle_time_tsaccellboard2balancing, prv_tasks_send_hv_cellboard2_balancing)                      \
+    TASKS_X(SEND_CELLBOARD3_BALANCING, true, 10U, can_primary_cycle_time_tsaccellboard3balancing, prv_tasks_send_hv_cellboard3_balancing)                      \
+    TASKS_X(SEND_CELLBOARD4_BALANCING, true, 10U, can_primary_cycle_time_tsaccellboard4balancing, prv_tasks_send_hv_cellboard4_balancing)                      \
+    TASKS_X(SEND_CELLBOARD5_BALANCING, true, 10U, can_primary_cycle_time_tsaccellboard5balancing, prv_tasks_send_hv_cellboard5_balancing)                      \
+    TASKS_X(SEND_CELLBOARD6_BALANCING, true, 10U, can_primary_cycle_time_tsaccellboard6balancing, prv_tasks_send_hv_cellboard6_balancing)                      \
     TASKS_X(SEND_IMD_STATUS, true, 0U, can_primary_cycle_time_tsacmainboardimd, prv_tasks_send_hv_imd_status)                                                  \
     TASKS_X(SEND_FEEDBACK, true, 10U, can_primary_cycle_time_tsacmainboardfeedback, prv_tasks_send_hv_feedback)                                                \
     TASKS_X(SEND_SHUTDOWN, true, 10U, can_primary_cycle_time_tsacmainboardshutdown, prv_tasks_send_hv_shutdown)                                                \

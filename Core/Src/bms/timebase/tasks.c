@@ -415,6 +415,120 @@ void prv_tasks_send_hv_cellboard6_temperature(void) {
     }
 }
 
+/*! \brief Send the cells balancings via CAN */
+void prv_tasks_send_hv_cellboard1_balancing(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCING
+    };
+
+    union CanPrimaryMessages *message = bal_api_get_cellboard1_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cells balancings via CAN */
+void prv_tasks_send_hv_cellboard2_balancing(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCING
+    };
+
+    union CanPrimaryMessages *message = bal_api_get_cellboard2_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cells balancings via CAN */
+void prv_tasks_send_hv_cellboard3_balancing(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCING
+    };
+
+    union CanPrimaryMessages *message = bal_api_get_cellboard3_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cells balancings via CAN */
+void prv_tasks_send_hv_cellboard4_balancing(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCING
+    };
+
+    union CanPrimaryMessages *message = bal_api_get_cellboard4_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cells balancings via CAN */
+void prv_tasks_send_hv_cellboard5_balancing(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCING
+    };
+
+    union CanPrimaryMessages *message = bal_api_get_cellboard5_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cells balancings via CAN */
+void prv_tasks_send_hv_cellboard6_balancing(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCING
+    };
+
+    union CanPrimaryMessages *message = bal_api_get_cellboard6_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
 /*! \brief Send the IMD status via CAN */
 void prv_tasks_send_hv_imd_status(void) {
     struct CanCommunicationFrame frame = {

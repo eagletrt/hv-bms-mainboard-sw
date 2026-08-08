@@ -13,6 +13,7 @@
 #include "bal.h"
 #include "can-bms.h"
 #include "mainboard-conf.h"
+#include "mainboard-def.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
 
@@ -55,6 +56,60 @@ enum BalReturnCode bal_api_stop(void);
 union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size);
 
 /*!
+ * \brief Get a pointer to the cellboard 1 balancing status message
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
+ */
+union CanPrimaryMessages *bal_api_get_cellboard1_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the cellboard 2 balancing status message
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
+ */
+union CanPrimaryMessages *bal_api_get_cellboard2_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the cellboard 3 balancing status message
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
+ */
+union CanPrimaryMessages *bal_api_get_cellboard3_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the cellboard 4 balancing status message
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
+ */
+union CanPrimaryMessages *bal_api_get_cellboard4_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the cellboard 5 balancing status message
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
+ */
+union CanPrimaryMessages *bal_api_get_cellboard5_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the cellboard 6 balancing status message
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload or NULL if the id is not valid
+ */
+union CanPrimaryMessages *bal_api_get_cellboard6_canlib_payload(size_t *byte_size);
+
+/*!
  * \brief Handle the received set balancing status message sent from the steering wheel
  *
  * \param[in] balancing True if balancing start is requested, false if balancing stop is requested
@@ -63,20 +118,12 @@ union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size
 void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold);
 
 /*!
- * \brief Handle the received balancing status message sent from the cellboards
+ * \brief Handle the received balancing status message sent from the cellboard 1
  *
- * \param payload A pointer to the canlib paylod
+ * \param[in] cellboard The cellboard id
+ * \param[in] discharging The bit flags representing the cells that are discharging
  */
-// void bal_api_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *payload);
-
-/*!
- * \brief Get a pointer to the balancing status message canlib payload
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns primary_hv_balancing_status_converted_t* A pointer to the payload or NULL if the id is not valid
- */
-// primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_t *byte_size);
+void bal_api_cellboard_balancing_handle(CellboardId cellboard, bit_flag32_t discharging);
 
 #else // CONF_BALANCING_MODULE_ENABLE
 

@@ -52,14 +52,22 @@ struct BalParams {
  * \attention This structure should not be used outside of this module
  */
 struct BalHandler {
-    fsm_event_data_t event; /*!< The FSM event data */
-    // primary_hv_balancing_status_converted_t status_can_payload;            /*!< The balancing status message canlib payload */
+    fsm_event_data_t event;   /*!< The FSM event data */
     struct Watchdog watchdog; /*!< The watchdog that stops the balancing procedure when timed out */
 
     bool active;             /*!< True if the balancing is active, false otherwise */
     struct BalParams params; /*!< The balancing parameters */
 
+    bit_flag32_t discharging_cells[CELLBOARD_COUNT];
+
     union CanBmsMessages libcan_message_balancing_set;
+
+    union CanPrimaryMessages libcan_message_cellboard1_balancing;
+    union CanPrimaryMessages libcan_message_cellboard2_balancing;
+    union CanPrimaryMessages libcan_message_cellboard3_balancing;
+    union CanPrimaryMessages libcan_message_cellboard4_balancing;
+    union CanPrimaryMessages libcan_message_cellboard5_balancing;
+    union CanPrimaryMessages libcan_message_cellboard6_balancing;
 };
 
 #endif // BAL_H
