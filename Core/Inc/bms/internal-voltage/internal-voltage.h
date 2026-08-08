@@ -19,10 +19,14 @@
 #define INTERNAL_VOLTAGE_CYCLE_TIME_MS (8U)
 
 /*! \brief Maximum allowed voltage difference between the pack voltage and the cells voltage sum in V */
-#define INTERNAL_VOLTAGE_MAX_DELTA_V (25.f)
+#define INTERNAL_VOLTAGE_MAX_DELTA_V (25.F)
 
 /*! \brief Divider ratio of the internal voltages */
-#define INTERNAL_VOLTAGE_DIVIDER_RATIO (0.002914f)
+#define INTERNAL_VOLTAGE_DIVIDER_RATIO (0.002914F)
+
+/*! \brief Correction terms for the internal voltages */
+#define INTERNAL_VOLTAGE_CORRECTION_MULTIPLIER (1.0273F)
+#define INTERNAL_VOLTAGE_CORRECTION_OFFSET (2.19F)
 
 /*!
  * \brief Conversion from the voltage read from the ADC to the real voltage in V
@@ -31,7 +35,9 @@
  *
  * \returns volt_t The converted value in V
  */
-#define INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(value) ((value) / INTERNAL_VOLTAGE_DIVIDER_RATIO)
+#define INTERNAL_VOLTAGE_ADC_VOLTAGE_TO_VOLT(value) EAGLETRT_API_MAX( \
+    0.F,                                                              \
+    (((value) / INTERNAL_VOLTAGE_DIVIDER_RATIO * INTERNAL_VOLTAGE_CORRECTION_MULTIPLIER) - INTERNAL_VOLTAGE_CORRECTION_OFFSET))
 
 /*!
  * \brief Return code for the internal voltage module functions
