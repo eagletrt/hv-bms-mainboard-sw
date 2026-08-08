@@ -7,8 +7,8 @@
  * \brief Generic API interface for routing abstracted CAN frames via PAL.
  */
 
-#ifndef CAN_COMM_API_H
-#define CAN_COMM_API_H
+#ifndef CAN_COMMUNICATION_API_H
+#define CAN_COMMUNICATION_API_H
 
 #include "can-communication.h"
 #include "mainboard-conf.h"
@@ -98,4 +98,4 @@ enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanCommuni
 
 #endif // CONF_CAN_COMM_MODULE_ENABLE
 
-#endif // CAN_COMM_API_H
+#endif // CAN_COMMUNICATION_API_H

@@ -1,5 +1,5 @@
 /*!
- * \file can-communication-api.c
+ * \file can-communication-router-api.c
  * \date 2024-06-21
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]

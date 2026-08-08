@@ -7,8 +7,8 @@
  * \brief Data types, enums and structures for the CAN communication module.
  */
 
-#ifndef CAN_COMM_H
-#define CAN_COMM_H
+#ifndef CAN_COMMUNICATION_H
+#define CAN_COMMUNICATION_H
 
 #include <stdint.h>
 
@@ -122,4 +122,4 @@ struct CanCommunicationHandler {
     struct CanCommunicationNetworkState networks[CAN_COMMUNICATION_NETWORK_COUNT]; /*!< State structures managing individual physical networks */
 };
 
-#endif // CAN_COMM_H
+#endif // CAN_COMMUNICATION_H
