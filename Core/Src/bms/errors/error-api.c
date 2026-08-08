@@ -12,6 +12,7 @@
 #include <string.h>
 #include "can-primary.h"
 #include "eagletrt.h"
+#include "error.h"
 #include "mainboard-def.h"
 #include "tasks.h"
 #include "can-communication.h"
@@ -34,7 +35,8 @@ const size_t instances[] = {
     [ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION] = ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT,
     [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT,
     [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT,
-    [ERROR_GROUP_CELLBOARD_ERROR] = ERROR_CELLBOARD_ERROR_INSTANCE_COUNT
+    [ERROR_GROUP_CELLBOARD_ERROR] = ERROR_CELLBOARD_ERROR_INSTANCE_COUNT,
+    [ERROR_GROUP_CONNECTOR_DISCONNECTED] = ERROR_CONNECTOR_DISCONNECTED_ERROR_INSTANCE_COUNT
 };
 
 /*!
@@ -55,6 +57,7 @@ const size_t thresholds[] = {
     [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = 5U,
     [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = 5U,
     [ERROR_GROUP_CELLBOARD_ERROR] = 2U,
+    [ERROR_GROUP_CONNECTOR_DISCONNECTED] = 1U
 };
 
 int32_t error_post_instances[ERROR_POST_INSTANCE_COUNT];
@@ -69,6 +72,7 @@ int32_t error_current_sensor_communication_instances[ERROR_CURRENT_SENSOR_COMMUN
 int32_t error_cooling_under_temperature_instances[ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT];
 int32_t error_cooling_over_temperature_instances[ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT];
 int32_t error_cellboard_error_instances[ERROR_CELLBOARD_ERROR_INSTANCE_COUNT];
+int32_t error_connector_disconnected_error_instances[ERROR_CONNECTOR_DISCONNECTED_ERROR_INSTANCE_COUNT];
 int32_t *error[] = {
     [ERROR_GROUP_POST] = error_post_instances,
     [ERROR_GROUP_OVER_CURRENT] = error_over_current_instances,
@@ -82,6 +86,7 @@ int32_t *error[] = {
     [ERROR_GROUP_COOLING_UNDER_TEMPERATURE] = error_cooling_under_temperature_instances,
     [ERROR_GROUP_COOLING_OVER_TEMPERATURE] = error_cooling_over_temperature_instances,
     [ERROR_GROUP_CELLBOARD_ERROR] = error_cellboard_error_instances,
+    [ERROR_GROUP_CONNECTOR_DISCONNECTED] = error_connector_disconnected_error_instances
 };
 
 enum ErrorReturnCode error_api_init(void) {

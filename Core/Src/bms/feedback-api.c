@@ -8,6 +8,8 @@
  */
 
 #include "feedback-api.h"
+#include "error-api.h"
+#include "error.h"
 #include "feedback.h"
 
 #include <string.h>
@@ -189,6 +191,15 @@ enum FeedbackReturnCode feedback_api_update_status(void) {
     for (enum FeedbackDigitalBit bit = 0U; bit < FEEDBACK_DIGITAL_BIT_COUNT; ++bit) {
         const enum FeedbackId feedback = prv_feedback_get_id_from_digital_bit(bit);
         feedback_handler.status[feedback] = EAGLETRT_API_BIT_GET(feedback_handler.digital, bit) ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
+
+        // Check voltage indicator connector
+        if (feedback == FEEDBACK_ID_INDICATOR_CONNECTED) {
+            if (feedback_handler.status[feedback] == FEEDBACK_STATUS_HIGH) {
+                error_api_reset(ERROR_GROUP_CONNECTOR_DISCONNECTED, 0);
+            } else {
+                error_api_set(ERROR_GROUP_CONNECTOR_DISCONNECTED, 0);
+            }
+        }
     }
 
     // Update the status of the analog feedback
