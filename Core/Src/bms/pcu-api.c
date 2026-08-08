@@ -155,22 +155,10 @@ bool pcu_api_is_precharge_complete(void) {
     return pcu_api_get_precharge_percentage() >= PCU_PRECHARGE_THRESHOLD_PERCENT;
 }
 
-// TODO: Add watchdog for the set state canlib message
-// void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *const payload) {
-//     if (payload == NULL) {
-//         return;
-//     }
-//     pcu_handler.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
-//     fsm_event_trigger(&pcu_handler.event);
-// }
-//
-// void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *const payload) {
-//     if (payload == NULL) {
-//         return;
-//     }
-//     pcu_handler.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
-//     fsm_event_trigger(&pcu_handler.event);
-// }
+void pcu_api_bms_set_handle(bool tson) {
+    pcu_handler.event.type = tson ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
+    fsm_event_trigger(&pcu_handler.event);
+}
 
 #ifdef CONF_PCU_STRING_ENABLE
 

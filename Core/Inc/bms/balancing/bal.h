@@ -60,7 +60,6 @@ struct BalHandler {
     struct BalParams params; /*!< The balancing parameters */
 
     union CanBmsMessages libcan_message_balancing_set;
-    // bms_cellboard_set_balancing_status_converted_t set_status_can_payload; /*!< The set balancing status message canlib payload */
 };
 
 #endif // BAL_H

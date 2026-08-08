@@ -77,18 +77,11 @@ precise_percentage_t pcu_api_get_precharge_percentage(void);
 bool pcu_api_is_precharge_complete(void);
 
 /*!
- * \brief Handle the received set status message sent from the ECU
+ * \brief Handle the received set status message
  *
- * \param payload A pointer to the canlib payload of the response
+ * \param[in] tson True if TSON is requested, false if TSOFF is requested
  */
-// void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *payload);
-
-/*!
- * \brief Handle the received set status message sent from the handcart
- *
- * \param payload A pointer to the canlib payload of the response
- */
-// void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *payload);
+void pcu_api_bms_set_handle(bool tson);
 
 #else // CONF_PCU_MODULE_ENABLE
 

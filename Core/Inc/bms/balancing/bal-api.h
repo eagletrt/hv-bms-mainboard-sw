@@ -57,16 +57,10 @@ union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size
 /*!
  * \brief Handle the received set balancing status message sent from the steering wheel
  *
- * \param payload A pointer to the canlib paylod
+ * \param[in] balancing True if balancing start is requested, false if balancing stop is requested
+ * \param[in] threshold Voltage delta to reach to complete the balancing
  */
-// void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *payload);
-
-/*!
- * \brief Handle the received set balancing status message sent from the steering wheel
- *
- * \param payload A pointer to the canlib paylod
- */
-// void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *payload);
+void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold);
 
 /*!
  * \brief Handle the received balancing status message sent from the cellboards
