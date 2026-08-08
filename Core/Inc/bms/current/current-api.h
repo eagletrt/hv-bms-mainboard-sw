@@ -25,9 +25,16 @@ enum CurrentReturnCode current_api_init(void);
 /*!
  * \brief Get the supplied current in A
  *
- * \returns ampere_t The current in A
+ * \returns The current in A
  */
 ampere_t current_api_get_current(void);
+
+/*!
+ * \brief Set the supplied current in A
+ *
+ * \param[in] current The current in A
+ */
+void current_api_set_current(ampere_t current);
 
 /*!
  * \brief Get the calculated power value in kW

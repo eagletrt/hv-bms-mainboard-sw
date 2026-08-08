@@ -37,9 +37,10 @@ enum BalReturnCode bal_api_init(void) {
     balancing_handler.event.type = FSM_EVENT_TYPE_IGNORED;
 
     // Set default calib payload data
-    // balancing_handler.set_status_can_payload.start = false;
-    // balancing_handler.set_status_can_payload.target = BAL_TARGET_MAX_V;
-    // balancing_handler.set_status_can_payload.threshold = BAL_THRESHOLD_MAX_V;
+    struct CanBmsTsacmainboardbalancingset *payload = &balancing_handler.libcan_message_balancing_set.tsacmainboardbalancingset;
+    payload->start = false;
+    payload->target = BAL_TARGET_MAX_V;
+    payload->threshold = BAL_THRESHOLD_MAX_V;
 
     // Set default balancing parameters
     balancing_handler.params.target = BAL_TARGET_MAX_V;

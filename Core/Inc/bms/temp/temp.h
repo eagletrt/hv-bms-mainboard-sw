@@ -44,6 +44,10 @@ typedef celsius_t cells_temp[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_COUN
 struct TempHandler {
     cells_temp temperatures; /*!< The array of temperatures in °C */
 
+    celsius_t min[CELLBOARD_COUNT];
+    celsius_t max[CELLBOARD_COUNT];
+    celsius_t average[CELLBOARD_COUNT];
+
     union CanPrimaryMessages libcan_message_temperature_info; /*!< The canlib message payload for the cells temperature stats */
 
     union CanPrimaryMessages libcan_message_cellboard1; /*!< The CAN payload for Cellboard 1 cell temperatures */

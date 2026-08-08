@@ -61,38 +61,43 @@ const cells_voltage *volt_api_get_values(void) {
     return &volt_handler.voltages;
 }
 
+void volt_api_set_value(const CellboardId cellboard, const uint8_t index, const volt_t voltage) {
+    if (cellboard >= CELLBOARD_ID_COUNT || index >= CELLBOARD_SEGMENT_SERIES_COUNT) {
+        return;
+    }
+    volt_handler.voltages[cellboard][index] = voltage;
+}
+
 volt_t volt_api_get_min(void) {
-    volt_t min = volt_handler.voltages[0][0];
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-            min = EAGLETRT_API_MIN(volt_handler.voltages[id][i], min);
-        }
+    volt_t min = volt_handler.min[0];
+    for (CellboardId cellboard = 1; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        min = EAGLETRT_API_MIN(volt_handler.min[cellboard], min);
     }
     return min;
 }
 
 volt_t volt_api_get_max(void) {
-    volt_t max = volt_handler.voltages[0][0];
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-            max = EAGLETRT_API_MAX(volt_handler.voltages[id][i], max);
-        }
+    volt_t max = volt_handler.max[0];
+    for (CellboardId cellboard = 1; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        max = EAGLETRT_API_MAX(volt_handler.max[cellboard], max);
     }
     return max;
 }
 
 volt_t volt_api_get_sum(void) {
     volt_t sum = 0.F;
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        for (size_t i = 0U; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
-            sum += volt_handler.voltages[id][i];
-        }
+    for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        sum += volt_handler.sum[cellboard];
     }
     return sum;
 }
 
 volt_t volt_api_get_avg(void) {
-    return volt_api_get_sum() / CELLBOARD_SERIES_COUNT;
+    volt_t average = 0;
+    for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        average += volt_handler.average[cellboard] * CELLBOARD_SEGMENT_SERIES_COUNT;
+    }
+    return average / (float)CELLBOARD_SERIES_COUNT;
 }
 
 union CanPrimaryMessages *volt_api_get_cellboard1_voltage_canlib_payload(size_t *const byte_size) {
@@ -377,26 +382,20 @@ union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t 
     return &volt_handler.libcan_message_cellboard6;
 }
 
-// void volt_api_cells_voltage_handle(
-//     bms_cellboard_cells_voltage_converted_t *const payload) {
-//     const size_t size = 3U;
-//     if (payload == NULL ||
-//         (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-//         payload->offset + size > CELLBOARD_SEGMENT_SERIES_COUNT) {
-//         return;
-//     }
-//
-//     // Update voltages
-//     const size_t offset = payload->offset;
-//     volt_t *volts = volt_handler.voltages[payload->cellboard_id];
-//     volts[offset] = payload->voltage_0;
-//     volts[offset + 1U] = payload->voltage_1;
-//     volts[offset + 2U] = payload->voltage_2;
-//
-//     for (size_t i = 0U; i < size; ++i) {
-//         prv_volt_check_value((CellboardId)payload->cellboard_id, offset + i, volts[offset + i]);
-//     }
-// }
+void volt_api_cellboard_voltage_info_handle(
+    CellboardId cellboard,
+    volt_t min,
+    volt_t max,
+    volt_t average,
+    volt_t sum) {
+    if (cellboard >= CELLBOARD_ID_COUNT) {
+        return;
+    }
+    volt_handler.min[cellboard] = min;
+    volt_handler.max[cellboard] = max;
+    volt_handler.average[cellboard] = average;
+    volt_handler.sum[cellboard] = sum;
+}
 
 #ifdef CONF_VOLTAGE_STRINGS_ENABLE
 

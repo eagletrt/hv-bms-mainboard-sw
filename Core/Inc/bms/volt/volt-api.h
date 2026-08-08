@@ -10,6 +10,7 @@
 #ifndef VOLT_API_H
 #define VOLT_API_H
 
+#include "mainboard-def.h"
 #include "volt.h"
 #include "mainboard-conf.h"
 
@@ -28,6 +29,15 @@ enum VoltReturnCode volt_api_init(void);
  * \returns cells_voltage* The pointer to the array
  */
 const cells_voltage *volt_api_get_values(void);
+
+/*!
+ * \brief Set a single voltage value
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] index The index of the voltage to update
+ * \param[in] voltage The voltage value
+ */
+void volt_api_set_value(CellboardId cellboard, uint8_t index, volt_t voltage);
 
 /*!
  * \brief Get the minimum cell voltage in the pack
@@ -112,11 +122,19 @@ union CanPrimaryMessages *volt_api_get_cellboard5_voltage_canlib_payload(size_t 
 union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t *byte_size);
 
 /*!
- * \brief Handle the received cellboard cells voltage
+ * \brief Handle the cellboard voltage info can payload
  *
- * \param payload A pointer to the canlib payload
+ * \param[in] min The minimum voltage value
+ * \param[in] max The maximum voltage value
+ * \param[in] average The average voltage value
+ * \param[in] sum The voltage sum
  */
-// void volt_api_cells_voltage_handle(bms_cellboard_cells_voltage_converted_t *payload);
+void volt_api_cellboard_voltage_info_handle(
+    CellboardId cellboard,
+    volt_t min,
+    volt_t max,
+    volt_t average,
+    volt_t sum);
 
 #else // CONF_VOLTAGE_MODULE_ENABLE
 

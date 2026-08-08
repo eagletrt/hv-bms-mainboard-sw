@@ -39,7 +39,6 @@ enum ProgrammerReturnCode {
 struct ProgrammerHandler {
     system_reset_callback_t reset; /*!< A pointer to a function that resets the microcontroller */
     fsm_event_data_t flash_event;  /*!< The FSM event data used to trigger the flash procedure */
-    // primary_hv_flash_response_converted_t programmer_can_payload; /*!< The canlib payload used to send the flash response to the mainboard */
 
     CellboardId target; /*!< The identifier of the cellboard(or mainboard) to flash */
     bool flash_request; /*!< True if a flash request is received, false otherwise */

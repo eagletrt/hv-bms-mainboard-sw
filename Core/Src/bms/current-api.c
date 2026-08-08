@@ -60,6 +60,10 @@ ampere_t current_api_get_current(void) {
     return current_api_handler.current;
 }
 
+void current_api_set_current(ampere_t current) {
+    current_api_handler.current = current;
+}
+
 kilowatt_t current_api_get_power(void) {
     constexpr float w_to_kw = 0.001F;
     return (kilowatt_t)(current_api_handler.current * internal_voltage_api_get_ts() * w_to_kw);
@@ -77,17 +81,6 @@ union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size) {
     current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.power = current_api_get_power();
     return &current_api_handler.libcan_message_current;
 }
-
-// void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
-//     watchdog_reset(&current_api_handler.sensor_wdg);
-//     if (payload == NULL) {
-//         return;
-//     }
-//
-//     constexpr float ma_to_a = 0.001F;
-//     current_api_handler.current = (float)payload->ivt_result_i * ma_to_a;
-//     prv_current_api_check_value(current_api_handler.current);
-// }
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE
 

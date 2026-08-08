@@ -30,6 +30,15 @@ enum TempReturnCode temp_api_init(void);
 const cells_temp *temp_api_get_values(void);
 
 /*!
+ * \brief Set a single temperature value
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] index The index of the temperature sensor
+ * \param[in] temperature The temperature value
+ */
+void temp_api_set_value(CellboardId cellboard, uint8_t index, celsius_t temperature);
+
+/*!
  * \brief Get the minimum cell temperature in the pack
  *
  * \returns celsius_t The minimum temperature value in °C
@@ -42,13 +51,6 @@ celsius_t temp_api_get_min(void);
  * \returns celsius_t The maximum temperature value in °C
  */
 celsius_t temp_api_get_max(void);
-
-/*!
- * \brief Get the sum of the cells temperatures of the pack
- *
- * \returns celsius_t The sum of the temperatures in °C
- */
-celsius_t temp_api_get_sum(void);
 
 /*!
  * \brief Get the average cell temperature of the pack
@@ -121,20 +123,18 @@ union CanPrimaryMessages *temp_api_get_cellboard5_temperature_canlib_payload(siz
 union CanPrimaryMessages *temp_api_get_cellboard6_temperature_canlib_payload(size_t *byte_size);
 
 /*!
- * \brief Handle the received cellboard cells temperature
+ * \brief Handle the received cellboard 1 temperature info
  *
- * \param payload A pointer to the canlib payload
+ * \param[in] cellboard Cellboard id
+ * \param[in] min The minimum temperature value
+ * \param[in] max The maximum temperature value
+ * \param[in] average The average temperature value
  */
-// void temp_api_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *payload);
-
-/*!
- * \brief Get a pointer to the CAN payload of the cells temperature
- *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns primary_cellboard_cells_temperature_converted_t* A pointer to the payload
- */
-// primary_hv_cells_temperature_converted_t *temp_api_get_cells_temperature_canlib_payload(size_t *byte_size);
+void temp_api_cellboard_temperature_info_handle(
+    CellboardId cellboard,
+    celsius_t min,
+    celsius_t max,
+    celsius_t average);
 
 #else
 

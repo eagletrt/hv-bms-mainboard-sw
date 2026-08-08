@@ -46,6 +46,11 @@ typedef volt_t cells_voltage[CELLBOARD_COUNT][CELLBOARD_SEGMENT_SERIES_COUNT];
 struct VoltHandler {
     cells_voltage voltages; /*!< The array of cells voltages in V */
 
+    volt_t min[CELLBOARD_COUNT];
+    volt_t max[CELLBOARD_COUNT];
+    volt_t average[CELLBOARD_COUNT];
+    volt_t sum[CELLBOARD_COUNT];
+
     union CanPrimaryMessages libcan_message_cellboard1; /*!< The CAN payload for Cellboard 1 cell voltages */
     union CanPrimaryMessages libcan_message_cellboard2; /*!< The CAN payload for Cellboard 2 cell voltages */
     union CanPrimaryMessages libcan_message_cellboard3; /*!< The CAN payload for Cellboard 3 cell voltages */
