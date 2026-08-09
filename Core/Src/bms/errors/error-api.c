@@ -164,6 +164,8 @@ union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size) {
     payload->coolingundertemperature = cooling_undertemperature;
     payload->coolingovertemperature = cooling_overtemperature;
     payload->cellboard = internal;
+    payload->connectordisconnected = error_connector_disconnected_error_instances[0];
+    payload->imd = error_imd_error_instances[0];
     return &libcan_message_error;
 }
 
