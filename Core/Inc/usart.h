@@ -30,12 +30,8 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
-#include <stdlib.h>
-#include <string.h>
 #include <stdarg.h>
-#include <stdio.h>
 
-#include "mainboard-conf.h"
 #include "mainboard-def.h"
 
 /* USER CODE END Includes */
@@ -59,7 +55,7 @@ void MX_USART1_UART_Init(void);
  * @param fmt The string format
  * @param ... values to put inside the formatted string (optional)
  */
-void usart_log(const char * const fmt, ...);
+void usart_log(const char *fmt, ...);
 
 /**
  * @brief Print a formatted string with a certain interval via the UART
@@ -68,7 +64,7 @@ void usart_log(const char * const fmt, ...);
  * @param fmt The string format
  * @param ... values to put inside the formatted string (optional)
  */
-void usart_log_ms(const milliseconds_t interval, const char * const fmt, ...);
+void usart_log_ms(milliseconds_t interval, const char *fmt, ...);
 
 /**
  * @brief Read a single character from the UART
@@ -84,4 +80,3 @@ char usart_read(void);
 #endif
 
 #endif /* __USART_H__ */
-
