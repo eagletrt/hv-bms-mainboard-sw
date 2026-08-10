@@ -11,14 +11,20 @@
 
 #include <string.h>
 
+#include "error-api.h"
 #include "timebase.h"
 #include "fsm.h"
 #include "internal-voltage-api.h"
 #include "eagletrt.h"
+#include "watchdog.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
 EAGLETRT_STATIC struct PcuHandler pcu_handler;
+
+EAGLETRT_STATIC void prv_pcu_api_ecu_communication_timeout(void) {
+    error_api_set(ERROR_GROUP_ECU_COMMUNICATION, 0U);
+}
 
 /*! \brief Callback executed when the AIR- watchdog times out */
 void prv_pcu_api_airn_timeout(void) {
@@ -38,6 +44,12 @@ void prv_pcu_api_precharge_timeout(void) {
 void prv_pcu_api_airp_timeout(void) {
     // Send AIR+ timeout event to the FSM
     pcu_handler.timeout_event.type = FSM_EVENT_TYPE_AIRP_TIMEOUT;
+    fsm_event_trigger(&pcu_handler.timeout_event);
+}
+
+/*! \brief Callback executed when the TSON watchdog times out */
+void prv_pcu_api_ecu_timeout(void) {
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_ECU_TIMEOUT;
     fsm_event_trigger(&pcu_handler.timeout_event);
 }
 
@@ -76,6 +88,13 @@ enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_togg
 
     // Reset all gpios
     pcu_api_reset_all();
+
+    // TODO: Stop the watchdog if handcart is connected or use different message?
+    watchdog_init(
+        &pcu_handler.ecu_watchdog,
+        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, timebase_get_resolution()),
+        prv_pcu_api_ecu_timeout);
+    watchdog_start(&pcu_handler.ecu_watchdog);
     return PCU_RC_OK;
 }
 
@@ -158,6 +177,13 @@ bool pcu_api_is_precharge_complete(void) {
 void pcu_api_bms_set_handle(bool tson) {
     pcu_handler.event.type = tson ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
     fsm_event_trigger(&pcu_handler.event);
+}
+
+void pcu_api_ecu_fsm_handle(void) {
+    enum WatchdogReturnCode result = watchdog_reset(&pcu_handler.ecu_watchdog);
+    if (result == WATCHDOG_RC_TIMED_OUT) {
+        watchdog_restart(&pcu_handler.ecu_watchdog);
+    }
 }
 
 #ifdef CONF_PCU_STRING_ENABLE

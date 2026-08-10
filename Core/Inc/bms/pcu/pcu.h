@@ -17,6 +17,7 @@
 #define PCU_AIRN_TIMEOUT_MS (1000U)
 #define PCU_PRECHARGE_TIMEOUT_MS (15000U)
 #define PCU_AIRP_TIMEOUT_MS (1000U)
+#define PCU_TSON_TIMEOUT_MS (1000U)
 
 /*! \brief Precharge threshold percentage */
 #define PCU_PRECHARGE_THRESHOLD_PERCENT (0.95f)
@@ -79,6 +80,7 @@ struct PcuHandler {
     struct Watchdog airn_watchdog;      /*!< The watchdog for the AIR- pin */
     struct Watchdog precharge_watchdog; /*!< The watchdog for the precharge pin */
     struct Watchdog airp_watchdog;      /*!< The watchdog for the AIR+ pin */
+    struct Watchdog ecu_watchdog;       /*!< The watchdog used to check if the ECU is alive */
 };
 
 #endif // PCU_H

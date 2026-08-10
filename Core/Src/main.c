@@ -22,9 +22,6 @@
 #include "can.h"
 #include "dma.h"
 #include "spi.h"
-#include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_gpio.h"
-#include "stm32f4xx_hal_uart.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -39,6 +36,8 @@
 
 #include "can-communication-router-api.h"
 #include <stdint.h>
+
+#include "feedback-api.h"
 
 /* USER CODE END Includes */
 

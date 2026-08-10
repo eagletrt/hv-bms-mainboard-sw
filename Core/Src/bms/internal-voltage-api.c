@@ -15,6 +15,7 @@
 #include "eagletrt.h"
 #include "max22530.h"
 #include "max22530-api.h"
+#include "usart.h"
 #include "volt-api.h"
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE

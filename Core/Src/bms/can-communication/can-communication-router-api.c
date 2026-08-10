@@ -1357,6 +1357,9 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
         case CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET:
             pcu_api_bms_set_handle(message.bmsset.status);
             break;
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM:
+            pcu_api_ecu_fsm_handle();
+            break;
         default:
             break;
     }

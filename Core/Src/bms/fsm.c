@@ -413,6 +413,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
                     [[fallthrough]];
                     // !!! BREAK INTENTIONALLY MISSING !!!
                 case FSM_EVENT_TYPE_TS_OFF:
+                case FSM_EVENT_TYPE_ECU_TIMEOUT:
                     next_state = FSM_STATE_IDLE;
                     break;
 
@@ -422,7 +423,8 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
         }
 
         if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
-            fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF) {
+            fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF ||
+            fsm_fired_event->type == FSM_EVENT_TYPE_ECU_TIMEOUT) {
             next_state = FSM_STATE_IDLE;
         }
     }
@@ -510,6 +512,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
                         &feedback_id);
                     // !!! BREAK INTENTIONALLY MISSING !!!
                     [[fallthrough]];
+                case FSM_EVENT_TYPE_ECU_TIMEOUT:
                 case FSM_EVENT_TYPE_TS_OFF:
                     next_state = FSM_STATE_IDLE;
                     break;
@@ -600,6 +603,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
                     // !!! BREAK INTENTIONALLY MISSING !!!
                     [[fallthrough]];
                 case FSM_EVENT_TYPE_TS_OFF:
+                case FSM_EVENT_TYPE_ECU_TIMEOUT:
                     next_state = FSM_STATE_IDLE;
                     break;
 
@@ -682,7 +686,8 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
     } else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL) {
             next_state = FSM_STATE_FATAL;
-        } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF) {
+        } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF ||
+                   fsm_fired_event->type == FSM_EVENT_TYPE_ECU_TIMEOUT) {
             next_state = FSM_STATE_IDLE;
         }
     } else if (!feedback_api_check_values(

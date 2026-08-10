@@ -12,9 +12,12 @@
 #include "error.h"
 #include "feedback.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #include "imd-api.h"
+#include "stm32f4xx_hal.h"
+#include "usart.h"
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
 
@@ -125,14 +128,14 @@ enum FeedbackStatus prv_feedback_api_get_analog_status(const enum FeedbackAnalog
     constexpr volt_t thr_high = FEEDBACK_THRESHOLD_HIGH_V;
     volt_t thr_low = FEEDBACK_THRESHOLD_LOW_V;
 
-    constexpr volt_t special_low_threshold = 1.6F;
-
-    // BUG: Feedback voltage is too high
-    if (index == FEEDBACK_ANALOG_INDEX_IMD_OK ||
-        index == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC ||
-        index == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
-        thr_low = special_low_threshold;
-    }
+    // constexpr volt_t special_low_threshold = 1.6F;
+    //
+    // // BUG: Feedback voltage is too high
+    // if (index == FEEDBACK_ANALOG_INDEX_IMD_OK ||
+    //     index == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC ||
+    //     index == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
+    //     thr_low = special_low_threshold;
+    // }
 
     if (feedback_handler.analog[index] >= thr_high) {
         return FEEDBACK_STATUS_HIGH;
@@ -214,14 +217,14 @@ enum FeedbackReturnCode feedback_api_update_status(void) {
         // feedback_handler.status[feedback] = prv_feedback_api_get_analog_status(i);
         enum FeedbackStatus status = prv_feedback_api_get_analog_status(i);
         // BUG: Noise cause AIR feedbacks voltage to change too much
-        if (i == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC || i == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
-            if (status == FEEDBACK_STATUS_ERROR) {
-                ++debug_cnt;
-                status = feedback_handler.analog[i] >= FEEDBACK_THRESHOLD_HIGH_V ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
-            } else {
-                debug_cnt = 0U;
-            }
-        }
+        // if (i == FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC || i == FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC) {
+        //     if (status == FEEDBACK_STATUS_ERROR) {
+        //         ++debug_cnt;
+        //         status = feedback_handler.analog[i] >= FEEDBACK_THRESHOLD_HIGH_V ? FEEDBACK_STATUS_HIGH : FEEDBACK_STATUS_LOW;
+        //     } else {
+        //         debug_cnt = 0U;
+        //     }
+        // }
         feedback_handler.status[feedback] = status;
     }
     return FEEDBACK_RC_OK;

@@ -16,6 +16,7 @@
 #include "error-api.h"
 #include "eagletrt-api.h"
 #include "mainboard-def.h"
+#include "usart.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 

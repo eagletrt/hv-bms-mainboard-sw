@@ -82,7 +82,6 @@
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_OK |                    \
         FEEDBACK_BIT_TSAL_GREEN |                \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 
@@ -122,7 +121,6 @@
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED |   \
         FEEDBACK_BIT_IMD_OK |                    \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 #define FEEDBACK_AIRN_CHECK_TO_PRECHARGE_LOW \
@@ -160,7 +158,6 @@
         FEEDBACK_BIT_BMS_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_OK |                    \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 #define FEEDBACK_PRECHARGE_TO_AIRP_CHECK_LOW \
@@ -199,7 +196,6 @@
         FEEDBACK_BIT_BMS_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_OK |                    \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 #define FEEDBACK_AIRP_CHECK_TO_TS_ON_LOW  \

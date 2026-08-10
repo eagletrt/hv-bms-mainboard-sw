@@ -13,6 +13,7 @@
 #include <string.h>
 #include "eagletrt-api.h"
 #include "max22530/max22530.h"
+#include "usart.h"
 
 constexpr uint8_t low_half_mask = 0xFF;
 constexpr uint16_t high_half_mask = 0xFF00;

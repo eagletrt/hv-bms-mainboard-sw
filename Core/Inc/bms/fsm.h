@@ -45,6 +45,7 @@ typedef enum {
     FSM_EVENT_TYPE_AIRN_TIMEOUT,      /*!< The AIR- watchdog has timed out */
     FSM_EVENT_TYPE_PRECHARGE_TIMEOUT, /*!< The precharge watchdog has timed out */
     FSM_EVENT_TYPE_AIRP_TIMEOUT,      /*!< The AIR+ watchdog has timed out */
+    FSM_EVENT_TYPE_ECU_TIMEOUT,       /*!< The ECU communication watchdog has timed out */
     FSM_EVENT_TYPE_BALANCING_START,   /*!< Start the balancing procedure */
     FSM_EVENT_TYPE_BALANCING_STOP,    /*!< Stop the balancing procedure */
     FSM_EVENT_TYPE_CELLBOARD_FATAL,   /*!< A cellboard has reported a fatal error */

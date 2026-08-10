@@ -56,6 +56,9 @@ void pcu_api_precharge_stop(void);
 /*! \brief Stop the internal watchdog of the precharge */
 void pcu_api_precharge_stop_watchdog(void);
 
+/*! \brief Stop the internal watchdog of the precharge */
+void pcu_api_precharge_stop_watchdog(void);
+
 /*! \brief Activate the AMS */
 void pcu_api_ams_activate(void);
 
@@ -83,6 +86,11 @@ bool pcu_api_is_precharge_complete(void);
  */
 void pcu_api_bms_set_handle(bool tson);
 
+/*!
+ * \brief Handle the received ECU status message
+ */
+void pcu_api_ecu_fsm_handle(void);
+
 #else // CONF_PCU_MODULE_ENABLE
 
 #define pcu_api_init(set, toggle) (PCU_RC_OK)
@@ -101,6 +109,7 @@ void pcu_api_bms_set_handle(bool tson);
 #define pcu_api_get_precharge_percentage() (0.f)
 #define pcu_api_is_precharge_complete() (false)
 #define pcu_api_bms_set_handle(tson) EAGLETRT_API_NOP()
+#define pcu_api_ecu_fsm_handle() EAGLETRT_API_NOP()
 
 #endif // CONF_PCU_MODULE_ENABLE
 

@@ -14,6 +14,8 @@
 #include "error-api.h"
 #include "eagletrt-api.h"
 
+#include "usart.h"
+
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
 EAGLETRT_STATIC struct CoolingTempHandler cooling_temp_handler;
@@ -82,6 +84,7 @@ enum CoolingTempReturnCode cooling_temp_api_update_value(const size_t index, con
         return COOLING_TEMP_RC_OUT_OF_BOUNDS;
     }
     cooling_temp_handler.temperatures[index] = value;
+    usart_log("%d. %f\r\n", index, value);
     // prv_cooling_temp_check_value(index, value);
     return COOLING_TEMP_RC_OK;
 }
