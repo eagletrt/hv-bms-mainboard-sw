@@ -10,6 +10,7 @@
 #include "can-communication-router-api.h"
 
 #include "eagletrt-api.h"
+#include "led.h"
 #include "mainboard-conf.h"
 #include "can-communication.h"
 #include "can-bms-api.h"
@@ -21,6 +22,7 @@
 #include "mainboard-def.h"
 #include "pcu-api.h"
 #include "bal-api.h"
+#include "usart.h"
 #include "volt-api.h"
 #include "current-api.h"
 #include "temp-api.h"

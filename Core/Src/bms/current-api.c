@@ -16,6 +16,7 @@
 #include "eagletrt.h"
 #include "error-api.h"
 #include "internal-voltage-api.h"
+#include "watchdog.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
@@ -61,7 +62,11 @@ ampere_t current_api_get_current(void) {
 }
 
 void current_api_set_current(ampere_t current) {
+    enum WatchdogReturnCode result = watchdog_reset(&current_api_handler.sensor_wdg);
     current_api_handler.current = current;
+    if (result == WATCHDOG_RC_TIMED_OUT) {
+        watchdog_restart(&current_api_handler.sensor_wdg);
+    }
 }
 
 kilowatt_t current_api_get_power(void) {
