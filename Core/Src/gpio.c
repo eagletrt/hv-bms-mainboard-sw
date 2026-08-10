@@ -23,9 +23,11 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "can.h"
 #include "eagletrt-api.h"
 #include "feedback.h"
 #include "main.h"
+#include "stm32f4xx_hal_gpio.h"
 
 /* USER CODE END 0 */
 
@@ -78,11 +80,11 @@ void MX_GPIO_Init(void) {
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOB, SPARE_7_Pin | SPARE_10_Pin | SPARE_8_Pin | SPARE_9_Pin, GPIO_PIN_RESET);
 
-    /*Configure GPIO pins : PEPin PEPin PEPin */
-    GPIO_InitStruct.Pin = HC_CONNECTED_MCU_Pin | AIRN_CLOSE_COM_MCU_Pin | AIRP_CLOSE_COM_MCU_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    /*Configure GPIO pin : PtPin */
+    GPIO_InitStruct.Pin = HC_CONNECTED_MCU_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    HAL_GPIO_Init(HC_CONNECTED_MCU_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PEPin PEPin PEPin PEPin
                            PEPin PEPin PEPin PEPin
@@ -161,6 +163,16 @@ void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : PEPin PEPin */
+    GPIO_InitStruct.Pin = AIRN_CLOSE_COM_MCU_Pin | AIRP_CLOSE_COM_MCU_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+    /* EXTI interrupt init*/
+    HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 }
 
 /* USER CODE BEGIN 2 */
@@ -377,6 +389,13 @@ bit_flag32_t gpio_feedback_read_all(void) {
     feedbacks = EAGLETRT_API_BIT_TOGGLE_IF(feedbacks, FEEDBACK_DIGITAL_BIT_IMD_FAULT_LATCHED, HAL_GPIO_ReadPin(NOT_IMD_FAULT_LATCHED_MCU_GPIO_Port, NOT_IMD_FAULT_LATCHED_MCU_Pin) == GPIO_PIN_SET);
     feedbacks = EAGLETRT_API_BIT_TOGGLE_IF(feedbacks, FEEDBACK_DIGITAL_BIT_EXT_FAULT_LATCHED, HAL_GPIO_ReadPin(NOT_EXT_FAULT_LATCHED_MCU_GPIO_Port, NOT_EXT_FAULT_LATCHED_MCU_Pin) == GPIO_PIN_SET);
     return feedbacks;
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    if (GPIO_Pin == HC_CONNECTED_MCU_Pin) {
+        const GPIO_PinState handcart_connected = HAL_GPIO_ReadPin(HC_CONNECTED_MCU_GPIO_Port, HC_CONNECTED_MCU_Pin);
+        can_configure_and_start_primary(handcart_connected == GPIO_PIN_SET);
+    }
 }
 
 /* USER CODE END 2 */

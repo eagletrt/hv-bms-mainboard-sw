@@ -22,6 +22,7 @@
 #include "can.h"
 #include "dma.h"
 #include "spi.h"
+#include "stm32f4xx_hal_gpio.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -112,6 +113,11 @@ int main(void) {
     MX_TIM7_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
+
+    // Configure and start CAN given if the handcart is connected or not
+    // The handcart charger uses 250K baud rate, the vehicle 1M
+    const GPIO_PinState handcart_connected = HAL_GPIO_ReadPin(HC_CONNECTED_MCU_GPIO_Port, HC_CONNECTED_MCU_Pin);
+    can_configure_and_start_primary(handcart_connected == GPIO_PIN_SET);
 
     /* USER CODE END 2 */
 

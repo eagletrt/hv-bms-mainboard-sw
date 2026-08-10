@@ -66,6 +66,7 @@ void MX_CAN1_Init_1M(void);
  * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the underlying HAL call reported a failure.
  */
 enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame *frame);
+
 /*!
  * \brief Send a CAN frame on the primary CAN network.
  *
@@ -77,6 +78,13 @@ enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame 
  * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the underlying HAL call reported a failure.
  */
 enum CanCommunicationReturnCode can_send_primary(const struct CanCommunicationFrame *frame);
+
+/*!
+ * \brief Configure the can primary to use 250K baudrate if the handcart is connected or 1M otherwise
+ *
+ * \param[in] is_handcart_connected True if the handcart is connected, false otherwise
+ */
+void can_configure_and_start_primary(bool is_handcart_connected);
 
 /* USER CODE END Prototypes */
 

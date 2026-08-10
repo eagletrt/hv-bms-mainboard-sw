@@ -29,6 +29,7 @@
 #include "mainboard-def.h"
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "stm32f4xx_hal_can.h"
 
 /* USER CODE END 0 */
 
@@ -61,27 +62,6 @@ void MX_CAN1_Init(void) {
         Error_Handler();
     }
     /* USER CODE BEGIN CAN1_Init 2 */
-    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-      as the combination of:
-      STDID + RTR + IDE + 4 most significant bits of EXTID
-  */
-    CAN_FilterTypeDef filter = {
-        .FilterActivation = CAN_FILTER_ENABLE,
-        .FilterBank = 0,
-        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-        .FilterIdLow = 0,                      // Take all ids from 0
-        .FilterMaskIdHigh = 0,
-        .FilterMaskIdLow = 0,
-        .FilterMode = CAN_FILTERMODE_IDMASK,
-        .FilterScale = CAN_FILTERSCALE_16BIT,
-        .SlaveStartFilterBank = 14
-    };
-
-    // Enable filters and start CAN
-    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
-    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
-    HAL_CAN_Start(&HCAN_PRIMARY);
     /* USER CODE END CAN1_Init 2 */
 }
 /* CAN2 init function */
@@ -255,7 +235,33 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle) {
 
 /* USER CODE BEGIN 1 */
 
+void prv_can_primary_start() {
+    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
+      as the combination of:
+      STDID + RTR + IDE + 4 most significant bits of EXTID
+    */
+    CAN_FilterTypeDef filter = {
+        .FilterActivation = CAN_FILTER_ENABLE,
+        .FilterBank = 0,
+        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
+        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
+        .FilterIdLow = 0,                      // Take all ids from 0
+        .FilterMaskIdHigh = 0,
+        .FilterMaskIdLow = 0,
+        .FilterMode = CAN_FILTERMODE_IDMASK,
+        .FilterScale = CAN_FILTERSCALE_16BIT,
+        .SlaveStartFilterBank = 14
+    };
+
+    // Enable filters and start CAN
+    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
+    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_Start(&HCAN_PRIMARY);
+}
+
 void MX_CAN1_Init_250K(void) {
+    HAL_CAN_DeInit(&HCAN_PRIMARY);
+
     hcan1.Instance = CAN1;
     hcan1.Init.Prescaler = 10;
     hcan1.Init.Mode = CAN_MODE_NORMAL;
@@ -271,29 +277,13 @@ void MX_CAN1_Init_250K(void) {
     if (HAL_CAN_Init(&hcan1) != HAL_OK) {
         Error_Handler();
     }
-    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-        as the combination of:
-        STDID + RTR + IDE + 4 most significant bits of EXTID
-    */
-    CAN_FilterTypeDef filter = {
-        .FilterActivation = CAN_FILTER_ENABLE,
-        .FilterBank = 0,
-        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-        .FilterIdLow = 0,                      // Take all ids from 0
-        .FilterMaskIdHigh = 0,
-        .FilterMaskIdLow = 0,
-        .FilterMode = CAN_FILTERMODE_IDMASK,
-        .FilterScale = CAN_FILTERSCALE_16BIT,
-        .SlaveStartFilterBank = 14
-    };
-    // Enable filters and start CAN
-    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
-    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
-    HAL_CAN_Start(&HCAN_PRIMARY);
+
+    prv_can_primary_start();
 }
 
 void MX_CAN1_Init_1M(void) {
+    HAL_CAN_DeInit(&HCAN_PRIMARY);
+
     hcan1.Instance = CAN1;
     hcan1.Init.Prescaler = 3;
     hcan1.Init.Mode = CAN_MODE_NORMAL;
@@ -309,26 +299,8 @@ void MX_CAN1_Init_1M(void) {
     if (HAL_CAN_Init(&hcan1) != HAL_OK) {
         Error_Handler();
     }
-    /* HAL considers IdLow and IdHigh not as just the ID of the can message but
-      as the combination of:
-      STDID + RTR + IDE + 4 most significant bits of EXTID
-  */
-    CAN_FilterTypeDef filter = {
-        .FilterActivation = CAN_FILTER_ENABLE,
-        .FilterBank = 0,
-        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-        .FilterIdLow = 0,                      // Take all ids from 0
-        .FilterMaskIdHigh = 0,
-        .FilterMaskIdLow = 0,
-        .FilterMode = CAN_FILTERMODE_IDMASK,
-        .FilterScale = CAN_FILTERSCALE_16BIT,
-        .SlaveStartFilterBank = 14
-    };
-    // Enable filters and start CAN
-    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
-    HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
-    HAL_CAN_Start(&HCAN_PRIMARY);
+
+    prv_can_primary_start();
 }
 
 /*!
@@ -388,6 +360,14 @@ enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame 
 
 enum CanCommunicationReturnCode can_send_primary(const struct CanCommunicationFrame *frame) {
     return prv_can_send_to_hardware(CAN_COMMUNICATION_NETWORK_PRIMARY, frame);
+}
+
+void can_configure_and_start_primary(bool is_handcart_connected) {
+    if (is_handcart_connected) {
+        MX_CAN1_Init_250K();
+    } else {
+        MX_CAN1_Init_1M();
+    }
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {

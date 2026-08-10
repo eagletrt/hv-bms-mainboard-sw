@@ -59,6 +59,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define HC_CONNECTED_MCU_Pin GPIO_PIN_2
 #define HC_CONNECTED_MCU_GPIO_Port GPIOE
+#define HC_CONNECTED_MCU_EXTI_IRQn EXTI2_IRQn
 #define SPARE_6_Pin GPIO_PIN_3
 #define SPARE_6_GPIO_Port GPIOE
 #define SPARE_5_Pin GPIO_PIN_4
