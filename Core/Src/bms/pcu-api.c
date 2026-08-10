@@ -22,10 +22,6 @@
 
 EAGLETRT_STATIC struct PcuHandler pcu_handler;
 
-EAGLETRT_STATIC void prv_pcu_api_ecu_communication_timeout(void) {
-    error_api_set(ERROR_GROUP_ECU_COMMUNICATION, 0U);
-}
-
 /*! \brief Callback executed when the AIR- watchdog times out */
 void prv_pcu_api_airn_timeout(void) {
     // Send AIR- timeout event to the FSM
