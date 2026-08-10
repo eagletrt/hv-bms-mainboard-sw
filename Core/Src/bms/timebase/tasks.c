@@ -624,6 +624,60 @@ void prv_tasks_send_errors(void) {
     }
 }
 
+void prv_tasks_send_cellboard_errors_a(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARDERRORA
+    };
+
+    union CanPrimaryMessages *message = error_api_get_cellboard_a_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+void prv_tasks_send_cellboard_errors_b(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARDERRORA
+    };
+
+    union CanPrimaryMessages *message = error_api_get_cellboard_b_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+void prv_tasks_send_cellboard_errors_c(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARDERRORA
+    };
+
+    union CanPrimaryMessages *message = error_api_get_cellboard_c_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
 /*! \brief Send the set balancing status command via CAN */
 void prv_tasks_send_cellboard_set_balancing_status(void) {
     struct CanCommunicationFrame frame = {

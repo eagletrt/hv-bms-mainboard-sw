@@ -76,6 +76,9 @@
     TASKS_X(SEND_SHUTDOWN, true, 10U, can_primary_cycle_time_tsacmainboardshutdown, prv_tasks_send_hv_shutdown)                                                \
     TASKS_X(SEND_FEEDBACK_SHUTDOWN, true, 10U, can_primary_cycle_time_tsacmainboardfeedbackshutdown, prv_tasks_send_hv_feedback_shutdown)                      \
     TASKS_X(SEND_ERRORS, true, 0U, can_primary_cycle_time_tsacmainboarderror, prv_tasks_send_errors)                                                           \
+    TASKS_X(SEND_CELLBOARD_ERRORS_A, true, 0U, can_primary_cycle_time_tsaccellboarderrora, prv_tasks_send_cellboard_errors_a)                                  \
+    TASKS_X(SEND_CELLBOARD_ERRORS_B, true, 0U, can_primary_cycle_time_tsaccellboarderrorb, prv_tasks_send_cellboard_errors_b)                                  \
+    TASKS_X(SEND_CELLBOARD_ERRORS_C, true, 0U, can_primary_cycle_time_tsaccellboarderrorc, prv_tasks_send_cellboard_errors_c)                                  \
     TASKS_X(SEND_CELLBOARD_SET_BALANCING_STATUS, false, 0U, can_bms_cycle_time_tsacmainboardbalancingset, prv_tasks_send_cellboard_set_balancing_status)       \
     TASKS_X(READ_DIGITAL_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_read_digital_feedbacks)                                                        \
     TASKS_X(START_ANALOG_CONVERSION_FEEDBACKS, true, 0U, FEEDBACK_CYCLE_TIME_MS, prv_tasks_start_analog_conversion_feedbacks)                                  \

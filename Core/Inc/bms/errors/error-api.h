@@ -13,6 +13,7 @@
 #include "can-primary.h"
 #include "error.h"
 #include "mainboard-conf.h"
+#include "mainboard-def.h"
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
@@ -67,12 +68,48 @@ ErrorInfo error_api_get_expired_info(void);
  * \return Pointer of the payload
  */
 union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the cellboard errors
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \return Pointer of the payload
+ */
+union CanPrimaryMessages *error_api_get_cellboard_a_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *error_api_get_cellboard_b_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *error_api_get_cellboard_c_canlib_payload(size_t *byte_size);
+
 /*!
  * \brief Handler can error messages sent from the cellboards
  *
  * \param payload the payload of the error message
  */
-// void error_api_cellboard_handle(bms_cellboard_error_t *payload);
+void error_api_cellboard_handle(
+    CellboardId cellboard,
+    uint8_t post,
+    uint8_t undervoltage,
+    uint8_t overvoltage,
+    uint8_t undertemperature,
+    uint8_t overtemperature,
+    uint8_t discharge_undertemperature,
+    uint8_t discharge_overtemperature,
+    uint8_t can_communication,
+    uint8_t flash,
+    uint8_t bms_monitor_communication,
+    uint8_t openwire1,
+    uint8_t openwire2,
+    uint8_t openwire3,
+    uint8_t openwire4,
+    uint8_t openwire5,
+    uint8_t openwire6,
+    uint8_t openwire7,
+    uint8_t openwire8,
+    uint8_t openwire9,
+    uint8_t openwire10,
+    uint8_t openwire11,
+    uint8_t openwire12,
+    uint8_t openwire13);
 
 #ifdef CONF_ERROR_STRINGS_ENABLE
 
