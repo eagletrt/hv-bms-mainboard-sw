@@ -18,6 +18,8 @@
 #include "tdsr0760-api.h"
 #include "tdsr0760.h"
 
+#include "usart.h"
+
 #ifdef CONF_DISPLAY_MODULE_ENABLE
 
 EAGLETRT_STATIC struct DisplayHandler display_handler;

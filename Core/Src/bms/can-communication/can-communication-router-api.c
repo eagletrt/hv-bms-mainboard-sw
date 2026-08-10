@@ -22,8 +22,8 @@
 #include "pcu-api.h"
 #include "bal-api.h"
 #include "volt-api.h"
-#include "temp-api.h"
 #include "current-api.h"
+#include "temp-api.h"
 #include "error-api.h"
 
 #ifdef CONF_CAN_COMM_MODULE_ENABLE

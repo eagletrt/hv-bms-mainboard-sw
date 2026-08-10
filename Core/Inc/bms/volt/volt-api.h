@@ -138,14 +138,21 @@ void volt_api_cellboard_voltage_info_handle(
 
 #else // CONF_VOLTAGE_MODULE_ENABLE
 
-#define volt_api_init() (VOLT_OK)
+#define volt_api_init() (VOLT_RC_OK)
 #define volt_api_get_values() (NULL)
+#define volt_api_set_value(cellboard, index, voltage) EAGLETRT_API_NOP()
 #define volt_api_get_min() (VOLT_NOMINAL_V)
 #define volt_api_get_max() (VOLT_NOMINAL_V)
 #define volt_api_get_avg() (VOLT_NOMINAL_V)
 #define volt_api_get_sum() (VOLT_NOMINAL_V * CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT)
-#define volt_api_cells_voltage_handle(payload) EAGLETRT_API_NOP()
-#define volt_api_get_cells_voltage_canlib_payload(byte_size) (NULL)
+#define volt_api_cellboard_voltage_info_handle(cellboard, min, max, average, sum) EAGLETRT_API_NOP()
+#define volt_api_voltage_handle(payload) EAGLETRT_API_NOP()
+#define volt_api_get_cellboard1_voltage_canlib_payload(byte_size) (NULL)
+#define volt_api_get_cellboard2_voltage_canlib_payload(byte_size) (NULL)
+#define volt_api_get_cellboard3_voltage_canlib_payload(byte_size) (NULL)
+#define volt_api_get_cellboard4_voltage_canlib_payload(byte_size) (NULL)
+#define volt_api_get_cellboard5_voltage_canlib_payload(byte_size) (NULL)
+#define volt_api_get_cellboard6_voltage_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_VOLTAGE_MODULE_ENABLE
 

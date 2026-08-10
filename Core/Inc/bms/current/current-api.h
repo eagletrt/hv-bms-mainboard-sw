@@ -72,13 +72,13 @@ union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size);
 
 #else // CONF_CURRENT_MODULE_ENABLE
 
-#define current_api_init() (CURRENT_OK)
+#define current_api_init() (CURRENT_RC_OK)
 #define current_api_get_current() (0.f)
+#define current_api_set_current(current) EAGLETRT_API_NOP()
 #define current_api_get_power() (0.f)
-#define current_api_start_sensor_communication_watchdog() (WATCHDOG_OK)
+#define current_api_start_sensor_communication_watchdog() (WATCHDOG_RC_OK)
 #define current_api_handle(payload) EAGLETRT_API_NOP()
-#define current_api_get_current_canlib_payload(byte_size) (NULL)
-#define current_api_get_power_canlib_payload(byte_size) (NULL)
+#define current_api_get_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_CURRENT_MODULE_ENABLE
 

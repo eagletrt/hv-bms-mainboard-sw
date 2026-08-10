@@ -36,6 +36,9 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
 #define can_communication_router_api_receive_bms(frame) (CAN_COMMUNICATION_RC_OK)
 #define can_communication_router_api_receive_primary(frame) (CAN_COMMUNICATION_RC_OK)
 
+#define can_communication_router_api_receive_bms (NULL)
+#define can_communication_router_api_receive_primary (NULL)
+
 #endif // CONF_CAN_COMM_MODULE_ENABLE
 
 #endif // CAN_COMMUNICATION_ROUTER_API_H

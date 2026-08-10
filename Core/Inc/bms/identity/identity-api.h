@@ -69,6 +69,9 @@ union CanPrimaryMessages *identity_api_get_mainboard_libcan_version_info_payload
 #define identity_api_init(id) EAGLETRT_API_NOP()
 #define identity_api_get_build_time() (0U)
 #define identity_api_get_mainboard_version_payload(byte_size) (NULL)
+#define identity_api_get_mainboard_version_info_payload(byte_size) (NULL)
+#define identity_api_get_mainboard_libcan_version_payload(byte_size) (NULL)
+#define identity_api_get_mainboard_libcan_version_info_payload(byte_size) (NULL)
 #define identity_api_get_cellboard_version_payload(byte_size) (NULL)
 #define identity_api_cellboard_version_handle(payload) EAGLETRT_API_NOP()
 

@@ -20,9 +20,9 @@
 #ifdef CONF_ERROR_MODULE_ENABLE
 
 EAGLETRT_STATIC ErrorLibHandler herror;
-EAGLETRT_STATIC union CanPrimaryMessages libcan_message_error;
+union CanPrimaryMessages libcan_message_error;
 
-EAGLETRT_STATIC union CanPrimaryMessages libcan_message_cellboard_errors[3];
+union CanPrimaryMessages libcan_message_cellboard_errors[3];
 
 /*! \brief Total number of instances for each group */
 const size_t instances[] = {
@@ -127,28 +127,28 @@ ErrorInfo error_api_get_expired_info(void) {
 }
 
 union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size) {
-    if (byte_size == NULL) {
+    if (byte_size != NULL) {
         *byte_size = can_primary_byte_size_tsacmainboarderror;
     }
-    bool undervoltage = false;
-    bool overvoltage = false;
+    uint16_t undervoltage = 0;
+    uint16_t overvoltage = 0;
     for (uint16_t i = 0; i < CELLBOARD_SERIES_COUNT; ++i) {
         undervoltage = undervoltage || error_under_voltage_instances[i];
         overvoltage = overvoltage || error_over_voltage_instances[i];
     }
-    bool undertemperature = false;
-    bool overtemperature = false;
+    uint16_t undertemperature = 0;
+    uint16_t overtemperature = 0;
     for (uint16_t i = 0; i < CELLBOARD_TEMP_SENSOR_COUNT; ++i) {
         undertemperature = undertemperature || error_under_temperature_instances[i];
         overtemperature = overtemperature || error_over_temperature_instances[i];
     }
-    bool cooling_undertemperature = false;
-    bool cooling_overtemperature = false;
-    for (uint16_t i = 0; i < CELLBOARD_TEMP_SENSOR_COUNT; ++i) {
+    uint16_t cooling_undertemperature = 0;
+    uint16_t cooling_overtemperature = 0;
+    for (uint16_t i = 0; i < COOLING_TEMP_SENSOR_COUNT; ++i) {
         cooling_undertemperature = cooling_undertemperature || error_cooling_under_temperature_instances[i];
         cooling_overtemperature = cooling_overtemperature || error_cooling_over_temperature_instances[i];
     }
-    bool internal = false;
+    uint16_t internal = 0;
     for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
         internal = internal || error_cellboard_error_instances[cellboard];
     }

@@ -22,7 +22,9 @@
 #include "can.h"
 #include "dma.h"
 #include "spi.h"
+#include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_gpio.h"
+#include "stm32f4xx_hal_uart.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -36,6 +38,7 @@
 #include "stm32f4xx_it.h"
 
 #include "can-communication-router-api.h"
+#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -173,6 +176,7 @@ int main(void) {
     fsm_state = fsm_run_state(fsm_state, &init_data);
     while (1) {
         fsm_state = fsm_run_state(fsm_state, NULL);
+
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

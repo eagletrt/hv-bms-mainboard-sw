@@ -92,7 +92,7 @@ const char *const imd_api_get_imd_status_name(const enum ImdStatus status);
 #define imd_api_get_period() (0U)
 #define imd_api_get_status() (IMD_STATUS_NORMAL)
 #define imd_api_update(source_frequency, period_count, high_count) (IMD_RC_OK)
-#define imd_api_get_status_canlib_payload(byte_size) (NULL)
+#define imd_api_get_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_IMD_MODULE_ENABLE
 

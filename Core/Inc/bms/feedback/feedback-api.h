@@ -185,11 +185,9 @@ const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
 #define feedback_api_is_digital(feedback) (true)
 #define feedback_api_get_digital_bit_from_id(feedback) (FEEDBACK_DIGITAL_BIT_UNKNOWN)
 #define feedback_api_get_analog_index_from_id(feedback) (FEEDBACK_ANALOG_INDEX_UNKNOWN)
-#define feedback_api_get_status_payload(byte_size) (NULL)
-#define feedback_api_get_digital_payload(byte_size) (NULL)
-#define feedback_api_get_analog_payload(byte_size) (NULL)
-#define feedback_api_get_analog_sd_payload(byte_size) (NULL)
-#define feedback_api_get_enzomma_payload(feedback, byte_size) (NULL)
+#define feedback_api_get_feedaback_payload(byte_size) (NULL)
+#define feedback_api_get_shutdown_payload(byte_size) (NULL)
+#define feedback_api_get_feedback_shutdown_payload(byte_size) (NULL)
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

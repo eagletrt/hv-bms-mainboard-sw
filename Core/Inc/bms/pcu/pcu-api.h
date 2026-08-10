@@ -85,7 +85,7 @@ void pcu_api_bms_set_handle(bool tson);
 
 #else // CONF_PCU_MODULE_ENABLE
 
-#define pcu_api_init(set, toggle) (PCU_OK)
+#define pcu_api_init(set, toggle) (PCU_RC_OK)
 #define pcu_api_reset_all() EAGLETRT_API_NOP()
 #define pcu_api_airn_open() EAGLETRT_API_NOP()
 #define pcu_api_airn_close() EAGLETRT_API_NOP()
@@ -100,8 +100,7 @@ void pcu_api_bms_set_handle(bool tson);
 #define pcu_api_ams_deactivate() EAGLETRT_API_NOP()
 #define pcu_api_get_precharge_percentage() (0.f)
 #define pcu_api_is_precharge_complete() (false)
-#define pcu_api_set_state_from_ecu_handle(payload) EAGLETRT_API_NOP()
-#define pcu_api_set_state_from_handcart_handle(payload) EAGLETRT_API_NOP()
+#define pcu_api_bms_set_handle(tson) EAGLETRT_API_NOP()
 
 #endif // CONF_PCU_MODULE_ENABLE
 

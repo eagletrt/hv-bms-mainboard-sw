@@ -127,14 +127,20 @@ void bal_api_cellboard_balancing_handle(CellboardId cellboard, bit_flag32_t disc
 
 #else // CONF_BALANCING_MODULE_ENABLE
 
-#define bal_api_init() (BAL_OK)
+#define bal_api_init() (BAL_RC_OK)
 #define bal_api_is_active() (false)
-#define bal_api_start() (BAL_OK)
-#define bal_api_stop() (BAL_OK)
-#define bal_api_set_balancing_state_from_steering_wheel_handle(payload) EAGLETRT_API_NOP()
-#define bal_api_set_balancing_state_from_handcart_handle(payload) EAGLETRT_API_NOP()
-#define bal_api_get_set_status_canlib_payload(byte_size) (NULL)
+#define bal_api_start() (BAL_RC_OK)
+#define bal_api_stop() (BAL_RC_OK)
+#define bal_api_set_balancing_state_handle(balancing, threshold) EAGLETRT_API_NOP()
+#define bal_api_cellboard_balancing_handle(cellboard, payload) EAGLETRT_API_NOP()
+#define bal_api_get_cellboard1_canlib_payload(byte_size) (NULL)
+#define bal_api_get_cellboard2_canlib_payload(byte_size) (NULL)
+#define bal_api_get_cellboard3_canlib_payload(byte_size) (NULL)
+#define bal_api_get_cellboard4_canlib_payload(byte_size) (NULL)
+#define bal_api_get_cellboard5_canlib_payload(byte_size) (NULL)
+#define bal_api_get_cellboard6_canlib_payload(byte_size) (NULL)
 #define bal_api_get_status_canlib_payload(byte_size) (NULL)
+#define bal_api_get_balancing_set_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_BALANCING_MODULE_ENABLE
 

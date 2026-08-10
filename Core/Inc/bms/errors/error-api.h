@@ -128,8 +128,36 @@ char *error_api_get_group_name_string(const enum ErrorGroup group);
 #define error_api_reset(group, instance) (ERROR_RC_OK)
 #define error_api_get_expired() (0U)
 #define error_api_get_expired_info() ((ErrorInfo){ 0U })
-#define error_api_cellboard_handle(payload) (NULL)
-#define error_api_get_error_canlib_payload(byte_size) (NULL);
+#define error_api_cellboard_handle( \
+    cellboard,                      \
+    post,                           \
+    undervoltage,                   \
+    overvoltage,                    \
+    undertemperature,               \
+    overtemperature,                \
+    discharge_undertemperature,     \
+    discharge_overtemperature,      \
+    can_communication,              \
+    flash,                          \
+    bms_monitor_communication,      \
+    openwire1,                      \
+    openwire2,                      \
+    openwire3,                      \
+    openwire4,                      \
+    openwire5,                      \
+    openwire6,                      \
+    openwire7,                      \
+    openwire8,                      \
+    openwire9,                      \
+    openwire10,                     \
+    openwire11,                     \
+    openwire12,                     \
+    openwire13) EAGLETRT_API_NOP()
+
+#define error_api_get_canlib_payload(byte_size) (NULL)
+#define error_api_get_cellboard_a_canlib_payload(byte_size) (NULL)
+#define error_api_get_cellboard_b_canlib_payload(byte_size) (NULL)
+#define error_api_get_cellboard_c_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_ERROR_MODULE_ENABLE
 

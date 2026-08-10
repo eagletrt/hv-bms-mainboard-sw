@@ -145,12 +145,20 @@ void temp_api_cellboard_temperature_info_handle(
 
 #define temp_api_init() (TEMP_OK)
 #define temp_api_get_values() (NULL)
+#define temp_api_set_value(cellboard, id, temperature) (NULL)
 #define temp_api_get_min() (NULL)
 #define temp_api_get_max() (NULL)
 #define temp_api_get_avg() (NULL)
-#define temp_api_cells_temperature_handle(payload) EAGLETRT_API_NOP()
+#define temp_api_check_temperature() EAGLETRT_API_NOP()
+#define temp_api_cellboard_temperature_info_handle(cellboard, min, max, average) EAGLETRT_API_NOP()
+#define temp_api_get_cellboard1_temperature_canlib_payload(payload) (NULL)
+#define temp_api_get_cellboard2_temperature_canlib_payload(payload) (NULL)
+#define temp_api_get_cellboard3_temperature_canlib_payload(payload) (NULL)
+#define temp_api_get_cellboard4_temperature_canlib_payload(payload) (NULL)
+#define temp_api_get_cellboard5_temperature_canlib_payload(payload) (NULL)
+#define temp_api_get_cellboard6_temperature_canlib_payload(payload) (NULL)
 #define temp_api_get_cells_temperature_canlib_payload(byte_size) (NULL)
-#define temp_api_get_cells_temperature_stats_canlib_payload(byte_size) (NULL)
+#define temp_api_get_cells_temperature_info_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_TEMPERATURE_MODULE_ENABLE
 

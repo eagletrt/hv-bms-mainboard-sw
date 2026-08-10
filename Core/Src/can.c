@@ -26,6 +26,7 @@
 
 #include "can-communication.h"
 #include "can-communication-api.h"
+#include "can-primary.h"
 #include "mainboard-def.h"
 #include "eagletrt.h"
 #include "eagletrt-api.h"
@@ -244,11 +245,11 @@ void prv_can_primary_start() {
         .FilterActivation = CAN_FILTER_ENABLE,
         .FilterBank = 0,
         .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = ((1U << 11) - 1) << 5, // Take all ids to 2^11 - 1
-        .FilterIdLow = 0,                      // Take all ids from 0
-        .FilterMaskIdHigh = 0,
+        .FilterIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYBALANCINGSET << 5,
+        .FilterIdLow = 0, // Take all ids from 0
+        .FilterMaskIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET << 5,
         .FilterMaskIdLow = 0,
-        .FilterMode = CAN_FILTERMODE_IDMASK,
+        .FilterMode = CAN_FILTERMODE_IDLIST,
         .FilterScale = CAN_FILTERSCALE_16BIT,
         .SlaveStartFilterBank = 14
     };
