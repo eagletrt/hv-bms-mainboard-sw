@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "spi.h"
-#include <stdint.h>
 
 /* USER CODE BEGIN 0 */
 

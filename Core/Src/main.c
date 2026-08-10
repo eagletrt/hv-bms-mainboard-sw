@@ -21,7 +21,6 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
-#include "pcu.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -111,6 +110,7 @@ int main(void) {
     MX_SPI3_Init();
     MX_TIM6_Init();
     MX_TIM7_Init();
+    MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
 
     /* USER CODE END 2 */

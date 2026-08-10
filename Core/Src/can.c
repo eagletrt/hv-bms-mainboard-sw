@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
-#include "stm32f4xx_hal_can.h"
 
 /* USER CODE BEGIN 0 */
 

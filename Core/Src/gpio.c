@@ -114,6 +114,12 @@ void MX_GPIO_Init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /*Configure GPIO pin : PtPin */
+    GPIO_InitStruct.Pin = UNUSED_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(UNUSED_GPIO_Port, &GPIO_InitStruct);
+
     /*Configure GPIO pins : PGPin PGPin PGPin PGPin
                            PGPin PGPin */
     GPIO_InitStruct.Pin = LED_1_Pin | LED_2_Pin | BMS_OK_3V3_Pin | NOT_PRECHARGE_Pin | AIRN_OFF_Pin | AIRP_OFF_Pin;
