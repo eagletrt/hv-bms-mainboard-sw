@@ -24,6 +24,7 @@
 #include "feedback-api.h"
 #include "volt-api.h"
 #include "temp-api.h"
+#include "cooling-temp-api.h"
 #include "internal-voltage-api.h"
 #include "fsm.h"
 #include "imd-api.h"
@@ -403,6 +404,44 @@ void prv_tasks_send_hv_cellboard6_temperature(void) {
     };
 
     union CanPrimaryMessages *message = temp_api_get_cellboard6_temperature_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cooling temperatures via CAN */
+void prv_tasks_send_cooling_temperature1(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDCOOLINGTEMPERATURE1
+    };
+
+    union CanPrimaryMessages *message = cooling_temp_get_cooling1_canlib_payload(NULL);
+    int byte_size = can_primary_api_serialize_from_id(
+        frame.id,
+        message,
+        frame.data);
+
+    // TODO: Notify error?
+    if (byte_size >= 0) {
+        frame.length = byte_size;
+        EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    }
+}
+
+/*! \brief Send the cooling temperatures via CAN */
+void prv_tasks_send_cooling_temperature2(void) {
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDCOOLINGTEMPERATURE2
+    };
+
+    union CanPrimaryMessages *message = cooling_temp_get_cooling2_canlib_payload(NULL);
     int byte_size = can_primary_api_serialize_from_id(
         frame.id,
         message,

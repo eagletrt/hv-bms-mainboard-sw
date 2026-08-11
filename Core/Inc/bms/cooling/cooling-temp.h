@@ -11,6 +11,7 @@
 #define COOLING_TEMP_H
 
 #include <stdint.h>
+#include "can-primary.h"
 #include "mainboard-def.h"
 
 /*! \brief Total number of cooling temperatures handled */
@@ -75,7 +76,8 @@ typedef celsius_t cooling_temps[COOLING_TEMP_COUNT];
 struct CoolingTempHandler {
     cooling_temps temperatures; /*!< Array of cooling temperatures in °C */
 
-    // primary_hv_cooling_temperature_converted_t cooling_temp_can_payload; /*!< CAN payload structure for the cooling temperatures */
+    union CanPrimaryMessages libcan_message_cooling1;
+    union CanPrimaryMessages libcan_message_cooling2;
 };
 
 #endif // COOLING_TEMP_H

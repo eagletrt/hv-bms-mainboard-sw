@@ -10,8 +10,10 @@
 #ifndef COOLING_TEMP_API_H
 #define COOLING_TEMP_API_H
 
+#include "can-primary.h"
 #include "cooling-temp.h"
 #include "mainboard-conf.h"
+#include <stdint.h>
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 
@@ -84,9 +86,18 @@ celsius_t cooling_temp_api_get_avg(void);
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_cooling_temperature_converted_t* A pointer to the payload
+ * \returns Pointer of the payload
  */
-// primary_hv_cooling_temperature_converted_t *cooling_temp_api_get_temperatures_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(uint32_t *byte_size);
+
+/*!
+ * \brief Get a pointer to the CAN payload of the cooling temperatures
+ *
+ * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ *
+ * \returns Pointer of the payload
+ */
+union CanPrimaryMessages *cooling_temp_get_cooling2_canlib_payload(uint32_t *byte_size);
 
 #else
 
