@@ -22,6 +22,7 @@
 #include "mainboard-def.h"
 #include "pcu-api.h"
 #include "bal-api.h"
+#include "programmer-api.h"
 #include "usart.h"
 #include "volt-api.h"
 #include "current-api.h"
@@ -1359,6 +1360,9 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
             break;
         case CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM:
             pcu_api_ecu_fsm_handle();
+            break;
+        case 0x20: // FLASH START
+            programmer_api_reset_mcu();
             break;
         default:
             break;

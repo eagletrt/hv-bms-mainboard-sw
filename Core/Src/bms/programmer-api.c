@@ -142,6 +142,10 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
 //     }
 // }
 
+void programmer_api_reset_mcu(void) {
+    programmer_handler.reset();
+}
+
 enum ProgrammerReturnCode programmer_api_routine(void) {
     if (watchdog_is_timed_out(&programmer_handler.watchdog)) {
         return PROGRAMMER_RC_TIMEOUT;

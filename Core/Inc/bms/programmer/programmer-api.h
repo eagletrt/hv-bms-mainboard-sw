@@ -54,4 +54,6 @@ enum ProgrammerReturnCode programmer_api_init(system_reset_callback_t reset);
  */
 enum ProgrammerReturnCode programmer_api_routine(void);
 
+void programmer_api_reset_mcu(void);
+
 #endif // PROGRAMMER_API_H
