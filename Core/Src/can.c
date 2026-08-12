@@ -246,29 +246,16 @@ void prv_can_primary_start() {
         .FilterBank = 0,
         .FilterFIFOAssignment = CAN_FILTER_FIFO0,
         .FilterIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYBALANCINGSET << 5,
-        .FilterIdLow = 0,
+        .FilterIdLow = CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM << 5,
         .FilterMaskIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET << 5,
-        .FilterMaskIdLow = 0,
+        .FilterMaskIdLow = 0x20U << 5,
         .FilterMode = CAN_FILTERMODE_IDLIST,
         .FilterScale = CAN_FILTERSCALE_16BIT,
-        .SlaveStartFilterBank = 7
-    };
-    CAN_FilterTypeDef filter2 = {
-        .FilterActivation = CAN_FILTER_ENABLE,
-        .FilterBank = 7,
-        .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM << 5,
-        .FilterIdLow = 0,
-        .FilterMaskIdHigh = 0,
-        .FilterMaskIdLow = 0,
-        .FilterMode = CAN_FILTERMODE_IDLIST,
-        .FilterScale = CAN_FILTERSCALE_16BIT,
-        .SlaveStartFilterBank = 7
+        .SlaveStartFilterBank = 14
     };
 
     // Enable filters and start CAN
     HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter);
-    HAL_CAN_ConfigFilter(&HCAN_PRIMARY, &filter2);
     HAL_CAN_ActivateNotification(&HCAN_PRIMARY, CAN_IT_ERROR | CAN_IT_RX_FIFO0_MSG_PENDING);
     HAL_CAN_Start(&HCAN_PRIMARY);
 }

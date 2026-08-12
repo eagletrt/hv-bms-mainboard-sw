@@ -423,7 +423,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
         /* USER CODE BEGIN TIM5_MspPostInit 1 */
 
         // Set PWM to full speed
-        const float fan_duty_cycle = EAGLETRT_API_CLAMP(0.6F, 0, 1);
+        const float fan_duty_cycle = EAGLETRT_API_CLAMP(1.0F, 0, 1);
         HTIM_FAN.Instance->CCR1 = (uint32_t)floorf(fan_duty_cycle * (float)HTIM_FAN.Instance->ARR);
         HAL_TIM_PWM_Start(&HTIM_FAN, TIM_CHANNEL_1);
 

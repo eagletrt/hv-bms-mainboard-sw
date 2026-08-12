@@ -22,6 +22,8 @@
 #include "can.h"
 #include "dma.h"
 #include "spi.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_gpio.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -173,8 +175,14 @@ int main(void) {
     };
 
     fsm_state = fsm_run_state(fsm_state, &init_data);
+    uint32_t t = 0;
     while (1) {
         fsm_state = fsm_run_state(fsm_state, NULL);
+
+        if (HAL_GetTick() - t >= 200) {
+            HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
+            t = HAL_GetTick();
+        }
 
         /* USER CODE END WHILE */
 
