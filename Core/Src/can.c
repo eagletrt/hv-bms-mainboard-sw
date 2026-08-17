@@ -27,10 +27,13 @@
 #include "can-communication.h"
 #include "can-communication-api.h"
 #include "can-primary.h"
+#include "main.h"
 #include "mainboard-def.h"
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_can.h"
+#include "stm32f4xx_hal_gpio.h"
 
 /* USER CODE END 0 */
 

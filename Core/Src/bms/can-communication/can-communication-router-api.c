@@ -11,6 +11,7 @@
 
 #include "eagletrt-api.h"
 #include "led.h"
+#include "main.h"
 #include "mainboard-conf.h"
 #include "can-communication.h"
 #include "can-bms-api.h"
@@ -28,6 +29,8 @@
 #include "current-api.h"
 #include "temp-api.h"
 #include "error-api.h"
+
+#include "gpio.h"
 
 #ifdef CONF_CAN_COMM_MODULE_ENABLE
 
@@ -1340,6 +1343,10 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
         return CAN_COMMUNICATION_RC_NULL_POINTER;
     }
 
+    if (frame->id == 0x20U) {
+        programmer_api_reset_mcu();
+    }
+
     if (!can_primary_api_id_is_valid(frame->id)) {
         return CAN_COMMUNICATION_RC_INVALID_NETWORK;
     }
@@ -1360,9 +1367,6 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
             break;
         case CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM:
             pcu_api_ecu_fsm_handle();
-            break;
-        case 0x20: // FLASH START
-            programmer_api_reset_mcu();
             break;
         default:
             break;
