@@ -16,6 +16,7 @@
 #include "fsm.h"
 #include "internal-voltage-api.h"
 #include "eagletrt.h"
+#include "logger-api.h"
 #include "watchdog.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
@@ -90,7 +91,7 @@ enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_togg
         &pcu_handler.ecu_watchdog,
         TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, timebase_get_resolution()),
         prv_pcu_api_ecu_timeout);
-    watchdog_start(&pcu_handler.ecu_watchdog);
+    //watchdog_start(&pcu_handler.ecu_watchdog);
     return PCU_RC_OK;
 }
 
@@ -180,6 +181,35 @@ void pcu_api_ecu_fsm_handle(void) {
     if (result == WATCHDOG_RC_TIMED_OUT) {
         watchdog_restart(&pcu_handler.ecu_watchdog);
     }
+}
+
+void pcu_api_print_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "PCU report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", fsm_state_names[fsm_get_status() < FSM_NUM_STATES ? fsm_get_status() : FSM_STATE_IDLE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Precharge percentage: %.1f %%", pcu_api_get_precharge_percentage() * 100.0f);
+    logger_api_log(LOGGER_LEVEL_INFO, "Precharge complete: %s", pcu_api_is_precharge_complete() ? "yes" : "no");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "AIR- watchdog: %s%s",
+        pcu_handler.airn_watchdog.running ? "running" : "stopped",
+        pcu_handler.airn_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Precharge watchdog: %s%s",
+        pcu_handler.precharge_watchdog.running ? "running" : "stopped",
+        pcu_handler.precharge_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "AIR+ watchdog: %s%s",
+        pcu_handler.airp_watchdog.running ? "running" : "stopped",
+        pcu_handler.airp_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "ECU watchdog: %s%s",
+        pcu_handler.ecu_watchdog.running ? "running" : "stopped",
+        pcu_handler.ecu_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }
 
 #ifdef CONF_PCU_STRING_ENABLE

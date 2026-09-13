@@ -154,6 +154,13 @@ union CanPrimaryMessages *feedback_api_get_shutdown_payload(size_t *byte_size);
  */
 union CanPrimaryMessages *feedback_api_get_feedback_shutdown_payload(size_t *byte_size);
 
+/*!\
+ * \brief Print a detailed feedback report\
+ */
+void feedback_api_print_log(void);
+
+char *feedback_api_feedback_id_name(const enum FeedbackId id);
+
 #ifdef CONF_FEEDBACK_STRINGS_ENABLE
 
 /*!
@@ -188,6 +195,7 @@ const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
 #define feedback_api_get_feedaback_payload(byte_size) (NULL)
 #define feedback_api_get_shutdown_payload(byte_size) (NULL)
 #define feedback_api_get_feedback_shutdown_payload(byte_size) (NULL)
+#define feedback_api_print_log() EAGLETRT_API_NOP()
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

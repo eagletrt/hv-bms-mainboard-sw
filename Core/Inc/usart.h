@@ -27,6 +27,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "pal-api.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -72,6 +73,8 @@ void usart_log_ms(milliseconds_t interval, const char *fmt, ...);
  * @return char The read character
  */
 char usart_read(void);
+
+enum PalReturnCode usart_logger_transmit(const struct PalMessage *message);
 
 /* USER CODE END Prototypes */
 

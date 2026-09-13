@@ -14,7 +14,8 @@
 #include "eagletrt-api.h"
 #include "can-bms.h"
 
-#include "display.h"
+#include "fsm.h"
+#include "logger-api.h"
 #include "mainboard-def.h"
 #include "timebase.h"
 #include "volt-api.h"
@@ -30,6 +31,55 @@ void prv_bal_api_timeout(void) {
     fsm_event_trigger(&balancing_handler.event);
 }
 
+EAGLETRT_STATIC constexpr size_t BAL_LOG_CELLS_PER_ROW = 6U;
+EAGLETRT_STATIC constexpr size_t BAL_LOG_LAST_CELL_OFFSET = BAL_LOG_CELLS_PER_ROW - 1U;
+
+EAGLETRT_STATIC const char *prv_bal_fsm_state_name(void) {
+    const fsm_state_t state = fsm_get_status();
+    if (state < FSM_NUM_STATES) {
+        return fsm_state_names[state];
+    }
+    return "no change";
+}
+
+EAGLETRT_STATIC_INLINE char prv_bal_cell_marker(const bool active) {
+    if (active) {
+        return 'x';
+    }
+    return '.';
+}
+
+EAGLETRT_STATIC void prv_bal_print_cellboard_log(const CellboardId cellboard_id) {
+    uint32_t active_count = 0U;
+    const bit_flag32_t discharging = balancing_handler.discharging_cells[cellboard_id];
+
+    for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell) {
+        if (EAGLETRT_API_BIT_GET(discharging, cell)) {
+            ++active_count;
+        }
+    }
+
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Cellboard %u | balancing %lu cells",
+        (unsigned int)(cellboard_id + 1U),
+        (unsigned long)active_count);
+
+    for (size_t group = 0U; group < CELLBOARD_SEGMENT_SERIES_COUNT; group += BAL_LOG_CELLS_PER_ROW) {
+        logger_api_log(
+            LOGGER_LEVEL_INFO,
+            "  cells %02u-%02u: %c %c %c %c %c %c",
+            (unsigned int)(group + 1U),
+            (unsigned int)(group + BAL_LOG_CELLS_PER_ROW),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 0U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 1U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 2U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 3U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 4U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + BAL_LOG_LAST_CELL_OFFSET)));
+    }
+}
+
 enum BalReturnCode bal_api_init(void) {
     memset(&balancing_handler, 0U, sizeof(balancing_handler));
 
@@ -38,7 +88,7 @@ enum BalReturnCode bal_api_init(void) {
 
     // Set default calib payload data
     struct CanBmsTsacmainboardbalancingset *payload = &balancing_handler.libcan_message_balancing_set.tsacmainboardbalancingset;
-    payload->start = false;
+    payload->start = 0U;
     payload->target = BAL_TARGET_MAX_V;
     payload->threshold = BAL_THRESHOLD_MAX_V;
 
@@ -92,13 +142,46 @@ enum BalReturnCode bal_api_stop(void) {
     return BAL_RC_OK;
 }
 
+void bal_api_print_log(void) {
+    uint32_t total_active_cells = 0U;
+    const char *active_text = "no";
+
+    if (bal_api_is_active()) {
+        active_text = "yes";
+    }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Balancing report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_bal_fsm_state_name());
+    logger_api_log(LOGGER_LEVEL_INFO, "Active: %s", active_text);
+    logger_api_log(LOGGER_LEVEL_INFO, "Target: %.3f V", balancing_handler.params.target);
+    logger_api_log(LOGGER_LEVEL_INFO, "Threshold: %.3f V", balancing_handler.params.threshold);
+
+    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+        const bit_flag32_t discharging = balancing_handler.discharging_cells[cellboard_id];
+        for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell) {
+            if (EAGLETRT_API_BIT_GET(discharging, cell)) {
+                ++total_active_cells;
+            }
+        }
+        prv_bal_print_cellboard_log(cellboard_id);
+    }
+
+    logger_api_log(LOGGER_LEVEL_INFO, "Total balancing cells: %lu", (unsigned long)total_active_cells);
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
+
 union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
         *byte_size = can_bms_byte_size_tsacmainboardbalancingset;
     }
 
     struct CanBmsTsacmainboardbalancingset *payload = &balancing_handler.libcan_message_balancing_set.tsacmainboardbalancingset;
-    payload->start = balancing_handler.active;
+    if (balancing_handler.active) {
+        payload->start = 1U;
+    } else {
+        payload->start = 0U;
+    }
     payload->target = balancing_handler.params.target;
     payload->threshold = balancing_handler.params.threshold;
     return &balancing_handler.libcan_message_balancing_set;
@@ -326,7 +409,11 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
 
     // Send event to the FSM
     if (balancing_handler.active != balancing) {
-        balancing_handler.event.type = balancing ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
+        if (balancing) {
+            balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_START;
+        } else {
+            balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_STOP;
+        }
         fsm_event_trigger(&balancing_handler.event);
     }
 }

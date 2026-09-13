@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
+#include "logger.h"
 #include "spi.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_gpio.h"
@@ -38,8 +39,19 @@
 
 #include "can-communication-router-api.h"
 #include <stdint.h>
+#include <ctype.h>
 
 #include "feedback-api.h"
+#include "arena-allocator-api.h"
+#include "logger-api.h"
+
+#include "volt-api.h"
+#include "temp-api.h"
+#include "pcu-api.h"
+#include "bal-api.h"
+#include "current-api.h"
+#include "imd-api.h"
+#include "internal-voltage-api.h"
 
 /* USER CODE END Includes */
 
@@ -50,6 +62,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define LOGGER_ENABLED (true)           /*!< Logger status: true to enable active logging, false to mute entirely. */
+#define LOGGER_RX_CAPACITY (1U)         /*!< Receive queue depth. Set to 1 because the logger is transmit-only but needs to be > 0 because of arena allocator. */
+#define LOGGER_TX_CAPACITY (10U)        /*!< Maximum number of log message packets allowed to sit in the outbound transmission queue. */
+#define LOGGER_UART_MAX_MSG_SIZE (128U) /*!< Maximum allocation allowed for an individual log string. */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,6 +76,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+EAGLETRT_STATIC struct ArenaAllocatorHandler arena_allocator_handler;
+EAGLETRT_STATIC struct PalHandler logger_pal_handler;
+EAGLETRT_STATIC constexpr milliseconds_t MAIN_LOG_INTERVAL_MS = 1000U;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,6 +91,182 @@ void system_reset(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/*!
+ * \brief Initializes the low-level memory allocation and logging framework.
+ */
+EAGLETRT_STATIC void prv_main_init_logging_configuration() {
+    arena_allocator_api_init(&arena_allocator_handler);
+
+    EAGLETRT_API_UNUSED(pal_api_init(&logger_pal_handler,
+                                     LOGGER_RX_CAPACITY,
+                                     LOGGER_TX_CAPACITY,
+                                     LOGGER_UART_MAX_MSG_SIZE,
+                                     NULL,
+                                     usart_logger_transmit,
+                                     NULL,
+                                     NULL,
+                                     &arena_allocator_handler));
+}
+
+typedef enum MainLogMode {
+    MAIN_LOG_MODE_VOLTAGE,
+    MAIN_LOG_MODE_TEMPERATURE,
+    MAIN_LOG_MODE_INTERNAL_VOLTAGE,
+    MAIN_LOG_MODE_PCU,
+    MAIN_LOG_MODE_BALANCING,
+    MAIN_LOG_MODE_CURRENT,
+    MAIN_LOG_MODE_IMD,
+    MAIN_LOG_MODE_FEEDBACK
+} MainLogMode;
+
+EAGLETRT_STATIC MainLogMode main_log_mode = MAIN_LOG_MODE_VOLTAGE;
+
+EAGLETRT_STATIC const char *prv_main_fsm_state_name(void) {
+    const fsm_state_t state = fsm_get_status();
+    if (state < FSM_NUM_STATES) {
+        return fsm_state_names[state];
+    }
+    return "no change";
+}
+
+EAGLETRT_STATIC void prv_main_print_current_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Current report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_main_fsm_state_name());
+    logger_api_log(LOGGER_LEVEL_INFO, "Current: %.3f A", current_api_get_current());
+    logger_api_log(LOGGER_LEVEL_INFO, "Power: %.3f kW", current_api_get_power());
+    logger_api_log(LOGGER_LEVEL_INFO, "Max current: %.3f A", CURRENT_MAX_A);
+    logger_api_log(LOGGER_LEVEL_INFO, "Max power: %.3f kW", CURRENT_MAX_POWER_KW);
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
+
+EAGLETRT_STATIC void prv_main_print_imd_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "IMD report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_main_fsm_state_name());
+    logger_api_log(LOGGER_LEVEL_INFO, "Status: %s", imd_api_get_imd_status_name(imd_api_get_status()));
+    logger_api_log(LOGGER_LEVEL_INFO, "Frequency: %.3f Hz", imd_api_get_frequency());
+    logger_api_log(LOGGER_LEVEL_INFO, "Duty cycle: %.1f %%", imd_api_get_duty_cycle() * 100.0F);
+    logger_api_log(LOGGER_LEVEL_INFO, "Period: %.3f ms", imd_api_get_period());
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "IMD OK: %s",
+        feedback_api_get_status(FEEDBACK_ID_IMD_OK) == FEEDBACK_STATUS_HIGH ? "yes" : "no");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
+
+EAGLETRT_STATIC void prv_main_print_selected_log(void) {
+    switch (main_log_mode) {
+        case MAIN_LOG_MODE_VOLTAGE:
+            volt_api_print_log();
+            break;
+        case MAIN_LOG_MODE_TEMPERATURE:
+            temp_api_print_log();
+            break;
+        case MAIN_LOG_MODE_INTERNAL_VOLTAGE:
+            internal_voltage_api_print_log();
+            break;
+        case MAIN_LOG_MODE_PCU:
+            pcu_api_print_log();
+            break;
+        case MAIN_LOG_MODE_BALANCING:
+            bal_api_print_log();
+            break;
+        case MAIN_LOG_MODE_CURRENT:
+            prv_main_print_current_log();
+            break;
+        case MAIN_LOG_MODE_IMD:
+            prv_main_print_imd_log();
+            break;
+        case MAIN_LOG_MODE_FEEDBACK:
+            feedback_api_print_log();
+            break;
+        default:
+            break;
+    }
+}
+
+EAGLETRT_STATIC void prv_main_toggle_balancing(void) {
+    enum BalReturnCode result;
+
+    if (bal_api_is_active()) {
+        result = bal_api_stop();
+        if (result == BAL_RC_OK) {
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART balancing action: stop");
+        } else {
+            logger_api_log(LOGGER_LEVEL_INFO, "UART balancing action failed: stop");
+        }
+    } else {
+        result = bal_api_start();
+        if (result == BAL_RC_OK) {
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART balancing action: start");
+        } else {
+            logger_api_log(LOGGER_LEVEL_INFO, "UART balancing action failed: start");
+        }
+    }
+}
+
+EAGLETRT_STATIC void prv_main_handle_uart_log_selection(void) {
+    char input = usart_read();
+    if (input == '\0' || input == '\r' || input == '\n') {
+        return;
+    }
+
+    switch (tolower((unsigned char)input)) {
+        case 'v':
+            main_log_mode = MAIN_LOG_MODE_VOLTAGE;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: voltage");
+            break;
+        case 't':
+            main_log_mode = MAIN_LOG_MODE_TEMPERATURE;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: temperature");
+            break;
+        case 'i':
+            main_log_mode = MAIN_LOG_MODE_INTERNAL_VOLTAGE;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: internal voltage");
+            break;
+        case 'p':
+            main_log_mode = MAIN_LOG_MODE_PCU;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: pcu");
+            break;
+        case 'b':
+            main_log_mode = MAIN_LOG_MODE_BALANCING;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: balancing");
+            break;
+        case 'c':
+            main_log_mode = MAIN_LOG_MODE_CURRENT;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: current");
+            break;
+        case 'm':
+            main_log_mode = MAIN_LOG_MODE_IMD;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: imd");
+            break;
+        case 'f':
+            main_log_mode = MAIN_LOG_MODE_FEEDBACK;
+            logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: feedback");
+            break;
+        case 's':
+            prv_main_toggle_balancing();
+            break;
+        case 'h':
+            logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_main_fsm_state_name());
+            logger_api_log(LOGGER_LEVEL_EMPTY, "Keys: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle");
+            break;
+        case 'q':
+            static fsm_event_data_t event = { .type = FSM_EVENT_TYPE_TS_ON };
+            fsm_event_trigger(&event);
+            break;
+        case 'w':
+            static fsm_event_data_t event2 = { .type = FSM_EVENT_TYPE_TS_OFF };
+            fsm_event_trigger(&event2);
+            break;
+        default:
+            break;
+    }
+    prv_main_print_selected_log();
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -117,6 +312,12 @@ int main(void) {
     MX_TIM7_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
+
+    prv_main_init_logging_configuration();
+    EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_LEVEL_ERROR));
+
+    logger_api_log(LOGGER_LEVEL_INFO, "Starting main application");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle");
 
     // Configure and start CAN given if the handcart is connected or not
     // The handcart charger uses 250K baud rate, the vehicle 1M
@@ -175,13 +376,19 @@ int main(void) {
     };
 
     fsm_state = fsm_run_state(fsm_state, &init_data);
-    uint32_t t = 0;
+
+    logger_api_log(LOGGER_LEVEL_INFO, "POST procedure completed, entering main loop");
+
+    uint32_t last_log_tick = 0U;
     while (1) {
+        prv_main_handle_uart_log_selection();
+
         fsm_state = fsm_run_state(fsm_state, NULL);
 
-        if (HAL_GetTick() - t >= 200) {
+        if (HAL_GetTick() - last_log_tick >= MAIN_LOG_INTERVAL_MS) {
             HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);
-            t = HAL_GetTick();
+            //prv_main_print_selected_log();
+            last_log_tick = HAL_GetTick();
         }
 
         /* USER CODE END WHILE */

@@ -16,6 +16,8 @@
 #include "eagletrt.h"
 #include "error-api.h"
 #include "internal-voltage-api.h"
+#include "logger-api.h"
+#include "logger.h"
 #include "watchdog.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
@@ -26,6 +28,7 @@ EAGLETRT_STATIC struct CurrentHandler current_api_handler;
  * \brief Timeout callback for the sensor communication watchdog
  */
 EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
+    logger_api_log(LOGGER_RC_ERROR, "Current sensor communication timeout");
     error_api_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
 }
 

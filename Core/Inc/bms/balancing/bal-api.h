@@ -46,6 +46,11 @@ enum BalReturnCode bal_api_start(void);
  */
 enum BalReturnCode bal_api_stop(void);
 
+/*!\
+ * \brief Print a detailed balancing report\
+ */
+void bal_api_print_log(void);
+
 /*!
  * \brief Get a pointer to the set balancing status message canlib payload
  *
@@ -141,6 +146,7 @@ void bal_api_cellboard_balancing_handle(CellboardId cellboard, bit_flag32_t disc
 #define bal_api_get_cellboard6_canlib_payload(byte_size) (NULL)
 #define bal_api_get_status_canlib_payload(byte_size) (NULL)
 #define bal_api_get_balancing_set_canlib_payload(byte_size) (NULL)
+#define bal_api_print_log() EAGLETRT_API_NOP()
 
 #endif // CONF_BALANCING_MODULE_ENABLE
 

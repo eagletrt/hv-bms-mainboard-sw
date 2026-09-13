@@ -16,6 +16,7 @@
 #include "error.h"
 #include "mainboard-def.h"
 #include "can-communication.h"
+#include "logger-api.h"
 
 #ifdef CONF_ERROR_MODULE_ENABLE
 
@@ -107,6 +108,9 @@ enum ErrorReturnCode error_api_init(void) {
 }
 
 enum ErrorReturnCode error_api_set(const enum ErrorGroup group, const error_instance instance) {
+
+    logger_api_log(LOGGER_LEVEL_ERROR, "Error set: group=%d, instance=%d", group, instance);
+
     ErrorLibReturnCode ret = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
     return ret != ERRORLIB_OK ? ERROR_RC_UNKNOWN : ERROR_RC_OK;
 }

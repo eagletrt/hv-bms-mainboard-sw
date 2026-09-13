@@ -13,9 +13,10 @@
 
 #include "can-primary.h"
 #include "eagletrt.h"
+#include "fsm.h"
+#include "logger-api.h"
 #include "max22530.h"
 #include "max22530-api.h"
-#include "usart.h"
 #include "volt-api.h"
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
@@ -61,6 +62,26 @@ union CanPrimaryMessages *internal_voltage_api_get_canlib_payload(size_t *byte_s
     internal_volt_handler.libcan_message_voltage.tsacmainboardvoltageinfo.max = volt_api_get_max();
     internal_volt_handler.libcan_message_voltage.tsacmainboardvoltageinfo.average = volt_api_get_avg();
     return &internal_volt_handler.libcan_message_voltage;
+}
+
+void internal_voltage_api_print_log(void) {
+    const volt_t ts_voltage = internal_voltage_api_get_ts();
+    const volt_t pack_voltage = internal_voltage_api_get_pack();
+    const volt_t cells_sum = volt_api_get_sum();
+    const volt_t delta = pack_voltage - cells_sum;
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Internal voltage report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", fsm_state_names[fsm_get_status() < FSM_NUM_STATES ? fsm_get_status() : FSM_STATE_IDLE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "TS voltage: %.3f V", ts_voltage);
+    logger_api_log(LOGGER_LEVEL_INFO, "Pack voltage: %.3f V", pack_voltage);
+    logger_api_log(LOGGER_LEVEL_INFO, "Cells sum: %.3f V", cells_sum);
+    logger_api_log(LOGGER_LEVEL_INFO, "Cells minimum: %.3f V", volt_api_get_min());
+    logger_api_log(LOGGER_LEVEL_INFO, "Cells maximum: %.3f V", volt_api_get_max());
+    logger_api_log(LOGGER_LEVEL_INFO, "Cells average: %.3f V", volt_api_get_avg());
+    logger_api_log(LOGGER_LEVEL_INFO, "Pack minus cells sum: %.3f V", delta);
+    logger_api_log(LOGGER_LEVEL_INFO, "Maximum allowed delta: %.3f V", INTERNAL_VOLTAGE_MAX_DELTA_V);
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }
 
 #ifdef CONF_INTERNAL_VOLTAGE_STRINGS_ENABLE

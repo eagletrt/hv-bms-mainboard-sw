@@ -68,6 +68,11 @@ volt_t volt_api_get_avg(void);
 volt_t volt_api_get_sum(void);
 
 /*!
+ * \brief Print a structured log of the current voltage state
+ */
+void volt_api_print_log(void);
+
+/*!
  * \brief Get a pointer to the CAN payload of the Cellboard1 cells voltages
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
@@ -145,6 +150,7 @@ void volt_api_cellboard_voltage_info_handle(
 #define volt_api_get_max() (VOLT_NOMINAL_V)
 #define volt_api_get_avg() (VOLT_NOMINAL_V)
 #define volt_api_get_sum() (VOLT_NOMINAL_V * CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT)
+#define volt_api_print_log() EAGLETRT_API_NOP()
 #define volt_api_cellboard_voltage_info_handle(cellboard, min, max, average, sum) EAGLETRT_API_NOP()
 #define volt_api_voltage_handle(payload) EAGLETRT_API_NOP()
 #define volt_api_get_cellboard1_voltage_canlib_payload(byte_size) (NULL)

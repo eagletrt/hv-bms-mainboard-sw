@@ -38,7 +38,7 @@
  *                          - 500 ms for voltage and current values
  *                          - 1 s for temperature values
  */
-#define CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS (200U)
+#define CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS (500U)
 
 /*!
  * \brief Startup time of the current sensor in ms

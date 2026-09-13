@@ -14,11 +14,15 @@
 #include "eagletrt-api.h"
 #include "error-api.h"
 #include "can-primary.h"
+#include "fsm.h"
+#include "logger-api.h"
 #include "mainboard-def.h"
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
 EAGLETRT_STATIC struct TempHandler temp_handler;
+EAGLETRT_STATIC constexpr size_t TEMP_LOG_SENSORS_PER_ROW = 6U;
+EAGLETRT_STATIC constexpr size_t TEMP_LOG_LAST_SENSOR_OFFSET = TEMP_LOG_SENSORS_PER_ROW - 1U;
 
 // clang-format off
 
@@ -73,6 +77,52 @@ EAGLETRT_STATIC_INLINE void prv_temp_check_value(const CellboardId cellboard_id,
 enum TempReturnCode temp_api_init(void) {
     memset(&temp_handler, 0U, sizeof(temp_handler));
     return TEMP_RC_OK;
+}
+
+EAGLETRT_STATIC_INLINE void prv_temp_print_cellboard_log(const CellboardId cellboard_id) {
+    const unsigned int board_number = (unsigned int)cellboard_id + 1U;
+
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Cellboard %u | min %.3f C | max %.3f C | avg %.3f C",
+        board_number,
+        temp_handler.min[cellboard_id],
+        temp_handler.max[cellboard_id],
+        temp_handler.average[cellboard_id]);
+
+    const celsius_t *const temperatures = temp_handler.temperatures[cellboard_id];
+    for (size_t group = 0U; group < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; group += TEMP_LOG_SENSORS_PER_ROW) {
+        logger_api_log(
+            LOGGER_LEVEL_INFO,
+            "  sensors %02u-%02u: %.3f %.3f %.3f %.3f %.3f %.3f C",
+            (unsigned int)(group + 1U),
+            (unsigned int)(group + TEMP_LOG_SENSORS_PER_ROW),
+            temperatures[group + 0U],
+            temperatures[group + 1U],
+            temperatures[group + 2U],
+            temperatures[group + 3U],
+            temperatures[group + 4U],
+            temperatures[group + TEMP_LOG_LAST_SENSOR_OFFSET]);
+    }
+}
+
+void temp_api_print_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Temperature report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", fsm_state_names[fsm_get_status() < FSM_NUM_STATES ? fsm_get_status() : FSM_STATE_IDLE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Allowed range: %.3f C .. %.3f C", TEMP_MIN_C, TEMP_MAX_C);
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Pack summary | min %.3f C | max %.3f C | avg %.3f C",
+        temp_api_get_min(),
+        temp_api_get_max(),
+        temp_api_get_avg());
+
+    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+        prv_temp_print_cellboard_log(cellboard_id);
+    }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }
 
 const cells_temp *temp_api_get_values(void) {

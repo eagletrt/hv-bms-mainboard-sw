@@ -15,13 +15,154 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "fsm.h"
 #include "imd-api.h"
+#include "logger-api.h"
+#include "logger.h"
 #include "stm32f4xx_hal.h"
-#include "usart.h"
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
 
 EAGLETRT_STATIC struct FeedbackHandler feedback_handler;
+
+EAGLETRT_STATIC const char *prv_feedback_status_name(const enum FeedbackStatus status) {
+    switch (status) {
+        case FEEDBACK_STATUS_LOW:
+            return "low";
+        case FEEDBACK_STATUS_HIGH:
+            return "high";
+        default:
+            return "error";
+    }
+}
+
+EAGLETRT_STATIC const char *prv_feedback_fsm_state_name(void) {
+    const fsm_state_t state = fsm_get_status();
+    if (state < FSM_NUM_STATES) {
+        return fsm_state_names[state];
+    }
+    return "no change";
+}
+
+char *feedback_api_feedback_id_name(const enum FeedbackId id) {
+    switch (id) {
+        case FEEDBACK_ID_AIRN_OPEN_COM:
+            return "AIR- open COM";
+        case FEEDBACK_ID_AIRN_OPEN_MEC:
+            return "AIR- open MEC";
+        case FEEDBACK_ID_AIRP_OPEN_COM:
+            return "AIR+ open COM";
+        case FEEDBACK_ID_AIRP_OPEN_MEC:
+            return "AIR+ open MEC";
+        case FEEDBACK_ID_PRECHARGE_OPEN_COM:
+            return "Precharge open COM";
+        case FEEDBACK_ID_PRECHARGE_OPEN_MEC:
+            return "Precharge open MEC";
+        case FEEDBACK_ID_TS_LESS_THAN_60V:
+            return "TS < 60V";
+        case FEEDBACK_ID_PLAUSIBLE_STATE_PERSISTED:
+            return "Plausible state persisted";
+        case FEEDBACK_ID_PLAUSIBLE_STATE:
+            return "Plausible state";
+        case FEEDBACK_ID_BMS_FAULT_COCKPIT_LED:
+            return "BMS fault cockpit LED";
+        case FEEDBACK_ID_IMD_FAULT_COCKPIT_LED:
+            return "IMD fault cockpit LED";
+        case FEEDBACK_ID_INDICATOR_CONNECTED:
+            return "Indicator connected";
+        case FEEDBACK_ID_LATCH_RESET:
+            return "Latch reset";
+        case FEEDBACK_ID_PLAUSIBLE_STATE_LATCHED:
+            return "Plausible state latched";
+        case FEEDBACK_ID_BMS_FAULT_LATCHED:
+            return "BMS fault latched";
+        case FEEDBACK_ID_IMD_FAULT_LATCHED:
+            return "IMD fault latched";
+        case FEEDBACK_ID_EXT_FAULT_LATCHED:
+            return "External fault latched";
+        case FEEDBACK_ID_IMD_OK:
+            return "IMD OK";
+        case FEEDBACK_ID_PLAUSIBLE_STATE_RC:
+            return "Plausible state RC";
+        case FEEDBACK_ID_TSAL_GREEN:
+            return "TSAL green";
+        case FEEDBACK_ID_PROBING_3V3:
+            return "Probing 3.3V";
+        case FEEDBACK_ID_SD_OUT:
+            return "Shutdown out";
+        case FEEDBACK_ID_SD_IN:
+            return "Shutdown in";
+        case FEEDBACK_ID_SD_END:
+            return "Shutdown end";
+        case FEEDBACK_ID_V5_MCU:
+            return "MCU 5V";
+        default:
+            return "Invalid feedback ID";
+    }
+}
+
+void feedback_api_print_log(void) {
+    uint32_t digital_count = 0U;
+    uint32_t analog_count = 0U;
+    uint32_t high_count = 0U;
+    uint32_t low_count = 0U;
+    uint32_t error_count = 0U;
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Feedback report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_feedback_fsm_state_name());
+
+    for (enum FeedbackId id = 0U; id < FEEDBACK_ID_COUNT; ++id) {
+        const enum FeedbackStatus status = feedback_api_get_status(id);
+        const bool is_digital = feedback_api_is_digital(id);
+
+        if (is_digital) {
+            ++digital_count;
+        } else {
+            ++analog_count;
+        }
+
+        switch (status) {
+            case FEEDBACK_STATUS_HIGH:
+                ++high_count;
+                break;
+            case FEEDBACK_STATUS_LOW:
+                ++low_count;
+                break;
+            default:
+                ++error_count;
+                break;
+        }
+
+        if (is_digital) {
+            logger_api_log(
+                LOGGER_LEVEL_INFO,
+                "%02u. %-24s | digital | %s",
+                (unsigned int)(id + 1U),
+                feedback_api_feedback_id_name(id),
+                prv_feedback_status_name(status));
+        } else {
+            const enum FeedbackAnalogIndex analog_index = feedback_api_get_analog_index_from_id(id);
+            logger_api_log(
+                LOGGER_LEVEL_INFO,
+                "%02u. %-24s | analog  | %.3f V | %s",
+                (unsigned int)(id + 1U),
+                feedback_api_feedback_id_name(id),
+                feedback_api_get_analog(analog_index),
+                prv_feedback_status_name(status));
+        }
+    }
+
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Summary | digital %lu | analog %lu | high %lu | low %lu | error %lu",
+        (unsigned long)digital_count,
+        (unsigned long)analog_count,
+        (unsigned long)high_count,
+        (unsigned long)low_count,
+        (unsigned long)error_count);
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
 
 /*!
  * \brief Get the feedback identifier from the digital feedback bit position
@@ -143,6 +284,9 @@ enum FeedbackStatus prv_feedback_api_get_analog_status(const enum FeedbackAnalog
     if (feedback_handler.analog[index] <= thr_low) {
         return FEEDBACK_STATUS_LOW;
     }
+
+    logger_api_log(LOGGER_LEVEL_ERROR, "Feedback %s is in error state with value %.2f V", feedback_api_feedback_id_name(prv_feedback_get_id_from_analog_index(index)), (double)feedback_handler.analog[index]);
+
     return FEEDBACK_STATUS_ERROR;
 }
 
@@ -250,6 +394,12 @@ bool feedback_api_check_values(const bit_flag32_t mask, const bit_flag32_t value
         if ((feedback_handler.status[i] != FEEDBACK_STATUS_LOW || expected_value) &&
             (feedback_handler.status[i] != FEEDBACK_STATUS_HIGH || !expected_value)) {
             // Save the identifier of the feedback with the unexpected values
+
+            //logger_api_log(LOGGER_LEVEL_ERROR, "Feedback %s is in error state, expected: %s", feedback_api_feedback_id_name(i), expected_value ? "HIGH" : "LOW");
+            //feedback_api_print_log();
+
+            //HAL_Delay(150);
+
             if (out != NULL) {
                 *out = i;
             }
@@ -384,7 +534,11 @@ union CanPrimaryMessages *feedback_api_get_shutdown_payload(size_t *byte_size) {
     payload->imdvoltage = FEEDBACK_VOLTAGE_TO_SD_VOLT(feedback_api_get_analog(FEEDBACK_ANALOG_INDEX_SD_IMD_FB));
     payload->airnvoltage = FEEDBACK_VOLTAGE_TO_SD_VOLT(feedback_api_get_analog(FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC));
     payload->airpvoltage = FEEDBACK_VOLTAGE_TO_SD_VOLT(feedback_api_get_analog(FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC));
-    payload->prechargevoltage = feedback_api_get_digital(FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC) ? FEEDBACK_SD_VREF : 0;
+    if (feedback_api_get_digital(FEEDBACK_DIGITAL_BIT_PRECHARGE_OPEN_MEC)) {
+        payload->prechargevoltage = FEEDBACK_SD_VREF;
+    } else {
+        payload->prechargevoltage = 0.F;
+    }
     return &feedback_handler.libcan_message_shutdown;
 }
 

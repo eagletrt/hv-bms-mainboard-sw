@@ -10,17 +10,22 @@
 #include "volt-api.h"
 
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "can-primary.h"
 #include "error-api.h"
 #include "eagletrt-api.h"
+#include "fsm.h"
+#include "logger.h"
 #include "mainboard-def.h"
-#include "usart.h"
+#include "logger-api.h"
 
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 
 EAGLETRT_STATIC struct VoltHandler volt_handler;
+EAGLETRT_STATIC constexpr size_t VOLT_LOG_CELLS_PER_ROW = 6U;
+EAGLETRT_STATIC constexpr size_t VOLT_LOG_LAST_CELL_OFFSET = VOLT_LOG_CELLS_PER_ROW - 1U;
 
 /*!
  * \brief Check if the voltage values are in range otherwise set an error
@@ -56,6 +61,54 @@ enum VoltReturnCode volt_api_init(void) {
         }
     }
     return VOLT_RC_OK;
+}
+
+EAGLETRT_STATIC_INLINE void prv_volt_print_cellboard_log(const CellboardId cellboard_id) {
+    const unsigned int board_number = (unsigned int)cellboard_id + 1U;
+
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Cellboard %u | min %.3f V | max %.3f V | avg %.3f V | sum %.3f V",
+        board_number,
+        volt_handler.min[cellboard_id],
+        volt_handler.max[cellboard_id],
+        volt_handler.average[cellboard_id],
+        volt_handler.sum[cellboard_id]);
+
+    const volt_t *const volts = volt_handler.voltages[cellboard_id];
+    for (size_t group = 0U; group < CELLBOARD_SEGMENT_SERIES_COUNT; group += VOLT_LOG_CELLS_PER_ROW) {
+        logger_api_log(
+            LOGGER_LEVEL_INFO,
+            "  cells %02u-%02u: %.3f %.3f %.3f %.3f %.3f %.3f V",
+            (unsigned int)(group + 1U),
+            (unsigned int)(group + VOLT_LOG_CELLS_PER_ROW),
+            volts[group + 0U],
+            volts[group + 1U],
+            volts[group + 2U],
+            volts[group + 3U],
+            volts[group + 4U],
+            volts[group + VOLT_LOG_LAST_CELL_OFFSET]);
+    }
+}
+
+void volt_api_print_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Voltage report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", fsm_state_names[fsm_get_status() < FSM_NUM_STATES ? fsm_get_status() : FSM_STATE_IDLE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Allowed range: %.3f V .. %.3f V", VOLT_MIN_V, VOLT_MAX_V);
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Pack summary | min %.3f V | max %.3f V | avg %.3f V | sum %.3f V",
+        volt_api_get_min(),
+        volt_api_get_max(),
+        volt_api_get_avg(),
+        volt_api_get_sum());
+
+    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+        prv_volt_print_cellboard_log(cellboard_id);
+    }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }
 
 const cells_voltage *volt_api_get_values(void) {

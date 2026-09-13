@@ -25,10 +25,13 @@ Functions and types have been generated with prefix "fsm_"
 #include "can-primary.h"
 #include "eagletrt-api.h"
 #include "feedback.h"
+#include "logger-api.h"
+#include "logger.h"
 #include "mainboard-def.h"
 #include "post.h"
 
 #include "post-api.h"
+#include "stm32f4xx_hal.h"
 #include "timebase.h"
 #include "programmer-api.h"
 #include "feedback-api.h"
@@ -171,6 +174,7 @@ fsm_state_t fsm_do_init(fsm_state_data *data) {
             break;
         default:
             error_api_set(ERROR_GROUP_POST, 0U);
+            logger_api_log(LOGGER_LEVEL_ERROR, "POST failed: %d", post_result);
             next_state = FSM_STATE_FATAL;
             break;
     }
@@ -209,10 +213,12 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
 
     // Check for errors
     if (error_api_get_expired() > 0) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "Fatal error detected");
         next_state = FSM_STATE_FATAL;
         // Check for events
     } else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL) {
+            logger_api_log(LOGGER_LEVEL_ERROR, "Cellboard fatal error");
             next_state = FSM_STATE_FATAL;
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_FLASH_REQUEST) {
             next_state = FSM_STATE_FLASH;
@@ -224,6 +230,8 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
                     &feedback_id)) {
                 next_state = FSM_STATE_AIRN_CHECK;
             } else {
+                logger_api_log(LOGGER_LEVEL_ERROR, "Problem during TS on procedure");
+                logger_api_log(LOGGER_LEVEL_ERROR, "Problematic feedback: %s", feedback_api_feedback_id_name(feedback_id));
                 // If there is a problem during the TS on procedure send info about the problematic feedback
                 // size_t byte_size = 0U;
                 // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
@@ -415,6 +423,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
                 case FSM_EVENT_TYPE_TS_OFF:
                 case FSM_EVENT_TYPE_ECU_TIMEOUT:
                     next_state = FSM_STATE_IDLE;
+                    logger_api_log(LOGGER_LEVEL_ERROR, "AIRN check failed with event %d\r\n", fsm_fired_event->type);
                     break;
 
                 default:
@@ -436,6 +445,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
                  FEEDBACK_BIT_SD_END,
                  FEEDBACK_BIT_SD_END,
                  &feedback_id)) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "AIRN check: SD end open\r\n");
         next_state = FSM_STATE_IDLE;
     }
     /*
@@ -451,6 +461,8 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
 
     // If there is a problem during the TS on procedure send info about the problematic feedback
     if (next_state == FSM_STATE_IDLE) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "Problem during TS on procedure");
+        logger_api_log(LOGGER_LEVEL_ERROR, "Feedback: %s", feedback_api_feedback_id_name(feedback_id));
         // size_t byte_size = 0U;
         // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
         // (void)can_comm_tx_add(
@@ -479,6 +491,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
 // Function to be executed in state precharge_check
 // valid return states: FSM_NO_CHANGE, FSM_STATE_IDLE, FSM_STATE_PRECHARGE_CHECK, FSM_STATE_AIRP_CHECK, FSM_STATE_FATAL
 fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
+
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
@@ -515,6 +528,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
                 case FSM_EVENT_TYPE_ECU_TIMEOUT:
                 case FSM_EVENT_TYPE_TS_OFF:
                     next_state = FSM_STATE_IDLE;
+                    logger_api_log(LOGGER_LEVEL_ERROR, "Precharge check: failed with event %d\r\n", fsm_fired_event->type);
                     break;
 
                 default:
@@ -531,6 +545,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
                  FEEDBACK_BIT_SD_END,
                  &feedback_id)) {
         next_state = FSM_STATE_IDLE;
+        logger_api_log(LOGGER_LEVEL_ERROR, "Precharge check: SD end failed %d\r\n");
     }
     /*
    * Wait until every feedback inside the mask has the expected value and the precharge is complete
@@ -688,12 +703,14 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
             next_state = FSM_STATE_FATAL;
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF ||
                    fsm_fired_event->type == FSM_EVENT_TYPE_ECU_TIMEOUT) {
+            logger_api_log(LOGGER_LEVEL_ERROR, "TS ON check: failed with event %d\r\n", fsm_fired_event->type);
             next_state = FSM_STATE_IDLE;
         }
     } else if (!feedback_api_check_values(
                    FEEDBACK_TS_ON_MASK,
                    FEEDBACK_TS_ON_HIGH,
                    &feedback_id)) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "TS ON check: failed with feedback %s\r\n", feedback_api_feedback_id_name(feedback_id));
         // If there is a problem during the TS on procedure send info about the problematic feedback
         // size_t byte_size = 0U;
         // uint8_t *const payload = (uint8_t *const)feedback_api_get_enzomma_payload(feedback_id, &byte_size);
@@ -858,6 +875,9 @@ void fsm_start_precharge(fsm_state_data *data) {
     // Stop the AIR- watchdog and start the precharge
     pcu_api_airn_stop_watchdog();
     pcu_api_precharge_start();
+
+    //HAL_Delay(100);
+
     /*** USER CODE END START_PRECHARGE ***/
 }
 

@@ -91,6 +91,11 @@ void pcu_api_bms_set_handle(bool tson);
  */
 void pcu_api_ecu_fsm_handle(void);
 
+/*!
+ * \brief Print a structured log of the current PCU state
+ */
+void pcu_api_print_log(void);
+
 #else // CONF_PCU_MODULE_ENABLE
 
 #define pcu_api_init(set, toggle) (PCU_RC_OK)
@@ -110,6 +115,7 @@ void pcu_api_ecu_fsm_handle(void);
 #define pcu_api_is_precharge_complete() (false)
 #define pcu_api_bms_set_handle(tson) EAGLETRT_API_NOP()
 #define pcu_api_ecu_fsm_handle() EAGLETRT_API_NOP()
+#define pcu_api_print_log() EAGLETRT_API_NOP()
 
 #endif // CONF_PCU_MODULE_ENABLE
 

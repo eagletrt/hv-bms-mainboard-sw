@@ -65,6 +65,11 @@ celsius_t temp_api_get_avg(void);
 void temp_api_check_temperature(void);
 
 /*!
+ * \brief Print a structured log of the current temperature state
+ */
+void temp_api_print_log(void);
+
+/*!
  * \brief Get a pointer to the CAN payload of the cells temperature stats
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
@@ -150,6 +155,7 @@ void temp_api_cellboard_temperature_info_handle(
 #define temp_api_get_max() (NULL)
 #define temp_api_get_avg() (NULL)
 #define temp_api_check_temperature() EAGLETRT_API_NOP()
+#define temp_api_print_log() EAGLETRT_API_NOP()
 #define temp_api_cellboard_temperature_info_handle(cellboard, min, max, average) EAGLETRT_API_NOP()
 #define temp_api_get_cellboard1_temperature_canlib_payload(payload) (NULL)
 #define temp_api_get_cellboard2_temperature_canlib_payload(payload) (NULL)

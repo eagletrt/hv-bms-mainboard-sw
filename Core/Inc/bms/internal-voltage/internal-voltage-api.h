@@ -56,6 +56,11 @@ volt_t internal_voltage_api_get_pack(void);
  */
 union CanPrimaryMessages *internal_voltage_api_get_canlib_payload(size_t *byte_size);
 
+/*!
+ * \brief Print a structured log of the current internal voltage state
+ */
+void internal_voltage_api_print_log(void);
+
 #else // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
 #define internal_voltage_api_init(send, send_receive) (INTERNAL_VOLTAGE_RC_OK)
@@ -63,6 +68,7 @@ union CanPrimaryMessages *internal_voltage_api_get_canlib_payload(size_t *byte_s
 #define internal_voltage_api_get_ts() (0U)
 #define internal_voltage_api_get_pack() (0U)
 #define internal_voltage_api_get_canlib_payload(byte_size) (NULL)
+#define internal_voltage_api_print_log() EAGLETRT_API_NOP()
 
 #endif // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
