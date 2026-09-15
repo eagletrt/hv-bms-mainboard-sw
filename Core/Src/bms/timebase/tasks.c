@@ -20,6 +20,8 @@
 #include "can-bms-api.h"
 #include "can-bms.h"
 
+#include "logger-api.h"
+#include "logger.h"
 #include "timebase.h"
 #include "feedback-api.h"
 #include "volt-api.h"
@@ -38,6 +40,7 @@ EAGLETRT_STATIC struct TaskHandler task_handler;
 
 /*! \brief Send the mainboard and cellboard FSM status via CAN */
 void prv_tasks_send_hv_status(void) {
+
     struct CanCommunicationFrame frame = {
         .id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACSTATUS
     };
@@ -51,7 +54,10 @@ void prv_tasks_send_hv_status(void) {
     // TODO: Notify error?
     if (byte_size >= 0) {
         frame.length = byte_size;
+        //logger_api_log(LOGGER_LEVEL_INFO, "Sending mainboard status");
         EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    } else {
+        logger_api_log(LOGGER_LEVEL_ERROR, "Error in sending mainboard status");
     }
 }
 

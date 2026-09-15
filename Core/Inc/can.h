@@ -42,6 +42,7 @@ extern CAN_HandleTypeDef hcan2;
 
 #define HCAN_PRIMARY hcan1
 #define HCAN_BMS hcan2
+#define CAN_TX_MAILBOX_FREE_TIMEOUT_MS (2U)
 
 /* USER CODE END Private defines */
 

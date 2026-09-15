@@ -196,6 +196,104 @@ union CanPrimaryMessages *error_api_get_cellboard_c_canlib_payload(size_t *byte_
     return &libcan_message_cellboard_errors[2];
 }
 
+void prv_error_log_cellboard_errors(
+    CellboardId cellboard,
+    uint8_t post,
+    uint8_t undervoltage,
+    uint8_t overvoltage,
+    uint8_t undertemperature,
+    uint8_t overtemperature,
+    uint8_t discharge_undertemperature,
+    uint8_t discharge_overtemperature,
+    uint8_t can_communication,
+    uint8_t flash,
+    uint8_t bms_monitor_communication,
+    uint8_t openwire1,
+    uint8_t openwire2,
+    uint8_t openwire3,
+    uint8_t openwire4,
+    uint8_t openwire5,
+    uint8_t openwire6,
+    uint8_t openwire7,
+    uint8_t openwire8,
+    uint8_t openwire9,
+    uint8_t openwire10,
+    uint8_t openwire11,
+    uint8_t openwire12,
+    uint8_t openwire13) {
+    logger_api_log(LOGGER_LEVEL_ERROR, "Cellboard %d errors", cellboard);
+
+    if (post) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  POST error");
+    }
+    if (undervoltage) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Undervoltage error");
+    }
+    if (overvoltage) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Overvoltage error");
+    }
+    if (undertemperature) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Undertemperature error");
+    }
+    if (overtemperature) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Overtemperature error");
+    }
+    if (discharge_undertemperature) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Discharge undertemperature error");
+    }
+    if (discharge_overtemperature) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Discharge overtemperature error");
+    }
+    if (can_communication) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  CAN communication error");
+    }
+    if (flash) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Flash error");
+    }
+    if (bms_monitor_communication) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  BMS monitor communication error");
+    }
+    if (openwire1) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 1 error");
+    }
+    if (openwire2) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 2 error");
+    }
+    if (openwire3) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 3 error");
+    }
+    if (openwire4) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 4 error");
+    }
+    if (openwire5) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 5 error");
+    }
+    if (openwire6) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 6 error");
+    }
+    if (openwire7) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 7 error");
+    }
+    if (openwire8) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 8 error");
+    }
+    if (openwire9) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 9 error");
+    }
+    if (openwire10) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 10 error");
+    }
+    if (openwire11) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 11 error");
+    }
+    if (openwire12) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 12 error");
+    }
+    if (openwire13) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "  Openwire 13 error");
+    }
+}
+
 void error_api_cellboard_handle(
     CellboardId cellboard,
     uint8_t post,
@@ -224,6 +322,32 @@ void error_api_cellboard_handle(
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }
+
+    prv_error_log_cellboard_errors(
+        cellboard,
+        post,
+        undervoltage,
+        overvoltage,
+        undertemperature,
+        overtemperature,
+        discharge_undertemperature,
+        discharge_overtemperature,
+        can_communication,
+        flash,
+        bms_monitor_communication,
+        openwire1,
+        openwire2,
+        openwire3,
+        openwire4,
+        openwire5,
+        openwire6,
+        openwire7,
+        openwire8,
+        openwire9,
+        openwire10,
+        openwire11,
+        openwire12,
+        openwire13);
 
     const uint8_t cellboard_error = post | undervoltage | overvoltage | undertemperature | overtemperature | discharge_undertemperature | discharge_overtemperature | can_communication | flash | bms_monitor_communication | openwire1 | openwire2 | openwire3 | openwire4 | openwire5 | openwire6 | openwire7 | openwire8 | openwire9 | openwire10 | openwire11 | openwire12 | openwire13;
     if (cellboard_error > 0) {

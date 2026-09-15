@@ -28,7 +28,7 @@ EAGLETRT_STATIC struct CurrentHandler current_api_handler;
  * \brief Timeout callback for the sensor communication watchdog
  */
 EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
-    logger_api_log(LOGGER_RC_ERROR, "Current sensor communication timeout");
+    logger_api_log(LOGGER_LEVEL_ERROR, "Current sensor communication timeout");
     error_api_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
 }
 
@@ -51,12 +51,17 @@ EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
     }
 }
 
+void dummy() {
+
+    logger_api_log(LOGGER_LEVEL_ERROR, "Current sensor communication whould have timed out");
+}
+
 enum CurrentReturnCode current_api_init(void) {
     memset(&current_api_handler, 0U, sizeof(current_api_handler));
     (void)watchdog_init(
         &current_api_handler.sensor_wdg,
-        CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
-        prv_current_api_sensor_communcation_timeout);
+        1500,   //CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
+        dummy); // prv_current_api_sensor_communcation_timeout);
     return CURRENT_RC_OK;
 }
 

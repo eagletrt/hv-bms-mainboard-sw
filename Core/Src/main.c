@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
+#include "feedback.h"
 #include "logger.h"
 #include "spi.h"
 #include "stm32f4xx_hal.h"
@@ -118,6 +119,7 @@ typedef enum MainLogMode {
     MAIN_LOG_MODE_CURRENT,
     MAIN_LOG_MODE_IMD,
     MAIN_LOG_MODE_FEEDBACK
+
 } MainLogMode;
 
 EAGLETRT_STATIC MainLogMode main_log_mode = MAIN_LOG_MODE_VOLTAGE;
@@ -187,6 +189,51 @@ EAGLETRT_STATIC void prv_main_print_selected_log(void) {
     }
 }
 
+EAGLETRT_STATIC void prv_main_print_feedback_masks_log(void) {
+    struct MainFeedbackMaskCheck {
+        const char *name;
+        bit_flag32_t mask;
+        bit_flag32_t value;
+    };
+
+    const struct MainFeedbackMaskCheck checks[] = {
+        { "IDLE -> AIRN_CHECK", FEEDBACK_IDLE_TO_AIRN_CHECK_MASK, FEEDBACK_IDLE_TO_AIRN_CHECK_HIGH },
+        { "AIRN_CHECK -> PRECHARGE", FEEDBACK_AIRN_CHECK_TO_PRECHARGE_MASK, FEEDBACK_AIRN_CHECK_TO_PRECHARGE_HIGH },
+        { "PRECHARGE -> AIRP_CHECK", FEEDBACK_PRECHARGE_TO_AIRP_CHECK_MASK, FEEDBACK_PRECHARGE_TO_AIRP_CHECK_HIGH },
+        { "AIRP_CHECK -> TS_ON", FEEDBACK_AIRP_CHECK_TO_TS_ON_MASK, FEEDBACK_AIRP_CHECK_TO_TS_ON_HIGH },
+        { "TS_ON (hold)", FEEDBACK_TS_ON_MASK, FEEDBACK_TS_ON_HIGH },
+    };
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Feedback mask check report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_main_fsm_state_name());
+
+    for (size_t i = 0U; i < sizeof(checks) / sizeof(checks[0]); ++i) {
+        enum FeedbackId offending = FEEDBACK_ID_INVALID;
+        const bool ok = feedback_api_check_values(checks[i].mask, checks[i].value, &offending);
+
+        if (ok) {
+            logger_api_log(LOGGER_LEVEL_INFO, "%-24s | OK", checks[i].name);
+        } else {
+            const bool expected_high = EAGLETRT_API_BIT_GET(checks[i].value, offending);
+            const enum FeedbackStatus actual = feedback_api_get_status(offending);
+            const char *actual_name =
+                (actual == FEEDBACK_STATUS_HIGH) ? "high" : (actual == FEEDBACK_STATUS_LOW) ? "low"
+                                                                                            : "error";
+
+            logger_api_log(
+                LOGGER_LEVEL_INFO,
+                "%-24s | FAIL | %s expected %s, got %s",
+                checks[i].name,
+                feedback_api_feedback_id_name(offending),
+                expected_high ? "high" : "low",
+                actual_name);
+        }
+    }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
+
 EAGLETRT_STATIC void prv_main_toggle_balancing(void) {
     enum BalReturnCode result;
 
@@ -251,15 +298,22 @@ EAGLETRT_STATIC void prv_main_handle_uart_log_selection(void) {
             break;
         case 'h':
             logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_main_fsm_state_name());
-            logger_api_log(LOGGER_LEVEL_EMPTY, "Keys: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle");
+            logger_api_log(LOGGER_LEVEL_EMPTY, "Keys: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle | q ts on | w ts off | k feedback masks | h help | x exit");
+            return;
             break;
         case 'q':
             static fsm_event_data_t event = { .type = FSM_EVENT_TYPE_TS_ON };
             fsm_event_trigger(&event);
+            return;
             break;
         case 'w':
             static fsm_event_data_t event2 = { .type = FSM_EVENT_TYPE_TS_OFF };
             fsm_event_trigger(&event2);
+            return;
+            break;
+        case 'k':
+            prv_main_print_feedback_masks_log();
+            return;
             break;
         default:
             break;
@@ -314,10 +368,10 @@ int main(void) {
     /* USER CODE BEGIN 2 */
 
     prv_main_init_logging_configuration();
-    EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_LEVEL_ERROR));
+    EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_LEVEL_INFO));
 
     logger_api_log(LOGGER_LEVEL_INFO, "Starting main application");
-    logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "UART log mode: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle | q ts on | w ts off | k feedback masks | h help | x exit");
 
     // Configure and start CAN given if the handcart is connected or not
     // The handcart charger uses 250K baud rate, the vehicle 1M
@@ -379,11 +433,18 @@ int main(void) {
 
     logger_api_log(LOGGER_LEVEL_INFO, "POST procedure completed, entering main loop");
 
+    fsm_state_t last_fsm_state = fsm_state;
+
     uint32_t last_log_tick = 0U;
     while (1) {
         prv_main_handle_uart_log_selection();
 
         fsm_state = fsm_run_state(fsm_state, NULL);
+
+        if (last_fsm_state != fsm_state) {
+            logger_api_log(LOGGER_LEVEL_INFO, "FSM state changed: %s -> %s", fsm_state_names[last_fsm_state], fsm_state_names[fsm_state]);
+            last_fsm_state = fsm_state;
+        }
 
         if (HAL_GetTick() - last_log_tick >= MAIN_LOG_INTERVAL_MS) {
             HAL_GPIO_TogglePin(LED_2_GPIO_Port, LED_2_Pin);

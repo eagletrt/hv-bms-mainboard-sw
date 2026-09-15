@@ -235,6 +235,15 @@ void fsm_cellboard5_state_handle(enum CanBmsTsaccellboard5fsmStatus status);
 void fsm_cellboard6_state_handle(enum CanBmsTsaccellboard6fsmStatus status);
 
 /*!
+ * \brief Get the string representation of a Cellboard status
+ *
+ * \param[in] ID The Cellboard ID
+ *
+ * \returns A pointer to the string representation of the status
+ */
+char *fsm_cellboard_get_state_handle(uint8_t ID);
+
+/*!
  * \brief Get a pointer to the CAN payload structure of the FSM status
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)

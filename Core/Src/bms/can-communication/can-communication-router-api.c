@@ -11,6 +11,8 @@
 
 #include "eagletrt-api.h"
 #include "led.h"
+#include "logger-api.h"
+#include "logger.h"
 #include "main.h"
 #include "mainboard-conf.h"
 #include "can-communication.h"
@@ -1357,10 +1359,10 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
     }
 
     switch (frame->id) {
-        case CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYBALANCINGSET:
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET:
             bal_api_set_balancing_state_handle(
-                message.raspberrybalancingset.start,
-                message.raspberrybalancingset.threshold);
+                message.raspberrytsacbalancingset.start,
+                message.raspberrytsacbalancingset.threshold);
             break;
         case CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET:
             pcu_api_bms_set_handle(message.bmsset.status);

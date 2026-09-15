@@ -27,6 +27,7 @@
 #include "can-communication.h"
 #include "can-communication-api.h"
 #include "can-primary.h"
+#include "logger-api.h"
 #include "main.h"
 #include "mainboard-def.h"
 #include "eagletrt.h"
@@ -248,7 +249,7 @@ void prv_can_primary_start() {
         .FilterActivation = CAN_FILTER_ENABLE,
         .FilterBank = 0,
         .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYBALANCINGSET << 5,
+        .FilterIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET << 5,
         .FilterIdLow = CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM << 5,
         .FilterMaskIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET << 5,
         .FilterMaskIdLow = 0x20U << 5,
@@ -352,7 +353,17 @@ EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_send_to_hardware(enum Ca
         .TransmitGlobalTime = DISABLE
     };
     uint32_t tx_mailbox = 0U;
+
+    uint32_t wait_start_tick = HAL_GetTick();
+    while (HAL_CAN_GetTxMailboxesFreeLevel(hcan) == 0U) {
+        if ((HAL_GetTick() - wait_start_tick) >= CAN_TX_MAILBOX_FREE_TIMEOUT_MS) {
+            logger_api_log(LOGGER_LEVEL_ERROR, "CAN: TX mailbox free timeout");
+            return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
+        }
+    }
+
     if (HAL_CAN_AddTxMessage(hcan, &tx_header, (uint8_t *)frame->data, &tx_mailbox) != HAL_OK) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "CAN: TX message add error");
         return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
     }
     return CAN_COMMUNICATION_RC_OK;

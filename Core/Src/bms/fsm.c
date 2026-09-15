@@ -16,6 +16,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "fsm.h"
 
 /*** USER CODE BEGIN MACROS ***/
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 
@@ -434,6 +435,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_AIRN_TIMEOUT ||
             fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF ||
             fsm_fired_event->type == FSM_EVENT_TYPE_ECU_TIMEOUT) {
+            logger_api_log(LOGGER_LEVEL_ERROR, "Problem during TS on procedure, event: %d, returning to idle", fsm_fired_event->type);
             next_state = FSM_STATE_IDLE;
         }
     }
@@ -993,6 +995,51 @@ void fsm_cellboard6_state_handle(enum CanBmsTsaccellboard6fsmStatus status) {
         fsm_event_trigger(&hfsm.fatal_event);
     }
     hfsm.libcan_cellboard6_status = (enum CanPrimaryTsacstatusCellboard6status)status;
+}
+
+char *fsm_cellboard_get_state_handle(uint8_t ID) {
+
+    uint8_t status = 0U;
+
+    switch (ID) {
+        case 0:
+            status = hfsm.libcan_cellboard1_status;
+            break;
+        case 1:
+            status = hfsm.libcan_cellboard2_status;
+            break;
+        case 2:
+            status = hfsm.libcan_cellboard3_status;
+            break;
+        case 3:
+            status = hfsm.libcan_cellboard4_status;
+            break;
+        case 4:
+            status = hfsm.libcan_cellboard5_status;
+            break;
+        case 5:
+            status = hfsm.libcan_cellboard6_status;
+            break;
+        default:
+            return "UNKNOWN";
+    }
+
+    switch (status) {
+        case CAN_BMS_TSACCELLBOARD1FSM_STATUS_INIT:
+            return "INIT";
+        case CAN_BMS_TSACCELLBOARD1FSM_STATUS_IDLE:
+            return "IDLE";
+        case CAN_BMS_TSACCELLBOARD1FSM_STATUS_ERROR:
+            return "ERROR";
+        case CAN_BMS_TSACCELLBOARD1FSM_STATUS_FLASH:
+            return "FLASH";
+        case CAN_BMS_TSACCELLBOARD1FSM_STATUS_DISCHARGE:
+            return "DISCHARGE";
+        case CAN_BMS_TSACCELLBOARD1FSM_STATUS_COOLDOWN:
+            return "COOLDOWN";
+        default:
+            return "UNKNOWN";
+    }
 }
 
 union CanPrimaryMessages *fsm_get_canlib_payload(size_t *const byte_size) {

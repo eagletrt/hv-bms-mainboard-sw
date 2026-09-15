@@ -17,6 +17,7 @@
 #include "error-api.h"
 #include "eagletrt-api.h"
 #include "fsm.h"
+#include "identity.h"
 #include "logger.h"
 #include "mainboard-def.h"
 #include "logger-api.h"
@@ -68,12 +69,14 @@ EAGLETRT_STATIC_INLINE void prv_volt_print_cellboard_log(const CellboardId cellb
 
     logger_api_log(
         LOGGER_LEVEL_INFO,
-        "Cellboard %u | min %.3f V | max %.3f V | avg %.3f V | sum %.3f V",
+        "Cellboard %u | min %.3f V | max %.3f V | avg %.3f V | sum %.3f V | delta %.3f V | status %s",
         board_number,
         volt_handler.min[cellboard_id],
         volt_handler.max[cellboard_id],
         volt_handler.average[cellboard_id],
-        volt_handler.sum[cellboard_id]);
+        volt_handler.sum[cellboard_id],
+        volt_handler.max[cellboard_id] - volt_handler.min[cellboard_id],
+        fsm_cellboard_get_state_handle(cellboard_id));
 
     const volt_t *const volts = volt_handler.voltages[cellboard_id];
     for (size_t group = 0U; group < CELLBOARD_SEGMENT_SERIES_COUNT; group += VOLT_LOG_CELLS_PER_ROW) {
@@ -98,11 +101,12 @@ void volt_api_print_log(void) {
     logger_api_log(LOGGER_LEVEL_INFO, "Allowed range: %.3f V .. %.3f V", VOLT_MIN_V, VOLT_MAX_V);
     logger_api_log(
         LOGGER_LEVEL_INFO,
-        "Pack summary | min %.3f V | max %.3f V | avg %.3f V | sum %.3f V",
+        "Pack summary | min %.3f V | max %.3f V | avg %.3f V | sum %.3f V | delta %.3f V",
         volt_api_get_min(),
         volt_api_get_max(),
         volt_api_get_avg(),
-        volt_api_get_sum());
+        volt_api_get_sum(),
+        volt_api_get_max() - volt_api_get_min());
 
     for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
         prv_volt_print_cellboard_log(cellboard_id);

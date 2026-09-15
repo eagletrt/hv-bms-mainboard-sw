@@ -11,6 +11,7 @@
 #include "error-api.h"
 #include "error.h"
 #include "feedback.h"
+#include "gpio.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -266,7 +267,7 @@ enum FeedbackStatus prv_feedback_api_get_analog_status(const enum FeedbackAnalog
         return FEEDBACK_STATUS_ERROR;
     }
 
-    constexpr volt_t thr_high = FEEDBACK_THRESHOLD_HIGH_V;
+    volt_t thr_high = HAL_GPIO_ReadPin(HC_CONNECTED_MCU_GPIO_Port, HC_CONNECTED_MCU_Pin) ? 1.0F : FEEDBACK_THRESHOLD_HIGH_V;
     volt_t thr_low = FEEDBACK_THRESHOLD_LOW_V;
 
     // constexpr volt_t special_low_threshold = 1.6F;
