@@ -25,6 +25,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "can-communication.h"
 #include "can-primary.h"
 #include "eagletrt-api.h"
+#include "errorlib.h"
 #include "feedback.h"
 #include "logger-api.h"
 #include "logger.h"
@@ -294,6 +295,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
         strlen(display_animation),
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4,
         timebase_get_tick());
+
     /*** USER CODE END DO_FATAL ***/
 
     switch (next_state) {

@@ -108,10 +108,10 @@ enum ErrorReturnCode error_api_init(void) {
 }
 
 enum ErrorReturnCode error_api_set(const enum ErrorGroup group, const error_instance instance) {
-
-    logger_api_log(LOGGER_LEVEL_ERROR, "Error set: group=%d, instance=%d", group, instance);
-
     ErrorLibReturnCode ret = errorlib_error_set(&herror, (errorlib_error_group_t)group, instance);
+    if (error[group][instance] >= (int32_t)thresholds[group]) {
+        logger_api_log(LOGGER_LEVEL_ERROR, "Error expired: group=%d, instance=%d", group, instance);
+    }
     return ret != ERRORLIB_OK ? ERROR_RC_UNKNOWN : ERROR_RC_OK;
 }
 
@@ -323,34 +323,33 @@ void error_api_cellboard_handle(
         return;
     }
 
-    prv_error_log_cellboard_errors(
-        cellboard,
-        post,
-        undervoltage,
-        overvoltage,
-        undertemperature,
-        overtemperature,
-        discharge_undertemperature,
-        discharge_overtemperature,
-        can_communication,
-        flash,
-        bms_monitor_communication,
-        openwire1,
-        openwire2,
-        openwire3,
-        openwire4,
-        openwire5,
-        openwire6,
-        openwire7,
-        openwire8,
-        openwire9,
-        openwire10,
-        openwire11,
-        openwire12,
-        openwire13);
-
-    const uint8_t cellboard_error = post | undervoltage | overvoltage | undertemperature | overtemperature | discharge_undertemperature | discharge_overtemperature | can_communication | flash | bms_monitor_communication | openwire1 | openwire2 | openwire3 | openwire4 | openwire5 | openwire6 | openwire7 | openwire8 | openwire9 | openwire10 | openwire11 | openwire12 | openwire13;
-    if (cellboard_error > 0) {
+    const uint8_t cellboard_error_count = post | undervoltage | overvoltage | undertemperature | overtemperature | discharge_undertemperature | discharge_overtemperature | can_communication | flash | bms_monitor_communication | openwire1 | openwire2 | openwire3 | openwire4 | openwire5 | openwire6 | openwire7 | openwire8 | openwire9 | openwire10 | openwire11 | openwire12 | openwire13;
+    if (cellboard_error_count > 0) {
+        prv_error_log_cellboard_errors(
+            cellboard,
+            post,
+            undervoltage,
+            overvoltage,
+            undertemperature,
+            overtemperature,
+            discharge_undertemperature,
+            discharge_overtemperature,
+            can_communication,
+            flash,
+            bms_monitor_communication,
+            openwire1,
+            openwire2,
+            openwire3,
+            openwire4,
+            openwire5,
+            openwire6,
+            openwire7,
+            openwire8,
+            openwire9,
+            openwire10,
+            openwire11,
+            openwire12,
+            openwire13);
         error_api_set(ERROR_GROUP_CELLBOARD_ERROR, cellboard);
     } else {
         error_api_reset(ERROR_GROUP_CELLBOARD_ERROR, cellboard);
