@@ -26,6 +26,8 @@
 #include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "feedback.h"
+#include "logger-api.h"
+#include "logger.h"
 #include "mainboard-conf.h"
 
 #include "feedback-api.h"

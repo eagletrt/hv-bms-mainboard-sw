@@ -11,11 +11,14 @@
 
 #include <string.h>
 
+#include "cooling-temp-api.h"
+#include "cooling-temp.h"
 #include "eagletrt-api.h"
 #include "error-api.h"
 #include "can-primary.h"
 #include "fsm.h"
 #include "logger-api.h"
+#include "logger.h"
 #include "mainboard-def.h"
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
@@ -121,6 +124,18 @@ void temp_api_print_log(void) {
     for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
         prv_temp_print_cellboard_log(cellboard_id);
     }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+
+    logger_api_log(LOGGER_LEVEL_INFO, "Cooling temperatures");
+    const cooling_temps *cooling_temperatures = cooling_temp_api_get_values();
+    logger_api_log(LOGGER_LEVEL_INFO, "Inlet: %f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet Cocco: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 2: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 3: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 4: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 5: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 6: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6]);
 
     logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }

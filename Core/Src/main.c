@@ -235,22 +235,16 @@ EAGLETRT_STATIC void prv_main_print_feedback_masks_log(void) {
 }
 
 EAGLETRT_STATIC void prv_main_toggle_balancing(void) {
-    enum BalReturnCode result;
-
     if (bal_api_is_active()) {
-        result = bal_api_stop();
-        if (result == BAL_RC_OK) {
-            logger_api_log(LOGGER_LEVEL_EMPTY, "UART balancing action: stop");
-        } else {
-            logger_api_log(LOGGER_LEVEL_INFO, "UART balancing action failed: stop");
-        }
+        bal_api_set_balancing_state_handle(
+            false,
+            0.001F);
     } else {
-        result = bal_api_start();
-        if (result == BAL_RC_OK) {
-            logger_api_log(LOGGER_LEVEL_EMPTY, "UART balancing action: start");
-        } else {
-            logger_api_log(LOGGER_LEVEL_INFO, "UART balancing action failed: start");
-        }
+        bal_api_set_balancing_state_handle(
+            true,
+            0.001F);
+
+        logger_api_log(LOGGER_LEVEL_EMPTY, "UART balancing action: start");
     }
 }
 
@@ -298,7 +292,7 @@ EAGLETRT_STATIC void prv_main_handle_uart_log_selection(void) {
             break;
         case 'h':
             logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_main_fsm_state_name());
-            logger_api_log(LOGGER_LEVEL_EMPTY, "Keys: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle | q ts on | w ts off | k feedback masks | h help | x exit");
+            logger_api_log(LOGGER_LEVEL_ERROR, "Keys: v voltages | t temperatures | i internal voltage | p pcu | b balancing | c current | m imd | f feedback | s balance toggle | q ts on | w ts off | k feedback masks | h help | x exit");
             return;
             break;
         case 'q':
