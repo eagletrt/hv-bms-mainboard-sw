@@ -18,6 +18,7 @@
 #include "internal-voltage-api.h"
 #include "logger-api.h"
 #include "logger.h"
+#include "mainboard-def.h"
 #include "watchdog.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE

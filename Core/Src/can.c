@@ -28,6 +28,7 @@
 #include "can-communication-api.h"
 #include "can-primary.h"
 #include "logger-api.h"
+#include "logger.h"
 #include "main.h"
 #include "mainboard-def.h"
 #include "eagletrt.h"
