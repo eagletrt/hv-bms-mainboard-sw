@@ -24,8 +24,10 @@
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
 EAGLETRT_STATIC struct TempHandler temp_handler;
-EAGLETRT_STATIC constexpr size_t TEMP_LOG_SENSORS_PER_ROW = 6U;
-EAGLETRT_STATIC constexpr size_t TEMP_LOG_LAST_SENSOR_OFFSET = TEMP_LOG_SENSORS_PER_ROW - 1U;
+enum {
+    TEMP_LOG_SENSORS_PER_ROW = 6U,
+    TEMP_LOG_LAST_SENSOR_OFFSET = TEMP_LOG_SENSORS_PER_ROW - 1U,
+};
 
 // clang-format off
 
@@ -94,7 +96,7 @@ EAGLETRT_STATIC_INLINE void prv_temp_print_cellboard_log(const CellboardId cellb
         temp_handler.average[cellboard_id]);
 
     const celsius_t *const temperatures = temp_handler.temperatures[cellboard_id];
-    for (size_t group = 0U; group < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; group += TEMP_LOG_SENSORS_PER_ROW) {
+    for (size_t group = 0U; group < (size_t)CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; group += TEMP_LOG_SENSORS_PER_ROW) {
         logger_api_log(
             LOGGER_LEVEL_INFO,
             "  sensors %02u-%02u: %.3f %.3f %.3f %.3f %.3f %.3f C",

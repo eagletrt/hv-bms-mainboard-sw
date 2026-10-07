@@ -25,8 +25,10 @@
 #ifdef CONF_VOLTAGE_MODULE_ENABLE
 
 EAGLETRT_STATIC struct VoltHandler volt_handler;
-EAGLETRT_STATIC constexpr size_t VOLT_LOG_CELLS_PER_ROW = 6U;
-EAGLETRT_STATIC constexpr size_t VOLT_LOG_LAST_CELL_OFFSET = VOLT_LOG_CELLS_PER_ROW - 1U;
+enum {
+    VOLT_LOG_CELLS_PER_ROW = 6U,
+    VOLT_LOG_LAST_CELL_OFFSET = VOLT_LOG_CELLS_PER_ROW - 1U,
+};
 
 /*!
  * \brief Check if the voltage values are in range otherwise set an error

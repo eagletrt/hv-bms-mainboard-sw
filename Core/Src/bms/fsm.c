@@ -290,7 +290,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     (void)display_api_run_animation_string(
         display_animation,
         strlen(display_animation),
-        FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4,
+        (ticks_t)(FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4),
         timebase_get_tick());
 
     /*** USER CODE END DO_FATAL ***/

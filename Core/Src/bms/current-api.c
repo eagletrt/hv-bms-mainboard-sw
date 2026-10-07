@@ -1,7 +1,7 @@
 /*!
  * \file current.c
  * \date 2024-06-08
- * \author Antonio Gelain [antonio.gelain2@gmail.com]ù
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
  * \brief Current measurement and control
@@ -61,8 +61,8 @@ enum CurrentReturnCode current_api_init(void) {
     memset(&current_api_handler, 0U, sizeof(current_api_handler));
     (void)watchdog_init(
         &current_api_handler.sensor_wdg,
-        1500,   //CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
-        dummy); // prv_current_api_sensor_communcation_timeout);
+        CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
+        prv_current_api_sensor_communcation_timeout);
     return CURRENT_RC_OK;
 }
 
@@ -76,6 +76,7 @@ void current_api_set_current(ampere_t current) {
     if (result == WATCHDOG_RC_TIMED_OUT) {
         watchdog_restart(&current_api_handler.sensor_wdg);
     }
+    prv_current_api_check_value(current);
 }
 
 kilowatt_t current_api_get_power(void) {

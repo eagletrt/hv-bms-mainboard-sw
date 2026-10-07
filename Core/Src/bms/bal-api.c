@@ -31,8 +31,10 @@ void prv_bal_api_timeout(void) {
     fsm_event_trigger(&balancing_handler.event);
 }
 
-EAGLETRT_STATIC constexpr size_t BAL_LOG_CELLS_PER_ROW = 6U;
-EAGLETRT_STATIC constexpr size_t BAL_LOG_LAST_CELL_OFFSET = BAL_LOG_CELLS_PER_ROW - 1U;
+enum {
+    BAL_LOG_CELLS_PER_ROW = 6U,
+    BAL_LOG_LAST_CELL_OFFSET = BAL_LOG_CELLS_PER_ROW - 1U,
+};
 
 EAGLETRT_STATIC const char *prv_bal_fsm_state_name(void) {
     const fsm_state_t state = fsm_get_status();

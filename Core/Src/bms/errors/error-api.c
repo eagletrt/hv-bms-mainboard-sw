@@ -136,19 +136,19 @@ union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size) {
     }
     uint16_t undervoltage = 0;
     uint16_t overvoltage = 0;
-    for (uint16_t i = 0; i < CELLBOARD_SERIES_COUNT; ++i) {
+    for (uint16_t i = 0; i < (uint16_t)CELLBOARD_SERIES_COUNT; ++i) {
         undervoltage = undervoltage || error_under_voltage_instances[i];
         overvoltage = overvoltage || error_over_voltage_instances[i];
     }
     uint16_t undertemperature = 0;
     uint16_t overtemperature = 0;
-    for (uint16_t i = 0; i < CELLBOARD_TEMP_SENSOR_COUNT; ++i) {
+    for (uint16_t i = 0; i < (uint16_t)CELLBOARD_TEMP_SENSOR_COUNT; ++i) {
         undertemperature = undertemperature || error_under_temperature_instances[i];
         overtemperature = overtemperature || error_over_temperature_instances[i];
     }
     uint16_t cooling_undertemperature = 0;
     uint16_t cooling_overtemperature = 0;
-    for (uint16_t i = 0; i < COOLING_TEMP_SENSOR_COUNT; ++i) {
+    for (uint16_t i = 0; i < (uint16_t)COOLING_TEMP_SENSOR_COUNT; ++i) {
         cooling_undertemperature = cooling_undertemperature || error_cooling_under_temperature_instances[i];
         cooling_overtemperature = cooling_overtemperature || error_cooling_over_temperature_instances[i];
     }
