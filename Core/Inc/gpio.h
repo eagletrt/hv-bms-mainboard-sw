@@ -96,6 +96,13 @@ void gpio_pcu_toggle_state(enum PcuPin pin);
  */
 bit_flag32_t gpio_feedback_read_all(void);
 
+/*!
+ * \brief Read the HC connected status
+ *
+ * \returns true if the HC is connected, false otherwise
+ */
+bool gpio_read_hc_connected(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

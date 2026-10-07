@@ -10,10 +10,6 @@
 #include "can-communication-router-api.h"
 
 #include "eagletrt-api.h"
-#include "led.h"
-#include "logger-api.h"
-#include "logger.h"
-#include "main.h"
 #include "mainboard-conf.h"
 #include "can-communication.h"
 #include "can-bms-api.h"
@@ -26,13 +22,10 @@
 #include "pcu-api.h"
 #include "bal-api.h"
 #include "programmer-api.h"
-#include "usart.h"
 #include "volt-api.h"
 #include "current-api.h"
 #include "temp-api.h"
 #include "error-api.h"
-
-#include "gpio.h"
 
 #ifdef CONF_CAN_COMM_MODULE_ENABLE
 
@@ -1026,6 +1019,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
             }
             break;
         case CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATURE:
+
             switch (message.tsaccellboard6temperature.group) {
                 case 0: {
                     struct CanBmsTsaccellboard6temperatureGroupMux0 *payload = &message.tsaccellboard6temperature.group_payload.mux_0;

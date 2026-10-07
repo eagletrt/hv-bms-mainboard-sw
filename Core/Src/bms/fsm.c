@@ -33,7 +33,6 @@ Functions and types have been generated with prefix "fsm_"
 #include "post.h"
 
 #include "post-api.h"
-#include "stm32f4xx_hal.h"
 #include "timebase.h"
 #include "programmer-api.h"
 #include "feedback-api.h"
@@ -41,8 +40,6 @@ Functions and types have been generated with prefix "fsm_"
 #include "error-api.h"
 #include "display-api.h"
 #include "pcu-api.h"
-
-#include "usart.h"
 /*** USER CODE END MACROS ***/
 
 // GLOBALS

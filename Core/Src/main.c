@@ -417,6 +417,7 @@ int main(void) {
         .pcu_toggle = gpio_pcu_toggle_state,
         .feedback_read_all = gpio_feedback_read_all,
         .feedback_start_conversion = adc_start_feedback_conversion,
+        .feedback_read_hc_connected = gpio_read_hc_connected,
         .display_set = gpio_display_segment_set_state,
         .display_toggle = gpio_display_segment_toggle_state,
         .spi_send = spi_send,

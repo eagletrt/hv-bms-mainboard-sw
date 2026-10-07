@@ -40,6 +40,21 @@
 #define FEEDBACK_THRESHOLD_LOW_V (0.7f)
 
 /*!
+ * \brief Threshold for the 5V to MCU feedback when the HC is connected
+ *
+ * \details The threshold is lower when the HC is connected because the voltage divider
+ * is different and the voltage at the feedback pin is lower
+ */
+#define FEEDBACK_THRESHOLD_HIGH_HC_V (1.0f)
+
+/*!
+ * \brief Callback function to read the HC connected status
+ *
+ * \returns true if the HC is connected, false otherwise
+ */
+typedef bool (*feedback_read_hc_connected_callback)(void);
+
+/*!
  * \brief Convert the feedback voltage to the 5V to MCU voltage in V
  *
  * \param value The feedback voltage
@@ -378,6 +393,7 @@ enum FeedbackStatus : uint8_t {
 struct FeedbackHandler {
     feedback_read_digital_all_callback read_digital;            /*!< Pointer to the function used to read all the digital feedbacks */
     feedback_start_analog_conversion_callback start_conversion; /*!< Pointer to the function used to start the converison of the analog feedbacks */
+    feedback_read_hc_connected_callback read_hc_connected;      /*!< Pointer to the function used to read the HC connected status */
 
     bit_flag32_t digital;                       /*!< Bit flag where each bit represent a specific feedback state */
     volt_t analog[FEEDBACK_ANALOG_INDEX_COUNT]; /*!< Array of raw voltages of the analog feedbacks */

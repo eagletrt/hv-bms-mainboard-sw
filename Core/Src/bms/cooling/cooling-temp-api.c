@@ -17,7 +17,6 @@
 #include "logger-api.h"
 
 #include "logger.h"
-#include "usart.h"
 
 #ifdef CONF_COOLING_TEMPERATURE_MODULE_ENABLE
 

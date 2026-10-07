@@ -398,4 +398,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     }
 }
 
+bool gpio_read_hc_connected(void) {
+    const GPIO_PinState handcart_connected = HAL_GPIO_ReadPin(HC_CONNECTED_MCU_GPIO_Port, HC_CONNECTED_MCU_Pin);
+    if (handcart_connected == GPIO_PIN_SET) {
+        return true;
+    }
+    return false;
+}
+
 /* USER CODE END 2 */

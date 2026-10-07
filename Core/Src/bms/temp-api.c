@@ -148,6 +148,7 @@ void temp_api_set_value(const CellboardId cellboard, const uint8_t index, const 
     if (cellboard >= CELLBOARD_ID_COUNT || index >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
         return;
     }
+    prv_temp_check_value(cellboard, index, temperature);
     temp_handler.temperatures[cellboard][index] = temperature;
 }
 
@@ -619,6 +620,7 @@ union CanPrimaryMessages *temp_api_get_cellboard6_temperature_canlib_payload(siz
     struct CanPrimaryTsaccellboard6temperature *payload = &temp_handler.libcan_message_cellboard6.tsaccellboard6temperature;
     const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_5];
     payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+
     switch (payload->group) {
         case 0:
             payload->group_payload.mux_0.cell1 = temps[0];

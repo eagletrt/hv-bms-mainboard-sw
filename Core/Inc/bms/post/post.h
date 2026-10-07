@@ -44,6 +44,7 @@ struct PostInitData {
     pcu_toggle_state_callback pcu_toggle;                                /*!< Pack Control Unit toggle status callback */
     feedback_start_analog_conversion_callback feedback_start_conversion; /*!< Start feedback conversion callback */
     feedback_read_digital_all_callback feedback_read_all;                /*!< Read all feedbacks callback */
+    feedback_read_hc_connected_callback feedback_read_hc_connected;      /*!< Read the HC connected status callback */
     display_segment_set_state_callback display_set;                      /*!< 7-segment display set segment status callback */
     display_segment_toggle_state_callback display_toggle;                /*!< 7-segment display toggle segment status callback */
     spi_send_callback_t spi_send;                                        /*!< SPI send message callback */

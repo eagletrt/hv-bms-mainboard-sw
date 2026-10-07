@@ -63,7 +63,7 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
     EAGLETRT_API_UNUSED(programmer_api_init(data->system_reset));
     EAGLETRT_API_UNUSED(led_api_init(data->led_set, data->led_toggle));
     EAGLETRT_API_UNUSED(imd_api_init(data->imd_start));
-    EAGLETRT_API_UNUSED(feedback_api_init(data->feedback_read_all, data->feedback_start_conversion));
+    EAGLETRT_API_UNUSED(feedback_api_init(data->feedback_read_all, data->feedback_start_conversion, data->feedback_read_hc_connected));
     EAGLETRT_API_UNUSED(display_api_init(data->display_set, data->display_toggle));
     EAGLETRT_API_UNUSED(internal_voltage_api_init(data->spi_send, data->spi_send_receive));
     EAGLETRT_API_UNUSED(bal_api_init());

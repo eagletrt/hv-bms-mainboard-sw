@@ -22,11 +22,12 @@
  *
  * \param read_all A pointer to the callback that should read all the digital feedbacks
  * \param start_conversion A pointer to the callback that should start the conversion of the analog feedbacks
+ * \param read_hc_connected A pointer to the callback that should read the HC connected status
  *
  * \retval FEEDBACK_NULL_POINTER if any of the parameters are NULL
  * \retval FEEDBACK_OK otherwise
  */
-enum FeedbackReturnCode feedback_api_init(feedback_read_digital_all_callback read_all, feedback_start_analog_conversion_callback start_conversion);
+enum FeedbackReturnCode feedback_api_init(feedback_read_digital_all_callback read_all, feedback_start_analog_conversion_callback start_conversion, feedback_read_hc_connected_callback read_hc_connected);
 
 /*!
  * \brief Update all the digital feedbacks
@@ -159,28 +160,18 @@ union CanPrimaryMessages *feedback_api_get_feedback_shutdown_payload(size_t *byt
  */
 void feedback_api_print_log(void);
 
-char *feedback_api_feedback_id_name(const enum FeedbackId id);
-
-#ifdef CONF_FEEDBACK_STRINGS_ENABLE
-
 /*!
- * \brief Get the name of the corresponding feedback identifier
+ * \brief Get the name of a feedback by its ID
  *
- * \param id The feedback identifier
+ * \param id The feedback ID
  *
- * \returns A pointer to the name of the feedback id
+ * \returns A pointer to the name of the feedback
  */
-const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
-
-#else // CONF_FEEDBACK_STRINGS_ENABLE
-
-#define feedback_api_get_feedback_id_name(id) ""
-
-#endif // CONF_FEEDBACK_STRINGS_ENABLE
+char *feedback_api_feedback_id_name(enum FeedbackId feedback_id);
 
 #else // CONF_FEEDBACK_MODULE_ENABLE
 
-#define feedback_api_init(read_all, start_conversion) (FEEDBACK_RC_OK)
+#define feedback_api_init(read_all, start_conversion, read_hc_connected) (FEEDBACK_RC_OK)
 #define feedback_api_update_digital_feedback_all() (FEEDBACK_RC_OK)
 #define feedback_api_start_analog_conversion_all() (FEEDBACK_RC_OK)
 #define feedback_api_update_analog_feedback(index, value) (FEEDBACK_RC_OK)
@@ -196,6 +187,7 @@ const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
 #define feedback_api_get_shutdown_payload(byte_size) (NULL)
 #define feedback_api_get_feedback_shutdown_payload(byte_size) (NULL)
 #define feedback_api_print_log() EAGLETRT_API_NOP()
+#define feedback_api_feedback_id_name(feedback_id) ("invalid")
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

@@ -123,6 +123,7 @@ void volt_api_set_value(const CellboardId cellboard, const uint8_t index, const 
     if (cellboard >= CELLBOARD_ID_COUNT || index >= CELLBOARD_SEGMENT_SERIES_COUNT) {
         return;
     }
+    prv_volt_check_value(cellboard, index, voltage);
     volt_handler.voltages[cellboard][index] = voltage;
 }
 

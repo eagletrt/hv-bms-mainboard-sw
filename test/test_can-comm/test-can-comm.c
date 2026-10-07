@@ -7,7 +7,7 @@
  */
 
 #include "unity.h"
-#include "can-comm-api.h"
+#include "can-communication-api.h"
 #include "identity-api.h"
 #include "mainboard-def.h"
 #include "fff.h"
