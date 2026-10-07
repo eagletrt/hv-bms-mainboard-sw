@@ -9,6 +9,7 @@
 #include "internal-voltage.h"
 #include "unity.h"
 #include "internal-voltage-api.h"
+#include "max22530-api.h"
 #include "mainboard-def.h"
 #include "volt-api.h"
 
@@ -53,18 +54,32 @@ void test_internal_voltage_read_all_ok() {
     // The content of the handler is not checked as it is just a conversion of the max22530 read function, which is (going to be) tested separately.
 }
 
-void test_internal_voltage_get_ts_voltage_canlib_payload_pointer_and_size() {
+void test_internal_voltage_get_canlib_payload_pointer_and_size() {
     size_t byte_size = 0U;
-    primary_hv_ts_voltage_converted_t *payload = internal_voltage_api_get_ts_voltage_canlib_payload(&byte_size);
+    union CanPrimaryMessages *payload = internal_voltage_api_get_canlib_payload(&byte_size);
 
-    TEST_ASSERT_EQUAL_MESSAGE(&internal_volt_handler.ts_voltage_can_payload, payload, "Returned payload pointer does not match internal handler");
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(internal_volt_handler.ts_voltage_can_payload), byte_size, "Returned payload size mismatch");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&internal_volt_handler.libcan_message_voltage, payload, "Returned payload pointer does not match internal handler");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(can_primary_byte_size_tsacmainboardvoltageinfo, byte_size, "Returned payload size mismatch");
 }
 
-void test_internal_voltage_get_ts_voltage_canlib_payload_null_byte_size() {
-    primary_hv_ts_voltage_converted_t *payload = internal_voltage_api_get_ts_voltage_canlib_payload(NULL);
+void test_internal_voltage_get_canlib_payload_null_byte_size() {
+    union CanPrimaryMessages *payload = internal_voltage_api_get_canlib_payload(NULL);
 
-    TEST_ASSERT_EQUAL_MESSAGE(&internal_volt_handler.ts_voltage_can_payload, payload, "Returned payload pointer does not match internal handler");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&internal_volt_handler.libcan_message_voltage, payload, "Returned payload pointer does not match internal handler");
+}
+
+void test_internal_voltage_get_canlib_payload_content() {
+    internal_volt_handler.ts = 400.F;
+    internal_volt_handler.pack = 410.F;
+
+    union CanPrimaryMessages *payload = internal_voltage_api_get_canlib_payload(NULL);
+
+    TEST_ASSERT_EQUAL_FLOAT(400.F, payload->tsacmainboardvoltageinfo.ts);
+    TEST_ASSERT_EQUAL_FLOAT(410.F, payload->tsacmainboardvoltageinfo.total);
+    TEST_ASSERT_EQUAL_FLOAT(volt_api_get_sum(), payload->tsacmainboardvoltageinfo.cellsum);
+    TEST_ASSERT_EQUAL_FLOAT(volt_api_get_min(), payload->tsacmainboardvoltageinfo.min);
+    TEST_ASSERT_EQUAL_FLOAT(volt_api_get_max(), payload->tsacmainboardvoltageinfo.max);
+    TEST_ASSERT_EQUAL_FLOAT(volt_api_get_avg(), payload->tsacmainboardvoltageinfo.average);
 }
 
 void setUp() {
@@ -84,8 +99,9 @@ int main() {
     RUN_TEST(test_internal_voltage_init_null_pointer_send);
     RUN_TEST(test_internal_voltage_init_null_pointer_send_receive);
     RUN_TEST(test_internal_voltage_read_all_ok);
-    RUN_TEST(test_internal_voltage_get_ts_voltage_canlib_payload_pointer_and_size);
-    RUN_TEST(test_internal_voltage_get_ts_voltage_canlib_payload_null_byte_size);
+    RUN_TEST(test_internal_voltage_get_canlib_payload_pointer_and_size);
+    RUN_TEST(test_internal_voltage_get_canlib_payload_null_byte_size);
+    RUN_TEST(test_internal_voltage_get_canlib_payload_content);
 
     return UNITY_END();
 }

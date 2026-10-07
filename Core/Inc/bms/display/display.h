@@ -12,11 +12,9 @@
 #define DISPLAY_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "mainboard-def.h"
-#include "mainboard-conf.h"
-
-#include "tdsr0760-api.h"
+#include "tdsr0760.h"
 
 /*! \brief Total number of intraframes of a display animation */
 #define DISPLAY_INTRAFRAME_VERTICAL_COUNT (5U)

@@ -11,23 +11,6 @@
 
 extern struct TempHandler temp_handler;
 
-int32_t prv_temp_cell_position_from_index(size_t index);
-void prv_temp_check_value(CellboardId cellboard_id, size_t offset, celsius_t value);
-
-/* --- prv_temp_cell_position_from_index --- */
-
-void test_prv_temp_cell_position_from_index_valid(void) {
-    int32_t result = prv_temp_cell_position_from_index(0U);
-
-    TEST_ASSERT_EQUAL_INT32_MESSAGE(63, result, "prv_temp_cell_position_from_index() failed for index 0");
-}
-
-void test_prv_temp_cell_position_from_index_out_of_bounds(void) {
-    int32_t result = prv_temp_cell_position_from_index(CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT);
-
-    TEST_ASSERT_EQUAL_INT32_MESSAGE(-1, result, "prv_temp_cell_position_from_index() should return -1 for out-of-bounds index");
-}
-
 /* --- temp_api_init --- */
 
 void test_temp_api_init_ok(void) {
@@ -40,15 +23,64 @@ void test_temp_api_init_ok(void) {
     TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected, &temp_handler, sizeof(expected), "temp_api_init() did not zero-initialize the handler");
 }
 
+static void prv_fill_info(celsius_t min, celsius_t max, celsius_t average) {
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        temp_api_cellboard_temperature_info_handle(id, min, max, average);
+    }
+}
+
+/* --- temp_api_cellboard_temperature_info_handle --- */
+
+void test_temp_api_cellboard_temperature_info_handle_ok(void) {
+    temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_1, 1.0F, 2.0F, 3.0F);
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, temp_handler.min[CELLBOARD_ID_1], "temp_api_cellboard_temperature_info_handle() stored wrong min");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 2.0F, temp_handler.max[CELLBOARD_ID_1], "temp_api_cellboard_temperature_info_handle() stored wrong max");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 3.0F, temp_handler.average[CELLBOARD_ID_1], "temp_api_cellboard_temperature_info_handle() stored wrong average");
+}
+
+void test_temp_api_cellboard_temperature_info_handle_invalid_cellboard(void) {
+    temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_COUNT, 1.0F, 2.0F, 3.0F);
+
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.min[id], "temp_api_cellboard_temperature_info_handle() should ignore invalid cellboard id");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.max[id], "temp_api_cellboard_temperature_info_handle() should ignore invalid cellboard id");
+        TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.average[id], "temp_api_cellboard_temperature_info_handle() should ignore invalid cellboard id");
+    }
+}
+
+/* --- temp_api_set_value --- */
+
+void test_temp_api_set_value_ok(void) {
+    temp_api_set_value(CELLBOARD_ID_1, 3U, 25.5F);
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 25.5F, temp_handler.temperatures[CELLBOARD_ID_1][3U], "temp_api_set_value() did not store the value");
+}
+
+void test_temp_api_set_value_invalid_cellboard(void) {
+    temp_api_set_value(CELLBOARD_ID_COUNT, 0U, 25.5F);
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.temperatures[0U][0U], "temp_api_set_value() should ignore invalid cellboard id");
+}
+
+void test_temp_api_set_value_invalid_index(void) {
+    temp_api_set_value(CELLBOARD_ID_0, CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT, 25.5F);
+
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.temperatures[0U][0U], "temp_api_set_value() should ignore invalid index");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.temperatures[1U][0U], "temp_api_set_value() wrote out of the cellboard row");
+}
+
+/* --- temp_api_get_values --- */
+
+void test_temp_api_get_values(void) {
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.temperatures, temp_api_get_values(), "temp_api_get_values() returned the wrong pointer");
+}
+
 /* --- temp_api_get_min --- */
 
 void test_temp_api_get_min_single_low(void) {
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            temp_handler.temperatures[i][j] = 50.0F;
-        }
-    }
-    temp_handler.temperatures[1U][3U] = -10.0F;
+    prv_fill_info(50.0F, 50.0F, 50.0F);
+    temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_1, -10.0F, 50.0F, 50.0F);
 
     celsius_t min = temp_api_get_min();
 
@@ -58,199 +90,261 @@ void test_temp_api_get_min_single_low(void) {
 /* --- temp_api_get_max --- */
 
 void test_temp_api_get_max_single_high(void) {
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            temp_handler.temperatures[i][j] = 20.0F;
-        }
-    }
-    temp_handler.temperatures[0U][0U] = 80.0F;
+    prv_fill_info(20.0F, 20.0F, 20.0F);
+    temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_0, 20.0F, 80.0F, 20.0F);
 
     celsius_t max = temp_api_get_max();
 
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 80.0F, max, "temp_api_get_max() failed to find maximum value");
 }
 
-/* --- temp_api_get_sum --- */
-
-void test_temp_api_get_sum(void) {
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            temp_handler.temperatures[i][j] = 1.0F;
-        }
-    }
-
-    celsius_t sum = temp_api_get_sum();
-
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1F, (float)CELLBOARD_TEMP_SENSOR_COUNT, sum, "temp_api_get_sum() returned incorrect sum");
-}
-
 /* --- temp_api_get_avg --- */
 
 void test_temp_api_get_avg(void) {
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            temp_handler.temperatures[i][j] = 20.0F;
-        }
-    }
+    prv_fill_info(20.0F, 20.0F, 20.0F);
 
     celsius_t avg = temp_api_get_avg();
 
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 20.0F, avg, "temp_api_get_avg() failed");
 }
 
-/* --- temp_api_cells_temperature_handle --- */
+void test_temp_api_get_avg_different_values(void) {
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        temp_api_cellboard_temperature_info_handle(id, 0.0F, 0.0F, (celsius_t)id);
+    }
+    celsius_t expected = 0.0F;
+    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+        expected += (celsius_t)id;
+    }
+    expected /= (celsius_t)CELLBOARD_COUNT;
 
-void test_temp_api_cells_temperature_handle_null_payload(void) {
-    temp_api_cells_temperature_handle(NULL);
+    celsius_t avg = temp_api_get_avg();
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.temperatures[0U][0U], "temp_api_cells_temperature_handle() should not modify state on NULL payload");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, expected, avg, "temp_api_get_avg() should average the cellboard averages");
 }
 
-void test_temp_api_cells_temperature_handle_invalid_cellboard_id(void) {
-    bms_cellboard_cells_temperature_converted_t payload = {
-        .cellboard_id = CELLBOARD_ID_COUNT,
-        .offset = 0U,
-        .temperature_0 = 25.0F,
-        .temperature_1 = 26.0F,
-        .temperature_2 = 27.0F,
-        .temperature_3 = 28.0F,
-    };
+/* --- temp_api_get_cells_temperature_info_canlib_payload --- */
 
-    temp_api_cells_temperature_handle(&payload);
+void test_temp_api_get_cells_temperature_info_canlib_payload(void) {
+    size_t size = 0U;
+    prv_fill_info(20.0F, 20.0F, 20.0F);
+    temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_0, 5.0F, 20.0F, 20.0F);
+    temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_1, 20.0F, 60.0F, 20.0F);
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.temperatures[0U][0U], "temp_api_cells_temperature_handle() should not modify state for invalid cellboard id");
+    const union CanPrimaryMessages *payload = temp_api_get_cells_temperature_info_canlib_payload(&size);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_info_canlib_payload() should not return NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_temperature_info, payload, "temp_api_get_cells_temperature_info_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsacmainboardtemperatureinfo, size, "temp_api_get_cells_temperature_info_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsacmainboardtemperatureinfo.min, "wrong min");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 60.0F, payload->tsacmainboardtemperatureinfo.max, "wrong max");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1F, temp_api_get_avg(), payload->tsacmainboardtemperatureinfo.average, "wrong average");
 }
 
-void test_temp_api_cells_temperature_handle_offset_overflow(void) {
-    bms_cellboard_cells_temperature_converted_t payload = {
-        .cellboard_id = 0U,
-        .offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - 1U,
-        .temperature_0 = 25.0F,
-        .temperature_1 = 26.0F,
-        .temperature_2 = 27.0F,
-        .temperature_3 = 28.0F,
-    };
+void test_temp_api_get_cells_temperature_info_canlib_payload_null_size(void) {
+    prv_fill_info(20.0F, 20.0F, 20.0F);
 
-    temp_api_cells_temperature_handle(&payload);
+    const union CanPrimaryMessages *payload = temp_api_get_cells_temperature_info_canlib_payload(NULL);
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.temperatures[0U][0U], "temp_api_cells_temperature_handle() should not modify state when offset + size exceeds bounds");
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_info_canlib_payload() should not return NULL when byte_size is NULL");
 }
 
-void test_temp_api_cells_temperature_handle_ok(void) {
-    bms_cellboard_cells_temperature_converted_t payload = {
-        .cellboard_id = 0U,
-        .offset = 0U,
-        .temperature_0 = 10.0F,
-        .temperature_1 = 20.0F,
-        .temperature_2 = 30.0F,
-        .temperature_3 = 40.0F,
-    };
+/* --- temp_api_get_cellboardN_temperature_canlib_payload --- */
 
-    temp_api_cells_temperature_handle(&payload);
-
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, temp_handler.temperatures[0U][0U], "temp_api_cells_temperature_handle() stored wrong temperature_0");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 20.0F, temp_handler.temperatures[0U][1U], "temp_api_cells_temperature_handle() stored wrong temperature_1");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 30.0F, temp_handler.temperatures[0U][2U], "temp_api_cells_temperature_handle() stored wrong temperature_2");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 40.0F, temp_handler.temperatures[0U][3U], "temp_api_cells_temperature_handle() stored wrong temperature_3");
-}
-
-/* --- temp_api_get_cells_temperature_canlib_payload --- */
-
-void test_temp_api_get_cells_temperature_canlib_payload(void) {
+/*
+ * Each call sends the next group of 5 cells: the group counter starts from 0 and the
+ * first call after the initialization sends group 1, the tenth wraps back to group 0.
+ */
+void test_temp_api_get_cellboard1_temperature_canlib_payload(void) {
+    for (size_t i = 0U; i < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++i) {
+        temp_handler.temperatures[CELLBOARD_ID_0][i] = (celsius_t)(i + 1U);
+    }
     size_t size = 0U;
 
-    temp_handler.cellboard_id = 0U;
-    temp_handler.offset = 0U;
-    temp_handler.temperatures[0U][0U] = 11.0F;
-    temp_handler.temperatures[0U][1U] = 22.0F;
-    temp_handler.temperatures[0U][2U] = 33.0F;
-    temp_handler.temperatures[0U][3U] = 44.0F;
+    const union CanPrimaryMessages *payload = temp_api_get_cellboard1_temperature_canlib_payload(&size);
 
-    primary_hv_cells_temperature_converted_t *payload = temp_api_get_cells_temperature_canlib_payload(&size);
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cellboard1_temperature_canlib_payload() returned NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_cellboard1, payload, "temp_api_get_cellboard1_temperature_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsaccellboard1temperature, size, "temp_api_get_cellboard1_temperature_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_EQUAL_MESSAGE(1, payload->tsaccellboard1temperature.group, "first group should be 1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 6.0F, payload->tsaccellboard1temperature.group_payload.mux_1.cell6, "wrong cell6");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 7.0F, payload->tsaccellboard1temperature.group_payload.mux_1.cell7, "wrong cell7");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 8.0F, payload->tsaccellboard1temperature.group_payload.mux_1.cell8, "wrong cell8");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 9.0F, payload->tsaccellboard1temperature.group_payload.mux_1.cell9, "wrong cell9");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, payload->tsaccellboard1temperature.group_payload.mux_1.cell10, "wrong cell10");
 
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(temp_handler.temp_can_payload), size, "temp_api_get_cells_temperature_canlib_payload() returned incorrect byte size");
+    for (size_t call = 2U; call <= 9U; ++call) {
+        payload = temp_api_get_cellboard1_temperature_canlib_payload(NULL);
+        TEST_ASSERT_EQUAL_MESSAGE(call, payload->tsaccellboard1temperature.group, "group should increase on each call");
+    }
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 46.0F, payload->tsaccellboard1temperature.group_payload.mux_9.cell46, "wrong cell46");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 47.0F, payload->tsaccellboard1temperature.group_payload.mux_9.cell47, "wrong cell47");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 48.0F, payload->tsaccellboard1temperature.group_payload.mux_9.cell48, "wrong cell48");
 
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 11.0F, payload->temperature_0, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_0");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 22.0F, payload->temperature_1, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_1");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 33.0F, payload->temperature_2, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_2");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 44.0F, payload->temperature_3, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_3");
-    TEST_ASSERT_EQUAL_MESSAGE(TEMP_TEMPERATURE_PER_MESSAGE_COUNT, temp_handler.offset, "temp_api_get_cells_temperature_canlib_payload() did not advance offset");
+    payload = temp_api_get_cellboard1_temperature_canlib_payload(NULL);
+    TEST_ASSERT_EQUAL_MESSAGE(0, payload->tsaccellboard1temperature.group, "group should wrap to 0");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, payload->tsaccellboard1temperature.group_payload.mux_0.cell1, "wrong cell1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsaccellboard1temperature.group_payload.mux_0.cell5, "wrong cell5");
 }
 
-void test_temp_api_get_cells_temperature_canlib_payload_null_size(void) {
-    temp_handler.cellboard_id = 0U;
-    temp_handler.offset = 0U;
-
-    primary_hv_cells_temperature_converted_t *payload = temp_api_get_cells_temperature_canlib_payload(NULL);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_canlib_payload() should not return NULL when byte_size is NULL");
-}
-
-void test_temp_api_get_cells_temperature_canlib_payload_offset_wraps(void) {
-    temp_handler.cellboard_id = 0U;
-    temp_handler.offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - TEMP_TEMPERATURE_PER_MESSAGE_COUNT;
-
-    (void)temp_api_get_cells_temperature_canlib_payload(NULL);
-
-    TEST_ASSERT_EQUAL_MESSAGE(0U, temp_handler.offset, "temp_api_get_cells_temperature_canlib_payload() did not wrap offset to 0");
-    TEST_ASSERT_EQUAL_MESSAGE(1U, temp_handler.cellboard_id, "temp_api_get_cells_temperature_canlib_payload() did not advance cellboard_id on offset wrap");
-}
-
-void test_temp_api_get_cells_temperature_canlib_payload_cellboard_wraps(void) {
-    temp_handler.cellboard_id = CELLBOARD_ID_COUNT - 1U;
-    temp_handler.offset = CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT - TEMP_TEMPERATURE_PER_MESSAGE_COUNT;
-
-    (void)temp_api_get_cells_temperature_canlib_payload(NULL);
-
-    TEST_ASSERT_EQUAL_MESSAGE(0U, temp_handler.cellboard_id, "temp_api_get_cells_temperature_canlib_payload() did not wrap cellboard_id to 0");
-}
-
-void test_temp_api_get_cells_temperature_canlib_payload_temperature_ids(void) {
-    temp_handler.cellboard_id = 0U;
-    temp_handler.offset = 0U;
-
-    primary_hv_cells_temperature_converted_t *payload = temp_api_get_cells_temperature_canlib_payload(NULL);
-
-    TEST_ASSERT_EQUAL_INT32_MESSAGE(prv_temp_cell_position_from_index(0U), payload->temperature_id_0, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_id_0");
-    TEST_ASSERT_EQUAL_INT32_MESSAGE(prv_temp_cell_position_from_index(1U), payload->temperature_id_1, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_id_1");
-    TEST_ASSERT_EQUAL_INT32_MESSAGE(prv_temp_cell_position_from_index(2U), payload->temperature_id_2, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_id_2");
-    TEST_ASSERT_EQUAL_INT32_MESSAGE(prv_temp_cell_position_from_index(3U), payload->temperature_id_3, "temp_api_get_cells_temperature_canlib_payload() wrong temperature_id_3");
-}
-
-/* --- temp_api_get_cells_temperature_stats_canlib_payload --- */
-
-void test_temp_api_get_cells_temperature_stats_canlib_payload(void) {
-
+void test_temp_api_get_cellboard2_temperature_canlib_payload(void) {
+    for (size_t i = 0U; i < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++i) {
+        temp_handler.temperatures[CELLBOARD_ID_1][i] = (celsius_t)(i + 1U);
+    }
     size_t size = 0U;
 
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            temp_handler.temperatures[i][j] = 20.0F;
-        }
+    const union CanPrimaryMessages *payload = temp_api_get_cellboard2_temperature_canlib_payload(&size);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cellboard2_temperature_canlib_payload() returned NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_cellboard2, payload, "temp_api_get_cellboard2_temperature_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsaccellboard2temperature, size, "temp_api_get_cellboard2_temperature_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_EQUAL_MESSAGE(1, payload->tsaccellboard2temperature.group, "first group should be 1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 6.0F, payload->tsaccellboard2temperature.group_payload.mux_1.cell6, "wrong cell6");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 7.0F, payload->tsaccellboard2temperature.group_payload.mux_1.cell7, "wrong cell7");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 8.0F, payload->tsaccellboard2temperature.group_payload.mux_1.cell8, "wrong cell8");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 9.0F, payload->tsaccellboard2temperature.group_payload.mux_1.cell9, "wrong cell9");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, payload->tsaccellboard2temperature.group_payload.mux_1.cell10, "wrong cell10");
+
+    for (size_t call = 2U; call <= 9U; ++call) {
+        payload = temp_api_get_cellboard2_temperature_canlib_payload(NULL);
+        TEST_ASSERT_EQUAL_MESSAGE(call, payload->tsaccellboard2temperature.group, "group should increase on each call");
     }
-    temp_handler.temperatures[0U][0U] = 5.0F;
-    temp_handler.temperatures[1U][0U] = 60.0F;
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 46.0F, payload->tsaccellboard2temperature.group_payload.mux_9.cell46, "wrong cell46");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 47.0F, payload->tsaccellboard2temperature.group_payload.mux_9.cell47, "wrong cell47");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 48.0F, payload->tsaccellboard2temperature.group_payload.mux_9.cell48, "wrong cell48");
 
-    primary_hv_cells_temp_stats_converted_t *payload = temp_api_get_cells_temperature_stats_canlib_payload(&size);
-
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(temp_handler.temp_stats_can_payload), size, "temp_api_get_cells_temperature_stats_canlib_payload() returned incorrect byte size");
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_stats_canlib_payload() should not return NULL");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->min, "temp_api_get_cells_temperature_stats_canlib_payload() wrong min");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 60.0F, payload->max, "temp_api_get_cells_temperature_stats_canlib_payload() wrong max");
-    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1F, temp_api_get_avg(), payload->avg, "temp_api_get_cells_temperature_stats_canlib_payload() wrong avg");
+    payload = temp_api_get_cellboard2_temperature_canlib_payload(NULL);
+    TEST_ASSERT_EQUAL_MESSAGE(0, payload->tsaccellboard2temperature.group, "group should wrap to 0");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, payload->tsaccellboard2temperature.group_payload.mux_0.cell1, "wrong cell1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsaccellboard2temperature.group_payload.mux_0.cell5, "wrong cell5");
 }
 
-void test_temp_api_get_cells_temperature_stats_canlib_payload_null_size(void) {
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            temp_handler.temperatures[i][j] = 20.0F;
-        }
+void test_temp_api_get_cellboard3_temperature_canlib_payload(void) {
+    for (size_t i = 0U; i < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++i) {
+        temp_handler.temperatures[CELLBOARD_ID_2][i] = (celsius_t)(i + 1U);
     }
+    size_t size = 0U;
 
-    primary_hv_cells_temp_stats_converted_t *payload = temp_api_get_cells_temperature_stats_canlib_payload(NULL);
+    const union CanPrimaryMessages *payload = temp_api_get_cellboard3_temperature_canlib_payload(&size);
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cells_temperature_stats_canlib_payload() should not return NULL when byte_size is NULL");
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cellboard3_temperature_canlib_payload() returned NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_cellboard3, payload, "temp_api_get_cellboard3_temperature_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsaccellboard3temperature, size, "temp_api_get_cellboard3_temperature_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_EQUAL_MESSAGE(1, payload->tsaccellboard3temperature.group, "first group should be 1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 6.0F, payload->tsaccellboard3temperature.group_payload.mux_1.cell6, "wrong cell6");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 7.0F, payload->tsaccellboard3temperature.group_payload.mux_1.cell7, "wrong cell7");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 8.0F, payload->tsaccellboard3temperature.group_payload.mux_1.cell8, "wrong cell8");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 9.0F, payload->tsaccellboard3temperature.group_payload.mux_1.cell9, "wrong cell9");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, payload->tsaccellboard3temperature.group_payload.mux_1.cell10, "wrong cell10");
+
+    for (size_t call = 2U; call <= 9U; ++call) {
+        payload = temp_api_get_cellboard3_temperature_canlib_payload(NULL);
+        TEST_ASSERT_EQUAL_MESSAGE(call, payload->tsaccellboard3temperature.group, "group should increase on each call");
+    }
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 46.0F, payload->tsaccellboard3temperature.group_payload.mux_9.cell46, "wrong cell46");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 47.0F, payload->tsaccellboard3temperature.group_payload.mux_9.cell47, "wrong cell47");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 48.0F, payload->tsaccellboard3temperature.group_payload.mux_9.cell48, "wrong cell48");
+
+    payload = temp_api_get_cellboard3_temperature_canlib_payload(NULL);
+    TEST_ASSERT_EQUAL_MESSAGE(0, payload->tsaccellboard3temperature.group, "group should wrap to 0");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, payload->tsaccellboard3temperature.group_payload.mux_0.cell1, "wrong cell1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsaccellboard3temperature.group_payload.mux_0.cell5, "wrong cell5");
+}
+
+void test_temp_api_get_cellboard4_temperature_canlib_payload(void) {
+    for (size_t i = 0U; i < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++i) {
+        temp_handler.temperatures[CELLBOARD_ID_3][i] = (celsius_t)(i + 1U);
+    }
+    size_t size = 0U;
+
+    const union CanPrimaryMessages *payload = temp_api_get_cellboard4_temperature_canlib_payload(&size);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cellboard4_temperature_canlib_payload() returned NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_cellboard4, payload, "temp_api_get_cellboard4_temperature_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsaccellboard4temperature, size, "temp_api_get_cellboard4_temperature_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_EQUAL_MESSAGE(1, payload->tsaccellboard4temperature.group, "first group should be 1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 6.0F, payload->tsaccellboard4temperature.group_payload.mux_1.cell6, "wrong cell6");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 7.0F, payload->tsaccellboard4temperature.group_payload.mux_1.cell7, "wrong cell7");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 8.0F, payload->tsaccellboard4temperature.group_payload.mux_1.cell8, "wrong cell8");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 9.0F, payload->tsaccellboard4temperature.group_payload.mux_1.cell9, "wrong cell9");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, payload->tsaccellboard4temperature.group_payload.mux_1.cell10, "wrong cell10");
+
+    for (size_t call = 2U; call <= 9U; ++call) {
+        payload = temp_api_get_cellboard4_temperature_canlib_payload(NULL);
+        TEST_ASSERT_EQUAL_MESSAGE(call, payload->tsaccellboard4temperature.group, "group should increase on each call");
+    }
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 46.0F, payload->tsaccellboard4temperature.group_payload.mux_9.cell46, "wrong cell46");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 47.0F, payload->tsaccellboard4temperature.group_payload.mux_9.cell47, "wrong cell47");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 48.0F, payload->tsaccellboard4temperature.group_payload.mux_9.cell48, "wrong cell48");
+
+    payload = temp_api_get_cellboard4_temperature_canlib_payload(NULL);
+    TEST_ASSERT_EQUAL_MESSAGE(0, payload->tsaccellboard4temperature.group, "group should wrap to 0");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, payload->tsaccellboard4temperature.group_payload.mux_0.cell1, "wrong cell1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsaccellboard4temperature.group_payload.mux_0.cell5, "wrong cell5");
+}
+
+void test_temp_api_get_cellboard5_temperature_canlib_payload(void) {
+    for (size_t i = 0U; i < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++i) {
+        temp_handler.temperatures[CELLBOARD_ID_4][i] = (celsius_t)(i + 1U);
+    }
+    size_t size = 0U;
+
+    const union CanPrimaryMessages *payload = temp_api_get_cellboard5_temperature_canlib_payload(&size);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cellboard5_temperature_canlib_payload() returned NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_cellboard5, payload, "temp_api_get_cellboard5_temperature_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsaccellboard5temperature, size, "temp_api_get_cellboard5_temperature_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_EQUAL_MESSAGE(1, payload->tsaccellboard5temperature.group, "first group should be 1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 6.0F, payload->tsaccellboard5temperature.group_payload.mux_1.cell6, "wrong cell6");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 7.0F, payload->tsaccellboard5temperature.group_payload.mux_1.cell7, "wrong cell7");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 8.0F, payload->tsaccellboard5temperature.group_payload.mux_1.cell8, "wrong cell8");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 9.0F, payload->tsaccellboard5temperature.group_payload.mux_1.cell9, "wrong cell9");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, payload->tsaccellboard5temperature.group_payload.mux_1.cell10, "wrong cell10");
+
+    for (size_t call = 2U; call <= 9U; ++call) {
+        payload = temp_api_get_cellboard5_temperature_canlib_payload(NULL);
+        TEST_ASSERT_EQUAL_MESSAGE(call, payload->tsaccellboard5temperature.group, "group should increase on each call");
+    }
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 46.0F, payload->tsaccellboard5temperature.group_payload.mux_9.cell46, "wrong cell46");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 47.0F, payload->tsaccellboard5temperature.group_payload.mux_9.cell47, "wrong cell47");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 48.0F, payload->tsaccellboard5temperature.group_payload.mux_9.cell48, "wrong cell48");
+
+    payload = temp_api_get_cellboard5_temperature_canlib_payload(NULL);
+    TEST_ASSERT_EQUAL_MESSAGE(0, payload->tsaccellboard5temperature.group, "group should wrap to 0");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, payload->tsaccellboard5temperature.group_payload.mux_0.cell1, "wrong cell1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsaccellboard5temperature.group_payload.mux_0.cell5, "wrong cell5");
+}
+
+void test_temp_api_get_cellboard6_temperature_canlib_payload(void) {
+    for (size_t i = 0U; i < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++i) {
+        temp_handler.temperatures[CELLBOARD_ID_5][i] = (celsius_t)(i + 1U);
+    }
+    size_t size = 0U;
+
+    const union CanPrimaryMessages *payload = temp_api_get_cellboard6_temperature_canlib_payload(&size);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "temp_api_get_cellboard6_temperature_canlib_payload() returned NULL");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&temp_handler.libcan_message_cellboard6, payload, "temp_api_get_cellboard6_temperature_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsaccellboard6temperature, size, "temp_api_get_cellboard6_temperature_canlib_payload() returned incorrect byte size");
+    TEST_ASSERT_EQUAL_MESSAGE(1, payload->tsaccellboard6temperature.group, "first group should be 1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 6.0F, payload->tsaccellboard6temperature.group_payload.mux_1.cell6, "wrong cell6");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 7.0F, payload->tsaccellboard6temperature.group_payload.mux_1.cell7, "wrong cell7");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 8.0F, payload->tsaccellboard6temperature.group_payload.mux_1.cell8, "wrong cell8");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 9.0F, payload->tsaccellboard6temperature.group_payload.mux_1.cell9, "wrong cell9");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 10.0F, payload->tsaccellboard6temperature.group_payload.mux_1.cell10, "wrong cell10");
+
+    for (size_t call = 2U; call <= 9U; ++call) {
+        payload = temp_api_get_cellboard6_temperature_canlib_payload(NULL);
+        TEST_ASSERT_EQUAL_MESSAGE(call, payload->tsaccellboard6temperature.group, "group should increase on each call");
+    }
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 46.0F, payload->tsaccellboard6temperature.group_payload.mux_9.cell46, "wrong cell46");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 47.0F, payload->tsaccellboard6temperature.group_payload.mux_9.cell47, "wrong cell47");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 48.0F, payload->tsaccellboard6temperature.group_payload.mux_9.cell48, "wrong cell48");
+
+    payload = temp_api_get_cellboard6_temperature_canlib_payload(NULL);
+    TEST_ASSERT_EQUAL_MESSAGE(0, payload->tsaccellboard6temperature.group, "group should wrap to 0");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 1.0F, payload->tsaccellboard6temperature.group_payload.mux_0.cell1, "wrong cell1");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 5.0F, payload->tsaccellboard6temperature.group_payload.mux_0.cell5, "wrong cell5");
 }
 
 void setUp(void) {
@@ -262,29 +356,29 @@ void tearDown(void) {
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_prv_temp_cell_position_from_index_valid);
-    RUN_TEST(test_prv_temp_cell_position_from_index_out_of_bounds);
-
     RUN_TEST(test_temp_api_init_ok);
 
+    RUN_TEST(test_temp_api_cellboard_temperature_info_handle_ok);
+    RUN_TEST(test_temp_api_cellboard_temperature_info_handle_invalid_cellboard);
+
+    RUN_TEST(test_temp_api_set_value_ok);
+    RUN_TEST(test_temp_api_set_value_invalid_cellboard);
+    RUN_TEST(test_temp_api_set_value_invalid_index);
+    RUN_TEST(test_temp_api_get_values);
+
     RUN_TEST(test_temp_api_get_min_single_low);
-
     RUN_TEST(test_temp_api_get_max_single_high);
-    RUN_TEST(test_temp_api_get_sum);
-
     RUN_TEST(test_temp_api_get_avg);
+    RUN_TEST(test_temp_api_get_avg_different_values);
 
-    RUN_TEST(test_temp_api_cells_temperature_handle_null_payload);
-    RUN_TEST(test_temp_api_cells_temperature_handle_invalid_cellboard_id);
-    RUN_TEST(test_temp_api_cells_temperature_handle_offset_overflow);
-    RUN_TEST(test_temp_api_cells_temperature_handle_ok);
+    RUN_TEST(test_temp_api_get_cells_temperature_info_canlib_payload);
+    RUN_TEST(test_temp_api_get_cells_temperature_info_canlib_payload_null_size);
 
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload);
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_offset_wraps);
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_cellboard_wraps);
-    RUN_TEST(test_temp_api_get_cells_temperature_canlib_payload_temperature_ids);
-
-    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload);
-    RUN_TEST(test_temp_api_get_cells_temperature_stats_canlib_payload_null_size);
+    RUN_TEST(test_temp_api_get_cellboard1_temperature_canlib_payload);
+    RUN_TEST(test_temp_api_get_cellboard2_temperature_canlib_payload);
+    RUN_TEST(test_temp_api_get_cellboard3_temperature_canlib_payload);
+    RUN_TEST(test_temp_api_get_cellboard4_temperature_canlib_payload);
+    RUN_TEST(test_temp_api_get_cellboard5_temperature_canlib_payload);
+    RUN_TEST(test_temp_api_get_cellboard6_temperature_canlib_payload);
     return UNITY_END();
 }

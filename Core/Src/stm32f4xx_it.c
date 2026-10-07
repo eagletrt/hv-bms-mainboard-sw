@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f4xx_hal_cortex.h"
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -191,6 +192,19 @@ void SysTick_Handler(void) {
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line 2 interrupt.
+  */
+void EXTI2_IRQHandler(void) {
+    /* USER CODE BEGIN EXTI2_IRQn 0 */
+
+    /* USER CODE END EXTI2_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(HC_CONNECTED_MCU_Pin);
+    /* USER CODE BEGIN EXTI2_IRQn 1 */
+
+    /* USER CODE END EXTI2_IRQn 1 */
+}
+
+/**
   * @brief This function handles CAN1 RX0 interrupt.
   */
 void CAN1_RX0_IRQHandler(void) {
@@ -317,8 +331,9 @@ void it_cs_enter(void) {
 }
 
 void it_cs_exit(void) {
-    if (!primask)
+    if (!primask) {
         __enable_irq();
+    }
 }
 
 /* USER CODE END 1 */

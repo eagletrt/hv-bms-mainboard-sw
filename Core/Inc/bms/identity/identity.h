@@ -12,11 +12,8 @@
 
 #include <stddef.h>
 
-#include "mainboard-conf.h"
+#include "can-primary.h"
 #include "mainboard-def.h"
-
-#include "primary_network.h"
-#include "bms_network.h"
 
 /*!
  * \brief Definition of the string containing the latest build time
@@ -32,9 +29,17 @@
  * \warning This structure should never be used outside of this file
  */
 struct IdentityHandler {
-    seconds_t build_time;                                                                   /*!< The unix timestamp of the latest build time */
-    primary_hv_mainboard_version_converted_t mainboard_version_payload;                     /*!< The payload of the canlib message containing the mainboard version */
-    primary_hv_cellboard_version_converted_t cellboard_version_payload[CELLBOARD_ID_COUNT]; /*!< The payloads of the canlib message containing the cellboards version */
+    seconds_t build_time; /*!< The unix timestamp of the latest build time */
+
+    union CanPrimaryMessages libcan_message_version;
+    union CanPrimaryMessages libcan_message_version_info;
+    union CanPrimaryMessages libcan_message_libcan_version;
+    union CanPrimaryMessages libcan_message_libcan_version_info;
+
+    union CanPrimaryMessages libcan_message_cellboard_version[CELLBOARD_COUNT];
+    union CanPrimaryMessages libcan_message_cellboard_version_info[CELLBOARD_COUNT];
+    union CanPrimaryMessages libcan_message_cellboard_libcan_version[CELLBOARD_COUNT];
+    union CanPrimaryMessages libcan_message_cellboard_libcan_version_info[CELLBOARD_COUNT];
 };
 
 #endif // IDENTITY_H

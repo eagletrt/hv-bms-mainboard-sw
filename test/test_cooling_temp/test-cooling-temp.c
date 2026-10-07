@@ -138,7 +138,7 @@ void test_cooling_temp_get_avg() {
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 10.0f, avg, "cooling_temp_api_get_avg() failed");
 }
 
-void test_cooling_temp_get_temperatures_canlib_payload_null_size() {
+static void prv_fill_cooling_temperatures(void) {
     cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE] = 25.0f;
     cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1] = 30.0f;
     cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2] = 31.0f;
@@ -146,47 +146,49 @@ void test_cooling_temp_get_temperatures_canlib_payload_null_size() {
     cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4] = 33.0f;
     cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5] = 34.0f;
     cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6] = 35.0f;
-
-    primary_hv_cooling_temperature_converted_t expected = {
-        .inlet = 25.0f,
-        .outlet_0 = 30.0f,
-        .outlet_1 = 31.0f,
-        .outlet_2 = 32.0f,
-        .outlet_3 = 33.0f,
-        .outlet_4 = 34.0f,
-        .outlet_5 = 35.0f,
-    };
-
-    primary_hv_cooling_temperature_converted_t *payload = cooling_temp_api_get_temperatures_canlib_payload(NULL);
-
-    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "cooling_temp_api_get_temperatures_canlib_payload() should not return NULL with NULL size pointer");
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected, payload, sizeof(expected), "cooling_temp_api_get_temperatures_canlib_payload() returned incorrect payload contents");
 }
 
-void test_cooling_temp_get_temperatures_canlib_payload_size() {
-    size_t size = 0U;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE] = 25.0f;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1] = 30.0f;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2] = 31.0f;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3] = 32.0f;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4] = 33.0f;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5] = 34.0f;
-    cooling_temp_handler.temperatures[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6] = 35.0f;
+void test_cooling_temp_get_cooling1_canlib_payload_null_size() {
+    prv_fill_cooling_temperatures();
 
-    primary_hv_cooling_temperature_converted_t expected = {
-        .inlet = 25.0f,
-        .outlet_0 = 30.0f,
-        .outlet_1 = 31.0f,
-        .outlet_2 = 32.0f,
-        .outlet_3 = 33.0f,
-        .outlet_4 = 34.0f,
-        .outlet_5 = 35.0f,
-    };
+    const union CanPrimaryMessages *payload = cooling_temp_get_cooling1_canlib_payload(NULL);
 
-    primary_hv_cooling_temperature_converted_t *payload = cooling_temp_api_get_temperatures_canlib_payload(&size);
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "cooling_temp_get_cooling1_canlib_payload() should not return NULL with NULL size pointer");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&cooling_temp_handler.libcan_message_cooling1, payload, "cooling_temp_get_cooling1_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 25.0f, payload->tsacmainboardcoolingtemperature1.inlet, "wrong inlet temperature");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 30.0f, payload->tsacmainboardcoolingtemperature1.outlet1, "wrong outlet 1 temperature");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 31.0f, payload->tsacmainboardcoolingtemperature1.outlet2, "wrong outlet 2 temperature");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 32.0f, payload->tsacmainboardcoolingtemperature1.outlet3, "wrong outlet 3 temperature");
+}
 
-    TEST_ASSERT_EQUAL_MESSAGE(sizeof(cooling_temp_handler.cooling_temp_can_payload), size, "cooling_temp_api_get_temperatures_canlib_payload() returned incorrect byte size");
-    TEST_ASSERT_EQUAL_MEMORY_MESSAGE(&expected, payload, sizeof(expected), "cooling_temp_api_get_temperatures_canlib_payload() returned incorrect payload contents");
+void test_cooling_temp_get_cooling1_canlib_payload_size() {
+    uint32_t size = 0U;
+    prv_fill_cooling_temperatures();
+
+    cooling_temp_get_cooling1_canlib_payload(&size);
+
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsacmainboardcoolingtemperature1, size, "cooling_temp_get_cooling1_canlib_payload() returned incorrect byte size");
+}
+
+void test_cooling_temp_get_cooling2_canlib_payload_null_size() {
+    prv_fill_cooling_temperatures();
+
+    const union CanPrimaryMessages *payload = cooling_temp_get_cooling2_canlib_payload(NULL);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(payload, "cooling_temp_get_cooling2_canlib_payload() should not return NULL with NULL size pointer");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(&cooling_temp_handler.libcan_message_cooling2, payload, "cooling_temp_get_cooling2_canlib_payload() returned the wrong pointer");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 33.0f, payload->tsacmainboardcoolingtemperature2.outlet4, "wrong outlet 4 temperature");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 34.0f, payload->tsacmainboardcoolingtemperature2.outlet5, "wrong outlet 5 temperature");
+    TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 35.0f, payload->tsacmainboardcoolingtemperature2.outlet6, "wrong outlet 6 temperature");
+}
+
+void test_cooling_temp_get_cooling2_canlib_payload_size() {
+    uint32_t size = 0U;
+    prv_fill_cooling_temperatures();
+
+    cooling_temp_get_cooling2_canlib_payload(&size);
+
+    TEST_ASSERT_EQUAL_MESSAGE(can_primary_byte_size_tsacmainboardcoolingtemperature2, size, "cooling_temp_get_cooling2_canlib_payload() returned incorrect byte size");
 }
 
 void setUp() {
@@ -211,7 +213,9 @@ int main() {
     RUN_TEST(test_cooling_temp_get_max);
     RUN_TEST(test_cooling_temp_get_sum);
     RUN_TEST(test_cooling_temp_get_avg);
-    RUN_TEST(test_cooling_temp_get_temperatures_canlib_payload_null_size);
-    RUN_TEST(test_cooling_temp_get_temperatures_canlib_payload_size);
+    RUN_TEST(test_cooling_temp_get_cooling1_canlib_payload_null_size);
+    RUN_TEST(test_cooling_temp_get_cooling1_canlib_payload_size);
+    RUN_TEST(test_cooling_temp_get_cooling2_canlib_payload_null_size);
+    RUN_TEST(test_cooling_temp_get_cooling2_canlib_payload_size);
     return UNITY_END();
 }

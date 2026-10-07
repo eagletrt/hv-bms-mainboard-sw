@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #include "feedback.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_FEEDBACK_MODULE_ENABLE
 
@@ -21,11 +22,12 @@
  *
  * \param read_all A pointer to the callback that should read all the digital feedbacks
  * \param start_conversion A pointer to the callback that should start the conversion of the analog feedbacks
+ * \param read_hc_connected A pointer to the callback that should read the HC connected status
  *
  * \retval FEEDBACK_NULL_POINTER if any of the parameters are NULL
  * \retval FEEDBACK_OK otherwise
  */
-enum FeedbackReturnCode feedback_api_init(feedback_read_digital_all_callback read_all, feedback_start_analog_conversion_callback start_conversion);
+enum FeedbackReturnCode feedback_api_init(feedback_read_digital_all_callback read_all, feedback_start_analog_conversion_callback start_conversion, feedback_read_hc_connected_callback read_hc_connected);
 
 /*!
  * \brief Update all the digital feedbacks
@@ -127,72 +129,49 @@ enum FeedbackDigitalBit feedback_api_get_digital_bit_from_id(enum FeedbackId fee
 enum FeedbackAnalogIndex feedback_api_get_analog_index_from_id(enum FeedbackId feedback);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the feedbacks status
+ * \brief Get a pointer to the CAN payload structure of the feedbacks
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns A pointer to the payload
  */
-primary_hv_feedback_status_converted_t *feedback_api_get_status_payload(size_t *byte_size);
+union CanPrimaryMessages *feedback_api_get_feedaback_payload(size_t *byte_size);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the digital feedbacks values
+ * \brief Get a pointer to the CAN payload structure of the shutdown
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns A pointer to the payload
  */
-primary_hv_feedback_digital_converted_t *feedback_api_get_digital_payload(size_t *byte_size);
+union CanPrimaryMessages *feedback_api_get_shutdown_payload(size_t *byte_size);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the analog feedbacks values
+ * \brief Get a pointer to the CAN payload structure of the shutdown feedbacks
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
  * \returns A pointer to the payload
  */
-primary_hv_feedback_analog_converted_t *feedback_api_get_analog_payload(size_t *byte_size);
+union CanPrimaryMessages *feedback_api_get_feedback_shutdown_payload(size_t *byte_size);
+
+/*!\
+ * \brief Print a detailed feedback report\
+ */
+void feedback_api_print_log(void);
 
 /*!
- * \brief Get a pointer to the CAN payload structure of the analog shutdown feedbacks values
+ * \brief Get the name of a feedback by its ID
  *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
+ * \param id The feedback ID
  *
- * \returns A pointer to the payload
+ * \returns A pointer to the name of the feedback
  */
-primary_hv_feedback_analog_sd_converted_t *feedback_api_get_analog_sd_payload(size_t *byte_size);
-
-/*!
- * \brief Get a pointer to the CAN payload structure of the feedback that did not
- * allow the BMS to go to the TS ON state
- *
- * \param feedback The identifier of the feedback
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns A pointer to the payload
- */
-primary_hv_feedback_enzomma_converted_t *feedback_api_get_enzomma_payload(enum FeedbackId feedback, size_t *byte_size);
-
-#ifdef CONF_FEEDBACK_STRINGS_ENABLE
-
-/*!
- * \brief Get the name of the corresponding feedback identifier
- *
- * \param id The feedback identifier
- *
- * \returns A pointer to the name of the feedback id
- */
-const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
-
-#else // CONF_FEEDBACK_STRINGS_ENABLE
-
-#define feedback_api_get_feedback_id_name(id) ""
-
-#endif // CONF_FEEDBACK_STRINGS_ENABLE
+char *feedback_api_feedback_id_name(enum FeedbackId feedback_id);
 
 #else // CONF_FEEDBACK_MODULE_ENABLE
 
-#define feedback_api_init(read_all, start_conversion) (FEEDBACK_RC_OK)
+#define feedback_api_init(read_all, start_conversion, read_hc_connected) (FEEDBACK_RC_OK)
 #define feedback_api_update_digital_feedback_all() (FEEDBACK_RC_OK)
 #define feedback_api_start_analog_conversion_all() (FEEDBACK_RC_OK)
 #define feedback_api_update_analog_feedback(index, value) (FEEDBACK_RC_OK)
@@ -204,11 +183,11 @@ const char *const feedback_api_get_feedback_id_name(enum FeedbackId feedback);
 #define feedback_api_is_digital(feedback) (true)
 #define feedback_api_get_digital_bit_from_id(feedback) (FEEDBACK_DIGITAL_BIT_UNKNOWN)
 #define feedback_api_get_analog_index_from_id(feedback) (FEEDBACK_ANALOG_INDEX_UNKNOWN)
-#define feedback_api_get_status_payload(byte_size) (NULL)
-#define feedback_api_get_digital_payload(byte_size) (NULL)
-#define feedback_api_get_analog_payload(byte_size) (NULL)
-#define feedback_api_get_analog_sd_payload(byte_size) (NULL)
-#define feedback_api_get_enzomma_payload(feedback, byte_size) (NULL)
+#define feedback_api_get_feedaback_payload(byte_size) (NULL)
+#define feedback_api_get_shutdown_payload(byte_size) (NULL)
+#define feedback_api_get_feedback_shutdown_payload(byte_size) (NULL)
+#define feedback_api_print_log() EAGLETRT_API_NOP()
+#define feedback_api_feedback_id_name(feedback_id) ("invalid")
 
 #endif // CONF_FEEDBACK_MODULE_ENABLE
 

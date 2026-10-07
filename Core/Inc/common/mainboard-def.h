@@ -85,7 +85,7 @@
 #define CELLBOARD_DISCHARGE_TEMP_COUNT ((CELLBOARD_COUNT) * (CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT))
 
 /** @brief Total number of cooling temperatures sensors */
-#define COOLING_TEMP_SENSOR_COUNT 7
+#define COOLING_TEMP_SENSOR_COUNT (7U)
 
 /** @} */
 
@@ -271,21 +271,6 @@ typedef enum {
     SPI_NETWORK_ADC,
     SPI_NETWORK_COUNT
 } SpiNetwork;
-
-/**
- * @brief Definition of different CAN networks
- *
- * @details
- *     - CAN_NETWORK_BMS the internal network between mainboard and cellboards
- *     - CAN_NETWORK_PRIMARY the main network where all the important message are sent
- *     - CAN_NETWORK_SECONDARY network dedicated to sensor and other measuring devices
- */
-typedef enum {
-    CAN_NETWORK_BMS,
-    CAN_NETWORK_PRIMARY,
-    CAN_NETWORK_COUNT,
-    CAN_NETWORK_SECONDARY
-} CanNetwork;
 
 /**
  * @brief Definition of possible CAN frame types

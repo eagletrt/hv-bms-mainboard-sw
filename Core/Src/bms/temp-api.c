@@ -10,12 +10,22 @@
 #include "temp-api.h"
 
 #include <string.h>
+
+#include "cooling-temp-api.h"
+#include "cooling-temp.h"
 #include "eagletrt-api.h"
 #include "error-api.h"
+#include "can-primary.h"
+#include "fsm.h"
+#include "logger-api.h"
+#include "logger.h"
+#include "mainboard-def.h"
 
 #ifdef CONF_TEMPERATURE_MODULE_ENABLE
 
 EAGLETRT_STATIC struct TempHandler temp_handler;
+EAGLETRT_STATIC constexpr size_t TEMP_LOG_SENSORS_PER_ROW = 6U;
+EAGLETRT_STATIC constexpr size_t TEMP_LOG_LAST_SENSOR_OFFSET = TEMP_LOG_SENSORS_PER_ROW - 1U;
 
 // clang-format off
 
@@ -72,104 +82,631 @@ enum TempReturnCode temp_api_init(void) {
     return TEMP_RC_OK;
 }
 
+EAGLETRT_STATIC_INLINE void prv_temp_print_cellboard_log(const CellboardId cellboard_id) {
+    const unsigned int board_number = (unsigned int)cellboard_id + 1U;
+
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Cellboard %u | min %.3f C | max %.3f C | avg %.3f C",
+        board_number,
+        temp_handler.min[cellboard_id],
+        temp_handler.max[cellboard_id],
+        temp_handler.average[cellboard_id]);
+
+    const celsius_t *const temperatures = temp_handler.temperatures[cellboard_id];
+    for (size_t group = 0U; group < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; group += TEMP_LOG_SENSORS_PER_ROW) {
+        logger_api_log(
+            LOGGER_LEVEL_INFO,
+            "  sensors %02u-%02u: %.3f %.3f %.3f %.3f %.3f %.3f C",
+            (unsigned int)(group + 1U),
+            (unsigned int)(group + TEMP_LOG_SENSORS_PER_ROW),
+            temperatures[group + 0U],
+            temperatures[group + 1U],
+            temperatures[group + 2U],
+            temperatures[group + 3U],
+            temperatures[group + 4U],
+            temperatures[group + TEMP_LOG_LAST_SENSOR_OFFSET]);
+    }
+}
+
+void temp_api_print_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Temperature report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", fsm_state_names[fsm_get_status() < FSM_NUM_STATES ? fsm_get_status() : FSM_STATE_IDLE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Allowed range: %.3f C .. %.3f C", TEMP_MIN_C, TEMP_MAX_C);
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Pack summary | min %.3f C | max %.3f C | avg %.3f C",
+        temp_api_get_min(),
+        temp_api_get_max(),
+        temp_api_get_avg());
+
+    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+        prv_temp_print_cellboard_log(cellboard_id);
+    }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+
+    logger_api_log(LOGGER_LEVEL_INFO, "Cooling temperatures");
+    const cooling_temps *cooling_temperatures = cooling_temp_api_get_values();
+    logger_api_log(LOGGER_LEVEL_INFO, "Inlet: %f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet Cocco: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 2: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 3: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 4: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 5: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Outlet 6: %.3f°C", (*cooling_temperatures)[COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6]);
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
+
 const cells_temp *temp_api_get_values(void) {
     return &temp_handler.temperatures;
 }
 
+void temp_api_set_value(const CellboardId cellboard, const uint8_t index, const celsius_t temperature) {
+    if (cellboard >= CELLBOARD_ID_COUNT || index >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
+        return;
+    }
+    prv_temp_check_value(cellboard, index, temperature);
+    temp_handler.temperatures[cellboard][index] = temperature;
+}
+
 celsius_t temp_api_get_min(void) {
-    celsius_t min = temp_handler.temperatures[0][0];
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            min = EAGLETRT_API_MIN(min, temp_handler.temperatures[i][j]);
-        }
+    celsius_t min = temp_handler.min[0];
+    for (CellboardId cellboard = 1U; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        min = EAGLETRT_API_MIN(min, temp_handler.min[cellboard]);
     }
     return min;
 }
 
 celsius_t temp_api_get_max(void) {
-    celsius_t max = temp_handler.temperatures[0][0];
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            max = EAGLETRT_API_MAX(max, temp_handler.temperatures[i][j]);
-        }
+    celsius_t max = temp_handler.max[0];
+    for (CellboardId cellboard = 1U; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        max = EAGLETRT_API_MAX(max, temp_handler.max[cellboard]);
     }
     return max;
 }
 
-celsius_t temp_api_get_sum(void) {
-    celsius_t sum = 0U;
-    for (size_t i = 0U; i < CELLBOARD_COUNT; ++i) {
-        for (size_t j = 0U; j < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT; ++j) {
-            sum += temp_handler.temperatures[i][j];
-        }
-    }
-    return sum;
-}
-
 celsius_t temp_api_get_avg(void) {
-    return temp_api_get_sum() / CELLBOARD_TEMP_SENSOR_COUNT;
+    celsius_t average = 0;
+    for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+        average += temp_handler.average[cellboard] * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT;
+    }
+    return average / (float)CELLBOARD_TEMP_SENSOR_COUNT;
 }
 
-void temp_api_cells_temperature_handle(bms_cellboard_cells_temperature_converted_t *const payload) {
-    const size_t size = 4U;
-    if (payload == NULL ||
-        (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT ||
-        payload->offset + size > CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
+void temp_api_check_temperature(void) {
+    celsius_t temperature_max = temp_api_get_max();
+    if (temperature_max > TEMP_MAX_C) {
+        error_api_set(ERROR_GROUP_OVER_TEMPERATURE, 0);
+    } else {
+        error_api_reset(ERROR_GROUP_OVER_TEMPERATURE, 0);
+    }
+}
+
+union CanPrimaryMessages *temp_api_get_cells_temperature_info_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsacmainboardtemperatureinfo;
+    }
+
+    struct CanPrimaryTsacmainboardtemperatureinfo *info = &temp_handler.libcan_message_temperature_info.tsacmainboardtemperatureinfo;
+    info->max = temp_api_get_max();
+    info->min = temp_api_get_min();
+    info->average = temp_api_get_avg();
+    return &temp_handler.libcan_message_temperature_info;
+}
+
+union CanPrimaryMessages *temp_api_get_cellboard1_temperature_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard1temperature;
+    }
+
+    struct CanPrimaryTsaccellboard1temperature *payload = &temp_handler.libcan_message_cellboard1.tsaccellboard1temperature;
+    const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_0];
+    payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = temps[0];
+            payload->group_payload.mux_0.cell2 = temps[1];
+            payload->group_payload.mux_0.cell3 = temps[2];
+            payload->group_payload.mux_0.cell4 = temps[3];
+            payload->group_payload.mux_0.cell5 = temps[4];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell6 = temps[5];
+            payload->group_payload.mux_1.cell7 = temps[6];
+            payload->group_payload.mux_1.cell8 = temps[7];
+            payload->group_payload.mux_1.cell9 = temps[8];
+            payload->group_payload.mux_1.cell10 = temps[9];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell11 = temps[10];
+            payload->group_payload.mux_2.cell12 = temps[11];
+            payload->group_payload.mux_2.cell13 = temps[12];
+            payload->group_payload.mux_2.cell14 = temps[13];
+            payload->group_payload.mux_2.cell15 = temps[14];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell16 = temps[15];
+            payload->group_payload.mux_3.cell17 = temps[16];
+            payload->group_payload.mux_3.cell18 = temps[17];
+            payload->group_payload.mux_3.cell19 = temps[18];
+            payload->group_payload.mux_3.cell20 = temps[19];
+            break;
+        case 4:
+            payload->group_payload.mux_4.cell21 = temps[20];
+            payload->group_payload.mux_4.cell22 = temps[21];
+            payload->group_payload.mux_4.cell23 = temps[22];
+            payload->group_payload.mux_4.cell24 = temps[23];
+            payload->group_payload.mux_4.cell25 = temps[24];
+            break;
+        case 5:
+            payload->group_payload.mux_5.cell26 = temps[25];
+            payload->group_payload.mux_5.cell27 = temps[26];
+            payload->group_payload.mux_5.cell28 = temps[27];
+            payload->group_payload.mux_5.cell29 = temps[28];
+            payload->group_payload.mux_5.cell30 = temps[29];
+            break;
+        case 6:
+            payload->group_payload.mux_6.cell31 = temps[30];
+            payload->group_payload.mux_6.cell32 = temps[31];
+            payload->group_payload.mux_6.cell33 = temps[32];
+            payload->group_payload.mux_6.cell34 = temps[33];
+            payload->group_payload.mux_6.cell35 = temps[34];
+            break;
+        case 7:
+            payload->group_payload.mux_7.cell36 = temps[35];
+            payload->group_payload.mux_7.cell37 = temps[36];
+            payload->group_payload.mux_7.cell38 = temps[37];
+            payload->group_payload.mux_7.cell39 = temps[38];
+            payload->group_payload.mux_7.cell40 = temps[39];
+            break;
+        case 8:
+            payload->group_payload.mux_8.cell41 = temps[40];
+            payload->group_payload.mux_8.cell42 = temps[41];
+            payload->group_payload.mux_8.cell43 = temps[42];
+            payload->group_payload.mux_8.cell44 = temps[43];
+            payload->group_payload.mux_8.cell45 = temps[44];
+            break;
+        case 9:
+            payload->group_payload.mux_9.cell46 = temps[45];
+            payload->group_payload.mux_9.cell47 = temps[46];
+            payload->group_payload.mux_9.cell48 = temps[47];
+            break;
+        default:
+            break;
+    }
+    return &temp_handler.libcan_message_cellboard1;
+}
+
+union CanPrimaryMessages *temp_api_get_cellboard2_temperature_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard2temperature;
+    }
+
+    struct CanPrimaryTsaccellboard2temperature *payload = &temp_handler.libcan_message_cellboard2.tsaccellboard2temperature;
+    const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_1];
+    payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = temps[0];
+            payload->group_payload.mux_0.cell2 = temps[1];
+            payload->group_payload.mux_0.cell3 = temps[2];
+            payload->group_payload.mux_0.cell4 = temps[3];
+            payload->group_payload.mux_0.cell5 = temps[4];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell6 = temps[5];
+            payload->group_payload.mux_1.cell7 = temps[6];
+            payload->group_payload.mux_1.cell8 = temps[7];
+            payload->group_payload.mux_1.cell9 = temps[8];
+            payload->group_payload.mux_1.cell10 = temps[9];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell11 = temps[10];
+            payload->group_payload.mux_2.cell12 = temps[11];
+            payload->group_payload.mux_2.cell13 = temps[12];
+            payload->group_payload.mux_2.cell14 = temps[13];
+            payload->group_payload.mux_2.cell15 = temps[14];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell16 = temps[15];
+            payload->group_payload.mux_3.cell17 = temps[16];
+            payload->group_payload.mux_3.cell18 = temps[17];
+            payload->group_payload.mux_3.cell19 = temps[18];
+            payload->group_payload.mux_3.cell20 = temps[19];
+            break;
+        case 4:
+            payload->group_payload.mux_4.cell21 = temps[20];
+            payload->group_payload.mux_4.cell22 = temps[21];
+            payload->group_payload.mux_4.cell23 = temps[22];
+            payload->group_payload.mux_4.cell24 = temps[23];
+            payload->group_payload.mux_4.cell25 = temps[24];
+            break;
+        case 5:
+            payload->group_payload.mux_5.cell26 = temps[25];
+            payload->group_payload.mux_5.cell27 = temps[26];
+            payload->group_payload.mux_5.cell28 = temps[27];
+            payload->group_payload.mux_5.cell29 = temps[28];
+            payload->group_payload.mux_5.cell30 = temps[29];
+            break;
+        case 6:
+            payload->group_payload.mux_6.cell31 = temps[30];
+            payload->group_payload.mux_6.cell32 = temps[31];
+            payload->group_payload.mux_6.cell33 = temps[32];
+            payload->group_payload.mux_6.cell34 = temps[33];
+            payload->group_payload.mux_6.cell35 = temps[34];
+            break;
+        case 7:
+            payload->group_payload.mux_7.cell36 = temps[35];
+            payload->group_payload.mux_7.cell37 = temps[36];
+            payload->group_payload.mux_7.cell38 = temps[37];
+            payload->group_payload.mux_7.cell39 = temps[38];
+            payload->group_payload.mux_7.cell40 = temps[39];
+            break;
+        case 8:
+            payload->group_payload.mux_8.cell41 = temps[40];
+            payload->group_payload.mux_8.cell42 = temps[41];
+            payload->group_payload.mux_8.cell43 = temps[42];
+            payload->group_payload.mux_8.cell44 = temps[43];
+            payload->group_payload.mux_8.cell45 = temps[44];
+            break;
+        case 9:
+            payload->group_payload.mux_9.cell46 = temps[45];
+            payload->group_payload.mux_9.cell47 = temps[46];
+            payload->group_payload.mux_9.cell48 = temps[47];
+            break;
+        default:
+            break;
+    }
+    return &temp_handler.libcan_message_cellboard2;
+}
+
+union CanPrimaryMessages *temp_api_get_cellboard3_temperature_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard3temperature;
+    }
+
+    struct CanPrimaryTsaccellboard3temperature *payload = &temp_handler.libcan_message_cellboard3.tsaccellboard3temperature;
+    const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_2];
+    payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = temps[0];
+            payload->group_payload.mux_0.cell2 = temps[1];
+            payload->group_payload.mux_0.cell3 = temps[2];
+            payload->group_payload.mux_0.cell4 = temps[3];
+            payload->group_payload.mux_0.cell5 = temps[4];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell6 = temps[5];
+            payload->group_payload.mux_1.cell7 = temps[6];
+            payload->group_payload.mux_1.cell8 = temps[7];
+            payload->group_payload.mux_1.cell9 = temps[8];
+            payload->group_payload.mux_1.cell10 = temps[9];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell11 = temps[10];
+            payload->group_payload.mux_2.cell12 = temps[11];
+            payload->group_payload.mux_2.cell13 = temps[12];
+            payload->group_payload.mux_2.cell14 = temps[13];
+            payload->group_payload.mux_2.cell15 = temps[14];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell16 = temps[15];
+            payload->group_payload.mux_3.cell17 = temps[16];
+            payload->group_payload.mux_3.cell18 = temps[17];
+            payload->group_payload.mux_3.cell19 = temps[18];
+            payload->group_payload.mux_3.cell20 = temps[19];
+            break;
+        case 4:
+            payload->group_payload.mux_4.cell21 = temps[20];
+            payload->group_payload.mux_4.cell22 = temps[21];
+            payload->group_payload.mux_4.cell23 = temps[22];
+            payload->group_payload.mux_4.cell24 = temps[23];
+            payload->group_payload.mux_4.cell25 = temps[24];
+            break;
+        case 5:
+            payload->group_payload.mux_5.cell26 = temps[25];
+            payload->group_payload.mux_5.cell27 = temps[26];
+            payload->group_payload.mux_5.cell28 = temps[27];
+            payload->group_payload.mux_5.cell29 = temps[28];
+            payload->group_payload.mux_5.cell30 = temps[29];
+            break;
+        case 6:
+            payload->group_payload.mux_6.cell31 = temps[30];
+            payload->group_payload.mux_6.cell32 = temps[31];
+            payload->group_payload.mux_6.cell33 = temps[32];
+            payload->group_payload.mux_6.cell34 = temps[33];
+            payload->group_payload.mux_6.cell35 = temps[34];
+            break;
+        case 7:
+            payload->group_payload.mux_7.cell36 = temps[35];
+            payload->group_payload.mux_7.cell37 = temps[36];
+            payload->group_payload.mux_7.cell38 = temps[37];
+            payload->group_payload.mux_7.cell39 = temps[38];
+            payload->group_payload.mux_7.cell40 = temps[39];
+            break;
+        case 8:
+            payload->group_payload.mux_8.cell41 = temps[40];
+            payload->group_payload.mux_8.cell42 = temps[41];
+            payload->group_payload.mux_8.cell43 = temps[42];
+            payload->group_payload.mux_8.cell44 = temps[43];
+            payload->group_payload.mux_8.cell45 = temps[44];
+            break;
+        case 9:
+            payload->group_payload.mux_9.cell46 = temps[45];
+            payload->group_payload.mux_9.cell47 = temps[46];
+            payload->group_payload.mux_9.cell48 = temps[47];
+            break;
+        default:
+            break;
+    }
+    return &temp_handler.libcan_message_cellboard3;
+}
+
+union CanPrimaryMessages *temp_api_get_cellboard4_temperature_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard4temperature;
+    }
+
+    struct CanPrimaryTsaccellboard4temperature *payload = &temp_handler.libcan_message_cellboard4.tsaccellboard4temperature;
+    const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_3];
+    payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = temps[0];
+            payload->group_payload.mux_0.cell2 = temps[1];
+            payload->group_payload.mux_0.cell3 = temps[2];
+            payload->group_payload.mux_0.cell4 = temps[3];
+            payload->group_payload.mux_0.cell5 = temps[4];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell6 = temps[5];
+            payload->group_payload.mux_1.cell7 = temps[6];
+            payload->group_payload.mux_1.cell8 = temps[7];
+            payload->group_payload.mux_1.cell9 = temps[8];
+            payload->group_payload.mux_1.cell10 = temps[9];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell11 = temps[10];
+            payload->group_payload.mux_2.cell12 = temps[11];
+            payload->group_payload.mux_2.cell13 = temps[12];
+            payload->group_payload.mux_2.cell14 = temps[13];
+            payload->group_payload.mux_2.cell15 = temps[14];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell16 = temps[15];
+            payload->group_payload.mux_3.cell17 = temps[16];
+            payload->group_payload.mux_3.cell18 = temps[17];
+            payload->group_payload.mux_3.cell19 = temps[18];
+            payload->group_payload.mux_3.cell20 = temps[19];
+            break;
+        case 4:
+            payload->group_payload.mux_4.cell21 = temps[20];
+            payload->group_payload.mux_4.cell22 = temps[21];
+            payload->group_payload.mux_4.cell23 = temps[22];
+            payload->group_payload.mux_4.cell24 = temps[23];
+            payload->group_payload.mux_4.cell25 = temps[24];
+            break;
+        case 5:
+            payload->group_payload.mux_5.cell26 = temps[25];
+            payload->group_payload.mux_5.cell27 = temps[26];
+            payload->group_payload.mux_5.cell28 = temps[27];
+            payload->group_payload.mux_5.cell29 = temps[28];
+            payload->group_payload.mux_5.cell30 = temps[29];
+            break;
+        case 6:
+            payload->group_payload.mux_6.cell31 = temps[30];
+            payload->group_payload.mux_6.cell32 = temps[31];
+            payload->group_payload.mux_6.cell33 = temps[32];
+            payload->group_payload.mux_6.cell34 = temps[33];
+            payload->group_payload.mux_6.cell35 = temps[34];
+            break;
+        case 7:
+            payload->group_payload.mux_7.cell36 = temps[35];
+            payload->group_payload.mux_7.cell37 = temps[36];
+            payload->group_payload.mux_7.cell38 = temps[37];
+            payload->group_payload.mux_7.cell39 = temps[38];
+            payload->group_payload.mux_7.cell40 = temps[39];
+            break;
+        case 8:
+            payload->group_payload.mux_8.cell41 = temps[40];
+            payload->group_payload.mux_8.cell42 = temps[41];
+            payload->group_payload.mux_8.cell43 = temps[42];
+            payload->group_payload.mux_8.cell44 = temps[43];
+            payload->group_payload.mux_8.cell45 = temps[44];
+            break;
+        case 9:
+            payload->group_payload.mux_9.cell46 = temps[45];
+            payload->group_payload.mux_9.cell47 = temps[46];
+            payload->group_payload.mux_9.cell48 = temps[47];
+            break;
+        default:
+            break;
+    }
+    return &temp_handler.libcan_message_cellboard4;
+}
+
+union CanPrimaryMessages *temp_api_get_cellboard5_temperature_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard5temperature;
+    }
+
+    struct CanPrimaryTsaccellboard5temperature *payload = &temp_handler.libcan_message_cellboard5.tsaccellboard5temperature;
+    const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_4];
+    payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = temps[0];
+            payload->group_payload.mux_0.cell2 = temps[1];
+            payload->group_payload.mux_0.cell3 = temps[2];
+            payload->group_payload.mux_0.cell4 = temps[3];
+            payload->group_payload.mux_0.cell5 = temps[4];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell6 = temps[5];
+            payload->group_payload.mux_1.cell7 = temps[6];
+            payload->group_payload.mux_1.cell8 = temps[7];
+            payload->group_payload.mux_1.cell9 = temps[8];
+            payload->group_payload.mux_1.cell10 = temps[9];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell11 = temps[10];
+            payload->group_payload.mux_2.cell12 = temps[11];
+            payload->group_payload.mux_2.cell13 = temps[12];
+            payload->group_payload.mux_2.cell14 = temps[13];
+            payload->group_payload.mux_2.cell15 = temps[14];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell16 = temps[15];
+            payload->group_payload.mux_3.cell17 = temps[16];
+            payload->group_payload.mux_3.cell18 = temps[17];
+            payload->group_payload.mux_3.cell19 = temps[18];
+            payload->group_payload.mux_3.cell20 = temps[19];
+            break;
+        case 4:
+            payload->group_payload.mux_4.cell21 = temps[20];
+            payload->group_payload.mux_4.cell22 = temps[21];
+            payload->group_payload.mux_4.cell23 = temps[22];
+            payload->group_payload.mux_4.cell24 = temps[23];
+            payload->group_payload.mux_4.cell25 = temps[24];
+            break;
+        case 5:
+            payload->group_payload.mux_5.cell26 = temps[25];
+            payload->group_payload.mux_5.cell27 = temps[26];
+            payload->group_payload.mux_5.cell28 = temps[27];
+            payload->group_payload.mux_5.cell29 = temps[28];
+            payload->group_payload.mux_5.cell30 = temps[29];
+            break;
+        case 6:
+            payload->group_payload.mux_6.cell31 = temps[30];
+            payload->group_payload.mux_6.cell32 = temps[31];
+            payload->group_payload.mux_6.cell33 = temps[32];
+            payload->group_payload.mux_6.cell34 = temps[33];
+            payload->group_payload.mux_6.cell35 = temps[34];
+            break;
+        case 7:
+            payload->group_payload.mux_7.cell36 = temps[35];
+            payload->group_payload.mux_7.cell37 = temps[36];
+            payload->group_payload.mux_7.cell38 = temps[37];
+            payload->group_payload.mux_7.cell39 = temps[38];
+            payload->group_payload.mux_7.cell40 = temps[39];
+            break;
+        case 8:
+            payload->group_payload.mux_8.cell41 = temps[40];
+            payload->group_payload.mux_8.cell42 = temps[41];
+            payload->group_payload.mux_8.cell43 = temps[42];
+            payload->group_payload.mux_8.cell44 = temps[43];
+            payload->group_payload.mux_8.cell45 = temps[44];
+            break;
+        case 9:
+            payload->group_payload.mux_9.cell46 = temps[45];
+            payload->group_payload.mux_9.cell47 = temps[46];
+            payload->group_payload.mux_9.cell48 = temps[47];
+            break;
+        default:
+            break;
+    }
+    return &temp_handler.libcan_message_cellboard5;
+}
+
+union CanPrimaryMessages *temp_api_get_cellboard6_temperature_canlib_payload(size_t *const byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsaccellboard6temperature;
+    }
+
+    struct CanPrimaryTsaccellboard6temperature *payload = &temp_handler.libcan_message_cellboard6.tsaccellboard6temperature;
+    const celsius_t *const temps = temp_handler.temperatures[CELLBOARD_ID_5];
+    payload->group = (payload->group >= 9) ? 0 : payload->group + 1;
+
+    switch (payload->group) {
+        case 0:
+            payload->group_payload.mux_0.cell1 = temps[0];
+            payload->group_payload.mux_0.cell2 = temps[1];
+            payload->group_payload.mux_0.cell3 = temps[2];
+            payload->group_payload.mux_0.cell4 = temps[3];
+            payload->group_payload.mux_0.cell5 = temps[4];
+            break;
+        case 1:
+            payload->group_payload.mux_1.cell6 = temps[5];
+            payload->group_payload.mux_1.cell7 = temps[6];
+            payload->group_payload.mux_1.cell8 = temps[7];
+            payload->group_payload.mux_1.cell9 = temps[8];
+            payload->group_payload.mux_1.cell10 = temps[9];
+            break;
+        case 2:
+            payload->group_payload.mux_2.cell11 = temps[10];
+            payload->group_payload.mux_2.cell12 = temps[11];
+            payload->group_payload.mux_2.cell13 = temps[12];
+            payload->group_payload.mux_2.cell14 = temps[13];
+            payload->group_payload.mux_2.cell15 = temps[14];
+            break;
+        case 3:
+            payload->group_payload.mux_3.cell16 = temps[15];
+            payload->group_payload.mux_3.cell17 = temps[16];
+            payload->group_payload.mux_3.cell18 = temps[17];
+            payload->group_payload.mux_3.cell19 = temps[18];
+            payload->group_payload.mux_3.cell20 = temps[19];
+            break;
+        case 4:
+            payload->group_payload.mux_4.cell21 = temps[20];
+            payload->group_payload.mux_4.cell22 = temps[21];
+            payload->group_payload.mux_4.cell23 = temps[22];
+            payload->group_payload.mux_4.cell24 = temps[23];
+            payload->group_payload.mux_4.cell25 = temps[24];
+            break;
+        case 5:
+            payload->group_payload.mux_5.cell26 = temps[25];
+            payload->group_payload.mux_5.cell27 = temps[26];
+            payload->group_payload.mux_5.cell28 = temps[27];
+            payload->group_payload.mux_5.cell29 = temps[28];
+            payload->group_payload.mux_5.cell30 = temps[29];
+            break;
+        case 6:
+            payload->group_payload.mux_6.cell31 = temps[30];
+            payload->group_payload.mux_6.cell32 = temps[31];
+            payload->group_payload.mux_6.cell33 = temps[32];
+            payload->group_payload.mux_6.cell34 = temps[33];
+            payload->group_payload.mux_6.cell35 = temps[34];
+            break;
+        case 7:
+            payload->group_payload.mux_7.cell36 = temps[35];
+            payload->group_payload.mux_7.cell37 = temps[36];
+            payload->group_payload.mux_7.cell38 = temps[37];
+            payload->group_payload.mux_7.cell39 = temps[38];
+            payload->group_payload.mux_7.cell40 = temps[39];
+            break;
+        case 8:
+            payload->group_payload.mux_8.cell41 = temps[40];
+            payload->group_payload.mux_8.cell42 = temps[41];
+            payload->group_payload.mux_8.cell43 = temps[42];
+            payload->group_payload.mux_8.cell44 = temps[43];
+            payload->group_payload.mux_8.cell45 = temps[44];
+            break;
+        case 9:
+            payload->group_payload.mux_9.cell46 = temps[45];
+            payload->group_payload.mux_9.cell47 = temps[46];
+            payload->group_payload.mux_9.cell48 = temps[47];
+            break;
+        default:
+            break;
+    }
+    return &temp_handler.libcan_message_cellboard6;
+}
+
+void temp_api_cellboard_temperature_info_handle(
+    CellboardId cellboard,
+    celsius_t min,
+    celsius_t max,
+    celsius_t average) {
+    if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }
-
-    // Update temperatures
-    const size_t offset = payload->offset;
-    celsius_t *const temperatures = temp_handler.temperatures[payload->cellboard_id];
-    temperatures[offset] = payload->temperature_0;
-    temperatures[offset + 1U] = payload->temperature_1;
-    temperatures[offset + 2U] = payload->temperature_2;
-    temperatures[offset + 3U] = payload->temperature_3;
-    for (size_t i = 0U; i < size; ++i) {
-        prv_temp_check_value((CellboardId)payload->cellboard_id, offset + i, temperatures[offset + i]);
-    }
-}
-
-primary_hv_cells_temperature_converted_t *temp_api_get_cells_temperature_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(temp_handler.temp_can_payload);
-    }
-
-    const celsius_t *temperatures = temp_handler.temperatures[temp_handler.cellboard_id];
-    temp_handler.temp_can_payload.cellboard_id = (primary_hv_cells_temperature_cellboard_id)temp_handler.cellboard_id;
-
-    temp_handler.temp_can_payload.temperature_0 = temperatures[temp_handler.offset];
-    temp_handler.temp_can_payload.temperature_1 = temperatures[temp_handler.offset + 1];
-    temp_handler.temp_can_payload.temperature_2 = temperatures[temp_handler.offset + 2];
-    temp_handler.temp_can_payload.temperature_3 = temperatures[temp_handler.offset + 3];
-
-    temp_handler.temp_can_payload.temperature_id_0 = prv_temp_cell_position_from_index(temp_handler.offset);
-    temp_handler.temp_can_payload.temperature_id_1 = prv_temp_cell_position_from_index(temp_handler.offset + 1);
-    temp_handler.temp_can_payload.temperature_id_2 = prv_temp_cell_position_from_index(temp_handler.offset + 2);
-    temp_handler.temp_can_payload.temperature_id_3 = prv_temp_cell_position_from_index(temp_handler.offset + 3);
-
-    // Update indices
-    temp_handler.offset += TEMP_TEMPERATURE_PER_MESSAGE_COUNT;
-    if (temp_handler.offset >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
-        temp_handler.offset = 0U;
-        if (++temp_handler.cellboard_id >= CELLBOARD_ID_COUNT) {
-            temp_handler.cellboard_id = 0U;
-        }
-    }
-    return &temp_handler.temp_can_payload;
-}
-
-primary_hv_cells_temp_stats_converted_t *temp_api_get_cells_temperature_stats_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(temp_handler.temp_stats_can_payload);
-    }
-
-    temp_handler.temp_stats_can_payload.max = temp_api_get_max();
-    temp_handler.temp_stats_can_payload.min = temp_api_get_min();
-
-    temp_handler.temp_stats_can_payload.avg = temp_api_get_avg();
-
-    return &temp_handler.temp_stats_can_payload;
+    temp_handler.min[cellboard] = min;
+    temp_handler.max[cellboard] = max;
+    temp_handler.average[cellboard] = average;
 }
 
 #ifdef CONF_TEMPERATURE_STRINGS_ENABLE

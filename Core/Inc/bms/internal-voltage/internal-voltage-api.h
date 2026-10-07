@@ -11,6 +11,7 @@
 #define INTERNAL_VOLTAGE_API_H
 
 #include "internal-voltage.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
@@ -51,9 +52,14 @@ volt_t internal_voltage_api_get_pack(void);
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_ts_voltage_converted_t* A pointer to the payload
+ * \returns Pointer of the payload
  */
-primary_hv_ts_voltage_converted_t *internal_voltage_api_get_ts_voltage_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *internal_voltage_api_get_canlib_payload(size_t *byte_size);
+
+/*!
+ * \brief Print a structured log of the current internal voltage state
+ */
+void internal_voltage_api_print_log(void);
 
 #else // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 
@@ -61,7 +67,8 @@ primary_hv_ts_voltage_converted_t *internal_voltage_api_get_ts_voltage_canlib_pa
 #define internal_voltage_api_read_all() (INTERNAL_VOLTAGE_RC_OK)
 #define internal_voltage_api_get_ts() (0U)
 #define internal_voltage_api_get_pack() (0U)
-#define internal_voltage_api_get_ts_voltage_canlib_payload(byte_size) (NULL)
+#define internal_voltage_api_get_canlib_payload(byte_size) (NULL)
+#define internal_voltage_api_print_log() EAGLETRT_API_NOP()
 
 #endif // CONF_INTERNAL_VOLTAGE_MODULE_ENABLE
 

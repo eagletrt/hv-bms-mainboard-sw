@@ -11,6 +11,7 @@
 #define CURRENT_API_H
 
 #include "current.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
@@ -24,9 +25,16 @@ enum CurrentReturnCode current_api_init(void);
 /*!
  * \brief Get the supplied current in A
  *
- * \returns ampere_t The current in A
+ * \returns The current in A
  */
 ampere_t current_api_get_current(void);
+
+/*!
+ * \brief Set the supplied current in A
+ *
+ * \param[in] current The current in A
+ */
+void current_api_set_current(ampere_t current);
 
 /*!
  * \brief Get the calculated power value in kW
@@ -47,39 +55,30 @@ kilowatt_t current_api_get_power(void);
 enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void);
 
 /*!
- * \brief Handle the received response from the current sensor
- *
- * \param payload A pointer to the canlib payload of the response
- */
-void current_api_handle(bms_ivt_msg_result_i_t *payload);
-
-/*!
  * \brief Get a pointer to the CAN payload of the current
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_current_converted_t* A pointer to the payload
+ * \returns Pointer of the payload
  */
-primary_hv_current_converted_t *current_api_get_current_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size);
 
 /*!
- * \brief Get a pointer to the CAN payload of the power
+ * \brief Handle the received response from the current sensor
  *
- * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
- *
- * \returns primary_hv_power_converted_t* A pointer to the payload
+ * \param payload A pointer to the canlib payload of the response
  */
-primary_hv_power_converted_t *current_api_get_power_canlib_payload(size_t *byte_size);
+// void current_api_handle(bms_ivt_msg_result_i_t *payload);
 
 #else // CONF_CURRENT_MODULE_ENABLE
 
-#define current_api_init() (CURRENT_OK)
+#define current_api_init() (CURRENT_RC_OK)
 #define current_api_get_current() (0.f)
+#define current_api_set_current(current) EAGLETRT_API_NOP()
 #define current_api_get_power() (0.f)
-#define current_api_start_sensor_communication_watchdog() (WATCHDOG_OK)
+#define current_api_start_sensor_communication_watchdog() (WATCHDOG_RC_OK)
 #define current_api_handle(payload) EAGLETRT_API_NOP()
-#define current_api_get_current_canlib_payload(byte_size) (NULL)
-#define current_api_get_power_canlib_payload(byte_size) (NULL)
+#define current_api_get_canlib_payload(byte_size) (NULL)
 
 #endif // CONF_CURRENT_MODULE_ENABLE
 

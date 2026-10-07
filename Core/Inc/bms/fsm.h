@@ -21,11 +21,10 @@ Functions and types have been generated with prefix "fsm_"
 /*** USER CODE BEGIN MACROS ***/
 #include <stddef.h>
 
-#include "bms_network.h"
-#include "primary_network.h"
-
+#include "can-bms.h"
+#include "can-networks.h"
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
+#include "can-primary.h"
 
 // Size of the 7-segment display animations
 #define FSM_IDLE_DISPLAY_ANIMATION_SIZE (10U)
@@ -46,6 +45,7 @@ typedef enum {
     FSM_EVENT_TYPE_AIRN_TIMEOUT,      /*!< The AIR- watchdog has timed out */
     FSM_EVENT_TYPE_PRECHARGE_TIMEOUT, /*!< The precharge watchdog has timed out */
     FSM_EVENT_TYPE_AIRP_TIMEOUT,      /*!< The AIR+ watchdog has timed out */
+    FSM_EVENT_TYPE_ECU_TIMEOUT,       /*!< The ECU communication watchdog has timed out */
     FSM_EVENT_TYPE_BALANCING_START,   /*!< Start the balancing procedure */
     FSM_EVENT_TYPE_BALANCING_STOP,    /*!< Stop the balancing procedure */
     FSM_EVENT_TYPE_CELLBOARD_FATAL,   /*!< A cellboard has reported a fatal error */
@@ -107,11 +107,15 @@ struct FsmHandler {
 
     fsm_event_data_t fatal_event; /*!< The event data that caused the transition to the fatal state, used for debugging purposes */
 
-    // Canlib paylaods
-    primary_hv_status_converted_t status_can_payload;        /*!< The canlib payload for the status of the FSM */
-    primary_hv_flash_response_converted_t flash_can_payload; /*!< The canlib payload for the flash response */
+    // Canlib payloads
+    union CanPrimaryMessages libcan_message_tsac_status; /*!< Libcan payload of the BMS status to send */
 
-    bms_cellboard_status_status cellboard_status[CELLBOARD_COUNT];
+    enum CanPrimaryTsacstatusCellboard1status libcan_cellboard1_status; /*!< Libcan payload of the received Cellboard1 status */
+    enum CanPrimaryTsacstatusCellboard2status libcan_cellboard2_status; /*!< Libcan payload of the received Cellboard2 status */
+    enum CanPrimaryTsacstatusCellboard3status libcan_cellboard3_status; /*!< Libcan payload of the received Cellboard3 status */
+    enum CanPrimaryTsacstatusCellboard4status libcan_cellboard4_status; /*!< Libcan payload of the received Cellboard4 status */
+    enum CanPrimaryTsacstatusCellboard5status libcan_cellboard5_status; /*!< Libcan payload of the received Cellboard5 status */
+    enum CanPrimaryTsacstatusCellboard6status libcan_cellboard6_status; /*!< Libcan payload of the received Cellboard6 status */
 };
 /*** USER CODE END TYPES ***/
 
@@ -189,19 +193,65 @@ fsm_state_t fsm_run_state(fsm_state_t cur_state, fsm_state_data *data);
 fsm_state_t fsm_get_status(void);
 
 /*!
- * \brief Handle the received cellboard status
- * \param payload A pointer to the canlib payload
+ * \brief Handle the received Cellboard 1 status libcan payload
+ *
+ * \param[in] status The received Cellboard status
  */
-void fsm_cellboard_state_handle(bms_cellboard_status_converted_t *payload);
+void fsm_cellboard1_state_handle(enum CanBmsTsaccellboard1fsmStatus status);
+
+/*!
+ * \brief Handle the received Cellboard 2 status libcan payload
+ *
+ * \param[in] status The received Cellboard status
+ */
+void fsm_cellboard2_state_handle(enum CanBmsTsaccellboard2fsmStatus status);
+
+/*!
+ * \brief Handle the received Cellboard 3 status libcan payload
+ *
+ * \param[in] status The received Cellboard status
+ */
+void fsm_cellboard3_state_handle(enum CanBmsTsaccellboard3fsmStatus status);
+
+/*!
+ * \brief Handle the received Cellboard 4 status libcan payload
+ *
+ * \param[in] status The received Cellboard status
+ */
+void fsm_cellboard4_state_handle(enum CanBmsTsaccellboard4fsmStatus status);
+
+/*!
+ * \brief Handle the received Cellboard 5 status libcan payload
+ *
+ * \param[in] status The received Cellboard status
+ */
+void fsm_cellboard5_state_handle(enum CanBmsTsaccellboard5fsmStatus status);
+
+/*!
+ * \brief Handle the received Cellboard 6 status libcan payload
+ *
+ * \param[in] status The received Cellboard status
+ */
+void fsm_cellboard6_state_handle(enum CanBmsTsaccellboard6fsmStatus status);
+
+/*!
+ * \brief Get the string representation of a Cellboard status
+ *
+ * \param[in] ID The Cellboard ID
+ *
+ * \returns A pointer to the string representation of the status
+ */
+char *fsm_cellboard_get_state_handle(uint8_t ID);
 
 /*!
  * \brief Get a pointer to the CAN payload structure of the FSM status
  *
  * \param byte_size[out] A pointer where the size of the payload in bytes is stored (can be NULL)
  *
- * \returns primary_hv_status_converted_t* A pointer to the payload
+ * \returns A pointer to the libcan payload
  */
-primary_hv_status_converted_t *fsm_get_canlib_payload(size_t *byte_size);
+union CanPrimaryMessages *fsm_get_canlib_payload(size_t *byte_size);
+//
 /*** USER CODE END FUNCTIONS ***/
 
 #endif

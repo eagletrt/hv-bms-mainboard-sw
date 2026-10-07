@@ -12,8 +12,14 @@
 #include <string.h>
 #include <math.h>
 
+#include "can-primary.h"
+#include "eagletrt.h"
 #include "error-api.h"
 #include "internal-voltage-api.h"
+#include "logger-api.h"
+#include "logger.h"
+#include "mainboard-def.h"
+#include "watchdog.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
@@ -23,6 +29,7 @@ EAGLETRT_STATIC struct CurrentHandler current_api_handler;
  * \brief Timeout callback for the sensor communication watchdog
  */
 EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
+    logger_api_log(LOGGER_LEVEL_ERROR, "Current sensor communication timeout");
     error_api_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
 }
 
@@ -45,17 +52,30 @@ EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
     }
 }
 
+void dummy() {
+
+    logger_api_log(LOGGER_LEVEL_ERROR, "Current sensor communication whould have timed out");
+}
+
 enum CurrentReturnCode current_api_init(void) {
     memset(&current_api_handler, 0U, sizeof(current_api_handler));
     (void)watchdog_init(
         &current_api_handler.sensor_wdg,
-        CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
-        prv_current_api_sensor_communcation_timeout);
+        1500,   //CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
+        dummy); // prv_current_api_sensor_communcation_timeout);
     return CURRENT_RC_OK;
 }
 
 ampere_t current_api_get_current(void) {
     return current_api_handler.current;
+}
+
+void current_api_set_current(ampere_t current) {
+    enum WatchdogReturnCode result = watchdog_reset(&current_api_handler.sensor_wdg);
+    current_api_handler.current = current;
+    if (result == WATCHDOG_RC_TIMED_OUT) {
+        watchdog_restart(&current_api_handler.sensor_wdg);
+    }
 }
 
 kilowatt_t current_api_get_power(void) {
@@ -67,31 +87,13 @@ enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
     return watchdog_start(&current_api_handler.sensor_wdg);
 }
 
-void current_api_handle(bms_ivt_msg_result_i_t *const payload) {
-    watchdog_reset(&current_api_handler.sensor_wdg);
-    if (payload == NULL) {
-        return;
-    }
-
-    constexpr float ma_to_a = 0.001F;
-    current_api_handler.current = (float)payload->ivt_result_i * ma_to_a;
-    prv_current_api_check_value(current_api_handler.current);
-}
-
-primary_hv_current_converted_t *current_api_get_current_canlib_payload(size_t *const byte_size) {
+union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(current_api_handler.current_can_payload);
+        *byte_size = can_primary_byte_size_tsacmainboardcurrentinfo;
     }
-    current_api_handler.current_can_payload.current = current_api_handler.current;
-    return &current_api_handler.current_can_payload;
-}
-
-primary_hv_power_converted_t *current_api_get_power_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(current_api_handler.power_can_payload);
-    }
-    current_api_handler.power_can_payload.power = current_api_get_power();
-    return &current_api_handler.power_can_payload;
+    current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.current = current_api_get_current();
+    current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.power = current_api_get_power();
+    return &current_api_handler.libcan_message_current;
 }
 
 #ifdef CONF_CURRENT_STRINGS_ENABLE

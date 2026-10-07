@@ -10,12 +10,8 @@
 #ifndef CURRENT_H
 #define CURRENT_H
 
-#include "mainboard-conf.h"
+#include "can-primary.h"
 #include "mainboard-def.h"
-
-#include "bms_network.h"
-#include "primary_network.h"
-#include "eagletrt-api.h"
 
 #include "watchdog.h"
 
@@ -42,7 +38,7 @@
  *                          - 500 ms for voltage and current values
  *                          - 1 s for temperature values
  */
-#define CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS (200U)
+#define CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS (500U)
 
 /*!
  * \brief Startup time of the current sensor in ms
@@ -66,8 +62,7 @@ struct CurrentHandler {
 
     struct Watchdog sensor_wdg; /*!< Watchdog used to check if the current sensor is connected */
 
-    primary_hv_current_converted_t current_can_payload; /*!< The canlib payload used to send the current value via CAN */
-    primary_hv_power_converted_t power_can_payload;     /*!< The canlib payload used to send the power value via CAN */
+    union CanPrimaryMessages libcan_message_current; /*!< The canlib payload used to send the current value via CAN */
 };
 
 #endif // CURRENT_H

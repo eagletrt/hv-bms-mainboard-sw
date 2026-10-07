@@ -11,9 +11,13 @@
 
 #include <string.h>
 
+#include "error-api.h"
 #include "timebase.h"
 #include "fsm.h"
 #include "internal-voltage-api.h"
+#include "eagletrt.h"
+#include "logger-api.h"
+#include "watchdog.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -37,6 +41,12 @@ void prv_pcu_api_precharge_timeout(void) {
 void prv_pcu_api_airp_timeout(void) {
     // Send AIR+ timeout event to the FSM
     pcu_handler.timeout_event.type = FSM_EVENT_TYPE_AIRP_TIMEOUT;
+    fsm_event_trigger(&pcu_handler.timeout_event);
+}
+
+/*! \brief Callback executed when the TSON watchdog times out */
+void prv_pcu_api_ecu_timeout(void) {
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_ECU_TIMEOUT;
     fsm_event_trigger(&pcu_handler.timeout_event);
 }
 
@@ -75,6 +85,13 @@ enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_togg
 
     // Reset all gpios
     pcu_api_reset_all();
+
+    // TODO: Stop the watchdog if handcart is connected or use different message?
+    watchdog_init(
+        &pcu_handler.ecu_watchdog,
+        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, timebase_get_resolution()),
+        prv_pcu_api_ecu_timeout);
+    //watchdog_start(&pcu_handler.ecu_watchdog);
     return PCU_RC_OK;
 }
 
@@ -154,21 +171,45 @@ bool pcu_api_is_precharge_complete(void) {
     return pcu_api_get_precharge_percentage() >= PCU_PRECHARGE_THRESHOLD_PERCENT;
 }
 
-// TODO: Add watchdog for the set state canlib message
-void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    pcu_handler.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
+void pcu_api_bms_set_handle(bool tson) {
+    pcu_handler.event.type = tson ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
     fsm_event_trigger(&pcu_handler.event);
 }
 
-void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
+void pcu_api_ecu_fsm_handle(void) {
+    enum WatchdogReturnCode result = watchdog_reset(&pcu_handler.ecu_watchdog);
+    if (result == WATCHDOG_RC_TIMED_OUT) {
+        watchdog_restart(&pcu_handler.ecu_watchdog);
     }
-    pcu_handler.event.type = payload->status ? FSM_EVENT_TYPE_TS_ON : FSM_EVENT_TYPE_TS_OFF;
-    fsm_event_trigger(&pcu_handler.event);
+}
+
+void pcu_api_print_log(void) {
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "PCU report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", fsm_state_names[fsm_get_status() < FSM_NUM_STATES ? fsm_get_status() : FSM_STATE_IDLE]);
+    logger_api_log(LOGGER_LEVEL_INFO, "Precharge percentage: %.1f %%", pcu_api_get_precharge_percentage() * 100.0f);
+    logger_api_log(LOGGER_LEVEL_INFO, "Precharge complete: %s", pcu_api_is_precharge_complete() ? "yes" : "no");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "AIR- watchdog: %s%s",
+        pcu_handler.airn_watchdog.running ? "running" : "stopped",
+        pcu_handler.airn_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Precharge watchdog: %s%s",
+        pcu_handler.precharge_watchdog.running ? "running" : "stopped",
+        pcu_handler.precharge_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "AIR+ watchdog: %s%s",
+        pcu_handler.airp_watchdog.running ? "running" : "stopped",
+        pcu_handler.airp_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "ECU watchdog: %s%s",
+        pcu_handler.ecu_watchdog.running ? "running" : "stopped",
+        pcu_handler.ecu_watchdog.timed_out ? ", timed out" : "");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }
 
 #ifdef CONF_PCU_STRING_ENABLE

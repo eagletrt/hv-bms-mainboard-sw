@@ -11,7 +11,10 @@
 
 #include <time.h>
 #include <string.h>
-#include "eagletrt-api.h"
+#include "can-primary.h"
+#include "eagletrt.h"
+#include "mainboard-def.h"
+#include "can-version.h"
 
 #ifdef CONF_IDENTITY_MODULE_ENABLE
 
@@ -20,52 +23,61 @@ EAGLETRT_STATIC struct IdentityHandler identity_handler;
 void identity_api_init(void) {
     memset(&identity_handler, 0U, sizeof(identity_handler));
 
-    // TODO: Build time at compile time
     // Get build time
     struct tm time = { 0 };
-    // Ignore warnings from this line
     if (strptime(IDENTITY_BUILD_TIME_STR, "%b %d %Y %H:%M:%S", &time) != NULL) {
         identity_handler.build_time = mktime(&time);
     }
 
     // Update canlib payload info
-    identity_handler.mainboard_version_payload.component_build_time = identity_handler.build_time;
-    identity_handler.mainboard_version_payload.canlib_build_time = CANLIB_BUILD_TIME;
+    identity_handler.libcan_message_version.tsacmainboardversion.major = 0;
+    identity_handler.libcan_message_version.tsacmainboardversion.minor = 1;
+    identity_handler.libcan_message_version.tsacmainboardversion.patch = 0;
+    identity_handler.libcan_message_version_info.tsacmainboardversioninfo.buildtime = identity_handler.build_time;
+    identity_handler.libcan_message_version_info.tsacmainboardversioninfo.commithash = 0;
+    identity_handler.libcan_message_version_info.tsacmainboardversioninfo.dirty = 0;
 
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
-        identity_handler.cellboard_version_payload[id].cellboard_id = (primary_hv_cellboard_version_cellboard_id)id;
-    }
+    identity_handler.libcan_message_libcan_version.tsacmainboardlibcanversion.major = can_version_major;
+    identity_handler.libcan_message_libcan_version.tsacmainboardlibcanversion.minor = can_version_minor;
+    identity_handler.libcan_message_libcan_version.tsacmainboardlibcanversion.patch = can_version_patch;
+    identity_handler.libcan_message_libcan_version_info.tsacmainboardlibcanversioninfo.generationtime = can_generation_time;
+    identity_handler.libcan_message_libcan_version_info.tsacmainboardlibcanversioninfo.commithash = 0;
+    identity_handler.libcan_message_libcan_version_info.tsacmainboardlibcanversioninfo.dirty = 0;
 }
 
 seconds_t identity_api_get_build_time(void) {
     return identity_handler.build_time;
 }
 
-primary_hv_mainboard_version_converted_t *identity_api_get_mainboard_version_payload(size_t *const byte_size) {
+union CanPrimaryMessages *identity_api_get_mainboard_version_payload(size_t *byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(identity_handler.mainboard_version_payload);
+        *byte_size = can_primary_byte_size_tsacmainboardversion;
     }
-    return &identity_handler.mainboard_version_payload;
+    return &identity_handler.libcan_message_version;
 }
 
-primary_hv_cellboard_version_converted_t *identity_api_get_cellboard_version_payload(const CellboardId cellboard_id, size_t *const byte_size) {
-    if (cellboard_id >= CELLBOARD_ID_COUNT) {
-        return NULL;
-    }
+union CanPrimaryMessages *identity_api_get_mainboard_version_info_payload(size_t *byte_size) {
     if (byte_size != NULL) {
-        *byte_size = sizeof(identity_handler.cellboard_version_payload[0U]);
+        *byte_size = can_primary_byte_size_tsacmainboardversioninfo;
     }
-    return &identity_handler.cellboard_version_payload[cellboard_id];
+    return &identity_handler.libcan_message_version_info;
 }
 
-void identity_api_cellboard_version_handle(bms_cellboard_version_converted_t *const payload) {
-    if (payload == NULL || (CellboardId)payload->cellboard_id >= CELLBOARD_ID_COUNT) {
-        return;
+union CanPrimaryMessages *identity_api_get_mainboard_libcan_version_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsacmainboardlibcanversion;
     }
-    // Copy version data
-    identity_handler.cellboard_version_payload[payload->cellboard_id].canlib_build_time = payload->canlib_build_time;
-    identity_handler.cellboard_version_payload[payload->cellboard_id].component_build_time = payload->component_build_time;
+    return &identity_handler.libcan_message_libcan_version;
 }
+
+union CanPrimaryMessages *identity_api_get_mainboard_libcan_version_info_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_primary_byte_size_tsacmainboardlibcanversioninfo;
+    }
+    return &identity_handler.libcan_message_libcan_version_info;
+}
+
+// TODO: Send Libcan Cellboard versions info
 
 #ifdef CONF_IDENTITY_STRINGS_ENABLE
 

@@ -12,9 +12,6 @@
 
 #include <stdbool.h>
 
-#include "mainboard-conf.h"
-#include "mainboard-def.h"
-
 /*!
  * \brief Status of a single LED
  *

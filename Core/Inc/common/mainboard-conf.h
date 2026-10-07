@@ -13,17 +13,6 @@
 
 #include "mainboard-def.h"
 
-/*** ######################### LIBRARIES MACROS ########################## ***/
-
-/**
- * @defgroup libmacros
- * @brief Macros used by the libraries included inside the project
- */
-#define bms_NETWORK_IMPLEMENTATION
-#define primary_NETWORK_IMPLEMENTATION
-
-/** @} */
-
 /*** ######################### MODULE SELECTION ########################## ***/
 
 /**
@@ -93,4 +82,4 @@
 
 /** @} */
 
-#endif  // MAINBOARD_CONF_H
+#endif // MAINBOARD_CONF_H

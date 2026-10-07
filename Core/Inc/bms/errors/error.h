@@ -10,14 +10,8 @@
 #define ERROR_H
 
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
 
 #include "errorlib.h"
-#include "eagletrt-api.h"
-
-#include "bms_network.h"
-
-#include "primary_network.h"
 
 /*! \brief Error instances count for each group */
 #define ERROR_POST_INSTANCE_COUNT (1U)
@@ -27,11 +21,13 @@
 #define ERROR_OVER_VOLTAGE_INSTANCE_COUNT (CELLBOARD_SERIES_COUNT)
 #define ERROR_UNDER_TEMPERATURE_INSTANCE_COUNT (CELLBOARD_TEMP_SENSOR_COUNT)
 #define ERROR_OVER_TEMPERATURE_INSTANCE_COUNT (CELLBOARD_TEMP_SENSOR_COUNT)
-#define ERROR_CAN_COMMUNICATION_INSTANCE_COUNT (CAN_NETWORK_COUNT)
+#define ERROR_CAN_COMMUNICATION_INSTANCE_COUNT (CAN_COMMUNICATION_NETWORK_COUNT)
 #define ERROR_CURRENT_SENSOR_COMMUNICATION_INSTANCE_COUNT (1U)
 #define ERROR_COOLING_UNDER_TEMPERATURE_INSTANCE_COUNT (COOLING_TEMP_SENSOR_COUNT)
 #define ERROR_COOLING_OVER_TEMPERATURE_INSTANCE_COUNT (COOLING_TEMP_SENSOR_COUNT)
 #define ERROR_CELLBOARD_ERROR_INSTANCE_COUNT (CELLBOARD_COUNT)
+#define ERROR_CONNECTOR_DISCONNECTED_ERROR_INSTANCE_COUNT (1U)
+#define ERROR_IMD_ERROR_INSTANCE_COUNT (1U)
 
 /*! \brief Type redefinition for an error instance */
 typedef errorlib_error_instance_t error_instance;
@@ -61,6 +57,8 @@ enum ErrorGroup {
     ERROR_GROUP_COOLING_UNDER_TEMPERATURE,    /*!< The cooling temperature is below the minimum allowed value */
     ERROR_GROUP_COOLING_OVER_TEMPERATURE,     /*!< The cooling temperature exceeded the maximum allowed value */
     ERROR_GROUP_CELLBOARD_ERROR,              /*!< A cellboard error occurred */
+    ERROR_GROUP_CONNECTOR_DISCONNECTED,       /*!< A connector is not connected properly */
+    ERROR_GROUP_IMD,                          /*!< IMD error */
     ERROR_GROUP_COUNT                         /*!< The number of error groups */
 };
 

@@ -9,10 +9,9 @@
 #ifndef POST_H
 #define POST_H
 
-#include "mainboard-conf.h"
+#include "can-communication.h"
 #include "mainboard-def.h"
 
-#include "can-comm.h"
 #include "led.h"
 #include "imd.h"
 #include "pcu.h"
@@ -33,10 +32,11 @@ enum PostReturnCode {
  * \brief Structure definition for the initial data that are needed by the POST module
  */
 struct PostInitData {
+    struct CanCommunicationNetworkConfig can_networks[CAN_COMMUNICATION_NETWORK_COUNT]; /*!< Explicit configuration blocks for the system's physical CAN networks. */
+
     system_reset_callback_t system_reset;                                /*!< MCU reset callback */
     interrupt_critical_section_enter_t cs_enter;                         /*!< Critical section entry point to avoid race conditions */
     interrupt_critical_section_exit_t cs_exit;                           /*!< Critical section exit point to avoid race conditions */
-    can_comm_transmit_callback can_send;                                 /*!< CAN bus send message callback */
     led_set_state_callback led_set;                                      /*!< LED set status callback */
     led_toggle_state_callback led_toggle;                                /*!< LED toggle status callback */
     imd_pwm_start_callback imd_start;                                    /*!< IMD start measurement callback */
@@ -44,6 +44,7 @@ struct PostInitData {
     pcu_toggle_state_callback pcu_toggle;                                /*!< Pack Control Unit toggle status callback */
     feedback_start_analog_conversion_callback feedback_start_conversion; /*!< Start feedback conversion callback */
     feedback_read_digital_all_callback feedback_read_all;                /*!< Read all feedbacks callback */
+    feedback_read_hc_connected_callback feedback_read_hc_connected;      /*!< Read the HC connected status callback */
     display_segment_set_state_callback display_set;                      /*!< 7-segment display set segment status callback */
     display_segment_toggle_state_callback display_toggle;                /*!< 7-segment display toggle segment status callback */
     spi_send_callback_t spi_send;                                        /*!< SPI send message callback */

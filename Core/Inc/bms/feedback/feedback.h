@@ -14,10 +14,9 @@
 #include <stdint.h>
 
 #include "mainboard-def.h"
-#include "mainboard-conf.h"
 #include "eagletrt-api.h"
 
-#include "primary_network.h"
+#include "can-primary.h"
 
 /*! \brief Alias for the total number of feedbacks */
 #define FEEDBACK_COUNT (FEEDBACK_ID_COUNT)
@@ -28,7 +27,7 @@
 /*! \brief Voltage reference for the 5V to the MCU and the ShutDown */
 #define FEEDBACK_VREF (3.3f)
 #define FEEDBACK_5V_VREF (5.f)
-#define FEEDBACK_SD_VREF (12.f)
+#define FEEDBACK_SD_VREF (24.f)
 
 /*!
  * \brief Thresholds for the analog feedbacks in V
@@ -39,6 +38,21 @@
  */
 #define FEEDBACK_THRESHOLD_HIGH_V (1.9f)
 #define FEEDBACK_THRESHOLD_LOW_V (0.7f)
+
+/*!
+ * \brief Threshold for the 5V to MCU feedback when the HC is connected
+ *
+ * \details The threshold is lower when the HC is connected because the voltage divider
+ * is different and the voltage at the feedback pin is lower
+ */
+#define FEEDBACK_THRESHOLD_HIGH_HC_V (1.0f)
+
+/*!
+ * \brief Callback function to read the HC connected status
+ *
+ * \returns true if the HC is connected, false otherwise
+ */
+typedef bool (*feedback_read_hc_connected_callback)(void);
 
 /*!
  * \brief Convert the feedback voltage to the 5V to MCU voltage in V
@@ -75,7 +89,6 @@
         FEEDBACK_BIT_AIRP_OPEN_MEC |             \
         FEEDBACK_BIT_TS_LESS_THAN_60V |          \
         FEEDBACK_BIT_PLAUSIBLE_STATE_PERSISTED | \
-        FEEDBACK_BIT_BMS_FAULT_COCKPIT_LED |     \
         FEEDBACK_BIT_IMD_FAULT_COCKPIT_LED |     \
         FEEDBACK_BIT_INDICATOR_CONNECTED |       \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED |   \
@@ -83,7 +96,6 @@
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_OK |                    \
         FEEDBACK_BIT_TSAL_GREEN |                \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 
@@ -123,7 +135,6 @@
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_PLAUSIBLE_STATE_LATCHED |   \
         FEEDBACK_BIT_IMD_OK |                    \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 #define FEEDBACK_AIRN_CHECK_TO_PRECHARGE_LOW \
@@ -161,7 +172,6 @@
         FEEDBACK_BIT_BMS_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_OK |                    \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 #define FEEDBACK_PRECHARGE_TO_AIRP_CHECK_LOW \
@@ -200,7 +210,6 @@
         FEEDBACK_BIT_BMS_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_FAULT_LATCHED |         \
         FEEDBACK_BIT_IMD_OK |                    \
-        FEEDBACK_BIT_PROBING_3V3 |               \
         FEEDBACK_BIT_SD_END |                    \
         FEEDBACK_BIT_V5_MCU)
 #define FEEDBACK_AIRP_CHECK_TO_TS_ON_LOW  \
@@ -384,17 +393,16 @@ enum FeedbackStatus : uint8_t {
 struct FeedbackHandler {
     feedback_read_digital_all_callback read_digital;            /*!< Pointer to the function used to read all the digital feedbacks */
     feedback_start_analog_conversion_callback start_conversion; /*!< Pointer to the function used to start the converison of the analog feedbacks */
+    feedback_read_hc_connected_callback read_hc_connected;      /*!< Pointer to the function used to read the HC connected status */
 
     bit_flag32_t digital;                       /*!< Bit flag where each bit represent a specific feedback state */
     volt_t analog[FEEDBACK_ANALOG_INDEX_COUNT]; /*!< Array of raw voltages of the analog feedbacks */
 
     enum FeedbackStatus status[FEEDBACK_COUNT]; /*!< Array of all the feedbacks current status */
 
-    primary_hv_feedback_status_converted_t status_can_payload;       /*!< CAN payload of the feedbacks status */
-    primary_hv_feedback_digital_converted_t digital_can_payload;     /*!< CAN payload of the digital feedbacks values */
-    primary_hv_feedback_analog_converted_t analog_can_payload;       /*!< CAN payload of the analog feedbacks values */
-    primary_hv_feedback_analog_sd_converted_t analog_sd_can_payload; /*!< CAN payload of the analog shutdown feedbacks values */
-    primary_hv_feedback_enzomma_converted_t enzomma_can_payload;     /*!< CAN payload of the feedback that did not allow the BMS to go the TS ON state */
+    union CanPrimaryMessages libcan_message_shutdown;
+    union CanPrimaryMessages libcan_message_feedback;
+    union CanPrimaryMessages libcan_message_feedback_shutdown;
 };
 
 #endif // FEEDBACK_H

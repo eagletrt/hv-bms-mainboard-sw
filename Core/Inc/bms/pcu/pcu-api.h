@@ -11,6 +11,7 @@
 #define PCU_API_H
 
 #include "pcu.h"
+#include "mainboard-conf.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -55,6 +56,9 @@ void pcu_api_precharge_stop(void);
 /*! \brief Stop the internal watchdog of the precharge */
 void pcu_api_precharge_stop_watchdog(void);
 
+/*! \brief Stop the internal watchdog of the precharge */
+void pcu_api_precharge_stop_watchdog(void);
+
 /*! \brief Activate the AMS */
 void pcu_api_ams_activate(void);
 
@@ -76,22 +80,25 @@ precise_percentage_t pcu_api_get_precharge_percentage(void);
 bool pcu_api_is_precharge_complete(void);
 
 /*!
- * \brief Handle the received set status message sent from the ECU
+ * \brief Handle the received set status message
  *
- * \param payload A pointer to the canlib payload of the response
+ * \param[in] tson True if TSON is requested, false if TSOFF is requested
  */
-void pcu_api_set_state_from_ecu_handle(primary_hv_set_status_ecu_converted_t *payload);
+void pcu_api_bms_set_handle(bool tson);
 
 /*!
- * \brief Handle the received set status message sent from the handcart
- *
- * \param payload A pointer to the canlib payload of the response
+ * \brief Handle the received ECU status message
  */
-void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_converted_t *payload);
+void pcu_api_ecu_fsm_handle(void);
+
+/*!
+ * \brief Print a structured log of the current PCU state
+ */
+void pcu_api_print_log(void);
 
 #else // CONF_PCU_MODULE_ENABLE
 
-#define pcu_api_init(set, toggle) (PCU_OK)
+#define pcu_api_init(set, toggle) (PCU_RC_OK)
 #define pcu_api_reset_all() EAGLETRT_API_NOP()
 #define pcu_api_airn_open() EAGLETRT_API_NOP()
 #define pcu_api_airn_close() EAGLETRT_API_NOP()
@@ -106,8 +113,9 @@ void pcu_api_set_state_from_handcart_handle(primary_hv_set_status_handcart_conve
 #define pcu_api_ams_deactivate() EAGLETRT_API_NOP()
 #define pcu_api_get_precharge_percentage() (0.f)
 #define pcu_api_is_precharge_complete() (false)
-#define pcu_api_set_state_from_ecu_handle(payload) EAGLETRT_API_NOP()
-#define pcu_api_set_state_from_handcart_handle(payload) EAGLETRT_API_NOP()
+#define pcu_api_bms_set_handle(tson) EAGLETRT_API_NOP()
+#define pcu_api_ecu_fsm_handle() EAGLETRT_API_NOP()
+#define pcu_api_print_log() EAGLETRT_API_NOP()
 
 #endif // CONF_PCU_MODULE_ENABLE
 

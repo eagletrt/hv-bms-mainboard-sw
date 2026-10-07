@@ -8,9 +8,15 @@
 
 #include "bal-api.h"
 
-#include "eagletrt-api.h"
 #include <string.h>
 
+#include "eagletrt.h"
+#include "eagletrt-api.h"
+#include "can-bms.h"
+
+#include "fsm.h"
+#include "logger-api.h"
+#include "mainboard-def.h"
 #include "timebase.h"
 #include "volt-api.h"
 
@@ -25,6 +31,55 @@ void prv_bal_api_timeout(void) {
     fsm_event_trigger(&balancing_handler.event);
 }
 
+EAGLETRT_STATIC constexpr size_t BAL_LOG_CELLS_PER_ROW = 6U;
+EAGLETRT_STATIC constexpr size_t BAL_LOG_LAST_CELL_OFFSET = BAL_LOG_CELLS_PER_ROW - 1U;
+
+EAGLETRT_STATIC const char *prv_bal_fsm_state_name(void) {
+    const fsm_state_t state = fsm_get_status();
+    if (state < FSM_NUM_STATES) {
+        return fsm_state_names[state];
+    }
+    return "no change";
+}
+
+EAGLETRT_STATIC_INLINE char prv_bal_cell_marker(const bool active) {
+    if (active) {
+        return 'x';
+    }
+    return '.';
+}
+
+EAGLETRT_STATIC void prv_bal_print_cellboard_log(const CellboardId cellboard_id) {
+    uint32_t active_count = 0U;
+    const bit_flag32_t discharging = balancing_handler.discharging_cells[cellboard_id];
+
+    for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell) {
+        if (EAGLETRT_API_BIT_GET(discharging, cell)) {
+            ++active_count;
+        }
+    }
+
+    logger_api_log(
+        LOGGER_LEVEL_INFO,
+        "Cellboard %u | balancing %lu cells",
+        (unsigned int)(cellboard_id + 1U),
+        (unsigned long)active_count);
+
+    for (size_t group = 0U; group < CELLBOARD_SEGMENT_SERIES_COUNT; group += BAL_LOG_CELLS_PER_ROW) {
+        logger_api_log(
+            LOGGER_LEVEL_INFO,
+            "  cells %02u-%02u: %c %c %c %c %c %c",
+            (unsigned int)(group + 1U),
+            (unsigned int)(group + BAL_LOG_CELLS_PER_ROW),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 0U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 1U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 2U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 3U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + 4U)),
+            prv_bal_cell_marker(EAGLETRT_API_BIT_GET(discharging, group + BAL_LOG_LAST_CELL_OFFSET)));
+    }
+}
+
 enum BalReturnCode bal_api_init(void) {
     memset(&balancing_handler, 0U, sizeof(balancing_handler));
 
@@ -32,9 +87,10 @@ enum BalReturnCode bal_api_init(void) {
     balancing_handler.event.type = FSM_EVENT_TYPE_IGNORED;
 
     // Set default calib payload data
-    balancing_handler.set_status_can_payload.start = false;
-    balancing_handler.set_status_can_payload.target = BAL_TARGET_MAX_V;
-    balancing_handler.set_status_can_payload.threshold = BAL_THRESHOLD_MAX_V;
+    struct CanBmsTsacmainboardbalancingset *payload = &balancing_handler.libcan_message_balancing_set.tsacmainboardbalancingset;
+    payload->start = 0U;
+    payload->target = BAL_TARGET_MAX_V;
+    payload->threshold = BAL_THRESHOLD_MAX_V;
 
     // Set default balancing parameters
     balancing_handler.params.target = BAL_TARGET_MAX_V;
@@ -86,27 +142,264 @@ enum BalReturnCode bal_api_stop(void) {
     return BAL_RC_OK;
 }
 
-void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balancing_status_steering_wheel_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
+void bal_api_print_log(void) {
+    uint32_t total_active_cells = 0U;
+    const char *active_text = "no";
+
+    if (bal_api_is_active()) {
+        active_text = "yes";
     }
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+    logger_api_log(LOGGER_LEVEL_EMPTY, "Balancing report");
+    logger_api_log(LOGGER_LEVEL_INFO, "FSM state: %s", prv_bal_fsm_state_name());
+    logger_api_log(LOGGER_LEVEL_INFO, "Active: %s", active_text);
+    logger_api_log(LOGGER_LEVEL_INFO, "Target: %.3f V", balancing_handler.params.target);
+    logger_api_log(LOGGER_LEVEL_INFO, "Threshold: %.3f V", balancing_handler.params.threshold);
+
+    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+        const bit_flag32_t discharging = balancing_handler.discharging_cells[cellboard_id];
+        for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell) {
+            if (EAGLETRT_API_BIT_GET(discharging, cell)) {
+                ++total_active_cells;
+            }
+        }
+        prv_bal_print_cellboard_log(cellboard_id);
+    }
+
+    logger_api_log(LOGGER_LEVEL_INFO, "Total balancing cells: %lu", (unsigned long)total_active_cells);
+    logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
+}
+
+union CanBmsMessages *bal_api_get_balancing_set_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsacmainboardbalancingset;
+    }
+
+    struct CanBmsTsacmainboardbalancingset *payload = &balancing_handler.libcan_message_balancing_set.tsacmainboardbalancingset;
+    if (balancing_handler.active) {
+        payload->start = 1U;
+    } else {
+        payload->start = 0U;
+    }
+    payload->target = balancing_handler.params.target;
+    payload->threshold = balancing_handler.params.threshold;
+    return &balancing_handler.libcan_message_balancing_set;
+}
+
+union CanPrimaryMessages *bal_api_get_cellboard1_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsaccellboard1balancing;
+    }
+
+    struct CanPrimaryTsaccellboard1balancing *payload = &balancing_handler.libcan_message_cellboard1_balancing.tsaccellboard1balancing;
+    payload->cell1 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 0);
+    payload->cell2 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 1);
+    payload->cell3 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 2);
+    payload->cell4 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 3);
+    payload->cell5 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 4);
+    payload->cell6 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 5);
+    payload->cell7 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 6);
+    payload->cell8 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 7);
+    payload->cell9 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 8);
+    payload->cell10 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 9);
+    payload->cell11 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 10);
+    payload->cell12 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 11);
+    payload->cell13 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 12);
+    payload->cell14 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 13);
+    payload->cell15 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 14);
+    payload->cell16 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 15);
+    payload->cell17 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 16);
+    payload->cell18 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 17);
+    payload->cell19 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 18);
+    payload->cell20 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 19);
+    payload->cell21 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 20);
+    payload->cell22 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 21);
+    payload->cell23 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 22);
+    payload->cell24 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_0], 23);
+    return &balancing_handler.libcan_message_cellboard1_balancing;
+}
+
+union CanPrimaryMessages *bal_api_get_cellboard2_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsaccellboard2balancing;
+    }
+
+    struct CanPrimaryTsaccellboard2balancing *payload = &balancing_handler.libcan_message_cellboard2_balancing.tsaccellboard2balancing;
+    payload->cell1 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 0);
+    payload->cell2 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 1);
+    payload->cell3 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 2);
+    payload->cell4 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 3);
+    payload->cell5 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 4);
+    payload->cell6 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 5);
+    payload->cell7 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 6);
+    payload->cell8 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 7);
+    payload->cell9 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 8);
+    payload->cell10 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 9);
+    payload->cell11 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 10);
+    payload->cell12 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 11);
+    payload->cell13 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 12);
+    payload->cell14 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 13);
+    payload->cell15 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 14);
+    payload->cell16 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 15);
+    payload->cell17 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 16);
+    payload->cell18 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 17);
+    payload->cell19 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 18);
+    payload->cell20 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 19);
+    payload->cell21 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 20);
+    payload->cell22 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 21);
+    payload->cell23 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 22);
+    payload->cell24 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_1], 23);
+    return &balancing_handler.libcan_message_cellboard2_balancing;
+}
+
+union CanPrimaryMessages *bal_api_get_cellboard3_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsaccellboard3balancing;
+    }
+
+    struct CanPrimaryTsaccellboard3balancing *payload = &balancing_handler.libcan_message_cellboard3_balancing.tsaccellboard3balancing;
+    payload->cell1 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 0);
+    payload->cell2 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 1);
+    payload->cell3 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 2);
+    payload->cell4 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 3);
+    payload->cell5 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 4);
+    payload->cell6 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 5);
+    payload->cell7 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 6);
+    payload->cell8 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 7);
+    payload->cell9 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 8);
+    payload->cell10 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 9);
+    payload->cell11 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 10);
+    payload->cell12 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 11);
+    payload->cell13 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 12);
+    payload->cell14 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 13);
+    payload->cell15 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 14);
+    payload->cell16 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 15);
+    payload->cell17 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 16);
+    payload->cell18 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 17);
+    payload->cell19 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 18);
+    payload->cell20 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 19);
+    payload->cell21 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 20);
+    payload->cell22 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 21);
+    payload->cell23 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 22);
+    payload->cell24 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_2], 23);
+    return &balancing_handler.libcan_message_cellboard3_balancing;
+}
+
+union CanPrimaryMessages *bal_api_get_cellboard4_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsaccellboard4balancing;
+    }
+
+    struct CanPrimaryTsaccellboard4balancing *payload = &balancing_handler.libcan_message_cellboard4_balancing.tsaccellboard4balancing;
+    payload->cell1 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 0);
+    payload->cell2 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 1);
+    payload->cell3 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 2);
+    payload->cell4 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 3);
+    payload->cell5 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 4);
+    payload->cell6 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 5);
+    payload->cell7 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 6);
+    payload->cell8 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 7);
+    payload->cell9 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 8);
+    payload->cell10 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 9);
+    payload->cell11 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 10);
+    payload->cell12 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 11);
+    payload->cell13 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 12);
+    payload->cell14 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 13);
+    payload->cell15 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 14);
+    payload->cell16 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 15);
+    payload->cell17 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 16);
+    payload->cell18 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 17);
+    payload->cell19 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 18);
+    payload->cell20 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 19);
+    payload->cell21 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 20);
+    payload->cell22 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 21);
+    payload->cell23 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 22);
+    payload->cell24 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_3], 23);
+    return &balancing_handler.libcan_message_cellboard4_balancing;
+}
+
+union CanPrimaryMessages *bal_api_get_cellboard5_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsaccellboard5balancing;
+    }
+
+    struct CanPrimaryTsaccellboard5balancing *payload = &balancing_handler.libcan_message_cellboard5_balancing.tsaccellboard5balancing;
+    payload->cell1 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 0);
+    payload->cell2 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 1);
+    payload->cell3 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 2);
+    payload->cell4 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 3);
+    payload->cell5 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 4);
+    payload->cell6 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 5);
+    payload->cell7 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 6);
+    payload->cell8 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 7);
+    payload->cell9 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 8);
+    payload->cell10 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 9);
+    payload->cell11 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 10);
+    payload->cell12 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 11);
+    payload->cell13 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 12);
+    payload->cell14 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 13);
+    payload->cell15 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 14);
+    payload->cell16 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 15);
+    payload->cell17 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 16);
+    payload->cell18 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 17);
+    payload->cell19 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 18);
+    payload->cell20 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 19);
+    payload->cell21 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 20);
+    payload->cell22 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 21);
+    payload->cell23 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 22);
+    payload->cell24 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_4], 23);
+    return &balancing_handler.libcan_message_cellboard5_balancing;
+}
+
+union CanPrimaryMessages *bal_api_get_cellboard6_canlib_payload(size_t *byte_size) {
+    if (byte_size != NULL) {
+        *byte_size = can_bms_byte_size_tsaccellboard6balancing;
+    }
+
+    struct CanPrimaryTsaccellboard6balancing *payload = &balancing_handler.libcan_message_cellboard6_balancing.tsaccellboard6balancing;
+    payload->cell1 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 0);
+    payload->cell2 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 1);
+    payload->cell3 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 2);
+    payload->cell4 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 3);
+    payload->cell5 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 4);
+    payload->cell6 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 5);
+    payload->cell7 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 6);
+    payload->cell8 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 7);
+    payload->cell9 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 8);
+    payload->cell10 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 9);
+    payload->cell11 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 10);
+    payload->cell12 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 11);
+    payload->cell13 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 12);
+    payload->cell14 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 13);
+    payload->cell15 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 14);
+    payload->cell16 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 15);
+    payload->cell17 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 16);
+    payload->cell18 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 17);
+    payload->cell19 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 18);
+    payload->cell20 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 19);
+    payload->cell21 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 20);
+    payload->cell22 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 21);
+    payload->cell23 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 22);
+    payload->cell24 = EAGLETRT_API_BIT_GET(balancing_handler.discharging_cells[CELLBOARD_ID_5], 23);
+    return &balancing_handler.libcan_message_cellboard6_balancing;
+}
+
+void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
     // Ignore stop command if not balancing
-    if (!balancing_handler.active && !payload->status) {
+    if (!balancing_handler.active && !balancing) {
         return;
     }
 
     // Update data
     const volt_t target = volt_api_get_min();
-    const volt_t thr = payload->threshold;
 
     constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
     constexpr volt_t bal_target_max = BAL_TARGET_MAX_V;
-
     constexpr volt_t bal_threshold_min = BAL_THRESHOLD_MIN_V;
     constexpr volt_t bal_threshold_max = BAL_THRESHOLD_MAX_V;
-
     balancing_handler.params.target = EAGLETRT_API_CLAMP(target, bal_target_min, bal_target_max);
-    balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
+    balancing_handler.params.threshold = EAGLETRT_API_CLAMP(threshold, bal_threshold_min, bal_threshold_max);
 
     // Reset watchdog for each new message
     const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
@@ -115,93 +408,21 @@ void bal_api_set_balancing_state_from_steering_wheel_handle(primary_hv_set_balan
     }
 
     // Send event to the FSM
-    if (balancing_handler.active != (bool)(payload->status == 1)) {
-        balancing_handler.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
+    if (balancing_handler.active != balancing) {
+        if (balancing) {
+            balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_START;
+        } else {
+            balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_STOP;
+        }
         fsm_event_trigger(&balancing_handler.event);
     }
 }
 
-void bal_api_set_balancing_state_from_handcart_handle(primary_hv_set_balancing_status_handcart_converted_t *const payload) {
-    if (payload == NULL) {
+void bal_api_cellboard_balancing_handle(CellboardId cellboard, bit_flag32_t discharging) {
+    if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }
-    // Ignore stop command if not balancing
-    if (!balancing_handler.active && !payload->status) {
-        return;
-    }
-
-    // Update data
-    const volt_t target = volt_api_get_min();
-    const volt_t thr = payload->threshold;
-
-    constexpr volt_t bal_target_min = BAL_TARGET_MIN_V;
-    constexpr volt_t bal_target_max = BAL_TARGET_MAX_V;
-    constexpr volt_t bal_threshold_min = BAL_THRESHOLD_MIN_V;
-    constexpr volt_t bal_threshold_max = BAL_THRESHOLD_MAX_V;
-
-    balancing_handler.params.target = EAGLETRT_API_CLAMP(target, bal_target_min, bal_target_max);
-    balancing_handler.params.threshold = EAGLETRT_API_CLAMP(thr, bal_threshold_min, bal_threshold_max);
-
-    // Reset watchdog for each new message
-    const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
-    if (code == WATCHDOG_RC_UNAVAILABLE) {
-        return;
-    }
-    // Send event to the FSM
-    if (balancing_handler.active != (bool)(payload->status == 1)) {
-        balancing_handler.event.type = payload->status ? FSM_EVENT_TYPE_BALANCING_START : FSM_EVENT_TYPE_BALANCING_STOP;
-        fsm_event_trigger(&balancing_handler.event);
-    }
-}
-
-void bal_api_cellboard_balancing_status_handle(bms_cellboard_balancing_status_converted_t *const payload) {
-    if (payload == NULL) {
-        return;
-    }
-    // Forward balancing status info to the primary network
-    balancing_handler.status_can_payload.status = (primary_hv_balancing_status_status)payload->status;
-    balancing_handler.status_can_payload.cellboard_id = (primary_hv_balancing_status_cellboard_id)payload->cellboard_id;
-    balancing_handler.status_can_payload.discharging_cell_0 = payload->discharging_cell_0;
-    balancing_handler.status_can_payload.discharging_cell_1 = payload->discharging_cell_1;
-    balancing_handler.status_can_payload.discharging_cell_2 = payload->discharging_cell_2;
-    balancing_handler.status_can_payload.discharging_cell_3 = payload->discharging_cell_3;
-    balancing_handler.status_can_payload.discharging_cell_4 = payload->discharging_cell_4;
-    balancing_handler.status_can_payload.discharging_cell_5 = payload->discharging_cell_5;
-    balancing_handler.status_can_payload.discharging_cell_6 = payload->discharging_cell_6;
-    balancing_handler.status_can_payload.discharging_cell_7 = payload->discharging_cell_7;
-    balancing_handler.status_can_payload.discharging_cell_8 = payload->discharging_cell_8;
-    balancing_handler.status_can_payload.discharging_cell_9 = payload->discharging_cell_9;
-    balancing_handler.status_can_payload.discharging_cell_10 = payload->discharging_cell_10;
-    balancing_handler.status_can_payload.discharging_cell_11 = payload->discharging_cell_11;
-    balancing_handler.status_can_payload.discharging_cell_12 = payload->discharging_cell_12;
-    balancing_handler.status_can_payload.discharging_cell_13 = payload->discharging_cell_13;
-    balancing_handler.status_can_payload.discharging_cell_14 = payload->discharging_cell_14;
-    balancing_handler.status_can_payload.discharging_cell_15 = payload->discharging_cell_15;
-    balancing_handler.status_can_payload.discharging_cell_16 = payload->discharging_cell_16;
-    balancing_handler.status_can_payload.discharging_cell_17 = payload->discharging_cell_17;
-    balancing_handler.status_can_payload.discharging_cell_18 = payload->discharging_cell_18;
-    balancing_handler.status_can_payload.discharging_cell_19 = payload->discharging_cell_19;
-    balancing_handler.status_can_payload.discharging_cell_20 = payload->discharging_cell_20;
-    balancing_handler.status_can_payload.discharging_cell_21 = payload->discharging_cell_21;
-    balancing_handler.status_can_payload.discharging_cell_22 = payload->discharging_cell_22;
-    balancing_handler.status_can_payload.discharging_cell_23 = payload->discharging_cell_23;
-}
-
-bms_cellboard_set_balancing_status_converted_t *bal_api_get_set_status_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(balancing_handler.set_status_can_payload);
-    }
-    balancing_handler.set_status_can_payload.start = balancing_handler.active;
-    balancing_handler.set_status_can_payload.target = balancing_handler.params.target;
-    balancing_handler.set_status_can_payload.threshold = balancing_handler.params.threshold;
-    return &balancing_handler.set_status_can_payload;
-}
-
-primary_hv_balancing_status_converted_t *bal_api_get_status_canlib_payload(size_t *const byte_size) {
-    if (byte_size != NULL) {
-        *byte_size = sizeof(balancing_handler.status_can_payload);
-    }
-    return &balancing_handler.status_can_payload;
+    balancing_handler.discharging_cells[cellboard] = discharging;
 }
 
 #endif // CONF_BALANCING_MODULE_ENABLE
