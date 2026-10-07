@@ -24,6 +24,7 @@ extern struct InternalVoltageHandler internal_volt_handler;
 extern void prv_pcu_api_airn_timeout(void);
 extern void prv_pcu_api_precharge_timeout(void);
 extern void prv_pcu_api_airp_timeout(void);
+extern void prv_pcu_api_ecu_timeout(void);
 
 FAKE_VOID_FUNC(pcu_set, const enum PcuPin, const enum PcuPinStatus);
 FAKE_VOID_FUNC(pcu_toggle, const enum PcuPin);
@@ -176,74 +177,60 @@ void test_pcu_get_precharge_percentage_zero_batt(void) {
         "Precharge percentage should be 0 when battery voltage is 0 to avoid division by zero");
 }
 
-void test_pcu_set_state_from_ecu_handle_null(void) {
+void test_pcu_bms_set_handle_on(void) {
     pcu_handler.event.type = FSM_EVENT_TYPE_IGNORED;
-    pcu_api_set_state_from_ecu_handle(NULL);
-    TEST_ASSERT_EQUAL_MESSAGE(
-        FSM_EVENT_TYPE_IGNORED,
-        pcu_handler.event.type,
-        "NULL ECU payload should not change event");
-}
 
-void test_pcu_set_state_from_ecu_handle_on(void) {
-    primary_hv_set_status_ecu_converted_t payload;
-    memset(&payload, 0, sizeof(payload));
-    payload.status = true;
-
-    pcu_api_set_state_from_ecu_handle(&payload);
+    pcu_api_bms_set_handle(true);
 
     TEST_ASSERT_EQUAL_MESSAGE(
         FSM_EVENT_TYPE_TS_ON,
         pcu_handler.event.type,
-        "ECU status=true should map to TS_ON");
+        "tson=true should map to TS_ON");
 }
 
-void test_pcu_set_state_from_ecu_handle_off(void) {
-    primary_hv_set_status_ecu_converted_t payload;
-    memset(&payload, 0, sizeof(payload));
-    payload.status = false;
-
-    pcu_api_set_state_from_ecu_handle(&payload);
-
-    TEST_ASSERT_EQUAL_MESSAGE(
-        FSM_EVENT_TYPE_TS_OFF,
-        pcu_handler.event.type,
-        "ECU status=false should map to TS_OFF");
-}
-
-void test_pcu_set_state_from_handcart_handle_null(void) {
+void test_pcu_bms_set_handle_off(void) {
     pcu_handler.event.type = FSM_EVENT_TYPE_IGNORED;
-    pcu_api_set_state_from_handcart_handle(NULL);
-    TEST_ASSERT_EQUAL_MESSAGE(
-        FSM_EVENT_TYPE_IGNORED,
-        pcu_handler.event.type,
-        "NULL handcart payload should not change event");
-}
 
-void test_pcu_set_state_from_handcart_handle_on(void) {
-    primary_hv_set_status_handcart_converted_t payload;
-    memset(&payload, 0, sizeof(payload));
-    payload.status = true;
-
-    pcu_api_set_state_from_handcart_handle(&payload);
-
-    TEST_ASSERT_EQUAL_MESSAGE(
-        FSM_EVENT_TYPE_TS_ON,
-        pcu_handler.event.type,
-        "Handcart status=true should map to TS_ON");
-}
-
-void test_pcu_set_state_from_handcart_handle_off(void) {
-    primary_hv_set_status_handcart_converted_t payload;
-    memset(&payload, 0, sizeof(payload));
-    payload.status = false;
-
-    pcu_api_set_state_from_handcart_handle(&payload);
+    pcu_api_bms_set_handle(false);
 
     TEST_ASSERT_EQUAL_MESSAGE(
         FSM_EVENT_TYPE_TS_OFF,
         pcu_handler.event.type,
-        "Handcart status=false should map to TS_OFF");
+        "tson=false should map to TS_OFF");
+}
+
+void test_prv_pcu_api_ecu_timeout_sets_event_type(void) {
+    pcu_handler.timeout_event.type = FSM_EVENT_TYPE_IGNORED;
+    prv_pcu_api_ecu_timeout();
+    TEST_ASSERT_EQUAL_MESSAGE(
+        FSM_EVENT_TYPE_ECU_TIMEOUT,
+        pcu_handler.timeout_event.type,
+        "ECU timeout should set ECU_TIMEOUT event");
+}
+
+void test_pcu_ecu_fsm_handle_not_running_stays_stopped(void) {
+    pcu_api_ecu_fsm_handle();
+
+    TEST_ASSERT_FALSE_MESSAGE(pcu_handler.ecu_watchdog.running, "ECU watchdog should not be started by the handle when it is not running");
+}
+
+void test_pcu_ecu_fsm_handle_running_stays_running(void) {
+    watchdog_restart(&pcu_handler.ecu_watchdog);
+
+    pcu_api_ecu_fsm_handle();
+
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.ecu_watchdog.running, "ECU watchdog should keep running after a reset");
+    TEST_ASSERT_FALSE_MESSAGE(pcu_handler.ecu_watchdog.timed_out, "ECU watchdog should not be timed out after a reset");
+}
+
+void test_pcu_ecu_fsm_handle_timed_out_restarts(void) {
+    watchdog_restart(&pcu_handler.ecu_watchdog);
+    pcu_handler.ecu_watchdog.timed_out = true;
+
+    pcu_api_ecu_fsm_handle();
+
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.ecu_watchdog.running, "ECU watchdog should be restarted after a timeout");
+    TEST_ASSERT_FALSE_MESSAGE(pcu_handler.ecu_watchdog.timed_out, "ECU watchdog timeout flag should be cleared after the restart");
 }
 
 void setUp(void) {
@@ -276,11 +263,11 @@ int main(void) {
     RUN_TEST(test_prv_pcu_api_precharge_timeout_sets_event_type);
     RUN_TEST(test_prv_pcu_api_airp_timeout_sets_event_type);
     RUN_TEST(test_pcu_get_precharge_percentage_zero_batt);
-    RUN_TEST(test_pcu_set_state_from_ecu_handle_null);
-    RUN_TEST(test_pcu_set_state_from_ecu_handle_on);
-    RUN_TEST(test_pcu_set_state_from_ecu_handle_off);
-    RUN_TEST(test_pcu_set_state_from_handcart_handle_null);
-    RUN_TEST(test_pcu_set_state_from_handcart_handle_on);
-    RUN_TEST(test_pcu_set_state_from_handcart_handle_off);
+    RUN_TEST(test_pcu_bms_set_handle_on);
+    RUN_TEST(test_pcu_bms_set_handle_off);
+    RUN_TEST(test_prv_pcu_api_ecu_timeout_sets_event_type);
+    RUN_TEST(test_pcu_ecu_fsm_handle_not_running_stays_stopped);
+    RUN_TEST(test_pcu_ecu_fsm_handle_running_stays_running);
+    RUN_TEST(test_pcu_ecu_fsm_handle_timed_out_restarts);
     return UNITY_END();
 }
