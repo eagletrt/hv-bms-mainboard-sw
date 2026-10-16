@@ -111,42 +111,29 @@
  * in the cellboard id count
  */
 enum CellboardId {
-    CELLBOARD_ID_0 = 0U,
-    CELLBOARD_ID_1,
-    CELLBOARD_ID_2,
-    CELLBOARD_ID_3,
-    CELLBOARD_ID_4,
-    CELLBOARD_ID_5,
-    CELLBOARD_ID_COUNT,
-    MAINBOARD_ID
+    CELLBOARD_ID_0 = 0U, //!< Cellboard 0
+    CELLBOARD_ID_1,      //!< Cellboard 1
+    CELLBOARD_ID_2,      //!< Cellboard 2
+    CELLBOARD_ID_3,      //!< Cellboard 3
+    CELLBOARD_ID_4,      //!< Cellboard 4
+    CELLBOARD_ID_5,      //!< Cellboard 5
+    CELLBOARD_ID_COUNT,  //!< Total number of cellboards
+    MAINBOARD_ID         //!< Mainboard identifier (not included in the cellboard count)
 };
 
-/*!
- * \brief Type definition for a SPI network
- *
- * \details
- *     - SPI_NETWORK_EEPROM the network connected to an EEPROM
- *     - SPI_NETWORK_ADC the network connected to an external ADC
- */
+/*! \brief Type definition for a SPI network */
 enum SpiNetwork {
-    SPI_NETWORK_EEPROM = 0U,
-    SPI_NETWORK_ADC,
-    SPI_NETWORK_COUNT
+    SPI_NETWORK_EEPROM = 0U, //!< The network connected to an EEPROM
+    SPI_NETWORK_ADC,         //!< The network connected to an external ADC
+    SPI_NETWORK_COUNT        //!< Total number of SPI networks
 };
 
-/*!
- * \brief Definition of possible CAN frame types
- *
- * \details
- *     - CAN_FRAME_TYPE_INVALID the CAN frame type is not valid
- *     - CAN_FRAME_TYPE_DATA the CAN frame that contains data
- *     - CAN_FRAME_TYPE_REMOTE the CAN frame used to request a data transmission from another node in the network
- */
+/*! \brief Definition of possible CAN frame types */
 enum CanFrameType {
-    CAN_FRAME_TYPE_INVALID = -1,
-    CAN_FRAME_TYPE_DATA,
-    CAN_FRAME_TYPE_REMOTE,
-    CAN_FRAME_TYPE_COUNT
+    CAN_FRAME_TYPE_INVALID = -1, //!< The CAN frame type is not valid
+    CAN_FRAME_TYPE_DATA,         //!< The CAN frame that contains data
+    CAN_FRAME_TYPE_REMOTE,       //!< The CAN frame used to request a data transmission from another node in the network
+    CAN_FRAME_TYPE_COUNT         //!< Total number of CAN frame types
 };
 
 /*! \} */
