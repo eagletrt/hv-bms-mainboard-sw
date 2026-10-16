@@ -153,7 +153,7 @@ union CanPrimaryMessages *error_api_get_canlib_payload(size_t *byte_size) {
         cooling_overtemperature = cooling_overtemperature || error_cooling_over_temperature_instances[i];
     }
     uint16_t internal = 0;
-    for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
         internal = internal || error_cellboard_error_instances[cellboard];
     }
 
@@ -197,7 +197,7 @@ union CanPrimaryMessages *error_api_get_cellboard_c_canlib_payload(size_t *byte_
 }
 
 void prv_error_log_cellboard_errors(
-    CellboardId cellboard,
+    enum CellboardId cellboard,
     uint8_t post,
     uint8_t undervoltage,
     uint8_t overvoltage,
@@ -295,7 +295,7 @@ void prv_error_log_cellboard_errors(
 }
 
 void error_api_cellboard_handle(
-    CellboardId cellboard,
+    enum CellboardId cellboard,
     uint8_t post,
     uint8_t undervoltage,
     uint8_t overvoltage,

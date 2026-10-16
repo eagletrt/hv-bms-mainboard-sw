@@ -37,7 +37,7 @@ const cells_voltage *volt_api_get_values(void);
  * \param[in] index The index of the voltage to update
  * \param[in] voltage The voltage value
  */
-void volt_api_set_value(CellboardId cellboard, uint8_t index, volt_t voltage);
+void volt_api_set_value(enum CellboardId cellboard, uint8_t index, volt_t voltage);
 
 /*!
  * \brief Get the minimum cell voltage in the pack
@@ -135,7 +135,7 @@ union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t 
  * \param[in] sum The voltage sum
  */
 void volt_api_cellboard_voltage_info_handle(
-    CellboardId cellboard,
+    enum CellboardId cellboard,
     volt_t min,
     volt_t max,
     volt_t average,

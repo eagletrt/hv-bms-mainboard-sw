@@ -19,8 +19,8 @@ DEFINE_FFF_GLOBALS;
 
 extern struct InternalVoltageHandler internal_volt_handler;
 
-FAKE_VOID_FUNC(spi_send, const SpiNetwork, const uint8_t *const, const size_t);
-FAKE_VOID_FUNC(spi_send_receive, const SpiNetwork, const uint8_t *const, uint8_t *const, const size_t, const size_t);
+FAKE_VOID_FUNC(spi_send, const enum SpiNetwork, const uint8_t *const, const size_t);
+FAKE_VOID_FUNC(spi_send_receive, const enum SpiNetwork, const uint8_t *const, uint8_t *const, const size_t, const size_t);
 
 void test_internal_voltage_init_ok() {
     struct InternalVoltageHandler expected_handler;

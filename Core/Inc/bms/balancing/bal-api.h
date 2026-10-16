@@ -128,7 +128,7 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold);
  * \param[in] cellboard The cellboard id
  * \param[in] discharging The bit flags representing the cells that are discharging
  */
-void bal_api_cellboard_balancing_handle(CellboardId cellboard, bit_flag32_t discharging);
+void bal_api_cellboard_balancing_handle(enum CellboardId cellboard, bit_flag32_t discharging);
 
 #else // CONF_BALANCING_MODULE_ENABLE
 

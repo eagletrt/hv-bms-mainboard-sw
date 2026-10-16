@@ -14,7 +14,7 @@
 extern struct VoltHandler volt_handler;
 
 static void prv_fill_info(volt_t min, volt_t max, volt_t average, volt_t sum) {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         volt_api_cellboard_voltage_info_handle(id, min, max, average, sum);
     }
 }
@@ -123,11 +123,11 @@ void test_volt_api_get_avg(void) {
 }
 
 void test_volt_api_get_avg_different_cellboards(void) {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         volt_handler.average[id] = (id % 2U == 0U) ? 3.0F : 4.0F;
     }
     float expected = 0.0F;
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         expected += volt_handler.average[id];
     }
     expected /= (float)CELLBOARD_ID_COUNT;
@@ -138,7 +138,7 @@ void test_volt_api_get_avg_different_cellboards(void) {
 /* --- volt_api_get_cellboardN_voltage_canlib_payload --- */
 
 /* Fill a cellboard row with a ramp: cell i (0-based) = 3.0 V + i * 0.01 V */
-static void prv_fill_ramp(CellboardId id) {
+static void prv_fill_ramp(enum CellboardId id) {
     for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell) {
         volt_handler.voltages[id][cell] = 3.0F + ((float)cell * 0.01F);
     }

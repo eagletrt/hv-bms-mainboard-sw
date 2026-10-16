@@ -9,6 +9,7 @@
 
 #include "current-api.h"
 
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 
@@ -30,7 +31,9 @@ EAGLETRT_STATIC struct CurrentHandler current_api_handler;
  */
 EAGLETRT_STATIC void prv_current_api_sensor_communcation_timeout(void) {
     logger_api_log(LOGGER_LEVEL_ERROR, "Current sensor communication timeout");
+#ifdef CURRENT_SENSOR_TIMEOUT_ENABLE
     error_api_set(ERROR_GROUP_CURRENT_SENSOR_COMMUNICATION, 0U);
+#endif
 }
 
 /*!
@@ -52,11 +55,6 @@ EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
     }
 }
 
-void dummy() {
-
-    logger_api_log(LOGGER_LEVEL_ERROR, "Current sensor communication whould have timed out");
-}
-
 enum CurrentReturnCode current_api_init(void) {
     memset(&current_api_handler, 0U, sizeof(current_api_handler));
     (void)watchdog_init(
@@ -76,7 +74,9 @@ void current_api_set_current(ampere_t current) {
     if (result == WATCHDOG_RC_TIMED_OUT) {
         watchdog_restart(&current_api_handler.sensor_wdg);
     }
+#ifdef CURRENT_SENSOR_CHECK_VALUES_ENABLE
     prv_current_api_check_value(current);
+#endif
 }
 
 kilowatt_t current_api_get_power(void) {
@@ -94,6 +94,7 @@ union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size) {
     }
     current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.current = current_api_get_current();
     current_api_handler.libcan_message_current.tsacmainboardcurrentinfo.power = current_api_get_power();
+
     return &current_api_handler.libcan_message_current;
 }
 

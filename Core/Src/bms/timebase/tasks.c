@@ -153,6 +153,8 @@ void prv_tasks_send_hv_current(void) {
     if (byte_size >= 0) {
         frame.length = byte_size;
         EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame));
+    } else {
+        logger_api_log(LOGGER_LEVEL_ERROR, "Error in sending current info");
     }
 }
 

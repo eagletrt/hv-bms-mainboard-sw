@@ -550,7 +550,7 @@ void tim_update_error_timer(const uint32_t timestamp, const uint16_t timeout) {
     // Calculate the delta between the current time and the expected expiration time
     const int32_t t = HAL_GetTick();
     // Negative value are clamped to 0
-    const int32_t dt = MAINBOARD_MAX(0, ((int32_t)timestamp - t) + (int32_t)timeout);
+    const int32_t dt = EAGLETRT_API_MAX(0, ((int32_t)timestamp - t) + (int32_t)timeout);
 
     // Set timer to expire after the calculated delta time
     __HAL_TIM_SET_COUNTER(&HTIM_ERROR, 0);

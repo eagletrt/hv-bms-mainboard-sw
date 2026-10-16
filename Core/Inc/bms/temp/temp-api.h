@@ -36,7 +36,7 @@ const cells_temp *temp_api_get_values(void);
  * \param[in] index The index of the temperature sensor
  * \param[in] temperature The temperature value
  */
-void temp_api_set_value(CellboardId cellboard, uint8_t index, celsius_t temperature);
+void temp_api_set_value(enum CellboardId cellboard, uint8_t index, celsius_t temperature);
 
 /*!
  * \brief Get the minimum cell temperature in the pack
@@ -141,7 +141,7 @@ union CanPrimaryMessages *temp_api_get_cellboard6_temperature_canlib_payload(siz
  * \param[in] average The average temperature value
  */
 void temp_api_cellboard_temperature_info_handle(
-    CellboardId cellboard,
+    enum CellboardId cellboard,
     celsius_t min,
     celsius_t max,
     celsius_t average);

@@ -51,7 +51,7 @@ EAGLETRT_STATIC_INLINE char prv_bal_cell_marker(const bool active) {
     return '.';
 }
 
-EAGLETRT_STATIC void prv_bal_print_cellboard_log(const CellboardId cellboard_id) {
+EAGLETRT_STATIC void prv_bal_print_cellboard_log(const enum CellboardId cellboard_id) {
     uint32_t active_count = 0U;
     const bit_flag32_t discharging = balancing_handler.discharging_cells[cellboard_id];
 
@@ -159,7 +159,7 @@ void bal_api_print_log(void) {
     logger_api_log(LOGGER_LEVEL_INFO, "Target: %.3f V", balancing_handler.params.target);
     logger_api_log(LOGGER_LEVEL_INFO, "Threshold: %.3f V", balancing_handler.params.threshold);
 
-    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+    for (enum CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
         const bit_flag32_t discharging = balancing_handler.discharging_cells[cellboard_id];
         for (size_t cell = 0U; cell < CELLBOARD_SEGMENT_SERIES_COUNT; ++cell) {
             if (EAGLETRT_API_BIT_GET(discharging, cell)) {
@@ -420,7 +420,7 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
     }
 }
 
-void bal_api_cellboard_balancing_handle(CellboardId cellboard, bit_flag32_t discharging) {
+void bal_api_cellboard_balancing_handle(enum CellboardId cellboard, bit_flag32_t discharging) {
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }

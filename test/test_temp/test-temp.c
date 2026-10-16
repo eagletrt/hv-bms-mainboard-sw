@@ -24,7 +24,7 @@ void test_temp_api_init_ok(void) {
 }
 
 static void prv_fill_info(celsius_t min, celsius_t max, celsius_t average) {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         temp_api_cellboard_temperature_info_handle(id, min, max, average);
     }
 }
@@ -42,7 +42,7 @@ void test_temp_api_cellboard_temperature_info_handle_ok(void) {
 void test_temp_api_cellboard_temperature_info_handle_invalid_cellboard(void) {
     temp_api_cellboard_temperature_info_handle(CELLBOARD_ID_COUNT, 1.0F, 2.0F, 3.0F);
 
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.min[id], "temp_api_cellboard_temperature_info_handle() should ignore invalid cellboard id");
         TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.max[id], "temp_api_cellboard_temperature_info_handle() should ignore invalid cellboard id");
         TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01F, 0.0F, temp_handler.average[id], "temp_api_cellboard_temperature_info_handle() should ignore invalid cellboard id");
@@ -109,11 +109,11 @@ void test_temp_api_get_avg(void) {
 }
 
 void test_temp_api_get_avg_different_values(void) {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         temp_api_cellboard_temperature_info_handle(id, 0.0F, 0.0F, (celsius_t)id);
     }
     celsius_t expected = 0.0F;
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         expected += (celsius_t)id;
     }
     expected /= (celsius_t)CELLBOARD_COUNT;

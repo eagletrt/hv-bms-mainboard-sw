@@ -60,7 +60,7 @@ void MX_SPI3_Init(void);
  * \param data A pointer to the data to send
  * \param size The length of data in bytes
  */
-void spi_send(SpiNetwork network, const uint8_t *data, size_t size);
+void spi_send(enum SpiNetwork network, const uint8_t *data, size_t size);
 
 /*!
  * \brief Send and receive data via an SPI network
@@ -72,7 +72,7 @@ void spi_send(SpiNetwork network, const uint8_t *data, size_t size);
  * \param out_size The number of bytes that should be received
  */
 void spi_send_receive(
-    SpiNetwork network,
+    enum SpiNetwork network,
     const uint8_t *data,
     uint8_t *out,
     size_t size,

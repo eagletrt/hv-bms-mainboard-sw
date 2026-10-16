@@ -1,11 +1,12 @@
-/**
- * @file mainboard-conf.h
- * @date 2024-06-19
- * @author Antonio Gelain [antonio.gelain2@gmail.com]
+/*!
+ * \file mainboard-conf.h
+ * \date 2024-06-19
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
+ * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * @brief Main configuration for the mainboard project
+ * \brief Main configuration for the mainboard project
  *
- * @attention Do not touch unless you known whay you are doing
+ * \attention Do not touch unless you known whay you are doing
  */
 
 #ifndef MAINBOARD_CONF_H
@@ -13,12 +14,12 @@
 
 #include "mainboard-def.h"
 
-/*** ######################### MODULE SELECTION ########################## ***/
+/*!* ######################### MODULE SELECTION ########################## *!*/
 
-/**
- * @defgroup modules
- * @brief Enable or disable the internal modules of the project
- * {@
+/*!
+ * \defgroup modules
+ * \brief Enable or disable the internal modules of the project
+ * {\
  */
 #define CONF_POST_MODULE_ENABLE
 #define CONF_IDENTITY_MODULE_ENABLE
@@ -39,14 +40,21 @@
 #define CONF_ERROR_MODULE_ENABLE
 #define CONF_BALANCING_MODULE_ENABLE
 
-/** @} */
+/*! \} */
 
-/*** ######################### STRINGS INFORMATION ####################### ***/
+/*!
+ * \brief Safety check enable
+ */
+//#define CURRENT_SENSOR_TIMEOUT_ENABLE
+//#define VOLTAGES_CHECK_ENABLE
+#define CURRENT_SENSOR_CHECK_VALUES_ENABLE
 
-/**
- * @defgroup strings
- * @brief Add useful strings that can be printed to get more info
- * {@
+/*!* ######################### STRINGS INFORMATION ####################### *!*/
+
+/*!
+ * \defgroup strings
+ * \brief Add useful strings that can be printed to get more info
+ * {\
  */
 // #define CONF_POST_STRINGS_ENABLE
 // #define CONF_IDENTITY_STRINGS_ENABLE
@@ -67,19 +75,19 @@
 // #define CONF_ERROR_STRINGS_ENABLE
 // #define CONF_BALANCING_STRINGS_ENABLE
 
-/** @} */
+/*! \} */
 
-/*** ######################### DEBUG INFORMATION ####################### ***/
+/*!* ######################### DEBUG INFORMATION ####################### *!*/
 
-/**
- * @defgroup debug
- * @brief Add useful debug utilities
- * {@
+/*!
+ * \defgroup debug
+ * \brief Add useful debug utilities
+ * {\
  */
 
 // Enable custom asserts
 #define CONF_FULL_ASSERT_ENABLE
 
-/** @} */
+/*! \} */
 
 #endif // MAINBOARD_CONF_H

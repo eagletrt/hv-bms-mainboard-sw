@@ -40,10 +40,10 @@ struct ProgrammerHandler {
     system_reset_callback_t reset; /*!< A pointer to a function that resets the microcontroller */
     fsm_event_data_t flash_event;  /*!< The FSM event data used to trigger the flash procedure */
 
-    CellboardId target; /*!< The identifier of the cellboard(or mainboard) to flash */
-    bool flash_request; /*!< True if a flash request is received, false otherwise */
-    bool flashing;      /*!< True if the cellboard is flashing, false otherwise */
-    bool flash_stop;    /*!< True if the flash procedure should be stopped, false otherwise */
+    enum CellboardId target; /*!< The identifier of the cellboard(or mainboard) to flash */
+    bool flash_request;      /*!< True if a flash request is received, false otherwise */
+    bool flashing;           /*!< True if the cellboard is flashing, false otherwise */
+    bool flash_stop;         /*!< True if the flash procedure should be stopped, false otherwise */
 
     bit_flag8_t cellboard_ready; /*!< A bit flag where each bit represent a cellboard; if 1 the cellboard is ready for the flash procedure, otherwise the flash procedure cannot be started */
 

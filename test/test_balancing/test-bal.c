@@ -89,7 +89,7 @@ void test_bal_api_stop_not_active_stays_inactive() {
 // --- bal_api_set_balancing_state_handle ---
 
 static void prv_fill_min_voltage(const volt_t min) {
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         volt_api_cellboard_voltage_info_handle(id, min, min, min, min);
     }
 }
@@ -178,7 +178,7 @@ void test_bal_api_cellboard_balancing_handle_ok(void) {
 void test_bal_api_cellboard_balancing_handle_invalid_cellboard(void) {
     bal_api_cellboard_balancing_handle(CELLBOARD_ID_COUNT, 0xFFFFFFFFU);
 
-    for (CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
+    for (enum CellboardId id = CELLBOARD_ID_0; id < CELLBOARD_ID_COUNT; ++id) {
         TEST_ASSERT_EQUAL_HEX32_MESSAGE(0U, balancing_handler.discharging_cells[id], "bal_api_cellboard_balancing_handle() should ignore invalid cellboard id");
     }
 }

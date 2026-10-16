@@ -64,7 +64,7 @@ EAGLETRT_STATIC_INLINE int32_t prv_temp_cell_position_from_index(size_t index) {
  * \param offset The cell offset of the segment
  * \param value The temperature value in °C
  */
-EAGLETRT_STATIC_INLINE void prv_temp_check_value(const CellboardId cellboard_id, const size_t offset, const celsius_t value) {
+EAGLETRT_STATIC_INLINE void prv_temp_check_value(const enum CellboardId cellboard_id, const size_t offset, const celsius_t value) {
     size_t index = (cellboard_id * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) + offset;
     if (value < TEMP_MIN_C) {
         error_api_set(ERROR_GROUP_UNDER_TEMPERATURE, (error_instance)index);
@@ -84,7 +84,7 @@ enum TempReturnCode temp_api_init(void) {
     return TEMP_RC_OK;
 }
 
-EAGLETRT_STATIC_INLINE void prv_temp_print_cellboard_log(const CellboardId cellboard_id) {
+EAGLETRT_STATIC_INLINE void prv_temp_print_cellboard_log(const enum CellboardId cellboard_id) {
     const unsigned int board_number = (unsigned int)cellboard_id + 1U;
 
     logger_api_log(
@@ -123,7 +123,7 @@ void temp_api_print_log(void) {
         temp_api_get_max(),
         temp_api_get_avg());
 
-    for (CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
+    for (enum CellboardId cellboard_id = CELLBOARD_ID_0; cellboard_id < CELLBOARD_ID_COUNT; ++cellboard_id) {
         prv_temp_print_cellboard_log(cellboard_id);
     }
 
@@ -146,7 +146,7 @@ const cells_temp *temp_api_get_values(void) {
     return &temp_handler.temperatures;
 }
 
-void temp_api_set_value(const CellboardId cellboard, const uint8_t index, const celsius_t temperature) {
+void temp_api_set_value(const enum CellboardId cellboard, const uint8_t index, const celsius_t temperature) {
     if (cellboard >= CELLBOARD_ID_COUNT || index >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
         return;
     }
@@ -156,7 +156,7 @@ void temp_api_set_value(const CellboardId cellboard, const uint8_t index, const 
 
 celsius_t temp_api_get_min(void) {
     celsius_t min = temp_handler.min[0];
-    for (CellboardId cellboard = 1U; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+    for (enum CellboardId cellboard = 1U; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
         min = EAGLETRT_API_MIN(min, temp_handler.min[cellboard]);
     }
     return min;
@@ -164,7 +164,7 @@ celsius_t temp_api_get_min(void) {
 
 celsius_t temp_api_get_max(void) {
     celsius_t max = temp_handler.max[0];
-    for (CellboardId cellboard = 1U; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+    for (enum CellboardId cellboard = 1U; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
         max = EAGLETRT_API_MAX(max, temp_handler.max[cellboard]);
     }
     return max;
@@ -172,7 +172,7 @@ celsius_t temp_api_get_max(void) {
 
 celsius_t temp_api_get_avg(void) {
     celsius_t average = 0;
-    for (CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_ID_COUNT; ++cellboard) {
         average += temp_handler.average[cellboard] * CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT;
     }
     return average / (float)CELLBOARD_TEMP_SENSOR_COUNT;
@@ -699,7 +699,7 @@ union CanPrimaryMessages *temp_api_get_cellboard6_temperature_canlib_payload(siz
 }
 
 void temp_api_cellboard_temperature_info_handle(
-    CellboardId cellboard,
+    enum CellboardId cellboard,
     celsius_t min,
     celsius_t max,
     celsius_t average) {

@@ -92,7 +92,7 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
 //
 //     // TODO: Check the payload content
 //
-//     programmer_handler.target = payload->mainboard ? MAINBOARD_ID : (CellboardId)payload->cellboard_id;
+//     programmer_handler.target = payload->mainboard ? MAINBOARD_ID : (enum CellboardId)payload->cellboard_id;
 //     programmer_handler.flash_request = true;
 //     programmer_handler.flash_stop = false;
 //     programmer_handler.flashing = false;
@@ -110,7 +110,7 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
 //     if (!programmer_handler.flash_request) {
 //         return;
 //     }
-//     if ((CellboardId)payload->cellboard_id >= CELLBOARD_COUNT) {
+//     if ((enum CellboardId)payload->cellboard_id >= CELLBOARD_COUNT) {
 //         return;
 //     }
 //

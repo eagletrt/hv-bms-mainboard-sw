@@ -186,7 +186,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
  *
  * \returns The SPI handler or NULL on error
  */
-SPI_HandleTypeDef *prv_spi_get_peripheral_from_network(const SpiNetwork network) {
+SPI_HandleTypeDef *prv_spi_get_peripheral_from_network(const enum SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return &HSPI_EEPROM;
@@ -204,7 +204,7 @@ SPI_HandleTypeDef *prv_spi_get_peripheral_from_network(const SpiNetwork network)
  *
  * \returns The GPIO Port or NULL on error
  */
-GPIO_TypeDef *prv_spi_get_port_from_network(const SpiNetwork network) {
+GPIO_TypeDef *prv_spi_get_port_from_network(const enum SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return CS_EEPROM_GPIO_Port;
@@ -222,7 +222,7 @@ GPIO_TypeDef *prv_spi_get_port_from_network(const SpiNetwork network) {
  *
  * \returns The GPIO Pin or UINT16_MAX on error
  */
-uint16_t prv_spi_get_pin_from_network(const SpiNetwork network) {
+uint16_t prv_spi_get_pin_from_network(const enum SpiNetwork network) {
     switch (network) {
         case SPI_NETWORK_EEPROM:
             return CS_EEPROM_Pin;
@@ -234,7 +234,7 @@ uint16_t prv_spi_get_pin_from_network(const SpiNetwork network) {
 }
 
 // TODO: Return error
-void spi_send(const SpiNetwork network, const uint8_t *const data, const size_t size) {
+void spi_send(const enum SpiNetwork network, const uint8_t *const data, const size_t size) {
     if (network >= SPI_NETWORK_COUNT) {
         return;
     }
@@ -251,7 +251,7 @@ void spi_send(const SpiNetwork network, const uint8_t *const data, const size_t 
 }
 
 void spi_send_receive(
-    const SpiNetwork network,
+    const enum SpiNetwork network,
     const uint8_t *const data,
     uint8_t *const out,
     const size_t size,

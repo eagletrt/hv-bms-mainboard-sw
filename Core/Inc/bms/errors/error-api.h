@@ -86,7 +86,7 @@ union CanPrimaryMessages *error_api_get_cellboard_c_canlib_payload(size_t *byte_
  * \param payload the payload of the error message
  */
 void error_api_cellboard_handle(
-    CellboardId cellboard,
+    enum CellboardId cellboard,
     uint8_t post,
     uint8_t undervoltage,
     uint8_t overvoltage,

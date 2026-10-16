@@ -10,6 +10,8 @@
 #include "can-communication-router-api.h"
 
 #include "eagletrt-api.h"
+#include "logger-api.h"
+#include "logger.h"
 #include "mainboard-conf.h"
 #include "can-communication.h"
 #include "can-bms-api.h"
@@ -26,6 +28,7 @@
 #include "current-api.h"
 #include "temp-api.h"
 #include "error-api.h"
+#include <stdint.h>
 
 #ifdef CONF_CAN_COMM_MODULE_ENABLE
 
@@ -1324,7 +1327,10 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
                 message.tsaccellboard6error.openwire13);
             break;
         case CAN_BMS_MESSAGE_FRAME_ID_IVTMESSAGERESULTI:
-            constexpr float ma_to_a = 0.001F;
+            constexpr float ma_to_a = 0.001f;
+
+            //logger_api_log(LOGGER_LEVEL_INFO, "Current: %f A", message.ivtmessageresulti.current * ma_to_a);
+
             current_api_set_current(message.ivtmessageresulti.current * ma_to_a);
             break;
         default:

@@ -196,7 +196,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_IDLE ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -213,6 +213,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
     // Check for errors
     if (error_api_get_expired() > 0) {
         logger_api_log(LOGGER_LEVEL_ERROR, "Fatal error detected");
+        logger_api_log(LOGGER_LEVEL_ERROR, "Error: %d, Instance: %d", error_api_get_expired_info().group, error_api_get_expired_info().instance);
         next_state = FSM_STATE_FATAL;
         // Check for events
     } else if (fsm_is_event_triggered()) {
@@ -268,7 +269,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_FATAL ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -313,7 +314,7 @@ fsm_state_t fsm_do_flash(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_FLASH ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     const enum ProgrammerReturnCode code = programmer_api_routine();
 
@@ -351,7 +352,7 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_BALANCING ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -395,7 +396,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_AIRN_CHECK ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -496,7 +497,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -593,7 +594,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_AIRP_CHECK ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -682,7 +683,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
     fsm_state_t next_state = FSM_NO_CHANGE;
 
     /*** USER CODE BEGIN DO_TS_ON ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)timebase_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
@@ -756,7 +757,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
 void fsm_start(fsm_state_data *data) {
 
     /*** USER CODE BEGIN START ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
     /*** USER CODE END START ***/
 }
 
@@ -765,7 +766,7 @@ void fsm_start(fsm_state_data *data) {
 void fsm_idle_to_fatal(fsm_state_data *data) {
 
     /*** USER CODE BEGIN IDLE_TO_FATAL ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // Activate the AMS
     pcu_api_ams_activate();
@@ -778,7 +779,7 @@ void fsm_idle_to_fatal(fsm_state_data *data) {
 void fsm_start_flash_procedure(fsm_state_data *data) {
 
     /*** USER CODE BEGIN START_FLASH_PROCEDURE ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
     /*** USER CODE END START_FLASH_PROCEDURE ***/
 }
 
@@ -787,11 +788,11 @@ void fsm_start_flash_procedure(fsm_state_data *data) {
 void fsm_start_balancing(fsm_state_data *data) {
 
     /*** USER CODE BEGIN START_BALANCING ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // TODO: Handle watchog error
     enum BalReturnCode code = bal_api_start();
-    MAINBOARD_UNUSED(code);
+    EAGLETRT_API_UNUSED(code);
     /*** USER CODE END START_BALANCING ***/
 }
 
@@ -800,7 +801,7 @@ void fsm_start_balancing(fsm_state_data *data) {
 void fsm_close_airn(fsm_state_data *data) {
 
     /*** USER CODE BEGIN CLOSE_AIRN ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // Close the AIR-
     pcu_api_airn_close();
@@ -818,7 +819,7 @@ void fsm_close_airn(fsm_state_data *data) {
 void fsm_handle_fatal_error(fsm_state_data *data) {
 
     /*** USER CODE BEGIN HANDLE_FATAL_ERROR ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // Activate the AMS
     pcu_api_ams_activate();
@@ -837,7 +838,7 @@ void fsm_handle_fatal_error(fsm_state_data *data) {
 void fsm_stop_flash_procedure(fsm_state_data *data) {
 
     /*** USER CODE BEGIN STOP_FLASH_PROCEDURE ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
     /*** USER CODE END STOP_FLASH_PROCEDURE ***/
 }
 
@@ -846,7 +847,7 @@ void fsm_stop_flash_procedure(fsm_state_data *data) {
 void fsm_stop_balancing(fsm_state_data *data) {
 
     /*** USER CODE BEGIN STOP_BALANCING ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     (void)bal_api_stop();
     /*** USER CODE END STOP_BALANCING ***/
@@ -860,7 +861,7 @@ void fsm_stop_balancing(fsm_state_data *data) {
 void fsm_ts_off(fsm_state_data *data) {
 
     /*** USER CODE BEGIN TS_OFF ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     pcu_api_reset_all();
     /*** USER CODE END TS_OFF ***/
@@ -871,7 +872,7 @@ void fsm_ts_off(fsm_state_data *data) {
 void fsm_start_precharge(fsm_state_data *data) {
 
     /*** USER CODE BEGIN START_PRECHARGE ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // Stop the AIR- watchdog and start the precharge
     pcu_api_airn_stop_watchdog();
@@ -887,7 +888,7 @@ void fsm_start_precharge(fsm_state_data *data) {
 void fsm_close_airp(fsm_state_data *data) {
 
     /*** USER CODE BEGIN CLOSE_AIRP ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // Stop the precharge watchdog and close the AIR+
     pcu_api_precharge_stop_watchdog();
@@ -900,7 +901,7 @@ void fsm_close_airp(fsm_state_data *data) {
 void fsm_ts_on(fsm_state_data *data) {
 
     /*** USER CODE BEGIN TS_ON ***/
-    MAINBOARD_UNUSED(data);
+    EAGLETRT_API_UNUSED(data);
 
     // Stop the AIR+ watchdog
     pcu_api_airp_stop_watchdog();
