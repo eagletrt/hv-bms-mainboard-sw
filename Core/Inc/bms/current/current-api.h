@@ -46,13 +46,13 @@ kilowatt_t current_api_get_power(void);
 /*!
  * \brief Start the watchdog used to check for the current sensor communication
  *
- * \retval WATCHDOG_NULL_POINTER if the watchdog is NULL
- * \retval WATCHDOG_BUSY if the watchdog is already running
- * \retval WATCHDOG_TIMED_OUT if the watchdog has already timed out
- * \retval WATCHDOG_UNAVAILABLE if the watchdog can't be registered
- * \retval WATCHDOG_OK otherwise
+ * \retval MAINBOARD_WATCHDOGS_NULL_POINTER if the watchdog is NULL
+ * \retval MAINBOARD_WATCHDOGS_BUSY if the watchdog is already running
+ * \retval MAINBOARD_WATCHDOGS_TIMED_OUT if the watchdog has already timed out
+ * \retval MAINBOARD_WATCHDOGS_UNAVAILABLE if the watchdog can't be registered
+ * \retval MAINBOARD_WATCHDOGS_OK otherwise
  */
-enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void);
+enum MainboardWatchdogsReturnCode current_api_start_sensor_communication_watchdog(void);
 
 /*!
  * \brief Get a pointer to the CAN payload of the current

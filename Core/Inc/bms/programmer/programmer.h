@@ -12,7 +12,7 @@
 #define PROGRAMMER_H
 
 #include "mainboard-def.h"
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 #include "fsm.h"
 
 /*! \brief The programmer flash timeout in ms */

@@ -17,7 +17,7 @@
 #include "internal-voltage-api.h"
 #include "eagletrt.h"
 #include "logger-api.h"
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 
 #ifdef CONF_PCU_MODULE_ENABLE
 
@@ -52,25 +52,24 @@ void prv_pcu_api_ecu_timeout(void) {
 
 /*! \brief Initialize all the watchdogs */
 void prv_pcu_api_init_watchdogs(void) {
-    const milliseconds res = timebase_get_resolution();
-    watchdog_init(
+    mainboard_watchdogs_init_watchdog(
         &pcu_handler.airn_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_AIRN_TIMEOUT_MS, res),
+        PCU_AIRN_TIMEOUT_MS,
         prv_pcu_api_airn_timeout);
-    watchdog_init(
+    mainboard_watchdogs_init_watchdog(
         &pcu_handler.precharge_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_PRECHARGE_TIMEOUT_MS, res),
+        PCU_PRECHARGE_TIMEOUT_MS,
         prv_pcu_api_precharge_timeout);
-    watchdog_init(
+    mainboard_watchdogs_init_watchdog(
         &pcu_handler.airp_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, res),
+        PCU_AIRP_TIMEOUT_MS,
         prv_pcu_api_airp_timeout);
 }
 /*! \brief Uninitialize all the watchdogs to be able to use them again */
 void prv_pcu_api_deinit_watchdogs(void) {
-    watchdog_deinit(&pcu_handler.airn_watchdog);
-    watchdog_deinit(&pcu_handler.precharge_watchdog);
-    watchdog_deinit(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_reset(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_reset(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_reset(&pcu_handler.airp_watchdog);
 }
 
 enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_toggle_state_callback toggle) {
@@ -87,9 +86,10 @@ enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_togg
     pcu_api_reset_all();
 
     // TODO: Stop the watchdog if handcart is connected or use different message?
-    watchdog_init(
+    mainboard_watchdogs_reset(&pcu_handler.ecu_watchdog);
+    mainboard_watchdogs_init_watchdog(
         &pcu_handler.ecu_watchdog,
-        TIMEBASE_TIME_TO_TICKS(PCU_AIRP_TIMEOUT_MS, timebase_get_resolution()),
+        PCU_AIRP_TIMEOUT_MS,
         prv_pcu_api_ecu_timeout);
     //watchdog_start(&pcu_handler.ecu_watchdog);
     return PCU_RC_OK;
@@ -113,40 +113,40 @@ void pcu_api_reset_all(void) {
 }
 
 void pcu_api_airn_open(void) {
-    watchdog_stop(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_stop(&pcu_handler.airn_watchdog);
     pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
 }
 void pcu_api_airn_close(void) {
     pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_LOW);
-    watchdog_start(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_start(&pcu_handler.airn_watchdog);
 }
 void pcu_api_airn_stop_watchdog(void) {
-    watchdog_stop(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_stop(&pcu_handler.airn_watchdog);
 }
 
 void pcu_api_airp_open(void) {
-    watchdog_stop(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_stop(&pcu_handler.airp_watchdog);
     pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
 }
 void pcu_api_airp_close(void) {
     pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW);
-    watchdog_start(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_start(&pcu_handler.airp_watchdog);
 }
 void pcu_api_airp_stop_watchdog(void) {
-    watchdog_stop(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_stop(&pcu_handler.airp_watchdog);
 }
 
 // TODO: Handler watchdog return codes
 void pcu_api_precharge_start(void) {
-    watchdog_start(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_start(&pcu_handler.precharge_watchdog);
     pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW);
 }
 void pcu_api_precharge_stop(void) {
     pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
-    watchdog_stop(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_stop(&pcu_handler.precharge_watchdog);
 }
 void pcu_api_precharge_stop_watchdog(void) {
-    watchdog_stop(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_stop(&pcu_handler.precharge_watchdog);
 }
 
 void pcu_api_ams_activate(void) {
@@ -177,9 +177,9 @@ void pcu_api_bms_set_handle(bool tson) {
 }
 
 void pcu_api_ecu_fsm_handle(void) {
-    enum WatchdogReturnCode result = watchdog_reset(&pcu_handler.ecu_watchdog);
-    if (result == WATCHDOG_RC_TIMED_OUT) {
-        watchdog_restart(&pcu_handler.ecu_watchdog);
+    enum WatchdogReturnCode result = mainboard_watchdogs_reset(&pcu_handler.ecu_watchdog);
+    if (result == MAINBOARD_WATCHDOGS_RC_TIMED_OUT) {
+        mainboard_watchdogs_restart(&pcu_handler.ecu_watchdog);
     }
 }
 
@@ -192,23 +192,23 @@ void pcu_api_print_log(void) {
     logger_api_log(
         LOGGER_LEVEL_INFO,
         "AIR- watchdog: %s%s",
-        pcu_handler.airn_watchdog.running ? "running" : "stopped",
-        pcu_handler.airn_watchdog.timed_out ? ", timed out" : "");
+        (pcu_handler.airn_watchdog.watchdog_state == WATCHDOG_STATE_RUNNING) ? "running" : "stopped",
+        (pcu_handler.airn_watchdog.watchdog_state == WATCHDOG_STATE_TIMED_OUT) ? ", timed out" : "");
     logger_api_log(
         LOGGER_LEVEL_INFO,
         "Precharge watchdog: %s%s",
-        pcu_handler.precharge_watchdog.running ? "running" : "stopped",
-        pcu_handler.precharge_watchdog.timed_out ? ", timed out" : "");
+        (pcu_handler.precharge_watchdog.watchdog_state == WATCHDOG_STATE_RUNNING) ? "running" : "stopped",
+        (pcu_handler.precharge_watchdog.watchdog_state == WATCHDOG_STATE_TIMED_OUT) ? ", timed out" : "");
     logger_api_log(
         LOGGER_LEVEL_INFO,
         "AIR+ watchdog: %s%s",
-        pcu_handler.airp_watchdog.running ? "running" : "stopped",
-        pcu_handler.airp_watchdog.timed_out ? ", timed out" : "");
+        (pcu_handler.airp_watchdog.watchdog_state == WATCHDOG_STATE_RUNNING) ? "running" : "stopped",
+        (pcu_handler.airp_watchdog.watchdog_state == WATCHDOG_STATE_TIMED_OUT) ? ", timed out" : "");
     logger_api_log(
         LOGGER_LEVEL_INFO,
         "ECU watchdog: %s%s",
-        pcu_handler.ecu_watchdog.running ? "running" : "stopped",
-        pcu_handler.ecu_watchdog.timed_out ? ", timed out" : "");
+        (pcu_handler.ecu_watchdog.watchdog_state == WATCHDOG_STATE_RUNNING) ? "running" : "stopped",
+        (pcu_handler.ecu_watchdog.watchdog_state == WATCHDOG_STATE_TIMED_OUT) ? ", timed out" : "");
     logger_api_log(LOGGER_LEVEL_EMPTY, "========================================");
 }
 

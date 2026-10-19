@@ -30,6 +30,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "logger-api.h"
 #include "logger.h"
 #include "mainboard-def.h"
+#include "mainboard-timebase-api.h"
 #include "mainboard-watchdogs-api.h"
 #include "post.h"
 
@@ -209,7 +210,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
         fsm_idle_display_animation,
         FSM_IDLE_DISPLAY_ANIMATION_SIZE,
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
-        timebase_get_tick());
+        mainboard_timebase_api_get_time());
 
     // Check for errors
     if (error_api_get_expired() > 0) {
@@ -272,7 +273,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_FATAL ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -293,7 +294,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
         display_animation,
         strlen(display_animation),
         (ticks)(FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4),
-        timebase_get_tick());
+        mainboard_timebase_api_get_time());
 
     /*** USER CODE END DO_FATAL ***/
 
@@ -355,7 +356,7 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_BALANCING ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -365,7 +366,7 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
         fsm_balancing_display_animation,
         FSM_BALANCING_DISPLAY_ANIMATION_SIZE,
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
-        timebase_get_tick());
+        mainboard_timebase_api_get_time());
 
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
@@ -399,7 +400,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_AIRN_CHECK ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -500,7 +501,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -597,7 +598,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_AIRP_CHECK ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -686,7 +687,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_TS_ON ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -696,7 +697,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
         fsm_ts_on_display_animation,
         FSM_TS_ON_DISPLAY_ANIMATION_SIZE,
         FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME,
-        timebase_get_tick());
+        mainboard_timebase_api_get_time());
 
     enum FeedbackId feedback_id = FEEDBACK_ID_INVALID;
     if (error_api_get_expired() > 0) {

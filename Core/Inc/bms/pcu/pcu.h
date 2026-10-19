@@ -11,7 +11,7 @@
 #define PCU_H
 
 #include "fsm.h"
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 
 /*! \brief PCU pins timeouts in ms */
 #define PCU_AIRN_TIMEOUT_MS (1000U)

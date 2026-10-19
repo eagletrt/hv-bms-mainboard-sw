@@ -12,6 +12,7 @@
 #include "eagletrt-api.h"
 #include "error-api.h"
 #include "identity-api.h"
+#include "mainboard-timebase-api.h"
 #include "post.h"
 #include "programmer-api.h"
 #include "timebase.h"
@@ -53,7 +54,7 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
      * always OK or some assertion can be made (like for the NULL checks)
      */
     enum PostReturnCode result = POST_RC_OK;
-    if (timebase_init(1U) != TIMEBASE_RC_OK) {
+    if (mainboard_timebase_api_init(1U) != TIMEBASE_RC_OK) {
         result = POST_RC_UNINITIALIZED;
     }
     EAGLETRT_API_UNUSED(pcu_api_init(data->pcu_set, data->pcu_toggle));
@@ -72,13 +73,13 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
 
 enum PostReturnCode prv_post_module_setup(void) {
     pcu_api_reset_all();
-    timebase_set_enable(true);
+    mainboard_timebase_api_set_enable(true);
 
     // Wait for the current sensor to start its normal operation cycle
-    milliseconds time = timebase_api_get_();
-    while (timebase_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
+    milliseconds time = mainboard_timebase_api_get_time();
+    while (mainboard_timebase_api_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
     }
-    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_RC_OK) {
+    if (current_api_start_sensor_communication_watchdog() != MAINBOARD_WATCHDOGS_RC_OK) {
         return POST_RC_SETUP_ERROR;
     }
 

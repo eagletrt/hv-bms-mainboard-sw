@@ -15,7 +15,7 @@
 #include "can-bms.h"
 #include "mainboard-def.h"
 
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 #include "fsm.h"
 
 /*! \brief Balancing threshold range in V */
