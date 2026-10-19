@@ -13,6 +13,7 @@
 #include "mainboard-tasks.h"
 
 #include <stdint.h>
+#include <string.h>
 
 #include "can-bms-api.h"
 #include "can-bms.h"
@@ -36,10 +37,10 @@
 
 #ifdef CONF_TASKS_MODULE_ENABLE
 
-static struct TasksHandler tasks_handler;
-static struct MainboardTaskHandler mainboard_tasks_handler;
+EAGLETRT_STATIC struct TasksHandler tasks_handler;
+EAGLETRT_STATIC struct MainboardTaskHandler mainboard_tasks_handler;
 
-static const struct TaskCanPrimaryMsg can_msgs[] = {
+EAGLETRT_STATIC const struct TaskCanPrimaryMsg can_msgs[] = {
     // VERSIONS
     [TASK_SEND_MAINBOARD_VERSION] = { .frame_id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDVERSION, .get_payload = identity_api_get_mainboard_version_payload },
     [TASK_SEND_MAINBOARD_VERSION_INFO] = { .frame_id = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDVERSIONINFO, .get_payload = identity_api_get_mainboard_version_info_payload },
@@ -110,7 +111,8 @@ void prv_tasks_primary_enqueue(enum CanPrimaryMessageFrameId frame_id, union Can
 }
 
 void prv_tasks_send_to_primary(uint8_t task_id) {
-    if (task_id >= TASKS_COUNT) {
+    // Only the first tasks are CAN messages, the other ones are not in the table
+    if (task_id >= sizeof(can_msgs) / sizeof(can_msgs[0])) {
         return;
     }
 
@@ -174,7 +176,7 @@ void prv_tasks_start_internal_voltage_conversion(uint8_t task_id) {
     (void)internal_voltage_api_read_all();
 }
 
-static TaskList task_list = {
+EAGLETRT_STATIC TaskList task_list = {
 
     // STATUS SEND TASKS
 
@@ -402,6 +404,24 @@ static TaskList task_list = {
     },
 };
 
+static_assert(TASKS_COUNT <= MAX_TASKS, "The number of mainboard tasks exceeds the maximum number of tasks of the scheduler");
+
+/*!
+ * \brief Convert a return code of the tasks library to the mainboard one
+ * \param rc The return code of the tasks library
+ * \return The corresponding mainboard return code
+ */
+EAGLETRT_STATIC enum MainboardTasksReturnCode prv_tasks_convert_rc(const enum TasksReturnCode rc) {
+    switch (rc) {
+        case TASKS_RC_OK:
+            return MAINBOARD_TASKS_RC_OK;
+        case TASKS_RC_INVALID_ID:
+            return MAINBOARD_TASKS_RC_INVALID_ID;
+        default:
+            return MAINBOARD_TASKS_RC_ERROR;
+    }
+}
+
 enum MainboardTasksReturnCode mainboard_tasks_init(task_tick_callback tick_callback) {
 
     // Enable and stagger all tasks by default
@@ -410,7 +430,7 @@ enum MainboardTasksReturnCode mainboard_tasks_init(task_tick_callback tick_callb
 
     for (int i = 0; i < TASKS_COUNT; i++) {
         task_list[i].state = TASKS_STATE_ENABLED;
-        task_list[i].repeats = 0; // Infinite repeatsù
+        task_list[i].repeats = 0; // Infinite repeats
         task_list[i].start = stagger;
         stagger += 3; // Stagger by 3ms for each task
     }
@@ -439,31 +459,19 @@ enum MainboardTasksReturnCode mainboard_tasks_routine(void) {
 }
 
 enum MainboardTasksReturnCode mainboard_tasks_enable_task(uint8_t task_id) {
-    enum TasksReturnCode rc = tasks_api_enable_task(&tasks_handler, task_id);
-
-    if (rc != TASKS_RC_OK) {
-        return MAINBOARD_TASKS_RC_ERROR;
-    }
-
-    return MAINBOARD_TASKS_RC_OK;
+    return prv_tasks_convert_rc(tasks_api_enable_task(&tasks_handler, task_id));
 }
 
 enum MainboardTasksReturnCode mainboard_tasks_disable_task(uint8_t task_id) {
-    enum TasksReturnCode rc = tasks_api_disable_task(&tasks_handler, task_id);
-
-    if (rc != TASKS_RC_OK) {
-        return MAINBOARD_TASKS_RC_ERROR;
-    }
-
-    return MAINBOARD_TASKS_RC_OK;
+    return prv_tasks_convert_rc(tasks_api_disable_task(&tasks_handler, task_id));
 }
 
 enum MainboardTasksReturnCode mainboard_tasks_enable_all_tasks(void) {
     for (int i = 0; i < TASKS_COUNT; i++) {
-        enum TasksReturnCode rc = tasks_api_enable_task(&tasks_handler, i);
+        const enum MainboardTasksReturnCode rc = prv_tasks_convert_rc(tasks_api_enable_task(&tasks_handler, i));
 
-        if (rc != TASKS_RC_OK) {
-            return MAINBOARD_TASKS_RC_ERROR;
+        if (rc != MAINBOARD_TASKS_RC_OK) {
+            return rc;
         }
     }
 

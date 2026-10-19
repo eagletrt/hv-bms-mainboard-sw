@@ -12,7 +12,7 @@
 
 #ifdef CONF_WATCHDOG_MODULE_ENABLE
 
-static struct WatchdogHandler watchdogs_handler;
+EAGLETRT_STATIC struct WatchdogHandler watchdogs_handler;
 
 enum WatchdogReturnCode mainboard_watchdogs_api_init(const watchdog_tick_callback tick_callback) {
     return watchdogs_api_init_pool(&watchdogs_handler, tick_callback);

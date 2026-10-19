@@ -6,9 +6,11 @@
  * \brief Test functions for the balancing module
  */
 
+#include "mainboard-tasks-api.h"
+#include "mainboard-timebase-api.h"
+#include "mainboard-watchdogs-api.h"
 #include "unity.h"
 #include "bal-api.h"
-#include "timebase.h"
 #include "volt-api.h"
 #include <string.h>
 
@@ -221,7 +223,9 @@ void test_bal_api_get_balancing_set_canlib_payload_inactive(void) {
 }
 
 void setUp() {
-    timebase_init(1U);
+    mainboard_timebase_api_init(1U);
+    mainboard_watchdogs_api_init(mainboard_timebase_api_get_time);
+    mainboard_tasks_init(mainboard_timebase_api_get_time);
     volt_api_init();
     bal_api_init();
 }

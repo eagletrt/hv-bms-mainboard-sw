@@ -12,7 +12,9 @@
 #include "eagletrt-api.h"
 #include "error-api.h"
 #include "identity-api.h"
+#include "mainboard-tasks-api.h"
 #include "mainboard-timebase-api.h"
+#include "mainboard-watchdogs-api.h"
 #include "post.h"
 #include "programmer-api.h"
 #include "timebase.h"
@@ -57,6 +59,8 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
     if (mainboard_timebase_api_init(1U) != TIMEBASE_RC_OK) {
         result = POST_RC_UNINITIALIZED;
     }
+    EAGLETRT_API_UNUSED(mainboard_tasks_init(mainboard_timebase_api_get_time));
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_init(mainboard_timebase_api_get_time));
     EAGLETRT_API_UNUSED(pcu_api_init(data->pcu_set, data->pcu_toggle));
     EAGLETRT_API_UNUSED(volt_api_init());
     EAGLETRT_API_UNUSED(current_api_init());
