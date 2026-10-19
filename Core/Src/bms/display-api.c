@@ -229,8 +229,8 @@ enum DisplayReturnCode display_api_set_character(
 enum DisplayReturnCode display_api_run_animation(
     const enum DisplaySegmentBit *const animation,
     const size_t size,
-    ticks_t ticks_per_frame,
-    const ticks_t ticks) {
+    ticks ticks_per_frame,
+    const ticks ticks) {
     if (animation == NULL) {
         return DISPLAY_RC_NULL_POINTER;
     }
@@ -242,7 +242,7 @@ enum DisplayReturnCode display_api_run_animation(
     return display_api_set_segment_all(animation[frame]);
 }
 
-enum DisplayReturnCode display_api_run_animation_string(const char *const string, const size_t size, ticks_t ticks_per_frame, const ticks_t ticks) {
+enum DisplayReturnCode display_api_run_animation_string(const char *const string, const size_t size, ticks ticks_per_frame, const ticks ticks) {
     if (string == NULL) {
         return DISPLAY_RC_NULL_POINTER;
     }

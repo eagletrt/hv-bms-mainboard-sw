@@ -75,7 +75,7 @@ enum PostReturnCode prv_post_module_setup(void) {
     timebase_set_enable(true);
 
     // Wait for the current sensor to start its normal operation cycle
-    milliseconds_t time = timebase_api_get_();
+    milliseconds time = timebase_api_get_();
     while (timebase_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
     }
     if (current_api_start_sensor_communication_watchdog() != WATCHDOG_RC_OK) {

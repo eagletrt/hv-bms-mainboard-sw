@@ -23,7 +23,7 @@
  * \param resolution_ms The resolution of the timebase in ms
  * \return The result of the initialization
  */
-enum TimebaseReturnCode mainboard_timebase_api_init(milliseconds_t resolution_ms);
+enum TimebaseReturnCode mainboard_timebase_api_init(milliseconds resolution_ms);
 
 /*!
  * \brief Set the enable state of the mainboard timebase
@@ -44,21 +44,21 @@ enum TimebaseReturnCode mainboard_timebase_api_inc_tick(void); // call from the 
  *
  * \return The current tick
  */
-ticks_t mainboard_timebase_api_get_tick(void);
+ticks mainboard_timebase_api_get_tick(void);
 
 /*!
  * \brief Get the current time in ms
  *
  * \return The current time in ms
  */
-milliseconds_t mainboard_timebase_api_get_time(void);
+milliseconds mainboard_timebase_api_get_time(void);
 
 /*!
  * \brief Get the resolution of the timebase in ms
  *
  * \return The resolution of the timebase in ms
  */
-milliseconds_t mainboard_timebase_api_get_resolution(void);
+milliseconds mainboard_timebase_api_get_resolution(void);
 
 #else
 

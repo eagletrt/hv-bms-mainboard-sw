@@ -65,7 +65,7 @@ void usart_log(const char *fmt, ...);
  * @param fmt The string format
  * @param ... values to put inside the formatted string (optional)
  */
-void usart_log_ms(milliseconds_t interval, const char *fmt, ...);
+void usart_log_ms(milliseconds interval, const char *fmt, ...);
 
 /**
  * @brief Read a single character from the UART

@@ -581,7 +581,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
          * incremented for the entire duration where the signal stays high
          * inside the period
          */
-        ticks_t period_count = 0U, high_count = 0U;
+        ticks period_count = 0U, high_count = 0U;
 
         // Update IMD module data
         if ((period_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1)) != 0U) {

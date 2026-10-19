@@ -52,7 +52,7 @@ void prv_pcu_api_ecu_timeout(void) {
 
 /*! \brief Initialize all the watchdogs */
 void prv_pcu_api_init_watchdogs(void) {
-    const milliseconds_t res = timebase_get_resolution();
+    const milliseconds res = timebase_get_resolution();
     watchdog_init(
         &pcu_handler.airn_watchdog,
         TIMEBASE_TIME_TO_TICKS(PCU_AIRN_TIMEOUT_MS, res),

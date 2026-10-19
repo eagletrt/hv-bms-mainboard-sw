@@ -39,7 +39,7 @@ typedef void (*watchdog_timeout_callback_t)(void);
 struct Watchdog {
     bool running;                       /*!< True if the watchdog is running, false otherwise */
     bool timed_out;                     /*!< True if the watchdog is running, false otherwise */
-    ticks_t timeout;                    /*!< The number of ticks that should elapse for the watchdog to time-out */
+    ticks timeout;                      /*!< The number of ticks that should elapse for the watchdog to time-out */
     watchdog_timeout_callback_t expire; /*!< The function that is called when the watchdog times-out */
 };
 
@@ -58,7 +58,7 @@ struct Watchdog {
  */
 enum WatchdogReturnCode watchdog_init(
     struct Watchdog *watchdog,
-    ticks_t timeout,
+    ticks timeout,
     watchdog_timeout_callback_t expire);
 
 /*!

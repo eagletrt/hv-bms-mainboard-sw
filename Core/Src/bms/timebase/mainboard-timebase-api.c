@@ -12,7 +12,7 @@
 
 static struct TimebaseHandler htimebase;
 
-enum TimebaseReturnCode mainboard_timebase_api_init(const milliseconds_t resolution_ms) {
+enum TimebaseReturnCode mainboard_timebase_api_init(const milliseconds resolution_ms) {
     return timebase_api_init(&htimebase, resolution_ms);
 }
 
@@ -24,15 +24,15 @@ enum TimebaseReturnCode mainboard_timebase_api_inc_tick(void) {
     return timebase_inc_tick(&htimebase);
 }
 
-ticks_t mainboard_timebase_api_get_tick(void) {
+ticks mainboard_timebase_api_get_tick(void) {
     return timebase_get_tick(&htimebase);
 }
 
-milliseconds_t mainboard_timebase_api_get_time(void) {
+milliseconds mainboard_timebase_api_get_time(void) {
     return timebase_get_time(&htimebase);
 }
 
-milliseconds_t mainboard_timebase_api_get_resolution(void) {
+milliseconds mainboard_timebase_api_get_resolution(void) {
     return timebase_get_resolution(&htimebase);
 }
 

@@ -51,15 +51,15 @@ enum Ir1553204ReturnCode ir1553204_api_set_frequency(struct Ir1553204Handler *co
     return IR1553204_RC_OK;
 }
 
-milliseconds_t ir1553204_api_get_period(struct Ir1553204Handler *const handler) {
+milliseconds ir1553204_api_get_period(struct Ir1553204Handler *const handler) {
 
-    constexpr milliseconds_t milliseconds_per_second = 1000U;
+    constexpr milliseconds milliseconds_per_second = 1000U;
 
     if (handler == NULL || handler->frequency == 0.F) {
         return 0U;
     }
     // To get the period in ms the period (1/f) is multiplied by 1000
-    return (milliseconds_t)(milliseconds_per_second / handler->frequency);
+    return (milliseconds)(milliseconds_per_second / handler->frequency);
 }
 
 enum Ir1553204Status ir1553204_api_get_status(struct Ir1553204Handler *const handler) {

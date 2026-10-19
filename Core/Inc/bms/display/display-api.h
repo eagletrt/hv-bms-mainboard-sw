@@ -142,8 +142,8 @@ enum DisplayReturnCode display_api_set_character(char symbol, bool prefer_upcase
 enum DisplayReturnCode display_api_run_animation(
     const enum DisplaySegmentBit *animation,
     size_t size,
-    ticks_t ticks_per_frame,
-    ticks_t ticks);
+    ticks ticks_per_frame,
+    ticks ticks);
 
 /*!
  * \brief Run a single step of an animation that shows the character of a string
@@ -158,7 +158,7 @@ enum DisplayReturnCode display_api_run_animation(
  * \retval DISPLAY_RC_DRIVER_ERROR error cause by the display driver
  * \retval DISPLAY_RC_OK otherwise
  */
-enum DisplayReturnCode display_api_run_animation_string(const char *string, size_t size, ticks_t ticks_per_frame, ticks_t ticks);
+enum DisplayReturnCode display_api_run_animation_string(const char *string, size_t size, ticks ticks_per_frame, ticks ticks);
 
 #else // CONF_DISPLAY_MODULE_ENABLE
 

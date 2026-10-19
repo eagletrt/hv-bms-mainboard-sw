@@ -54,7 +54,7 @@ void test_ir1553204_api_set_frequency_null_pointer() {
 }
 
 void test_ir1553204_api_get_period_null_pointer() {
-    milliseconds_t period = ir1553204_api_get_period(NULL);
+    milliseconds period = ir1553204_api_get_period(NULL);
 
     TEST_ASSERT_EQUAL_MESSAGE(0U, period, "ir1553204_api_get_period() should return 0 if given a NULL pointer");
 }
@@ -62,7 +62,7 @@ void test_ir1553204_api_get_period_null_pointer() {
 void test_ir1553204_api_get_period_zero_frequency() {
     struct Ir1553204Handler handler = { .frequency = 0.F };
 
-    milliseconds_t period = ir1553204_api_get_period(&handler);
+    milliseconds period = ir1553204_api_get_period(&handler);
 
     TEST_ASSERT_EQUAL_MESSAGE(0U, period, "ir1553204_api_get_period() should return 0 if frequency is 0");
 }
@@ -70,7 +70,7 @@ void test_ir1553204_api_get_period_zero_frequency() {
 void test_ir1553204_api_get_period_ok() {
     struct Ir1553204Handler handler = { .frequency = 100.F };
 
-    milliseconds_t period = ir1553204_api_get_period(&handler);
+    milliseconds period = ir1553204_api_get_period(&handler);
 
     TEST_ASSERT_EQUAL_MESSAGE(10U, period, "ir1553204_api_get_period() returned incorrect period");
 }

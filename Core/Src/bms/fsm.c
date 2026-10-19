@@ -30,6 +30,7 @@ Functions and types have been generated with prefix "fsm_"
 #include "logger-api.h"
 #include "logger.h"
 #include "mainboard-def.h"
+#include "mainboard-watchdogs-api.h"
 #include "post.h"
 
 #include "post-api.h"
@@ -198,7 +199,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_IDLE ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)timebase_routine();
+    (void)mainboard_watchdogs_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -291,7 +292,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     (void)display_api_run_animation_string(
         display_animation,
         strlen(display_animation),
-        (ticks_t)(FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4),
+        (ticks)(FSM_DISPLAY_ANIMATION_TICKS_PER_FRAME * 4),
         timebase_get_tick());
 
     /*** USER CODE END DO_FATAL ***/
