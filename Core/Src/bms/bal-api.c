@@ -18,6 +18,7 @@
 #include "logger-api.h"
 #include "mainboard-def.h"
 #include "timebase.h"
+#include "mainboard-tasks-api.h"
 #include "volt-api.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
@@ -101,7 +102,7 @@ enum BalReturnCode bal_api_init(void) {
     // Initialize main balancing watchdog
     (void)watchdog_init(
         &balancing_handler.watchdog,
-        TIMEBASE_TIME_TO_TICKS(BAL_TIMEOUT_MS, timebase_get_resolution()),
+        BAL_TIMEOUT_MS,
         prv_bal_api_timeout);
     return BAL_RC_OK;
 }
@@ -123,7 +124,7 @@ enum BalReturnCode bal_api_start(void) {
     }
 
     // Start balancing task
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_SET_BALANCING_STATUS, true);
+    (void)mainboard_tasks_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
     balancing_handler.active = true;
     return BAL_RC_OK;
 }
@@ -139,7 +140,7 @@ enum BalReturnCode bal_api_stop(void) {
     balancing_handler.active = false;
 
     // Stop balancing tasks
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_SET_BALANCING_STATUS, false);
+    (void)mainboard_tasks_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
 
     return BAL_RC_OK;
 }
