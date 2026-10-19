@@ -52,24 +52,24 @@ void prv_pcu_api_ecu_timeout(void) {
 
 /*! \brief Initialize all the watchdogs */
 void prv_pcu_api_init_watchdogs(void) {
-    mainboard_watchdogs_init_watchdog(
+    mainboard_watchdogs_api_init_watchdog(
         &pcu_handler.airn_watchdog,
         PCU_AIRN_TIMEOUT_MS,
         prv_pcu_api_airn_timeout);
-    mainboard_watchdogs_init_watchdog(
+    mainboard_watchdogs_api_init_watchdog(
         &pcu_handler.precharge_watchdog,
         PCU_PRECHARGE_TIMEOUT_MS,
         prv_pcu_api_precharge_timeout);
-    mainboard_watchdogs_init_watchdog(
+    mainboard_watchdogs_api_init_watchdog(
         &pcu_handler.airp_watchdog,
         PCU_AIRP_TIMEOUT_MS,
         prv_pcu_api_airp_timeout);
 }
 /*! \brief Uninitialize all the watchdogs to be able to use them again */
 void prv_pcu_api_deinit_watchdogs(void) {
-    mainboard_watchdogs_reset(&pcu_handler.airn_watchdog);
-    mainboard_watchdogs_reset(&pcu_handler.precharge_watchdog);
-    mainboard_watchdogs_reset(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_api_reset(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_api_reset(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_api_reset(&pcu_handler.airp_watchdog);
 }
 
 enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_toggle_state_callback toggle) {
@@ -86,8 +86,8 @@ enum PcuReturnCode pcu_api_init(const pcu_set_state_callback set, const pcu_togg
     pcu_api_reset_all();
 
     // TODO: Stop the watchdog if handcart is connected or use different message?
-    mainboard_watchdogs_reset(&pcu_handler.ecu_watchdog);
-    mainboard_watchdogs_init_watchdog(
+    mainboard_watchdogs_api_reset(&pcu_handler.ecu_watchdog);
+    mainboard_watchdogs_api_init_watchdog(
         &pcu_handler.ecu_watchdog,
         PCU_AIRP_TIMEOUT_MS,
         prv_pcu_api_ecu_timeout);
@@ -113,40 +113,40 @@ void pcu_api_reset_all(void) {
 }
 
 void pcu_api_airn_open(void) {
-    mainboard_watchdogs_stop(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_api_stop(&pcu_handler.airn_watchdog);
     pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_HIGH);
 }
 void pcu_api_airn_close(void) {
     pcu_handler.set(PCU_PIN_AIR_NEGATIVE, PCU_PIN_STATUS_LOW);
-    mainboard_watchdogs_start(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_api_start(&pcu_handler.airn_watchdog);
 }
 void pcu_api_airn_stop_watchdog(void) {
-    mainboard_watchdogs_stop(&pcu_handler.airn_watchdog);
+    mainboard_watchdogs_api_stop(&pcu_handler.airn_watchdog);
 }
 
 void pcu_api_airp_open(void) {
-    mainboard_watchdogs_stop(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_api_stop(&pcu_handler.airp_watchdog);
     pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_HIGH);
 }
 void pcu_api_airp_close(void) {
     pcu_handler.set(PCU_PIN_AIR_POSITIVE, PCU_PIN_STATUS_LOW);
-    mainboard_watchdogs_start(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_api_start(&pcu_handler.airp_watchdog);
 }
 void pcu_api_airp_stop_watchdog(void) {
-    mainboard_watchdogs_stop(&pcu_handler.airp_watchdog);
+    mainboard_watchdogs_api_stop(&pcu_handler.airp_watchdog);
 }
 
 // TODO: Handler watchdog return codes
 void pcu_api_precharge_start(void) {
-    mainboard_watchdogs_start(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_api_start(&pcu_handler.precharge_watchdog);
     pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_LOW);
 }
 void pcu_api_precharge_stop(void) {
     pcu_handler.set(PCU_PIN_PRECHARGE, PCU_PIN_STATUS_HIGH);
-    mainboard_watchdogs_stop(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_api_stop(&pcu_handler.precharge_watchdog);
 }
 void pcu_api_precharge_stop_watchdog(void) {
-    mainboard_watchdogs_stop(&pcu_handler.precharge_watchdog);
+    mainboard_watchdogs_api_stop(&pcu_handler.precharge_watchdog);
 }
 
 void pcu_api_ams_activate(void) {
@@ -177,9 +177,9 @@ void pcu_api_bms_set_handle(bool tson) {
 }
 
 void pcu_api_ecu_fsm_handle(void) {
-    enum WatchdogReturnCode result = mainboard_watchdogs_reset(&pcu_handler.ecu_watchdog);
-    if (result == MAINBOARD_WATCHDOGS_RC_TIMED_OUT) {
-        mainboard_watchdogs_restart(&pcu_handler.ecu_watchdog);
+    enum WatchdogReturnCode result = mainboard_watchdogs_api_reset(&pcu_handler.ecu_watchdog);
+    if (result == WATCHDOG_RC_TIMED_OUT) {
+        mainboard_watchdogs_api_restart(&pcu_handler.ecu_watchdog);
     }
 }
 

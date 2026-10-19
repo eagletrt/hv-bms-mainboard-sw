@@ -79,7 +79,7 @@ enum PostReturnCode prv_post_module_setup(void) {
     milliseconds time = mainboard_timebase_api_get_time();
     while (mainboard_timebase_api_get_time() - time <= CURRENT_SENSOR_STARTUP_TIME_MS) {
     }
-    if (current_api_start_sensor_communication_watchdog() != MAINBOARD_WATCHDOGS_RC_OK) {
+    if (current_api_start_sensor_communication_watchdog() != WATCHDOG_RC_OK) {
         return POST_RC_SETUP_ERROR;
     }
 

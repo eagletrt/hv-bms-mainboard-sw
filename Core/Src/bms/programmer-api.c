@@ -16,7 +16,7 @@
 #include "mainboard-def.h"
 #include "eagletrt.h"
 #include "timebase.h"
-#include "mainboard-watchdogs.h"
+#include "watchdogs-api.h"
 
 EAGLETRT_STATIC struct ProgrammerHandler programmer_handler;
 
@@ -71,7 +71,7 @@ enum ProgrammerReturnCode programmer_api_init(const system_reset_callback_t rese
 
     // Initialize watchdogs
     // TODO: Handle watchdog return code
-    (void)mainboard_watchdogs_init_watchdog(
+    (void)mainboard_watchdogs_api_init_watchdog(
         &programmer_handler.watchdog,
         PROGRAMMER_FLASH_TIMEOUT_MS,
         prv_programmer_flash_timeout);
@@ -148,7 +148,7 @@ void programmer_api_reset_mcu(void) {
 }
 
 enum ProgrammerReturnCode programmer_api_routine(void) {
-    if (mainboard_watchdogs_is_timed_out(&programmer_handler.watchdog)) {
+    if (watchdogs_api_watchdog_is_timed_out(&programmer_handler.watchdog)) {
         return PROGRAMMER_RC_TIMEOUT;
     }
     if (programmer_handler.flash_stop) {

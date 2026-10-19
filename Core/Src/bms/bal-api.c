@@ -101,7 +101,7 @@ enum BalReturnCode bal_api_init(void) {
     balancing_handler.params.threshold = BAL_THRESHOLD_MAX_V;
 
     // Initialize main balancing watchdog
-    (void)mainboard_watchdogs_init_watchdog(
+    (void)mainboard_watchdogs_api_init_watchdog(
         &balancing_handler.watchdog,
         BAL_TIMEOUT_MS,
         prv_bal_api_timeout);
@@ -119,8 +119,8 @@ enum BalReturnCode bal_api_start(void) {
     }
 
     // Start watchdog
-    const enum MainboardWatchdogsReturnCode code = mainboard_watchdogs_restart(&balancing_handler.watchdog);
-    if (code != MAINBOARD_WATCHDOGS_RC_OK) {
+    const enum WatchdogReturnCode code = mainboard_watchdogs_api_restart(&balancing_handler.watchdog);
+    if (code != WATCHDOG_RC_OK) {
         return BAL_RC_WATCHDOG_ERROR;
     }
 
@@ -136,7 +136,7 @@ enum BalReturnCode bal_api_stop(void) {
         return BAL_RC_OK;
     }
     // Stop watchdog
-    (void)mainboard_watchdogs_stop(&balancing_handler.watchdog);
+    (void)mainboard_watchdogs_api_stop(&balancing_handler.watchdog);
 
     balancing_handler.active = false;
 
@@ -406,8 +406,8 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(threshold, bal_threshold_min, bal_threshold_max);
 
     // Reset watchdog for each new message
-    const enum MainboardWatchdogsReturnCode code = mainboard_watchdogs_reset(&balancing_handler.watchdog);
-    if (code != MAINBOARD_WATCHDOGS_RC_OK) {
+    const enum WatchdogReturnCode code = mainboard_watchdogs_api_reset(&balancing_handler.watchdog);
+    if (code != WATCHDOG_RC_OK) {
         return;
     }
 

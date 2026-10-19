@@ -200,7 +200,7 @@ fsm_state_t fsm_do_idle(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_IDLE ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -273,7 +273,7 @@ fsm_state_t fsm_do_fatal(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_FATAL ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -356,7 +356,7 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_BALANCING ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -400,7 +400,7 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_AIRN_CHECK ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -501,7 +501,7 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_PRECHARGE_CHECK ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -598,7 +598,7 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_AIRP_CHECK ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
@@ -687,7 +687,7 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
     /*** USER CODE BEGIN DO_TS_ON ***/
     EAGLETRT_API_UNUSED(data);
 
-    (void)mainboard_watchdogs_routine();
+    (void)mainboard_watchdogs_api_routine();
     for (enum CanCommunicationNetwork network = 0; network < CAN_COMMUNICATION_NETWORK_COUNT; ++network) {
         // TODO: Handle return codes
         EAGLETRT_API_UNUSED(can_communication_api_process_rx(network));
