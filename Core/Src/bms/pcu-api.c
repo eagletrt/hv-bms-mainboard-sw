@@ -177,7 +177,7 @@ void pcu_api_bms_set_handle(bool tson) {
 }
 
 void pcu_api_ecu_fsm_handle(void) {
-    enum WatchdogReturnCode result = mainboard_watchdogs_api_reset(&pcu_handler.ecu_watchdog);
+    enum WatchdogReturnCode result = mainboard_watchdogs_api_pet(&pcu_handler.ecu_watchdog);
     if (result == WATCHDOG_RC_TIMED_OUT) {
         mainboard_watchdogs_api_restart(&pcu_handler.ecu_watchdog);
     }

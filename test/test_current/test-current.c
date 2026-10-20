@@ -6,6 +6,7 @@
  * \brief Test functions for the voltage module
  */
 
+#include "mainboard-timebase-api.h"
 #include "mainboard-watchdogs-api.h"
 #include "unity.h"
 #include "current-api.h"
@@ -83,6 +84,8 @@ void test_current_api_get_canlib_payload_null_byte_size(void) {
 }
 
 void setUp() {
+    mainboard_timebase_api_init(1U);
+    mainboard_watchdogs_api_init(mainboard_timebase_api_get_time);
     current_api_init();
 }
 

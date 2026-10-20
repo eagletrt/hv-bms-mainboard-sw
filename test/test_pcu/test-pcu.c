@@ -10,7 +10,9 @@
 #include "pcu-api.h"
 #include "fsm.h"
 #include "fff.h"
-#include "timebase.h"
+#include "mainboard-timebase-api.h"
+#include "mainboard-watchdogs-api.h"
+#include "watchdogs-api.h"
 #include "internal-voltage-api.h"
 DEFINE_FFF_GLOBALS;
 
@@ -211,30 +213,31 @@ void test_prv_pcu_api_ecu_timeout_sets_event_type(void) {
 void test_pcu_ecu_fsm_handle_not_running_stays_stopped(void) {
     pcu_api_ecu_fsm_handle();
 
-    TEST_ASSERT_FALSE_MESSAGE(pcu_handler.ecu_watchdog.running, "ECU watchdog should not be started by the handle when it is not running");
+    TEST_ASSERT_FALSE_MESSAGE(watchdogs_api_watchdog_is_running(&pcu_handler.ecu_watchdog), "ECU watchdog should not be started by the handle when it is not running");
 }
 
 void test_pcu_ecu_fsm_handle_running_stays_running(void) {
-    watchdog_restart(&pcu_handler.ecu_watchdog);
+    mainboard_watchdogs_api_restart(&pcu_handler.ecu_watchdog);
 
     pcu_api_ecu_fsm_handle();
 
-    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.ecu_watchdog.running, "ECU watchdog should keep running after a reset");
-    TEST_ASSERT_FALSE_MESSAGE(pcu_handler.ecu_watchdog.timed_out, "ECU watchdog should not be timed out after a reset");
+    TEST_ASSERT_TRUE_MESSAGE(watchdogs_api_watchdog_is_running(&pcu_handler.ecu_watchdog), "ECU watchdog should keep running after a reset");
+    TEST_ASSERT_FALSE_MESSAGE(watchdogs_api_watchdog_is_timed_out(&pcu_handler.ecu_watchdog), "ECU watchdog should not be timed out after a reset");
 }
 
 void test_pcu_ecu_fsm_handle_timed_out_restarts(void) {
-    watchdog_restart(&pcu_handler.ecu_watchdog);
-    pcu_handler.ecu_watchdog.timed_out = true;
+    mainboard_watchdogs_api_restart(&pcu_handler.ecu_watchdog);
+    pcu_handler.ecu_watchdog.watchdog_state = WATCHDOG_STATE_TIMED_OUT;
 
     pcu_api_ecu_fsm_handle();
 
-    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.ecu_watchdog.running, "ECU watchdog should be restarted after a timeout");
-    TEST_ASSERT_FALSE_MESSAGE(pcu_handler.ecu_watchdog.timed_out, "ECU watchdog timeout flag should be cleared after the restart");
+    TEST_ASSERT_TRUE_MESSAGE(watchdogs_api_watchdog_is_running(&pcu_handler.ecu_watchdog), "ECU watchdog should be restarted after a timeout");
+    TEST_ASSERT_FALSE_MESSAGE(watchdogs_api_watchdog_is_timed_out(&pcu_handler.ecu_watchdog), "ECU watchdog timeout flag should be cleared after the restart");
 }
 
 void setUp(void) {
-    timebase_init(500U);
+    mainboard_timebase_api_init(500U);
+    mainboard_watchdogs_api_init(mainboard_timebase_api_get_time);
 
     (void)pcu_api_init(pcu_set, pcu_toggle);
     RESET_FAKE(pcu_set);
