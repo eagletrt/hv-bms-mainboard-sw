@@ -435,6 +435,8 @@ enum MainboardTasksReturnCode mainboard_tasks_init(task_tick_callback tick_callb
         stagger += 3; // Stagger by 3ms for each task
     }
 
+    task_list[TASK_SEND_CELLBOARD_SET_BALANCING_STATUS].state = TASKS_STATE_DISABLED;
+
     memset(&mainboard_tasks_handler, 0, sizeof(mainboard_tasks_handler));
 
     mainboard_tasks_handler.suppress_primary_messages = false;

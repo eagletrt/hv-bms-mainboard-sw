@@ -406,7 +406,7 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(threshold, bal_threshold_min, bal_threshold_max);
 
     // Reset watchdog for each new message
-    const enum WatchdogReturnCode code = mainboard_watchdogs_api_reset(&balancing_handler.watchdog);
+    const enum WatchdogReturnCode code = mainboard_watchdogs_api_restart(&balancing_handler.watchdog);
     if (code != WATCHDOG_RC_OK) {
         return;
     }
