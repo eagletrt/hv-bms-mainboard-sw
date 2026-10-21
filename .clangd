@@ -42,3 +42,58 @@ InlayHints:
 
 Hover:
   ShowAKA: true
+
+---
+# Test sources are built by `pio test`, so `pio run -t compiledb -e tests` never
+# lists them in compile_commands.json: give them the include paths explicitly
+If:
+  PathMatch: test/.*\.(c|h)
+CompileFlags:
+  Add:
+    - -DEAGLETRT_STATIC=
+    - -D_STATIC=
+    - -D_XOPEN_SOURCE
+    - -DMAX_TASKS=50U
+    - -ICore/Inc
+    - -ICore/Inc/common
+    - -ICore/Inc/bms
+    - -ICore/Inc/bms/errors
+    - -ICore/Inc/bms/drivers
+    - -ICore/Inc/bms/drivers/max22530
+    - -ICore/Inc/bms/drivers/tdsr0760
+    - -ICore/Inc/bms/drivers/ir1553204
+    - -ICore/Inc/bms/cooling
+    - -ICore/Inc/bms/timebase
+    - -ICore/Inc/bms/feedback
+    - -ICore/Inc/bms/pcu
+    - -ICore/Inc/bms/volt
+    - -ICore/Inc/bms/programmer
+    - -ICore/Inc/bms/temp
+    - -ICore/Inc/bms/balancing
+    - -ICore/Inc/bms/identity
+    - -ICore/Inc/bms/current
+    - -ICore/Inc/bms/internal-voltage
+    - -ICore/Inc/bms/can-communication
+    - -ICore/Inc/bms/display
+    - -ICore/Inc/bms/led
+    - -ICore/Inc/bms/imd
+    - -ICore/Inc/bms/post
+    - -ICore/Inc/bms/logger
+    - -ICore/Inc/bms/timebase/tasks
+    - -ICore/Inc/bms/timebase/timebase
+    - -ICore/Inc/bms/timebase/watchdogs
+    - -ICore/Lib/micro-libs/errorlib/inc
+    - -I.pio/libdeps/tests/ArenaAllocator/include
+    - -I.pio/libdeps/tests/LibEagleTrt/include
+    - -I.pio/libdeps/tests/MinHeap/include
+    - -I.pio/libdeps/tests/Pal/include
+    - -I.pio/libdeps/tests/RingBuffer/include
+    - -I.pio/libdeps/tests/libcan-sw/include
+    - -I.pio/libdeps/tests/libcan-sw/include/bms
+    - -I.pio/libdeps/tests/libcan-sw/include/inverters
+    - -I.pio/libdeps/tests/libcan-sw/include/primary
+    - -I.pio/libdeps/tests/libeagletrt-sw/include
+    - -I.pio/libdeps/tests/libtimebase-sw/include
+    - -I.pio/libdeps/tests/libtimebase-sw/include/tasks
+    - -I.pio/libdeps/tests/libtimebase-sw/include/timebase
+    - -I.pio/libdeps/tests/libtimebase-sw/include/watchdogs
