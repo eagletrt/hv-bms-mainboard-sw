@@ -59,7 +59,7 @@ enum PostReturnCode prv_post_modules_init(const struct PostInitData *const data)
     if (mainboard_timebase_api_init(1U) != TIMEBASE_RC_OK) {
         result = POST_RC_UNINITIALIZED;
     }
-    EAGLETRT_API_UNUSED(mainboard_tasks_init(mainboard_timebase_api_get_time));
+    EAGLETRT_API_UNUSED(mainboard_tasks_api_init(mainboard_timebase_api_get_time));
     EAGLETRT_API_UNUSED(mainboard_watchdogs_api_init(mainboard_timebase_api_get_time));
     EAGLETRT_API_UNUSED(pcu_api_init(data->pcu_set, data->pcu_toggle));
     EAGLETRT_API_UNUSED(volt_api_init());

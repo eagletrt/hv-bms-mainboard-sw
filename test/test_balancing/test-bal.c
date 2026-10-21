@@ -225,7 +225,7 @@ void test_bal_api_get_balancing_set_canlib_payload_inactive(void) {
 void setUp() {
     mainboard_timebase_api_init(1U);
     mainboard_watchdogs_api_init(mainboard_timebase_api_get_time);
-    mainboard_tasks_init(mainboard_timebase_api_get_time);
+    mainboard_tasks_api_init(mainboard_timebase_api_get_time);
     volt_api_init();
     bal_api_init();
 }

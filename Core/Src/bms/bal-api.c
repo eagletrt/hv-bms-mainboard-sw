@@ -125,7 +125,7 @@ enum BalReturnCode bal_api_start(void) {
     }
 
     // Start balancing task
-    (void)mainboard_tasks_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
+    (void)mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
     balancing_handler.active = true;
     return BAL_RC_OK;
 }
@@ -141,7 +141,7 @@ enum BalReturnCode bal_api_stop(void) {
     balancing_handler.active = false;
 
     // Stop balancing tasks
-    (void)mainboard_tasks_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
+    (void)mainboard_tasks_api_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
 
     return BAL_RC_OK;
 }

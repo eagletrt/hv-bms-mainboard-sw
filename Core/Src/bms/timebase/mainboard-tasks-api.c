@@ -422,7 +422,7 @@ EAGLETRT_STATIC enum MainboardTasksReturnCode prv_tasks_convert_rc(const enum Ta
     }
 }
 
-enum MainboardTasksReturnCode mainboard_tasks_init(task_tick_callback tick_callback) {
+enum MainboardTasksReturnCode mainboard_tasks_api_init(task_tick_callback tick_callback) {
 
     // Enable and stagger all tasks by default
 
@@ -450,7 +450,7 @@ enum MainboardTasksReturnCode mainboard_tasks_init(task_tick_callback tick_callb
     return MAINBOARD_TASKS_RC_OK;
 }
 
-enum MainboardTasksReturnCode mainboard_tasks_routine(void) {
+enum MainboardTasksReturnCode mainboard_tasks_api_routine(void) {
     enum TasksReturnCode rc = tasks_api_routine(&tasks_handler);
 
     if (rc != TASKS_RC_OK) {
@@ -460,15 +460,15 @@ enum MainboardTasksReturnCode mainboard_tasks_routine(void) {
     return MAINBOARD_TASKS_RC_OK;
 }
 
-enum MainboardTasksReturnCode mainboard_tasks_enable_task(uint8_t task_id) {
+enum MainboardTasksReturnCode mainboard_tasks_api_enable_task(uint8_t task_id) {
     return prv_tasks_convert_rc(tasks_api_enable_task(&tasks_handler, task_id));
 }
 
-enum MainboardTasksReturnCode mainboard_tasks_disable_task(uint8_t task_id) {
+enum MainboardTasksReturnCode mainboard_tasks_api_disable_task(uint8_t task_id) {
     return prv_tasks_convert_rc(tasks_api_disable_task(&tasks_handler, task_id));
 }
 
-enum MainboardTasksReturnCode mainboard_tasks_enable_all_tasks(void) {
+enum MainboardTasksReturnCode mainboard_tasks_api_enable_all_tasks(void) {
     for (int i = 0; i < TASKS_COUNT; i++) {
         const enum MainboardTasksReturnCode rc = prv_tasks_convert_rc(tasks_api_enable_task(&tasks_handler, i));
 
@@ -480,7 +480,7 @@ enum MainboardTasksReturnCode mainboard_tasks_enable_all_tasks(void) {
     return MAINBOARD_TASKS_RC_OK;
 }
 
-enum MainboardTasksReturnCode mainboard_tasks_suppress_primary_messages(bool suppress) {
+enum MainboardTasksReturnCode mainboard_tasks_api_suppress_primary_messages(bool suppress) {
     mainboard_tasks_handler.suppress_primary_messages = suppress;
     return MAINBOARD_TASKS_RC_OK;
 }
