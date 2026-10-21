@@ -21,6 +21,7 @@ DEFINE_FFF_GLOBALS;
 #include <string.h>
 
 extern struct PcuHandler pcu_handler;
+extern struct WatchdogHandler watchdogs_handler;
 extern struct InternalVoltageHandler internal_volt_handler;
 
 extern void prv_pcu_api_airn_timeout(void);
@@ -55,6 +56,35 @@ void test_pcu_init_ok(void) {
 
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(expected_status, pcu_set_fake.arg1_history, 4, "Wrong init calls");
     TEST_ASSERT_EQUAL_INT8_ARRAY_MESSAGE(expected_pins, pcu_set_fake.arg0_history, 4, "Wrong init calls");
+}
+
+void test_pcu_init_initializes_all_watchdogs(void) {
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.airn_watchdog.is_initialized, "AIR- watchdog should be initialized");
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.precharge_watchdog.is_initialized, "Precharge watchdog should be initialized");
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.airp_watchdog.is_initialized, "AIR+ watchdog should be initialized");
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.ecu_watchdog.is_initialized, "ECU watchdog should be initialized");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(PCU_TSON_TIMEOUT_MS, pcu_handler.ecu_watchdog.timeout, "ECU watchdog should use the ECU timeout");
+}
+
+void test_pcu_init_twice_unregisters_running_watchdogs(void) {
+    pcu_api_airn_close();
+    TEST_ASSERT_TRUE(mainboard_watchdogs_api_is_running(&pcu_handler.airn_watchdog));
+
+    TEST_ASSERT_EQUAL(PCU_RC_OK, pcu_api_init(pcu_set, pcu_toggle));
+
+    TEST_ASSERT_FALSE_MESSAGE(mainboard_watchdogs_api_is_running(&pcu_handler.airn_watchdog), "Re-initialization should leave no running watchdog");
+    TEST_ASSERT_TRUE_MESSAGE(min_heap_api_is_empty(&watchdogs_handler.scheduled_watchdogs), "Re-initialization should not leave dangling watchdogs in the scheduler");
+}
+
+void test_pcu_reset_all_keeps_ecu_watchdog_and_clears_pin_watchdogs(void) {
+    pcu_api_airp_close();
+    mainboard_watchdogs_api_restart(&pcu_handler.ecu_watchdog);
+
+    pcu_api_reset_all();
+
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_running(&pcu_handler.airp_watchdog));
+    TEST_ASSERT_TRUE(mainboard_watchdogs_api_is_running(&pcu_handler.ecu_watchdog));
+    TEST_ASSERT_TRUE_MESSAGE(pcu_handler.airp_watchdog.is_initialized, "The pin watchdogs should stay initialized");
 }
 
 void test_pcu_reset_all_sets_default_pins_high(void) {
@@ -253,6 +283,9 @@ int main(void) {
     RUN_TEST(test_pcu_init_null_set_callback);
     RUN_TEST(test_pcu_init_null_toggle_callback);
     RUN_TEST(test_pcu_init_ok);
+    RUN_TEST(test_pcu_init_initializes_all_watchdogs);
+    RUN_TEST(test_pcu_init_twice_unregisters_running_watchdogs);
+    RUN_TEST(test_pcu_reset_all_keeps_ecu_watchdog_and_clears_pin_watchdogs);
     RUN_TEST(test_pcu_reset_all_sets_default_pins_high);
     RUN_TEST(test_pcu_airn_open_sets_high);
     RUN_TEST(test_pcu_airn_close_sets_low);

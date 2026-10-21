@@ -85,6 +85,8 @@ EAGLETRT_STATIC void prv_bal_print_cellboard_log(const enum CellboardId cellboar
 }
 
 enum BalReturnCode bal_api_init(void) {
+    // Unregister the watchdog before wiping it, otherwise the scheduler keeps a dangling entry
+    (void)mainboard_watchdogs_api_reset(&balancing_handler.watchdog);
     memset(&balancing_handler, 0U, sizeof(balancing_handler));
 
     // Set default event
@@ -101,10 +103,12 @@ enum BalReturnCode bal_api_init(void) {
     balancing_handler.params.threshold = BAL_THRESHOLD_MAX_V;
 
     // Initialize main balancing watchdog
-    (void)mainboard_watchdogs_api_init_watchdog(
-        &balancing_handler.watchdog,
-        BAL_TIMEOUT_MS,
-        prv_bal_api_timeout);
+    if (mainboard_watchdogs_api_init_watchdog(
+            &balancing_handler.watchdog,
+            BAL_TIMEOUT_MS,
+            prv_bal_api_timeout) != WATCHDOG_RC_OK) {
+        return BAL_RC_WATCHDOG_ERROR;
+    }
     return BAL_RC_OK;
 }
 

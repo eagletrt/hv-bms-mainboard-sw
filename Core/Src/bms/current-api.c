@@ -57,11 +57,15 @@ EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
 }
 
 enum CurrentReturnCode current_api_init(void) {
+    // Unregister the watchdog before wiping it, otherwise the scheduler keeps a dangling entry
+    (void)mainboard_watchdogs_api_reset(&current_api_handler.sensor_wdg);
     memset(&current_api_handler, 0U, sizeof(current_api_handler));
-    (void)mainboard_watchdogs_api_init_watchdog(
-        &current_api_handler.sensor_wdg,
-        CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
-        prv_current_api_sensor_communcation_timeout);
+    if (mainboard_watchdogs_api_init_watchdog(
+            &current_api_handler.sensor_wdg,
+            CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
+            prv_current_api_sensor_communcation_timeout) != WATCHDOG_RC_OK) {
+        return CURRENT_RC_WATCHDOG_ERROR;
+    }
     return CURRENT_RC_OK;
 }
 
@@ -70,12 +74,9 @@ ampere_t current_api_get_current(void) {
 }
 
 void current_api_set_current(ampere_t current) {
-    enum WatchdogReturnCode result = mainboard_watchdogs_api_pet(&current_api_handler.sensor_wdg);
+    (void)mainboard_watchdogs_api_feed(&current_api_handler.sensor_wdg);
 
     current_api_handler.current = current;
-    if (result == WATCHDOG_RC_TIMED_OUT) {
-        mainboard_watchdogs_api_restart(&current_api_handler.sensor_wdg);
-    }
 #ifdef CURRENT_SENSOR_CHECK_VALUES_ENABLE
     prv_current_api_check_value(current);
 #endif

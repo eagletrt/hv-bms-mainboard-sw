@@ -48,4 +48,16 @@ enum WatchdogReturnCode mainboard_watchdogs_api_reset(struct Watchdog *const wat
 enum WatchdogReturnCode mainboard_watchdogs_api_pet(struct Watchdog *const watchdog) {
     return watchdogs_api_watchdog_pet(&watchdogs_handler, watchdog);
 }
+
+enum WatchdogReturnCode mainboard_watchdogs_api_feed(struct Watchdog *const watchdog) {
+    return watchdogs_api_watchdog_feed(&watchdogs_handler, watchdog);
+}
+
+bool mainboard_watchdogs_api_is_running(struct Watchdog *const watchdog) {
+    return watchdogs_api_watchdog_is_running(watchdog);
+}
+
+bool mainboard_watchdogs_api_is_timed_out(struct Watchdog *const watchdog) {
+    return watchdogs_api_watchdog_is_timed_out(watchdog);
+}
 #endif // CONF_WATCHDOG_MODULE_ENABLE

@@ -20,7 +20,8 @@
 /*!
  * \brief Intiialize the internal balancing handler structure
  *
- * \retval BAL_OK
+ * \retval BAL_RC_WATCHDOG_ERROR if the balancing watchdog could not be initialized
+ * \retval BAL_RC_OK otherwise
  */
 enum BalReturnCode bal_api_init(void);
 

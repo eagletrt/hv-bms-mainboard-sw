@@ -49,7 +49,8 @@
  * \brief Return code for the current module functions
  */
 enum CurrentReturnCode {
-    CURRENT_RC_OK /*!< Function executed successfully */
+    CURRENT_RC_OK,            /*!< Function executed successfully */
+    CURRENT_RC_WATCHDOG_ERROR /*!< The sensor communication watchdog could not be initialized */
 };
 
 /*!

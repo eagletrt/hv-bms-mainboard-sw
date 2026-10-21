@@ -74,6 +74,30 @@ enum WatchdogReturnCode mainboard_watchdogs_api_reset(struct Watchdog *watchdog)
  */
 enum WatchdogReturnCode mainboard_watchdogs_api_pet(struct Watchdog *watchdog);
 
+/*!
+ * \brief Replenish a watchdog that is used as a liveness check of an external source
+ *
+ * \details A running watchdog is petted, a timed out one is restarted so that it can detect the next
+ *          loss of the source, a stopped one is left stopped
+ * \param watchdog A pointer to the watchdog
+ * \return The return code of the operation
+ */
+enum WatchdogReturnCode mainboard_watchdogs_api_feed(struct Watchdog *watchdog);
+
+/*!
+ * \brief Check if a watchdog is running
+ * \param watchdog A pointer to the watchdog
+ * \return True if the watchdog is running, false otherwise
+ */
+bool mainboard_watchdogs_api_is_running(struct Watchdog *watchdog);
+
+/*!
+ * \brief Check if a watchdog has timed out
+ * \param watchdog A pointer to the watchdog
+ * \return True if the watchdog has timed out, false otherwise
+ */
+bool mainboard_watchdogs_api_is_timed_out(struct Watchdog *watchdog);
+
 #else
 
 #define mainboard_watchdogs_api_init(tick_callback) (WATCHDOG_RC_OK)
@@ -84,6 +108,7 @@ enum WatchdogReturnCode mainboard_watchdogs_api_pet(struct Watchdog *watchdog);
 #define mainboard_watchdogs_api_restart(watchdog) (WATCHDOG_RC_OK)
 #define mainboard_watchdogs_api_reset(watchdog) (WATCHDOG_RC_OK)
 #define mainboard_watchdogs_api_pet(watchdog) (WATCHDOG_RC_OK)
+#define mainboard_watchdogs_api_feed(watchdog) (WATCHDOG_RC_OK)
 #define mainboard_watchdogs_api_is_running(watchdog) (false)
 #define mainboard_watchdogs_api_is_timed_out(watchdog) (false)
 

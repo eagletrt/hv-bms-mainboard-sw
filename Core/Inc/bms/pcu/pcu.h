@@ -26,8 +26,9 @@
  * \brief Return code for the PCU module functions
  */
 enum PcuReturnCode {
-    PCU_RC_OK,          /*!< Function executed successfully */
-    PCU_RC_NULL_POINTER /*!< A NULL pointer was given to a function */
+    PCU_RC_OK,            /*!< Function executed successfully */
+    PCU_RC_NULL_POINTER,  /*!< A NULL pointer was given to a function */
+    PCU_RC_WATCHDOG_ERROR /*!< A watchdog could not be initialized */
 };
 
 /*!

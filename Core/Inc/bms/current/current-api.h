@@ -18,6 +18,7 @@
 /*!
  * \brief Initialize the internal current structure handler
  *
+ * \retval CURRENT_RC_WATCHDOG_ERROR if the sensor watchdog could not be initialized
  * \retval CURRENT_RC_OK if the initialization was successful
  */
 enum CurrentReturnCode current_api_init(void);

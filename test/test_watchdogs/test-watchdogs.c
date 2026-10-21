@@ -489,6 +489,64 @@ void test_watchdogs_regular_pet_keeps_watchdog_alive(void) {
  * @{
  */
 
+void test_watchdogs_feed_null_pointer(void) {
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_RC_NULL_POINTER, mainboard_watchdogs_api_feed(NULL), "Expected NULL_POINTER with a NULL watchdog");
+}
+
+void test_watchdogs_feed_not_running_stays_stopped(void) {
+    struct Watchdog watchdog;
+    prv_init_watchdog(&watchdog, TEST_TIMEOUT_TICKS, prv_callback_a);
+
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_RC_NOT_RUNNING, mainboard_watchdogs_api_feed(&watchdog), "Feeding a stopped watchdog must not start it");
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_running(&watchdog));
+}
+
+void test_watchdogs_feed_running_replenishes_watchdog(void) {
+    struct Watchdog watchdog;
+    prv_init_watchdog(&watchdog, TEST_TIMEOUT_TICKS, prv_callback_a);
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_start(&watchdog));
+
+    fake_tick = TEST_TIMEOUT_TICKS - 1U;
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_feed(&watchdog));
+    TEST_ASSERT_EQUAL_UINT32(TEST_TIMEOUT_TICKS - 1U + TEST_TIMEOUT_TICKS, watchdog.next_trigger);
+}
+
+void test_watchdogs_feed_restarts_timed_out_watchdog(void) {
+    struct Watchdog watchdog;
+    prv_init_watchdog(&watchdog, TEST_TIMEOUT_TICKS, prv_callback_a);
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_start(&watchdog));
+    fake_tick = TEST_TIMEOUT_TICKS;
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_routine());
+    TEST_ASSERT_TRUE(mainboard_watchdogs_api_is_timed_out(&watchdog));
+
+    TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_RC_OK, mainboard_watchdogs_api_feed(&watchdog), "Feeding a timed out watchdog must restart it");
+    TEST_ASSERT_TRUE(mainboard_watchdogs_api_is_running(&watchdog));
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_timed_out(&watchdog));
+
+    fake_tick = 2U * TEST_TIMEOUT_TICKS;
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_routine());
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(2U, callback_a_count, "The restarted watchdog must be able to time out again");
+}
+
+void test_watchdogs_state_getters(void) {
+    struct Watchdog watchdog;
+    prv_init_watchdog(&watchdog, TEST_TIMEOUT_TICKS, prv_callback_a);
+
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_running(NULL));
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_timed_out(NULL));
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_running(&watchdog));
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_timed_out(&watchdog));
+
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_start(&watchdog));
+    TEST_ASSERT_TRUE(mainboard_watchdogs_api_is_running(&watchdog));
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_timed_out(&watchdog));
+
+    fake_tick = TEST_TIMEOUT_TICKS;
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, mainboard_watchdogs_api_routine());
+    TEST_ASSERT_FALSE(mainboard_watchdogs_api_is_running(&watchdog));
+    TEST_ASSERT_TRUE(mainboard_watchdogs_api_is_timed_out(&watchdog));
+}
+
 void test_watchdogs_pool_fits_all_the_mainboard_watchdogs(void) {
     struct Watchdog watchdogs[MAINBOARD_WATCHDOGS_IN_USE];
 
@@ -578,6 +636,12 @@ int main(void) {
     RUN_TEST(test_watchdogs_pet_not_running);
     RUN_TEST(test_watchdogs_pet_replenishes_running_watchdog);
     RUN_TEST(test_watchdogs_regular_pet_keeps_watchdog_alive);
+
+    RUN_TEST(test_watchdogs_feed_null_pointer);
+    RUN_TEST(test_watchdogs_feed_not_running_stays_stopped);
+    RUN_TEST(test_watchdogs_feed_running_replenishes_watchdog);
+    RUN_TEST(test_watchdogs_feed_restarts_timed_out_watchdog);
+    RUN_TEST(test_watchdogs_state_getters);
 
     RUN_TEST(test_watchdogs_pool_fits_all_the_mainboard_watchdogs);
     RUN_TEST(test_watchdogs_pool_full_leaves_watchdog_not_running);
