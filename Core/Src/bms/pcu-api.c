@@ -12,7 +12,6 @@
 #include <string.h>
 
 #include "error-api.h"
-#include "timebase.h"
 #include "fsm.h"
 #include "internal-voltage-api.h"
 #include "eagletrt.h"

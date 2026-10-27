@@ -17,7 +17,6 @@
 #include "mainboard-watchdogs-api.h"
 #include "post.h"
 #include "programmer-api.h"
-#include "timebase.h"
 #include "volt-api.h"
 #include "current-api.h"
 #include "internal-voltage-api.h"

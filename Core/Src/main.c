@@ -427,6 +427,7 @@ int main(void) {
     fsm_state = fsm_run_state(fsm_state, &init_data);
 
     logger_api_log(LOGGER_LEVEL_INFO, "POST procedure completed, entering main loop");
+    logger_api_log(LOGGER_LEVEL_INFO, "Handcart connection state: %s", gpio_read_hc_connected() ? "connected" : "disconnected");
 
     fsm_state_t last_fsm_state = fsm_state;
 

@@ -1,6 +1,6 @@
 /*!
  * \file mainboard-tasks.h
- * \date 2024-05-16
+ * \date 2026-10-27
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
  * \brief Tasks that have to be executed at a certain interval
@@ -64,12 +64,6 @@ typedef union CanPrimaryMessages *(*TaskCanPrimaryPayloadGetter)(size_t *byte_si
 struct TaskCanPrimaryMsg {
     enum CanPrimaryMessageFrameId frame_id;
     TaskCanPrimaryPayloadGetter get_payload;
-};
-
-enum MainboardTasksReturnCode {
-    MAINBOARD_TASKS_RC_OK = 0,
-    MAINBOARD_TASKS_RC_INVALID_ID,
-    MAINBOARD_TASKS_RC_ERROR
 };
 
 struct MainboardTaskHandler {

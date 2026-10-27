@@ -121,10 +121,18 @@ const cells_voltage *volt_api_get_values(void) {
     return &volt_handler.voltages;
 }
 
+volt_t volt_api_get_avg(void);
+
 void volt_api_set_value(const enum CellboardId cellboard, const uint8_t index, const volt_t voltage) {
     if (cellboard >= CELLBOARD_ID_COUNT || index >= CELLBOARD_SEGMENT_SERIES_COUNT) {
         return;
     }
+
+    // if ((cellboard == CELLBOARD_ID_3 && (index == 20 || index == 21))) {
+    //     volt_handler.voltages[cellboard][index] = volt_api_get_avg();
+    //     return;
+    // }
+
 #ifdef VOLTAGES_CHECK_ENABLE
     prv_volt_check_value(cellboard, index, voltage);
 #endif
@@ -445,6 +453,26 @@ union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t 
     return &volt_handler.libcan_message_cellboard6;
 }
 
+volt_t volt_api_get_cellboard_min_voltage(const enum CellboardId cellboard) {
+
+    volt_t min = volt_handler.voltages[cellboard][0];
+    for (size_t i = 1; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
+        min = EAGLETRT_API_MIN(min, volt_handler.voltages[cellboard][i]);
+    }
+
+    return min;
+}
+
+volt_t volt_api_get_cellboard_max_voltage(const enum CellboardId cellboard) {
+
+    volt_t max = volt_handler.voltages[cellboard][0];
+    for (size_t i = 1; i < CELLBOARD_SEGMENT_SERIES_COUNT; ++i) {
+        max = EAGLETRT_API_MAX(max, volt_handler.voltages[cellboard][i]);
+    }
+
+    return max;
+}
+
 void volt_api_cellboard_voltage_info_handle(
     enum CellboardId cellboard,
     volt_t min,
@@ -454,8 +482,8 @@ void volt_api_cellboard_voltage_info_handle(
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }
-    volt_handler.min[cellboard] = min;
-    volt_handler.max[cellboard] = max;
+    volt_handler.min[cellboard] = volt_api_get_cellboard_min_voltage(cellboard);
+    volt_handler.max[cellboard] = volt_api_get_cellboard_max_voltage(cellboard);
     volt_handler.average[cellboard] = average;
     volt_handler.sum[cellboard] = sum;
 }

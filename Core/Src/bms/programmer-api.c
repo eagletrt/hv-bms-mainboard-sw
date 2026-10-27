@@ -15,7 +15,6 @@
 
 #include "mainboard-def.h"
 #include "eagletrt.h"
-#include "timebase.h"
 #include "mainboard-watchdogs-api.h"
 
 EAGLETRT_STATIC struct ProgrammerHandler programmer_handler;

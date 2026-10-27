@@ -1,6 +1,6 @@
 /*!
  * \file mainboard-timebase-api.h
- * \date 2024-04-16
+ * \date 2026-10-27
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
  * \brief Functions to manage global clock of the mainboard

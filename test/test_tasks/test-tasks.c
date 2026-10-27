@@ -175,22 +175,22 @@ void test_tasks_payload_getters_accept_null_byte_size(void) {
  */
 
 void test_tasks_init_null_tick_callback(void) {
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_ERROR, mainboard_tasks_api_init(NULL), "Expected ERROR with a NULL tick callback");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_NULL_POINTER, mainboard_tasks_api_init(NULL), "Expected NULL_POINTER with a NULL tick callback");
 }
 
 void test_tasks_init_ok(void) {
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick), "Expected OK");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick), "Expected OK");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(TASKS_COUNT, tasks_handler.task_num, "Every task should be registered");
     TEST_ASSERT_EQUAL_PTR_MESSAGE(prv_get_tick, tasks_handler.get_tick, "The tick callback should be stored");
 }
 
 void test_tasks_init_twice_restores_default_configuration(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_STATUS));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_STATUS));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
 
     fake_tick = 500U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     struct Task task;
     TEST_ASSERT_EQUAL(TASKS_RC_OK, tasks_api_get_task(&tasks_handler, TASK_SEND_STATUS, &task));
@@ -208,14 +208,14 @@ void test_tasks_init_twice_restores_default_configuration(void) {
 
 void test_tasks_routine_before_init(void) {
     memset(&tasks_handler, 0, sizeof(tasks_handler));
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_ERROR, mainboard_tasks_api_routine(), "The routine cannot run if the tasks are not initialized");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_NULL_POINTER, mainboard_tasks_api_routine(), "The routine cannot run if the tasks are not initialized");
 }
 
 void test_tasks_routine_executes_the_first_task_at_tick_zero(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
 
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, task_calls[0], "The first task has no delay");
     for (uint8_t i = 1U; i < TASKS_COUNT; ++i) {
@@ -225,10 +225,10 @@ void test_tasks_routine_executes_the_first_task_at_tick_zero(void) {
 
 void test_tasks_routine_executes_tasks_following_the_stagger(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     fake_tick = 3U * TASKS_START_STAGGER_MS;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
 
     for (uint8_t i = 0U; i < TASKS_COUNT; ++i) {
         const uint32_t expected = i <= 3U ? 1U : 0U;
@@ -238,11 +238,11 @@ void test_tasks_routine_executes_tasks_following_the_stagger(void) {
 
 void test_tasks_routine_executes_every_task_once_after_a_long_pause(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     // Long enough for every start delay and every interval to be elapsed several times
     fake_tick = 100000U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
 
     for (uint8_t i = 0U; i < TASKS_COUNT; ++i) {
 
@@ -257,28 +257,28 @@ void test_tasks_routine_executes_every_task_once_after_a_long_pause(void) {
 
 void test_tasks_routine_executes_tasks_with_their_interval(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
     const uint16_t interval = task_list[TASK_SEND_STATUS].interval;
 
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
     TEST_ASSERT_EQUAL_UINT32(1U, task_calls[TASK_SEND_STATUS]);
 
     fake_tick = interval - 1U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, task_calls[TASK_SEND_STATUS], "The task should not be executed before its interval");
 
     fake_tick = interval;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(2U, task_calls[TASK_SEND_STATUS], "The task should be executed after its interval");
 }
 
 void test_tasks_routine_forwards_temporal_discontinuity(void) {
     prv_stub_all_tasks();
     fake_tick = 100U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     fake_tick = 50U;
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_ERROR, mainboard_tasks_api_routine(), "Time cannot go backwards");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_TEMPORAL_DISCONTINUITY, mainboard_tasks_api_routine(), "Time cannot go backwards");
 }
 
 /** @} */
@@ -291,56 +291,56 @@ void test_tasks_routine_forwards_temporal_discontinuity(void) {
 void test_tasks_enable_disable_before_init(void) {
     memset(&tasks_handler, 0, sizeof(tasks_handler));
 
-    TEST_ASSERT_NOT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_STATUS), "A task cannot be enabled if the tasks are not initialized");
-    TEST_ASSERT_NOT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_STATUS), "A task cannot be disabled if the tasks are not initialized");
-    TEST_ASSERT_NOT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_all_tasks(), "The tasks cannot be enabled if they are not initialized");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_STATUS), "A task cannot be enabled if the tasks are not initialized");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_STATUS), "A task cannot be disabled if the tasks are not initialized");
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(TASKS_RC_OK, mainboard_tasks_api_enable_all_tasks(), "The tasks cannot be enabled if they are not initialized");
 }
 
 void test_tasks_enable_task_invalid_id(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_INVALID_ID, mainboard_tasks_api_enable_task(TASKS_COUNT), "TASKS_COUNT is not a valid task");
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_INVALID_ID, mainboard_tasks_api_enable_task(UINT8_MAX), "Expected INVALID_ID");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_INVALID_ID, mainboard_tasks_api_enable_task(TASKS_COUNT), "TASKS_COUNT is not a valid task");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_INVALID_ID, mainboard_tasks_api_enable_task(UINT8_MAX), "Expected INVALID_ID");
 }
 
 void test_tasks_disable_task_invalid_id(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_INVALID_ID, mainboard_tasks_api_disable_task(TASKS_COUNT), "TASKS_COUNT is not a valid task");
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_INVALID_ID, mainboard_tasks_api_disable_task(UINT8_MAX), "Expected INVALID_ID");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_INVALID_ID, mainboard_tasks_api_disable_task(TASKS_COUNT), "TASKS_COUNT is not a valid task");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_INVALID_ID, mainboard_tasks_api_disable_task(UINT8_MAX), "Expected INVALID_ID");
 }
 
 void test_tasks_disable_and_enable_task(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
     struct Task task;
 
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CURRENT));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CURRENT));
     TEST_ASSERT_EQUAL(TASKS_RC_OK, tasks_api_get_task(&tasks_handler, TASK_SEND_CURRENT, &task));
     TEST_ASSERT_EQUAL(TASKS_STATE_DISABLED, task.state);
 
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CURRENT));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CURRENT));
     TEST_ASSERT_EQUAL(TASKS_RC_OK, tasks_api_get_task(&tasks_handler, TASK_SEND_CURRENT, &task));
     TEST_ASSERT_EQUAL(TASKS_STATE_ENABLED, task.state);
 }
 
 void test_tasks_repeated_enable_and_disable_are_not_errors(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     // The balancing module enables and disables the same task every time the balancing starts or stops
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS));
 }
 
 void test_tasks_disabled_task_is_not_executed(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CURRENT));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CURRENT));
 
     fake_tick = 100000U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
 
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(0U, task_calls[TASK_SEND_CURRENT], "A disabled task must not be executed");
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, task_calls[TASK_SEND_STATUS], "The other tasks must not be affected");
@@ -348,30 +348,30 @@ void test_tasks_disabled_task_is_not_executed(void) {
 
 void test_tasks_enabled_task_is_executed_again(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CURRENT));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(TASK_SEND_CURRENT));
 
     fake_tick = 1000U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CURRENT));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_enable_task(TASK_SEND_CURRENT));
 
     // The task restarts from the beginning, with its start delay
     fake_tick = 1000U + (uint32_t)task_list[TASK_SEND_CURRENT].start - 1U;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
     TEST_ASSERT_EQUAL_UINT32(0U, task_calls[TASK_SEND_CURRENT]);
 
     fake_tick = 1000U + task_list[TASK_SEND_CURRENT].start;
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_routine());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_routine());
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(1U, task_calls[TASK_SEND_CURRENT], "The enabled task should be executed again");
 }
 
 void test_tasks_enable_all_tasks(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
     for (uint8_t i = 0U; i < TASKS_COUNT; i += 2U) {
-        TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_disable_task(i));
+        TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_disable_task(i));
     }
 
-    TEST_ASSERT_EQUAL_MESSAGE(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_all_tasks(), "Expected OK");
+    TEST_ASSERT_EQUAL_MESSAGE(TASKS_RC_OK, mainboard_tasks_api_enable_all_tasks(), "Expected OK");
 
     for (uint8_t i = 0U; i < TASKS_COUNT; ++i) {
         struct Task task;
@@ -381,8 +381,8 @@ void test_tasks_enable_all_tasks(void) {
 }
 
 void test_tasks_enable_all_tasks_when_already_enabled(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_enable_all_tasks());
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_enable_all_tasks());
 }
 
 /** @} */
@@ -394,7 +394,7 @@ void test_tasks_enable_all_tasks_when_already_enabled(void) {
 
 void test_tasks_send_to_primary_enqueues_the_message(void) {
     prv_stub_all_tasks();
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     prv_tasks_send_to_primary(TASK_SEND_CURRENT);
     prv_flush_can();
@@ -406,7 +406,7 @@ void test_tasks_send_to_primary_enqueues_the_message(void) {
 }
 
 void test_tasks_send_to_primary_sends_every_message_with_its_id(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     for (uint8_t i = 0U; i < CAN_MSGS_COUNT; ++i) {
         if (can_msgs[i].get_payload == NULL) {
@@ -423,7 +423,7 @@ void test_tasks_send_to_primary_sends_every_message_with_its_id(void) {
 }
 
 void test_tasks_send_to_primary_ignores_tasks_without_message(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
 
     // Tasks that are after the CAN messages, outside the table, and invalid ones
     const uint8_t ids[] = { TASK_SEND_CELLBOARD_SET_BALANCING_STATUS, TASK_START_INTERNAL_VOLTAGE_CONVERSION, TASKS_COUNT, UINT8_MAX };
@@ -436,8 +436,8 @@ void test_tasks_send_to_primary_ignores_tasks_without_message(void) {
 }
 
 void test_tasks_suppress_primary_messages_blocks_everything_but_the_status(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
 
     prv_tasks_send_to_primary(TASK_SEND_CURRENT);
     prv_tasks_send_to_primary(TASK_SEND_CELLBOARD1_VOLTAGE);
@@ -452,9 +452,9 @@ void test_tasks_suppress_primary_messages_blocks_everything_but_the_status(void)
 }
 
 void test_tasks_suppress_primary_messages_can_be_disabled(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(false));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(false));
 
     prv_tasks_send_to_primary(TASK_SEND_CURRENT);
     prv_flush_can();
@@ -463,8 +463,8 @@ void test_tasks_suppress_primary_messages_can_be_disabled(void) {
 }
 
 void test_tasks_suppress_primary_messages_does_not_affect_bms_network(void) {
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
-    TEST_ASSERT_EQUAL(MAINBOARD_TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_init(prv_get_tick));
+    TEST_ASSERT_EQUAL(TASKS_RC_OK, mainboard_tasks_api_suppress_primary_messages(true));
 
     prv_tasks_send_cellboard_set_balancing_status(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
     prv_flush_can();

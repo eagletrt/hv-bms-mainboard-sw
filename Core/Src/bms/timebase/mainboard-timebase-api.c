@@ -1,6 +1,6 @@
 /*! 
  * \file mainboard-timebase-api.c
- * \date 2024-04-16
+ * \date 2026-10-27
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  * \brief Implementation of the mainboard timebase API.
  */

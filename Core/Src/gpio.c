@@ -28,6 +28,7 @@
 #include "feedback.h"
 #include "main.h"
 #include "stm32f4xx_hal_gpio.h"
+#include "logger-api.h"
 
 /* USER CODE END 0 */
 
@@ -394,6 +395,9 @@ bit_flag32_t gpio_feedback_read_all(void) {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == HC_CONNECTED_MCU_Pin) {
         const GPIO_PinState handcart_connected = HAL_GPIO_ReadPin(HC_CONNECTED_MCU_GPIO_Port, HC_CONNECTED_MCU_Pin);
+
+        logger_api_log(LOGGER_LEVEL_INFO, "Handcart connection state changed: %s", handcart_connected == GPIO_PIN_SET ? "connected" : "disconnected");
+
         can_configure_and_start_primary(handcart_connected == GPIO_PIN_SET);
     }
 }

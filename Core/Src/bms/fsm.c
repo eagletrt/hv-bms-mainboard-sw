@@ -35,7 +35,6 @@ Functions and types have been generated with prefix "fsm_"
 #include "post.h"
 
 #include "post-api.h"
-#include "timebase.h"
 #include "mainboard-tasks-api.h"
 #include "programmer-api.h"
 #include "feedback-api.h"
@@ -81,6 +80,34 @@ fsm_event_data_t *fsm_fired_event = NULL;
 
 /*** USER CODE BEGIN GLOBALS ***/
 EAGLETRT_STATIC struct FsmHandler hfsm = { .fsm_state = FSM_STATE_INIT };
+
+// Human readable description of the events, used for logging
+static const char *fsm_event_description(FsmEventType type) {
+    switch (type) {
+        case FSM_EVENT_TYPE_FLASH_REQUEST:
+            return "FLASH_REQUEST (flash procedure requested)";
+        case FSM_EVENT_TYPE_TS_ON:
+            return "TS_ON (TS on requested)";
+        case FSM_EVENT_TYPE_TS_OFF:
+            return "TS_OFF (TS off requested)";
+        case FSM_EVENT_TYPE_AIRN_TIMEOUT:
+            return "AIRN_TIMEOUT (AIR- feedback watchdog expired)";
+        case FSM_EVENT_TYPE_PRECHARGE_TIMEOUT:
+            return "PRECHARGE_TIMEOUT (precharge feedback watchdog expired)";
+        case FSM_EVENT_TYPE_AIRP_TIMEOUT:
+            return "AIRP_TIMEOUT (AIR+ feedback watchdog expired)";
+        case FSM_EVENT_TYPE_ECU_TIMEOUT:
+            return "ECU_TIMEOUT (no ECU message received in time)";
+        case FSM_EVENT_TYPE_BALANCING_START:
+            return "BALANCING_START (balancing start requested)";
+        case FSM_EVENT_TYPE_BALANCING_STOP:
+            return "BALANCING_STOP (balancing stop requested)";
+        case FSM_EVENT_TYPE_CELLBOARD_FATAL:
+            return "CELLBOARD_FATAL (cellboard reported a fatal error)";
+        default:
+            return "UNKNOWN";
+    }
+}
 
 // TODO: Move animation in separate file
 // 7-segment display animation for various states
@@ -377,11 +404,26 @@ fsm_state_t fsm_do_balancing(fsm_state_data *data) {
 
     if (error_api_get_expired() > 0) {
         next_state = FSM_STATE_FATAL;
+        logger_api_log(
+            LOGGER_LEVEL_ERROR,
+            "Balancing: exiting to FATAL, error expired (group: %d, instance: %d)",
+            error_api_get_expired_info().group,
+            error_api_get_expired_info().instance);
     } else if (fsm_is_event_triggered()) {
         if (fsm_fired_event->type == FSM_EVENT_TYPE_CELLBOARD_FATAL) {
             next_state = FSM_STATE_FATAL;
+            logger_api_log(
+                LOGGER_LEVEL_ERROR,
+                "Balancing: exiting to FATAL, event %s (type %d)",
+                fsm_event_description(fsm_fired_event->type),
+                (int)fsm_fired_event->type);
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_BALANCING_STOP) {
             next_state = FSM_STATE_IDLE;
+            logger_api_log(
+                LOGGER_LEVEL_INFO,
+                "Balancing: exiting to IDLE, event %s (type %d)",
+                fsm_event_description(fsm_fired_event->type),
+                (int)fsm_fired_event->type);
         }
     }
     /*** USER CODE END DO_BALANCING ***/
@@ -435,7 +477,12 @@ fsm_state_t fsm_do_airn_check(fsm_state_data *data) {
                 case FSM_EVENT_TYPE_TS_OFF:
                 case FSM_EVENT_TYPE_ECU_TIMEOUT:
                     next_state = FSM_STATE_IDLE;
-                    logger_api_log(LOGGER_LEVEL_ERROR, "AIRN check failed with event %d\r\n", fsm_fired_event->type);
+                    logger_api_log(
+                        LOGGER_LEVEL_ERROR,
+                        "AIRN check: failed with event %s (type %d), last feedback checked: %s, going to IDLE\r\n",
+                        fsm_event_description(fsm_fired_event->type),
+                        (int)fsm_fired_event->type,
+                        feedback_api_feedback_id_name(feedback_id));
                     break;
 
                 default:
@@ -543,7 +590,12 @@ fsm_state_t fsm_do_precharge_check(fsm_state_data *data) {
                 case FSM_EVENT_TYPE_ECU_TIMEOUT:
                 case FSM_EVENT_TYPE_TS_OFF:
                     next_state = FSM_STATE_IDLE;
-                    logger_api_log(LOGGER_LEVEL_ERROR, "Precharge check: failed with event %d\r\n", fsm_fired_event->type);
+                    logger_api_log(
+                        LOGGER_LEVEL_ERROR,
+                        "Precharge check: failed with event %s (type %d), last feedback checked: %s, going to IDLE\r\n",
+                        fsm_event_description(fsm_fired_event->type),
+                        (int)fsm_fired_event->type,
+                        feedback_api_feedback_id_name(feedback_id));
                     break;
 
                 default:
@@ -637,6 +689,12 @@ fsm_state_t fsm_do_airp_check(fsm_state_data *data) {
                 case FSM_EVENT_TYPE_TS_OFF:
                 case FSM_EVENT_TYPE_ECU_TIMEOUT:
                     next_state = FSM_STATE_IDLE;
+                    logger_api_log(
+                        LOGGER_LEVEL_ERROR,
+                        "AIRP check: failed with event %s (type %d), last feedback checked: %s, going to IDLE\r\n",
+                        fsm_event_description(fsm_fired_event->type),
+                        (int)fsm_fired_event->type,
+                        feedback_api_feedback_id_name(feedback_id));
                     break;
 
                 default:
@@ -722,7 +780,11 @@ fsm_state_t fsm_do_ts_on(fsm_state_data *data) {
             next_state = FSM_STATE_FATAL;
         } else if (fsm_fired_event->type == FSM_EVENT_TYPE_TS_OFF ||
                    fsm_fired_event->type == FSM_EVENT_TYPE_ECU_TIMEOUT) {
-            logger_api_log(LOGGER_LEVEL_ERROR, "TS ON check: failed with event %d\r\n", fsm_fired_event->type);
+            logger_api_log(
+                LOGGER_LEVEL_ERROR,
+                "TS ON check: failed with event %s (type %d), going to IDLE\r\n",
+                fsm_event_description(fsm_fired_event->type),
+                (int)fsm_fired_event->type);
             next_state = FSM_STATE_IDLE;
         }
     } else if (!feedback_api_check_values(
