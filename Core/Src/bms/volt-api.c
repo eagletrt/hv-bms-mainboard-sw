@@ -453,6 +453,8 @@ union CanPrimaryMessages *volt_api_get_cellboard6_voltage_canlib_payload(size_t 
     return &volt_handler.libcan_message_cellboard6;
 }
 
+// FOR TESTING WITH THE "FAKE" OPEN WIRES
+
 volt_t volt_api_get_cellboard_min_voltage(const enum CellboardId cellboard) {
 
     volt_t min = volt_handler.voltages[cellboard][0];
@@ -482,8 +484,8 @@ void volt_api_cellboard_voltage_info_handle(
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }
-    volt_handler.min[cellboard] = volt_api_get_cellboard_min_voltage(cellboard);
-    volt_handler.max[cellboard] = volt_api_get_cellboard_max_voltage(cellboard);
+    volt_handler.min[cellboard] = min; //volt_api_get_cellboard_min_voltage(cellboard);
+    volt_handler.max[cellboard] = max; //volt_api_get_cellboard_max_voltage(cellboard);
     volt_handler.average[cellboard] = average;
     volt_handler.sum[cellboard] = sum;
 }

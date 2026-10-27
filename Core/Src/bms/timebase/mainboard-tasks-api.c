@@ -111,7 +111,9 @@ EAGLETRT_STATIC void prv_tasks_primary_enqueue(enum CanPrimaryMessageFrameId fra
 }
 
 EAGLETRT_STATIC void prv_tasks_send_to_primary(uint8_t task_id) {
-
+    if (task_id >= (sizeof(can_msgs) / sizeof(can_msgs[0]))) {
+        return;
+    }
     const struct TaskCanPrimaryMsg msg = can_msgs[task_id];
     if (msg.get_payload == NULL) {
         return;
