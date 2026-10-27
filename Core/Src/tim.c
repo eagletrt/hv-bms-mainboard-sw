@@ -30,7 +30,7 @@
 
 #include "imd-api.h"
 #include "stm32f4xx_hal_tim.h"
-#include "timebase.h"
+#include "mainboard-timebase-api.h"
 
 /* USER CODE END 0 */
 
@@ -567,7 +567,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == HTIM_ERROR.Instance) {
         // error_handler_error_expire();
     } else if (htim->Instance == HTIM_TIMEBASE.Instance) {
-        timebase_inc_tick();
+        mainboard_timebase_api_inc_tick();
     }
 }
 
@@ -581,7 +581,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
          * incremented for the entire duration where the signal stays high
          * inside the period
          */
-        ticks_t period_count = 0U, high_count = 0U;
+        ticks period_count = 0U, high_count = 0U;
 
         // Update IMD module data
         if ((period_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1)) != 0U) {

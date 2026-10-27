@@ -79,7 +79,7 @@
 /* USER CODE BEGIN PV */
 EAGLETRT_STATIC struct ArenaAllocatorHandler arena_allocator_handler;
 EAGLETRT_STATIC struct PalHandler logger_pal_handler;
-EAGLETRT_STATIC constexpr milliseconds_t MAIN_LOG_INTERVAL_MS = 1000U;
+EAGLETRT_STATIC constexpr milliseconds MAIN_LOG_INTERVAL_MS = 1000U;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -427,6 +427,7 @@ int main(void) {
     fsm_state = fsm_run_state(fsm_state, &init_data);
 
     logger_api_log(LOGGER_LEVEL_INFO, "POST procedure completed, entering main loop");
+    logger_api_log(LOGGER_LEVEL_INFO, "Handcart connection state: %s", gpio_read_hc_connected() ? "connected" : "disconnected");
 
     fsm_state_t last_fsm_state = fsm_state;
 

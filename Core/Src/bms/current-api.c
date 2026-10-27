@@ -20,7 +20,8 @@
 #include "logger-api.h"
 #include "logger.h"
 #include "mainboard-def.h"
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
+#include "watchdogs.h"
 
 #ifdef CONF_CURRENT_MODULE_ENABLE
 
@@ -56,11 +57,15 @@ EAGLETRT_STATIC_INLINE void prv_current_api_check_value(const ampere_t value) {
 }
 
 enum CurrentReturnCode current_api_init(void) {
+    // Unregister the watchdog before wiping it, otherwise the scheduler keeps a dangling entry
+    (void)mainboard_watchdogs_api_reset(&current_api_handler.sensor_wdg);
     memset(&current_api_handler, 0U, sizeof(current_api_handler));
-    (void)watchdog_init(
-        &current_api_handler.sensor_wdg,
-        CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
-        prv_current_api_sensor_communcation_timeout);
+    if (mainboard_watchdogs_api_init_watchdog(
+            &current_api_handler.sensor_wdg,
+            CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS,
+            prv_current_api_sensor_communcation_timeout) != WATCHDOG_RC_OK) {
+        return CURRENT_RC_WATCHDOG_ERROR;
+    }
     return CURRENT_RC_OK;
 }
 
@@ -69,11 +74,9 @@ ampere_t current_api_get_current(void) {
 }
 
 void current_api_set_current(ampere_t current) {
-    enum WatchdogReturnCode result = watchdog_reset(&current_api_handler.sensor_wdg);
+    (void)mainboard_watchdogs_api_feed(&current_api_handler.sensor_wdg);
+
     current_api_handler.current = current;
-    if (result == WATCHDOG_RC_TIMED_OUT) {
-        watchdog_restart(&current_api_handler.sensor_wdg);
-    }
 #ifdef CURRENT_SENSOR_CHECK_VALUES_ENABLE
     prv_current_api_check_value(current);
 #endif
@@ -85,7 +88,7 @@ kilowatt_t current_api_get_power(void) {
 }
 
 enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void) {
-    return watchdog_start(&current_api_handler.sensor_wdg);
+    return mainboard_watchdogs_api_start(&current_api_handler.sensor_wdg);
 }
 
 union CanPrimaryMessages *current_api_get_canlib_payload(size_t *byte_size) {

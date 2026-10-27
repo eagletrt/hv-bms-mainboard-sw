@@ -21,8 +21,9 @@
  * \param set The callback used to set the status of the PCU pins
  * \param toggle The callback used to toggle the status of the PCU pins
  *
- * \retval PCU_NULL_POINTER if the set or toggle callbacks are NULL
- * \retval PCU_OK otherwise
+ * \retval PCU_RC_NULL_POINTER if the set or toggle callbacks are NULL
+ * \retval PCU_RC_WATCHDOG_ERROR if a watchdog could not be initialized
+ * \retval PCU_RC_OK otherwise
  */
 enum PcuReturnCode pcu_api_init(pcu_set_state_callback set, pcu_toggle_state_callback toggle);
 
@@ -52,9 +53,6 @@ void pcu_api_precharge_start(void);
 
 /*! \brief Stop precharge procedure */
 void pcu_api_precharge_stop(void);
-
-/*! \brief Stop the internal watchdog of the precharge */
-void pcu_api_precharge_stop_watchdog(void);
 
 /*! \brief Stop the internal watchdog of the precharge */
 void pcu_api_precharge_stop_watchdog(void);

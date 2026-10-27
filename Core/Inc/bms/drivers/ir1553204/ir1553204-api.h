@@ -65,9 +65,9 @@ enum Ir1553204ReturnCode ir1553204_api_set_frequency(struct Ir1553204Handler *ha
  *
  * \param handler A pointer to the structure handler
  *
- * \returns milliseconds_t The period in ms, or 0 on error
+ * \returns milliseconds The period in ms, or 0 on error
  */
-milliseconds_t ir1553204_api_get_period(struct Ir1553204Handler *handler);
+milliseconds ir1553204_api_get_period(struct Ir1553204Handler *handler);
 
 /*!
  * \brief Get the status of the IR155-3204

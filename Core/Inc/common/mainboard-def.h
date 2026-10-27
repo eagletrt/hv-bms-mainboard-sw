@@ -171,11 +171,11 @@ typedef uint32_t can_ext_id_t;
 typedef int32_t can_index_t;
 
 /*! \brief Type definition for a custom amount of elapsed time */
-typedef uint32_t ticks_t;
+typedef uint32_t ticks;
 
 /*! \brief Type definition for the time */
 typedef uint32_t seconds_t;
-typedef uint32_t milliseconds_t;
+typedef uint32_t milliseconds;
 typedef uint32_t microseconds_t;
 
 /*! \brief Type definition for the frequency */

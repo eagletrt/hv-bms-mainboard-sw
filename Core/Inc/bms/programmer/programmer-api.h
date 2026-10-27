@@ -18,6 +18,8 @@
  *
  * \param reset A pointer to the function that resets the microcontroller
  *
+ * \retval PROGRAMMER_RC_NULL_POINTER if the reset callback is NULL
+ * \retval PROGRAMMER_RC_WATCHDOG_ERROR if the flash watchdog could not be initialized
  * \retval PROGRAMMER_RC_OK if the initialization is successful
  */
 enum ProgrammerReturnCode programmer_api_init(system_reset_callback_t reset);

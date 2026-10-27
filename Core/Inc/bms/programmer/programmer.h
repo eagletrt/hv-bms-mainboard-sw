@@ -12,7 +12,7 @@
 #define PROGRAMMER_H
 
 #include "mainboard-def.h"
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 #include "fsm.h"
 
 /*! \brief The programmer flash timeout in ms */
@@ -25,10 +25,11 @@
  * \brief Return code for the programmer module functions
  */
 enum ProgrammerReturnCode {
-    PROGRAMMER_RC_OK,          /*!< The function executed successfully */
-    PROGRAMMER_RC_BUSY,        /*!< The flash procedure is ongoing */
-    PROGRAMMER_RC_TIMEOUT,     /*!< The procedure has timed out */
-    PROGRAMMER_RC_NULL_POINTER /*!< A null pointer was passed as an argument */
+    PROGRAMMER_RC_OK,            /*!< The function executed successfully */
+    PROGRAMMER_RC_BUSY,          /*!< The flash procedure is ongoing */
+    PROGRAMMER_RC_TIMEOUT,       /*!< The procedure has timed out */
+    PROGRAMMER_RC_NULL_POINTER,  /*!< A null pointer was passed as an argument */
+    PROGRAMMER_RC_WATCHDOG_ERROR /*!< The flash watchdog could not be initialized */
 };
 
 /*!

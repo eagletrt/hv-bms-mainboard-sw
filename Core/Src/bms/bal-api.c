@@ -17,7 +17,8 @@
 #include "fsm.h"
 #include "logger-api.h"
 #include "mainboard-def.h"
-#include "timebase.h"
+#include "mainboard-watchdogs-api.h"
+#include "mainboard-tasks-api.h"
 #include "volt-api.h"
 
 #ifdef CONF_BALANCING_MODULE_ENABLE
@@ -26,6 +27,11 @@ EAGLETRT_STATIC struct BalHandler balancing_handler;
 
 /*! \brief Timeout handler for the balancing module */
 void prv_bal_api_timeout(void) {
+    logger_api_log(
+        LOGGER_LEVEL_WARN,
+        "Balancing stop cause: watchdog timeout, no balancing set message received in %lu ms",
+        (unsigned long)BAL_TIMEOUT_MS);
+
     // Stop balancing
     balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_STOP;
     fsm_event_trigger(&balancing_handler.event);
@@ -83,6 +89,8 @@ EAGLETRT_STATIC void prv_bal_print_cellboard_log(const enum CellboardId cellboar
 }
 
 enum BalReturnCode bal_api_init(void) {
+    // Unregister the watchdog before wiping it, otherwise the scheduler keeps a dangling entry
+    (void)mainboard_watchdogs_api_reset(&balancing_handler.watchdog);
     memset(&balancing_handler, 0U, sizeof(balancing_handler));
 
     // Set default event
@@ -99,10 +107,15 @@ enum BalReturnCode bal_api_init(void) {
     balancing_handler.params.threshold = BAL_THRESHOLD_MAX_V;
 
     // Initialize main balancing watchdog
-    (void)watchdog_init(
-        &balancing_handler.watchdog,
-        TIMEBASE_TIME_TO_TICKS(BAL_TIMEOUT_MS, timebase_get_resolution()),
-        prv_bal_api_timeout);
+    if (mainboard_watchdogs_api_init_watchdog(
+            &balancing_handler.watchdog,
+            BAL_TIMEOUT_MS,
+            prv_bal_api_timeout) != WATCHDOG_RC_OK) {
+        return BAL_RC_WATCHDOG_ERROR;
+    }
+
+    (void)mainboard_tasks_api_enable_task(TASK_SEND_CELLBOARD_SET_BALANCING_STATUS);
+
     return BAL_RC_OK;
 }
 
@@ -117,13 +130,11 @@ enum BalReturnCode bal_api_start(void) {
     }
 
     // Start watchdog
-    const enum WatchdogReturnCode code = watchdog_restart(&balancing_handler.watchdog);
-    if (code == WATCHDOG_RC_UNAVAILABLE) {
+    const enum WatchdogReturnCode code = mainboard_watchdogs_api_restart(&balancing_handler.watchdog);
+    if (code != WATCHDOG_RC_OK) {
         return BAL_RC_WATCHDOG_ERROR;
     }
 
-    // Start balancing task
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_SET_BALANCING_STATUS, true);
     balancing_handler.active = true;
     return BAL_RC_OK;
 }
@@ -134,12 +145,9 @@ enum BalReturnCode bal_api_stop(void) {
         return BAL_RC_OK;
     }
     // Stop watchdog
-    (void)watchdog_stop(&balancing_handler.watchdog);
+    (void)mainboard_watchdogs_api_stop(&balancing_handler.watchdog);
 
     balancing_handler.active = false;
-
-    // Stop balancing tasks
-    (void)tasks_set_enable(TASKS_ID_SEND_CELLBOARD_SET_BALANCING_STATUS, false);
 
     return BAL_RC_OK;
 }
@@ -404,8 +412,8 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
     balancing_handler.params.threshold = EAGLETRT_API_CLAMP(threshold, bal_threshold_min, bal_threshold_max);
 
     // Reset watchdog for each new message
-    const enum WatchdogReturnCode code = watchdog_reset(&balancing_handler.watchdog);
-    if (code == WATCHDOG_RC_UNAVAILABLE) {
+    const enum WatchdogReturnCode code = mainboard_watchdogs_api_restart(&balancing_handler.watchdog);
+    if (code != WATCHDOG_RC_OK) {
         return;
     }
 
@@ -414,6 +422,7 @@ void bal_api_set_balancing_state_handle(bool balancing, volt_t threshold) {
         if (balancing) {
             balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_START;
         } else {
+            logger_api_log(LOGGER_LEVEL_INFO, "Balancing stop cause: stop requested by balancing set message");
             balancing_handler.event.type = FSM_EVENT_TYPE_BALANCING_STOP;
         }
         fsm_event_trigger(&balancing_handler.event);
@@ -424,6 +433,7 @@ void bal_api_cellboard_balancing_handle(enum CellboardId cellboard, bit_flag32_t
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return;
     }
+
     balancing_handler.discharging_cells[cellboard] = discharging;
 }
 

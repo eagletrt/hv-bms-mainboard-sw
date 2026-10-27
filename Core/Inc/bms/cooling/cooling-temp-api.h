@@ -88,7 +88,7 @@ celsius_t cooling_temp_api_get_avg(void);
  *
  * \returns Pointer of the payload
  */
-union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(uint32_t *byte_size);
+union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(size_t *byte_size);
 
 /*!
  * \brief Get a pointer to the CAN payload of the cooling temperatures
@@ -97,7 +97,7 @@ union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(uint32_t *byt
  *
  * \returns Pointer of the payload
  */
-union CanPrimaryMessages *cooling_temp_get_cooling2_canlib_payload(uint32_t *byte_size);
+union CanPrimaryMessages *cooling_temp_get_cooling2_canlib_payload(size_t *byte_size);
 
 #else
 

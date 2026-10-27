@@ -13,7 +13,7 @@
 #include "can-primary.h"
 #include "mainboard-def.h"
 
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 
 /*! \brief Minimum and maximum allowed current value in A */
 #define CURRENT_MIN_A (-22.f)
@@ -49,7 +49,8 @@
  * \brief Return code for the current module functions
  */
 enum CurrentReturnCode {
-    CURRENT_RC_OK /*!< Function executed successfully */
+    CURRENT_RC_OK,            /*!< Function executed successfully */
+    CURRENT_RC_WATCHDOG_ERROR /*!< The sensor communication watchdog could not be initialized */
 };
 
 /*!

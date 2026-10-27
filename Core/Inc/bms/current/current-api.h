@@ -18,6 +18,7 @@
 /*!
  * \brief Initialize the internal current structure handler
  *
+ * \retval CURRENT_RC_WATCHDOG_ERROR if the sensor watchdog could not be initialized
  * \retval CURRENT_RC_OK if the initialization was successful
  */
 enum CurrentReturnCode current_api_init(void);
@@ -46,11 +47,10 @@ kilowatt_t current_api_get_power(void);
 /*!
  * \brief Start the watchdog used to check for the current sensor communication
  *
- * \retval WATCHDOG_NULL_POINTER if the watchdog is NULL
- * \retval WATCHDOG_BUSY if the watchdog is already running
- * \retval WATCHDOG_TIMED_OUT if the watchdog has already timed out
- * \retval WATCHDOG_UNAVAILABLE if the watchdog can't be registered
- * \retval WATCHDOG_OK otherwise
+ * \retval WATCHDOG_RC_NULL_POINTER if the watchdog is NULL
+ * \retval WATCHDOG_RC_BUSY if the watchdog is already running
+ * \retval WATCHDOG_RC_TIMED_OUT if the watchdog has already timed out
+ * \retval WATCHDOG_RC_OK otherwise
  */
 enum WatchdogReturnCode current_api_start_sensor_communication_watchdog(void);
 

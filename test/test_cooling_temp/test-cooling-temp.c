@@ -162,7 +162,7 @@ void test_cooling_temp_get_cooling1_canlib_payload_null_size() {
 }
 
 void test_cooling_temp_get_cooling1_canlib_payload_size() {
-    uint32_t size = 0U;
+    size_t size = 0U;
     prv_fill_cooling_temperatures();
 
     cooling_temp_get_cooling1_canlib_payload(&size);
@@ -183,7 +183,7 @@ void test_cooling_temp_get_cooling2_canlib_payload_null_size() {
 }
 
 void test_cooling_temp_get_cooling2_canlib_payload_size() {
-    uint32_t size = 0U;
+    size_t size = 0U;
     prv_fill_cooling_temperatures();
 
     cooling_temp_get_cooling2_canlib_payload(&size);

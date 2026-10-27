@@ -20,6 +20,9 @@
 /*! \brief Number of temperatures sent in a single temp can message */
 #define TEMP_TEMPERATURE_PER_MESSAGE_COUNT (4U)
 
+/*! \brief Temperature sampling period */
+#define TEMP_CHECK_PERIOD_MS (200U)
+
 /*!
  * \brief Return code for the temperature module functions
  */

@@ -11,7 +11,7 @@
 #define PCU_H
 
 #include "fsm.h"
-#include "watchdog.h"
+#include "mainboard-watchdogs-api.h"
 
 /*! \brief PCU pins timeouts in ms */
 #define PCU_AIRN_TIMEOUT_MS (1000U)
@@ -26,8 +26,9 @@
  * \brief Return code for the PCU module functions
  */
 enum PcuReturnCode {
-    PCU_RC_OK,          /*!< Function executed successfully */
-    PCU_RC_NULL_POINTER /*!< A NULL pointer was given to a function */
+    PCU_RC_OK,            /*!< Function executed successfully */
+    PCU_RC_NULL_POINTER,  /*!< A NULL pointer was given to a function */
+    PCU_RC_WATCHDOG_ERROR /*!< A watchdog could not be initialized */
 };
 
 /*!

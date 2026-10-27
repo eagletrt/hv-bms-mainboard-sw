@@ -38,7 +38,7 @@ hertz_t imd_api_get_frequency() {
     return ir1553204_api_get_frequency(&imd_handler.ir1153204);
 }
 
-milliseconds_t imd_api_get_period() {
+milliseconds imd_api_get_period() {
     return ir1553204_api_get_period(&imd_handler.ir1153204);
 }
 
@@ -46,7 +46,7 @@ enum ImdStatus imd_api_get_status() {
     return (enum ImdStatus)ir1553204_api_get_status(&imd_handler.ir1153204);
 }
 
-enum ImdReturnCode imd_api_update(const ticks_t source_frequency, const ticks_t period_count, const ticks_t high_count) {
+enum ImdReturnCode imd_api_update(const ticks source_frequency, const ticks period_count, const ticks high_count) {
     if (period_count == 0) {
         return IMD_RC_INVALID_DATA;
     }

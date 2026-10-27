@@ -6,9 +6,12 @@
  * \brief Test functions for the voltage module
  */
 
+#include "mainboard-timebase-api.h"
+#include "mainboard-watchdogs-api.h"
 #include "unity.h"
 #include "current-api.h"
 #include <stddef.h>
+#include "watchdogs-api.h"
 #include "internal-voltage-api.h"
 
 extern struct CurrentHandler current_api_handler;
@@ -38,14 +41,14 @@ void test_current_api_set_current(void) {
 }
 
 void test_current_api_set_current_restarts_timed_out_watchdog(void) {
-    watchdog_restart(&current_api_handler.sensor_wdg);
-    current_api_handler.sensor_wdg.timed_out = true;
+    mainboard_watchdogs_api_restart(&current_api_handler.sensor_wdg);
+    current_api_handler.sensor_wdg.watchdog_state = WATCHDOG_STATE_TIMED_OUT;
 
     current_api_set_current(3.f);
 
     TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 3.f, current_api_handler.current, "Expected current value not stored");
-    TEST_ASSERT_TRUE_MESSAGE(current_api_handler.sensor_wdg.running, "Sensor watchdog should be restarted after a timeout");
-    TEST_ASSERT_FALSE_MESSAGE(current_api_handler.sensor_wdg.timed_out, "Sensor watchdog timeout flag should be cleared after the restart");
+    TEST_ASSERT_TRUE_MESSAGE(watchdogs_api_watchdog_is_running(&current_api_handler.sensor_wdg), "Sensor watchdog should be restarted after a timeout");
+    TEST_ASSERT_FALSE_MESSAGE(watchdogs_api_watchdog_is_timed_out(&current_api_handler.sensor_wdg), "Sensor watchdog timeout flag should be cleared after the restart");
 }
 
 void test_current_api_get_power(void) {
@@ -58,7 +61,7 @@ void test_current_api_start_sensor_communication_watchdog(void) {
     enum WatchdogReturnCode rc = current_api_start_sensor_communication_watchdog();
 
     TEST_ASSERT_EQUAL_MESSAGE(WATCHDOG_RC_OK, rc, "Expected the watchdog to start");
-    TEST_ASSERT_TRUE_MESSAGE(current_api_handler.sensor_wdg.running, "Sensor watchdog should be running");
+    TEST_ASSERT_TRUE_MESSAGE(watchdogs_api_watchdog_is_running(&current_api_handler.sensor_wdg), "Sensor watchdog should be running");
 }
 
 void test_current_api_get_canlib_payload(void) {
@@ -81,6 +84,8 @@ void test_current_api_get_canlib_payload_null_byte_size(void) {
 }
 
 void setUp() {
+    mainboard_timebase_api_init(1U);
+    mainboard_watchdogs_api_init(mainboard_timebase_api_get_time);
     current_api_init();
 }
 

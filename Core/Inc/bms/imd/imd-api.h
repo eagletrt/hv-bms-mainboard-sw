@@ -42,9 +42,9 @@ hertz_t imd_api_get_frequency(void);
 /*!
  * \brief Get the period of the IMD signal
  *
- * \returns milliseconds_t The period in ms, or 0 on error
+ * \returns milliseconds The period in ms, or 0 on error
  */
-milliseconds_t imd_api_get_period(void);
+milliseconds imd_api_get_period(void);
 
 /*!
  * \brief Get the status of the IMD
@@ -63,7 +63,7 @@ enum ImdStatus imd_api_get_status(void);
  * \retval IMD_RC_INVALID_DATA if the parameters are not valid
  * \retval IMD_RC_OK otherwise
  */
-enum ImdReturnCode imd_api_update(ticks_t source_frequency, ticks_t period_count, ticks_t high_count);
+enum ImdReturnCode imd_api_update(ticks source_frequency, ticks period_count, ticks high_count);
 
 /*!
  * \brief Get a pointer to the CAN payload of the IMD

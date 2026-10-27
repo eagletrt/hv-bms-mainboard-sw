@@ -123,7 +123,7 @@ celsius_t cooling_temp_api_get_avg(void) {
     return cooling_temp_api_get_sum() / COOLING_TEMP_COUNT;
 }
 
-union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(uint32_t *byte_size) {
+union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
         *byte_size = can_primary_byte_size_tsacmainboardcoolingtemperature1;
     }
@@ -137,7 +137,7 @@ union CanPrimaryMessages *cooling_temp_get_cooling1_canlib_payload(uint32_t *byt
     return &cooling_temp_handler.libcan_message_cooling1;
 }
 
-union CanPrimaryMessages *cooling_temp_get_cooling2_canlib_payload(uint32_t *byte_size) {
+union CanPrimaryMessages *cooling_temp_get_cooling2_canlib_payload(size_t *byte_size) {
     if (byte_size != NULL) {
         *byte_size = can_primary_byte_size_tsacmainboardcoolingtemperature2;
     }
