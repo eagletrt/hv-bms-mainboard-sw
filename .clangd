@@ -1,20 +1,8 @@
 CompileFlags:
-  # ARM-specific flags that confuse clangd's frontend
+  # Linker-only flags that clang does not understand
   Remove:
-    - -mthumb
-    - -mcpu=cortex-m4
-    - -mfpu=*
-    - -mfloat-abi=*
     - -specs=*
     - --specs=*
-    - -std=gnu23      # clangd uses its own C standard handling
-  Add:
-    - -std=c23
-    - -DSTM32F446xx
-    - -DSTM32F4xx
-    - -DSTM32F4
-    - -Itest/include
-    - -I.pio/libdeps/tests/Unity/src
 
 Diagnostics:
   UnusedIncludes: Strict
@@ -42,3 +30,12 @@ InlayHints:
 
 Hover:
   ShowAKA: true
+
+---
+# Test-only include paths
+If:
+  PathMatch: test/.*
+CompileFlags:
+  Add:
+    - -Itest/include
+    - -I.pio/libdeps/tests/Unity/src
