@@ -8,6 +8,7 @@
 
 #include "mainboard-fsm.h"
 
+#include "eagletrt-api.h"
 #include "eagletrt-fsm-api.h"
 
 /*!
@@ -21,6 +22,12 @@ static struct FSMHandler hfsm;
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_init(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - INIT -> IDLE: Initialization successful
+     * - INIT -> FATAL: Initialization failed
+     */
 }
 
 /*!
@@ -29,6 +36,14 @@ static void routine_init(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_idle(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - IDLE -> FATAL: A fault was detected
+     * - IDLE -> FLASHING: A flashing message was recieved
+     * - IDLE -> BALANCING: Balancing is required and the mainboard is in a safe state
+     * - IDLE -> WAIT_ECU_OK: The DO_TSON flag was set and the mainboard is in a safe state
+     */
 }
 
 /*!
@@ -37,6 +52,13 @@ static void routine_idle(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_fatal(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - FATAL -> FLASHING: A flashing message was received
+     *
+     * Faults are never cleared, so FATAL can't go back to IDLE
+     */
 }
 
 /*!
@@ -47,6 +69,7 @@ static void routine_fatal(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void enter_flashing_state(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*!
@@ -55,6 +78,12 @@ static void enter_flashing_state(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_flashing(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - FLASHING -> FATAL: A fault was detected
+     * - FLASHING -> IDLE: The flashing procedure ended or timed out
+     */
 }
 
 /*!
@@ -64,6 +93,7 @@ static void routine_flashing(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void exit_flashing_state(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*!
@@ -73,6 +103,7 @@ static void exit_flashing_state(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void enter_balancing_state(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*!
@@ -81,16 +112,22 @@ static void enter_balancing_state(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_balancing(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - BALANCING -> FATAL: A fault was detected
+     * - BALANCING -> IDLE: A balancing stop was requested or the cells are balanced
+     */
 }
 
 /*!
  * \brief Transition function from:
  * Balancing -> Idle
- * Balancing -> Fatal
  *
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void exit_balancing_state(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*!
@@ -99,6 +136,24 @@ static void exit_balancing_state(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_wait_ecu_ok(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - WAIT_ECU_OK -> FATAL: A fault was detected
+     * - WAIT_ECU_OK -> IDLE: A TS-OFF was requested, the ECU didn't answer in time or the SD was opened
+     * - WAIT_ECU_OK -> AIRN_CHECK: The ECU acknowledged the TS-ON request
+     */
+}
+
+/*!
+ * \brief Close the AIR- 
+ * WAIT_ECU_OK -> AIRN_CHECK
+ * 
+ * \param data A pointer to the data that will be passed to the state routines
+ */
+static void close_airn(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    /* Implementation for closing the AIR- */
 }
 
 /*!
@@ -107,6 +162,24 @@ static void routine_wait_ecu_ok(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_airn_check(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - AIRN_CHECK -> FATAL: A fault was detected
+     * - AIRN_CHECK -> IDLE: A TS-OFF was requested, the AIR- didn't close in time or the SD was opened
+     * - AIRN_CHECK -> PRECHARGE_CHECK: The AIR- is closed and every feedback has the expected value
+     */
+}
+
+/*!
+ * \brief Start the precharge
+ * AIRN_CHECK -> PRECHARGE_CHECK
+ *
+ * \param data A pointer to the data that will be passed to the state routines
+ */
+static void start_precharge(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    /* Implementation for starting the precharge */
 }
 
 /*!
@@ -115,6 +188,24 @@ static void routine_airn_check(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_precharge_check(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - PRECHARGE_CHECK -> FATAL: A fault was detected
+     * - PRECHARGE_CHECK -> IDLE: A TS-OFF was requested, the precharge didn't complete in time or the SD was opened
+     * - PRECHARGE_CHECK -> AIRP_CHECK: The precharge is complete and every feedback has the expected value
+     */
+}
+
+/*!
+ * \brief Close the AIR+
+ * precharge_check -> AIRP_CHECK
+ *
+ * \param data A pointer to the data that will be passed to the state routines
+ */
+static void close_airp(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    /* Implementation for closing the AIR+ */
 }
 
 /*!
@@ -123,6 +214,13 @@ static void routine_precharge_check(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_airp_check(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - AIRP_CHECK -> FATAL: A fault was detected
+     * - AIRP_CHECK -> IDLE: A TS-OFF was requested, the AIR+ didn't close in time or the SD was opened
+     * - AIRP_CHECK -> TS_ON: The AIR+ is closed and every feedback has the expected value
+     */
 }
 
 /*!
@@ -131,6 +229,45 @@ static void routine_airp_check(void *data) {
  * \param data A pointer to the data that will be passed to the state routines
  */
 static void routine_ts_on(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    /* Transition logic:
+     * - TS_ON -> FATAL: A fault was detected
+     * - TS_ON -> IDLE: A TS-OFF was requested, the ECU timed out or a feedback lost its expected value (e.g. SD opened)
+     */
+}
+
+/*!
+ * \brief Return the pack into a safe state
+ * AIRN_CHECK -> IDLE
+ * PRECHARGE_CHECK -> IDLE
+ * AIRP_CHECK -> IDLE
+ * TS_ON -> IDLE
+ * 
+ * \param data A pointer to the data that will be passed to the state routines
+ */
+static void do_ts_off(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    /* Implementation for returning the pack to a safe state */
+}
+
+/*!
+ * \brief Activate the AMS, stop the precharge, open the AIRs and stop balancing
+ * INIT -> FATAL
+ * IDLE -> FATAL
+ * FLASHING -> FATAL
+ * BALANCING -> FATAL
+ * WAIT_ECU_OK -> FATAL
+ * AIRN_CHECK -> FATAL
+ * PRECHARGE_CHECK -> FATAL
+ * AIRP_CHECK -> FATAL
+ * TS_ON -> FATAL
+ *
+ * \param data A pointer to the data that will be passed to the state routines
+ */
+static void enter_fatal_state(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    /* Implementation for putting the pack in a safe state after a fault */
 }
 
 /*!
@@ -141,11 +278,11 @@ static void routine_ts_on(void *data) {
 
 static const struct Transition init_transitions[] = {
     { .to = IDLE, .function = NULL },
-    { .to = FATAL, .function = NULL },
+    { .to = FATAL, .function = enter_fatal_state },
 };
 
 static const struct Transition idle_transitions[] = {
-    { .to = FATAL, .function = NULL },
+    { .to = FATAL, .function = enter_fatal_state },
     { .to = FLASHING, .function = enter_flashing_state },
     { .to = BALANCING, .function = enter_balancing_state },
     { .to = WAIT_ECU_OK, .function = NULL },
@@ -157,40 +294,41 @@ static const struct Transition fatal_transitions[] = {
 
 static const struct Transition flashing_transitions[] = {
     { .to = IDLE, .function = exit_flashing_state },
+    { .to = FATAL, .function = enter_fatal_state },
 };
 
 static const struct Transition balancing_transitions[] = {
     { .to = IDLE, .function = exit_balancing_state },
-    { .to = FATAL, .function = exit_balancing_state },
+    { .to = FATAL, .function = enter_fatal_state },
 };
 
 static const struct Transition wait_ecu_ok_transitions[] = {
     { .to = IDLE, .function = NULL },
-    { .to = FATAL, .function = NULL },
-    { .to = AIRN_CHECK, .function = NULL },
+    { .to = FATAL, .function = enter_fatal_state },
+    { .to = AIRN_CHECK, .function = close_airn },
 };
 
 static const struct Transition airn_check_transitions[] = {
-    { .to = IDLE, .function = NULL },
-    { .to = FATAL, .function = NULL },
-    { .to = PRECHARGE_CHECK, .function = NULL },
+    { .to = IDLE, .function = do_ts_off },
+    { .to = FATAL, .function = enter_fatal_state },
+    { .to = PRECHARGE_CHECK, .function = start_precharge },
 };
 
 static const struct Transition precharge_check_transitions[] = {
-    { .to = IDLE, .function = NULL },
-    { .to = FATAL, .function = NULL },
-    { .to = AIRP_CHECK, .function = NULL },
+    { .to = IDLE, .function = do_ts_off },
+    { .to = FATAL, .function = enter_fatal_state },
+    { .to = AIRP_CHECK, .function = close_airp },
 };
 
 static const struct Transition airp_check_transitions[] = {
-    { .to = IDLE, .function = NULL },
-    { .to = FATAL, .function = NULL },
+    { .to = IDLE, .function = do_ts_off },
+    { .to = FATAL, .function = enter_fatal_state },
     { .to = TS_ON, .function = NULL },
 };
 
 static const struct Transition ts_on_transitions[] = {
-    { .to = IDLE, .function = NULL },
-    { .to = FATAL, .function = NULL },
+    { .to = IDLE, .function = do_ts_off },
+    { .to = FATAL, .function = enter_fatal_state },
 };
 
 /*! \} */
