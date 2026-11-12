@@ -4,7 +4,9 @@
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Sensors handling (SD, IMD, AIRs, precharge, ...)
+ * \brief Sensors handling:
+ * - Current sensor
+ * - AIRs relays
  */
 
 #include "sensors-api.h"

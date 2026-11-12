@@ -15,6 +15,15 @@
 #include "mainboard-def.h"
 
 /*!
+ * \brief Return code for the temperatures module functions
+ */
+enum TemperaturesReturnCode {
+    TEMPERATURES_RC_OK,                /*!< The function executed succesfully */
+    TEMPERATURES_RC_INVALID_CELLBOARD, /*!< The given cellboard does not exist */
+    TEMPERATURES_RC_INVALID_INDEX      /*!< The given temperature index is out of range */
+};
+
+/*!
  * \brief Structure to hold the temperature information of a group of cells
  */
 struct TemperaturesInfo {

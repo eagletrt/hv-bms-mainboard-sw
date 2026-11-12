@@ -25,22 +25,32 @@ void temperatures_api_init(void);
  * \param[in] cellboard The cellboard id
  * \param[in] index The index of the temperature to update
  * \param[in] temperature The temperature value
+ *
+ * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval TEMPERATURES_RC_INVALID_INDEX if the given index is out of range
+ * \retval TEMPERATURES_RC_OK otherwise
  */
-void temperatures_api_set_value(enum CellboardId cellboard, uint8_t index, celsius temperature);
+enum TemperaturesReturnCode temperatures_api_set_value(enum CellboardId cellboard, uint8_t index, celsius temperature);
 
 /*!
  * \brief Reset the updated flags for the temperatures of a specific cellboard
  *
  * \param[in] cellboard The cellboard id
+ *
+ * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval TEMPERATURES_RC_OK otherwise
  */
-void temperatures_api_reset_temperatures_updated_flags(enum CellboardId cellboard);
+enum TemperaturesReturnCode temperatures_api_reset_temperatures_updated_flags(enum CellboardId cellboard);
 
 /*!
  * \brief Reset the updated flags for the temperature information of a specific cellboard
  *
  * \param[in] cellboard The cellboard id
+ *
+ * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval TEMPERATURES_RC_OK otherwise
  */
-void temperatures_api_reset_info_updated_flags(enum CellboardId cellboard);
+enum TemperaturesReturnCode temperatures_api_reset_info_updated_flags(enum CellboardId cellboard);
 
 /*!
  * \brief Set the temperature information for a specific cellboard
@@ -49,8 +59,11 @@ void temperatures_api_reset_info_updated_flags(enum CellboardId cellboard);
  * \param[in] min The minimum temperature
  * \param[in] max The maximum temperature
  * \param[in] average The average temperature
+ *
+ * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval TEMPERATURES_RC_OK otherwise
  */
-void temperatures_api_set_cellboard_temperature_info(enum CellboardId cellboard, celsius min, celsius max, celsius average);
+enum TemperaturesReturnCode temperatures_api_set_cellboard_temperature_info(enum CellboardId cellboard, celsius min, celsius max, celsius average);
 
 /*!
  * \brief Get the temperature information for a specific cellboard

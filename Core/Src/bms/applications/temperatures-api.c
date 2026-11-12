@@ -20,36 +20,51 @@ void temperatures_api_init(void) {
     memset(&temperatures_handler, 0, sizeof(temperatures_handler));
 }
 
-void temperatures_api_set_value(enum CellboardId cellboard, uint8_t index, celsius temperature) {
-    if (cellboard < CELLBOARD_COUNT && index < CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
-        temperatures_handler.temperatures[cellboard][index] = temperature;
-        temperatures_handler.is_updated_temperatures[cellboard] = true;
+enum TemperaturesReturnCode temperatures_api_set_value(enum CellboardId cellboard, uint8_t index, celsius temperature) {
+    if (cellboard >= CELLBOARD_COUNT) {
+        return TEMPERATURES_RC_INVALID_CELLBOARD;
     }
+    if (index >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
+        return TEMPERATURES_RC_INVALID_INDEX;
+    }
+
+    temperatures_handler.temperatures[cellboard][index] = temperature;
+    temperatures_handler.is_updated_temperatures[cellboard] = true;
+
+    return TEMPERATURES_RC_OK;
 }
 
-void temperatures_api_reset_temperatures_updated_flags(enum CellboardId cellboard) {
+enum TemperaturesReturnCode temperatures_api_reset_temperatures_updated_flags(enum CellboardId cellboard) {
     if (cellboard < CELLBOARD_COUNT) {
         temperatures_handler.is_updated_temperatures[cellboard] = false;
+        return TEMPERATURES_RC_OK;
     }
+    return TEMPERATURES_RC_INVALID_CELLBOARD;
 }
 
-void temperatures_api_reset_info_updated_flags(enum CellboardId cellboard) {
+enum TemperaturesReturnCode temperatures_api_reset_info_updated_flags(enum CellboardId cellboard) {
     if (cellboard < CELLBOARD_COUNT) {
         temperatures_handler.is_updated_info[cellboard] = false;
+        return TEMPERATURES_RC_OK;
     }
+    return TEMPERATURES_RC_INVALID_CELLBOARD;
 }
 
-void temperatures_api_set_cellboard_temperature_info(
+enum TemperaturesReturnCode temperatures_api_set_cellboard_temperature_info(
     enum CellboardId cellboard,
     celsius min,
     celsius max,
     celsius average) {
-    if (cellboard < CELLBOARD_COUNT) {
-        temperatures_handler.cellboard_info[cellboard].min = min;
-        temperatures_handler.cellboard_info[cellboard].max = max;
-        temperatures_handler.cellboard_info[cellboard].average = average;
-        temperatures_handler.is_updated_info[cellboard] = true;
+    if (cellboard >= CELLBOARD_COUNT) {
+        return TEMPERATURES_RC_INVALID_CELLBOARD;
     }
+
+    temperatures_handler.cellboard_info[cellboard].min = min;
+    temperatures_handler.cellboard_info[cellboard].max = max;
+    temperatures_handler.cellboard_info[cellboard].average = average;
+    temperatures_handler.is_updated_info[cellboard] = true;
+
+    return TEMPERATURES_RC_OK;
 }
 
 struct TemperaturesInfo temperatures_api_get_cellboard_info(enum CellboardId cellboard) {
