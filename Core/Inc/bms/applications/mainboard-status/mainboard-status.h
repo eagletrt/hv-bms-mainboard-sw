@@ -62,18 +62,18 @@ enum MainboardStatusFault {
     MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE,  /*!< A cooling temperature is above the maximum (owner: internal-temperatures) */
 
     /* Hardware */
-    MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT,                /*!< A cellboard reported an error or went in its fatal state (owner: to be decided) */
+    MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT,                /*!< A cellboard reported an error or went in its fatal state (owner: PHC) */
     MAINBOARD_STATUS_FAULT_IMD_FAULT,                      /*!< The IMD detected an insulation fault (owner: sensors) */
     MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, /*!< The TS voltage indicator is not connected (owner: sensors) */
 
     /* Freshness: the data was not updated in time */
-    MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: voltages) */
-    MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES,     /*!< The cell temperatures from the cellboards are too old (owner: temperatures) */
-    MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS,      /*!< The status of a cellboard is too old (owner: to be decided) */
-    MAINBOARD_STATUS_FAULT_STALE_CURRENT,               /*!< The current sensor readings are too old (owner: current) */
-    MAINBOARD_STATUS_FAULT_STALE_INTERNAL_VOLTAGES,     /*!< The TS and pack voltage readings are too old (owner: internal-voltages) */
-    MAINBOARD_STATUS_FAULT_STALE_INTERNAL_TEMPERATURES, /*!< The cooling temperature readings are too old (owner: internal-temperatures) */
-    MAINBOARD_STATUS_FAULT_STALE_SENSORS,               /*!< The shutdown, IMD and relay readings are too old (owner: sensors) */
+    MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES,     /*!< The cell temperatures from the cellboards are too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS,      /*!< The status of a cellboard is too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_CURRENT,               /*!< The current sensor readings are too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_INTERNAL_VOLTAGES,     /*!< The TS and pack voltage readings are too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_INTERNAL_TEMPERATURES, /*!< The cooling temperature readings are too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_SENSORS,               /*!< The shutdown, IMD and relay readings are too old (owner: can-router watchdogs) */
 
     MAINBOARD_STATUS_FAULT_COUNT
 };
