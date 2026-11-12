@@ -54,13 +54,17 @@ void voltages_api_set_cellboard_voltage_info(enum CellboardId cellboard, volt mi
 /*!
  * \brief Get the voltage information for a specific cellboard
  *
+ * \param[in] cellboard The cellboard id
+ *
  * \return The minimum voltage value
  */
 struct VoltagesInfo voltages_api_get_cellboard_info(enum CellboardId cellboard);
 
 /*!
- * \brief Get the the voltage information for the entire pack
+ * \brief Get the voltage information for the entire pack
  *
  * \return The minimum voltage value
  */
 struct VoltagesInfo voltages_api_get_pack_info(void);
+
+#endif // VOLTAGES_API_H

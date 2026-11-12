@@ -77,7 +77,7 @@ struct VoltagesInfo voltages_api_get_pack_info(void) {
     }
 
     if (CELLBOARD_COUNT > 0) {
-        pack_info.average = pack_info.sum / CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT;
+        pack_info.average = pack_info.sum / (CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT);
     }
 
     return pack_info;
