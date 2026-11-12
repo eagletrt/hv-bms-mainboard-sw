@@ -117,8 +117,17 @@ struct SensorsAnalogValue {
     volatile size_t head;                      /*!< Index where the next sample is written */
     volatile bool ready;                       /*!< True once the buffer is full, false otherwise */
 
-    volt filtered;                   /*!< Filtered value (average of the samples) */
+    volt filtered;                   /*!< Filtered value */
     enum SensorsAnalogStatus status; /*!< Logical status of the filtered value */
+};
+
+/*!
+ * \brief Analog threshold definition
+ */
+struct SensorsAnalogTreshold {
+    volt high_thr;  /*!< High threshold */
+    volt low_thr;   /*!< Low threshold */
+    bool contained; /*!< If false then: LOW <LT< ERROR <HT< HIGH, if true then: LOW <LT< HIGH <HT< LOW*/
 };
 
 /*!
