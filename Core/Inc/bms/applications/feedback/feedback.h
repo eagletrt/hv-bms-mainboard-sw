@@ -122,12 +122,22 @@ struct FeedbackAnalogValue {
 };
 
 /*!
- * \brief Analog threshold definition
+ * \brief How the thresholds of an analog feedback are interpreted
  */
-struct FeedbackAnalogTreshold {
-    volt high_thr;  /*!< High threshold */
-    volt low_thr;   /*!< Low threshold */
-    bool contained; /*!< If false then: LOW <LT< ERROR <HT< HIGH, if true then: LOW <LT< HIGH <HT< LOW*/
+enum FeedbackAnalogThresholdMode {
+    FEEDBACK_ANALOG_THRESHOLD_MODE_STEP,  /*!< value <= low is LOW, value >= high is HIGH, in between is ERROR */
+    FEEDBACK_ANALOG_THRESHOLD_MODE_WINDOW /*!< low <= value <= high is HIGH, outside is ERROR */
+};
+
+/*!
+ * \brief Threshold profile of an analog feedback
+ *
+ * \details The limits always satisfy low < high, the mode defines their meaning
+ */
+struct FeedbackAnalogThreshold {
+    volt low;                              /*!< Low threshold in V */
+    volt high;                             /*!< High threshold in V */
+    enum FeedbackAnalogThresholdMode mode; /*!< Interpretation of the limits */
 };
 
 /*!
