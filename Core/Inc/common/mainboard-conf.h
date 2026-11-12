@@ -17,4 +17,39 @@
 
 #include "mainboard-def.h"
 
+/*!* ######################### SENSORS ################################### *!*/
+
+/*!
+ * \defgroups sensors-conf
+ * \brief Configuration of the sensors module (SD, IMD, AIRs, precharge, ...)
+ * {\
+ */
+
+/*!
+ * \brief Number of samples kept for every sensor
+ *
+ * \details The filter works on the whole buffer, so the filtered values (and
+ *          every check made on them) are available only after this many samples
+ */
+#define SENSORS_BUFFER_SIZE (8U)
+
+/*!
+ * \brief Thresholds for the analog sensors in V
+ *
+ * \details Above HIGH the sensor is logically high, below LOW it is logically
+ *          low, in between it is in an implausible (error) state
+ */
+#define SENSORS_THRESHOLD_HIGH_V (1.9f)
+#define SENSORS_THRESHOLD_LOW_V (0.7f)
+
+/*!
+ * \brief High threshold of the 5V MCU feedback when the handcart is connected
+ *
+ * \details The voltage divider is different when the handcart is connected,
+ *          so the voltage at the pin is lower
+ */
+#define SENSORS_THRESHOLD_HIGH_HANDCART_V (1.0f)
+
+/*! \} */
+
 #endif // MAINBOARD_CONF_H
