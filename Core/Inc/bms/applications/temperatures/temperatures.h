@@ -10,4 +10,28 @@
 #ifndef TEMPERATURES_H
 #define TEMPERATURES_H
 
+#include <stdbool.h>
+
+#include "mainboard-def.h"
+
+/*!
+ * \brief Structure to hold the temperature information of a group of cells
+ */
+struct TemperaturesInfo {
+    celsius min;     /*!< The minimum temperature */
+    celsius max;     /*!< The maximum temperature */
+    celsius average; /*!< The average temperature */
+};
+
+/*!
+ * \brief Structure to hold the temperature data for each cellboard
+ */
+struct TemperaturesHandler {
+    celsius temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT]; /*!< The temperature values for each cellboard */
+    volatile bool is_updated_temperatures[CELLBOARD_COUNT];                     /*!< Indicates if the temperatures for a specific cellboard have been updated */
+
+    struct TemperaturesInfo cellboard_info[CELLBOARD_COUNT]; /*!< The temperature information for each cellboard */
+    volatile bool is_updated_info[CELLBOARD_COUNT];          /*!< Indicates if the temperature information for a specific cellboard has been updated */
+};
+
 #endif // TEMPERATURES_H
