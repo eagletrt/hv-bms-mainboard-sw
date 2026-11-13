@@ -12,10 +12,11 @@
 #include <string.h>
 
 #include "eagletrt.h"
+#include "eagletrt-api.h"
 
 EAGLETRT_STATIC struct MainboardStatusHandler mainboard_status_handler;
 
-static const char *const fault_names[MAINBOARD_STATUS_FAULT_COUNT] = {
+EAGLETRT_STATIC const char *const fault_names[MAINBOARD_STATUS_FAULT_COUNT] = {
     [MAINBOARD_STATUS_FAULT_POST_FAILED] = "post failed",
     [MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE] = "cell under voltage",
     [MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE] = "cell over voltage",
@@ -37,7 +38,7 @@ static const char *const fault_names[MAINBOARD_STATUS_FAULT_COUNT] = {
     [MAINBOARD_STATUS_FAULT_STALE_SENSORS] = "stale sensors",
 };
 
-static const char *const request_names[MAINBOARD_STATUS_REQUEST_COUNT] = {
+EAGLETRT_STATIC const char *const request_names[MAINBOARD_STATUS_REQUEST_COUNT] = {
     [MAINBOARD_STATUS_REQUEST_TS_ON] = "ts on",
     [MAINBOARD_STATUS_REQUEST_TS_OFF] = "ts off",
     [MAINBOARD_STATUS_REQUEST_ECU_OK] = "ecu ok",
@@ -46,7 +47,7 @@ static const char *const request_names[MAINBOARD_STATUS_REQUEST_COUNT] = {
     [MAINBOARD_STATUS_REQUEST_BALANCING_STOP] = "balancing stop",
 };
 
-static const char *const condition_names[MAINBOARD_STATUS_CONDITION_COUNT] = {
+EAGLETRT_STATIC const char *const condition_names[MAINBOARD_STATUS_CONDITION_COUNT] = {
     [MAINBOARD_STATUS_CONDITION_AIRN_CLOSE_COMMANDED] = "air- close commanded",
     [MAINBOARD_STATUS_CONDITION_AIRN_CLOSED] = "air- closed",
     [MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSE_COMMANDED] = "precharge close commanded",
@@ -86,11 +87,12 @@ static const char *const condition_names[MAINBOARD_STATUS_CONDITION_COUNT] = {
  *
  * \returns The bit flag where bit i is flags[i]
  */
-static bit_flag32 prv_mainboard_status_pack(const volatile bool *const flags, const size_t count) {
+EAGLETRT_STATIC bit_flag32 prv_mainboard_status_pack(const volatile bool *const flags, const size_t count) {
     bit_flag32 packed = 0U;
     for (size_t i = 0U; i < count; ++i) {
         if (flags[i]) {
-            packed |= MAINBOARD_STATUS_BIT(i);
+
+            packed = EAGLETRT_API_BIT_SET(packed, i);
         }
     }
     return packed;
