@@ -12,4 +12,11 @@
 
 #include "voltages.h"
 
+/*!
+ * \brief Initialize the voltages API
+ * 
+ * \retval VOLTAGES_RC_OK if the initialization was successful
+ */
+enum VoltagesReturnCode voltages_api_init(void);
+
 #endif // VOLTAGES_API_H
