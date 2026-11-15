@@ -30,7 +30,9 @@ void feedback_api_init(void);
  *
  * \param index The index of the digital feedback
  * \param value The value to set
- * \return The result of the operation
+ * \retval FEEDBACK_RC_OK if the operation was successful
+ * \retval FEEDBACK_RC_INVALID_INDEX if the index is invalid
+ * \retval FEEDBACK_RC_ERROR for other errors
  */
 enum FeedbackReturnCode feedback_api_set_digital_value(enum FeedbackDigitalIndex index, bool value);
 
@@ -39,7 +41,9 @@ enum FeedbackReturnCode feedback_api_set_digital_value(enum FeedbackDigitalIndex
  *
  * \param index The index of the analog feedback
  * \param value The value to set
- * \return The result of the operation
+ * \retval FEEDBACK_RC_OK if the operation was successful
+ * \retval FEEDBACK_RC_INVALID_INDEX if the index is invalid
+ * \retval FEEDBACK_RC_ERROR for other errors
  */
 enum FeedbackReturnCode feedback_api_set_analog_value(enum FeedbackAnalogIndex index, volt value);
 

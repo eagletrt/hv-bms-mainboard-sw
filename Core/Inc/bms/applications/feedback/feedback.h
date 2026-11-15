@@ -46,8 +46,9 @@
  * \brief Return code for the feedback module functions
  */
 enum FeedbackReturnCode {
-    FEEDBACK_RC_OK,           /*!< The function executed succesfully */
-    FEEDBACK_RC_INVALID_INDEX /*!< The given feedback index is out of range */
+    FEEDBACK_RC_OK,            /*!< The function executed succesfully */
+    FEEDBACK_RC_INVALID_INDEX, /*!< The given feedback index is out of range */
+    FEEDBACK_RC_ERROR          /*!< An error occurred during the execution of the function */
 };
 
 /*!

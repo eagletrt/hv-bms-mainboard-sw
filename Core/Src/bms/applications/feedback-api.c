@@ -141,7 +141,18 @@ EAGLETRT_STATIC const bool feedback_analog_inverted[FEEDBACK_ANALOG_INDEX_COUNT]
 // FEEDBACK_THRESHOLD_HIGH_HANDCART_V like in the old code. If so, add a handcart profile and select
 // it for V5_MCU when the handcart is connected, without modifying the profiles above.
 
+/*!
+ * \brief Get the status of an analog feedback based on its value and thresholds
+ *
+ * \param index The index of the analog feedback
+ * \param value The value of the analog feedback
+ * \return The status of the analog feedback
+ */
 EAGLETRT_STATIC enum FeedbackAnalogStatus prv_feedback_analog_get_status(enum FeedbackAnalogIndex index, volt value) {
+    if (index >= FEEDBACK_ANALOG_INDEX_COUNT) {
+        return FEEDBACK_ANALOG_STATUS_ERROR;
+    }
+
     const struct FeedbackAnalogThreshold *thr = feedback_analog_thresholds[index];
 
     if (thr == NULL) {
@@ -205,6 +216,12 @@ EAGLETRT_STATIC enum FeedbackAnalogStatus prv_feedback_analog_majority_filter(co
     return votes[max_index] > (FEEDBACK_BUFFER_SIZE / 2) ? (enum FeedbackAnalogStatus)max_index : FEEDBACK_ANALOG_STATUS_COUNT;
 }
 
+/*!
+ * \brief Apply a mean filter to an analog feedback
+ *
+ * \param buffer The buffer containing the feedback values
+ * \return The filtered value
+ */
 EAGLETRT_STATIC volt prv_feedback_analog_mean_filter(const volatile volt *buffer) {
     volt sum = 0.F;
     for (size_t i = 0; i < FEEDBACK_BUFFER_SIZE; i++) {
@@ -227,7 +244,7 @@ enum FeedbackReturnCode feedback_api_set_digital_value(enum FeedbackDigitalIndex
     struct FeedbackDigitalValue *feedback = &feedback_handler.digital[index];
 
     if (feedback->head >= FEEDBACK_BUFFER_SIZE) {
-        return FEEDBACK_RC_INVALID_INDEX;
+        return FEEDBACK_RC_ERROR;
     }
 
     feedback->buffer[feedback->head] = value;
@@ -252,7 +269,7 @@ enum FeedbackReturnCode feedback_api_set_analog_value(enum FeedbackAnalogIndex i
     struct FeedbackAnalogValue *feedback = &feedback_handler.analog[index];
 
     if (feedback->head >= FEEDBACK_BUFFER_SIZE) {
-        return FEEDBACK_RC_INVALID_INDEX;
+        return FEEDBACK_RC_ERROR;
     }
 
     feedback->buffer[feedback->head] = value;
