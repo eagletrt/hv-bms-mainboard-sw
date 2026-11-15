@@ -95,7 +95,8 @@ enum FeedbackAnalogIndex {
 enum FeedbackAnalogStatus {
     FEEDBACK_ANALOG_STATUS_LOW,   /*!< The value is logically low */
     FEEDBACK_ANALOG_STATUS_ERROR, /*!< The value is between the thresholds, so it is implausible */
-    FEEDBACK_ANALOG_STATUS_HIGH   /*!< The value is logically high */
+    FEEDBACK_ANALOG_STATUS_HIGH,  /*!< The value is logically high */
+    FEEDBACK_ANALOG_STATUS_COUNT
 };
 
 /*!
@@ -106,7 +107,7 @@ struct FeedbackDigitalValue {
     volatile size_t head;                       /*!< Index where the next sample is written */
     volatile bool ready;                        /*!< True once the buffer is full, false otherwise */
 
-    bool filtered; /*!< Filtered value (majority of the samples) */
+    volatile bool filtered; /*!< Filtered value (majority of the samples) */
 };
 
 /*!
@@ -117,8 +118,8 @@ struct FeedbackAnalogValue {
     volatile size_t head;                       /*!< Index where the next sample is written */
     volatile bool ready;                        /*!< True once the buffer is full, false otherwise */
 
-    volt filtered;                    /*!< Filtered value */
-    enum FeedbackAnalogStatus status; /*!< Logical status of the filtered value */
+    volatile volt filtered;                    /*!< Filtered value */
+    volatile enum FeedbackAnalogStatus status; /*!< Logical status of the filtered value */
 };
 
 /*!
@@ -126,7 +127,7 @@ struct FeedbackAnalogValue {
  */
 enum FeedbackAnalogThresholdMode {
     FEEDBACK_ANALOG_THRESHOLD_MODE_STEP,  /*!< value <= low is LOW, value >= high is HIGH, in between is ERROR */
-    FEEDBACK_ANALOG_THRESHOLD_MODE_WINDOW /*!< low <= value <= high is HIGH, outside is ERROR */
+    FEEDBACK_ANALOG_THRESHOLD_MODE_WINDOW /*!< low <= value <= high is HIGH, outside is LOW */
 };
 
 /*!

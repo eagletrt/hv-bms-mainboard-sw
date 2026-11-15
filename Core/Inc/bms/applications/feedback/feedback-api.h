@@ -44,6 +44,13 @@ enum FeedbackReturnCode feedback_api_set_digital_value(enum FeedbackDigitalIndex
 enum FeedbackReturnCode feedback_api_set_analog_value(enum FeedbackAnalogIndex index, volt value);
 
 /*!
+ * \brief Return the readyness of the module
+ * 
+ * \returns true once all the feedbacks are ready
+ */
+bool feedback_api_is_ready(void);
+
+/*!
  * \brief Run the feedback API routine, this function runs the filtering and updates the mainboard status accordingly
  *
  * \retval FEEDBACK_RC_OK if the routine executed successfully
