@@ -1,8 +1,8 @@
 /*!
  * \file bal-control.h
  * \date 2026-11-10
- * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
+ * \author Antonio Gelain [antonio.gelain2@gmail.com]
  *
  * \brief Data types and structures for the cellboard balancing control
  */
@@ -17,12 +17,10 @@
  * \brief The return codes for the balancing control 
  */
 enum BalancingControlReturnCode {
-    BAL_CONTROL_RC_OK,                        /*!< Operation completed successfully */
-    BAL_CONTROL_RC_INVALID_PARAMETERS,        /*!< Invalid parameters provided */
-    BAL_CONTROL_RC_BALANCING_NOT_ENABLED,     /*!< Balancing is not enabled */
-    BAL_CONTROL_RC_BALANCING_ALREADY_ENABLED, /*!< Balancing is already enabled */
-    BAL_CONTROL_RC_BALANCING_NOT_STARTED,     /*!< Balancing has not been started */
-    BAL_CONTROL_RC_BALANCING_ALREADY_STARTED  /*!< Balancing has already been started */
+    BAL_CONTROL_RC_OK,                       /*!< Operation completed successfully */
+    BAL_CONTROL_RC_INVALID_PARAMETERS,       /*!< Invalid parameters provided */
+    BAL_CONTROL_RC_BALANCING_NOT_STARTED,    /*!< Balancing has not been started */
+    BAL_CONTROL_RC_BALANCING_ALREADY_STARTED /*!< Balancing has already been started */
 };
 
 /*!
@@ -32,7 +30,7 @@ enum BalancingControlReturnCode {
  */
 struct BalancingControlParameters {
     bool balancing_request_state; /*!< The state of the balancing request */
-    float threshold;              /*!< The threshold for the balancing procedure */
+    volt threshold;               /*!< The threshold for the balancing procedure */
 };
 
 /*!

@@ -29,6 +29,14 @@ enum BalancingControlReturnCode bal_control_api_init(void) {
     return BAL_CONTROL_RC_OK;
 }
 
+bool bal_control_api_is_pack_balanced(void) {
+    struct VoltagesInfo pack_info = voltages_api_get_pack_info();
+
+    volt delta = pack_info.max - pack_info.min;
+
+    return (bool)(delta <= bal_control_handler.parameters.threshold && bal_control_handler.valid_parameters);
+}
+
 enum BalancingControlReturnCode bal_control_api_start_balancing(void) {
     if (!bal_control_handler.valid_parameters) {
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
@@ -53,12 +61,6 @@ enum BalancingControlReturnCode bal_control_api_routine(void) {
     // implement way for the mainboard to choose when cellboards are actively balancing so that it can update the target voltage accordingly
     // the routine should be check target voltage -> x cycles of discharge -> wait for stable voltages -> update target voltage -> repeat until delta is below threshold
 
-    volt delta = voltages_api_get_pack_info().max - voltages_api_get_pack_info().min;
-
-    if (delta <= bal_control_handler.parameters.threshold) {
-        bal_control_handler.balancing_active = false;
-    }
-
     return BAL_CONTROL_RC_OK;
 }
 
@@ -71,4 +73,12 @@ enum BalancingControlReturnCode bal_control_api_stop_balancing(void) {
 
     bal_control_handler.balancing_active = false;
     return BAL_CONTROL_RC_OK;
+}
+
+bool bal_control_api_has_valid_parameters(void) {
+    return bal_control_handler.valid_parameters;
+}
+
+volt bal_control_api_get_target_voltage(void) {
+    return bal_control_handler.target;
 }
