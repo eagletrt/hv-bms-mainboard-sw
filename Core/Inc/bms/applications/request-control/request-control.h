@@ -9,6 +9,8 @@
 #ifndef REQUEST_CONTROL_H
 #define REQUEST_CONTROL_H
 
+#include <stdbool.h>
+
 /*!
  * \brief Type of external requests
  */
@@ -31,6 +33,7 @@ enum RequestContolTSRequestState {
     REQUEST_CONTROL_TS_REQUEST_STATE_COUNT
 };
 
+//TODO: MOVE THIS TO FLASH CONTROL API ONCE THE MODULE IS READY
 /*!
  * \brief State of the flash request
  */
@@ -43,6 +46,7 @@ enum RequestControlFlashRequestState {
     REQUEST_CONTROL_FLASH_REQUEST_COUNT
 };
 
+//TODO: MOVE THIS TO BAL CONTROL API ONCE THE MODULE IS READY
 /*!
  * \brief Data for the balancing request
  */

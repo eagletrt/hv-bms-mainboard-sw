@@ -90,7 +90,7 @@ enum MainboardStatusRequest {
     MAINBOARD_STATUS_REQUEST_TS_OFF,     /*!< The ECU asked to turn off the Tractive System, or its messages timed out */
     MAINBOARD_STATUS_REQUEST_KEEP_TS_ON, /*!< The ECU asked to keep the Tractive System on */
     MAINBOARD_STATUS_REQUEST_FLASH,      /*!< A flash procedure was requested */
-    MAINBOARD_STATUS_REQUEST_BALANCING,  /*!< The start of the cell balancing was requested */
+    MAINBOARD_STATUS_REQUEST_BALANCING,  /*!< Balancing is requested */
 
     MAINBOARD_STATUS_REQUEST_COUNT
 };

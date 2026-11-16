@@ -11,6 +11,8 @@
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 #include "request-control.h"
+#include "flash-control-api.h"
+#include "bal-control-api.h"
 #include "eagletrt.h"
 
 /*!
