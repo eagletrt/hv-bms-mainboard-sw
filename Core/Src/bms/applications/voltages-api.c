@@ -16,8 +16,9 @@
  */
 static struct VoltagesHandler voltages_handler;
 
-void voltages_api_init(void) {
+enum VoltagesReturnCode voltages_api_init(void) {
     memset(&voltages_handler, 0, sizeof(voltages_handler));
+    return VOLTAGES_RC_OK;
 }
 
 enum VoltagesReturnCode voltages_api_set_value(enum CellboardId cellboard, uint8_t index, volt voltage) {

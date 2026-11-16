@@ -14,9 +14,11 @@
 #include "mainboard-def.h"
 
 /*!
- * \brief Initialize the voltage module
+ * \brief Initialize the voltages API
+ * 
+ * \retval VOLTAGES_RC_OK if the initialization was successful
  */
-void voltages_api_init(void);
+enum VoltagesReturnCode voltages_api_init(void);
 
 /*!
  * \brief Set a single voltage value
@@ -80,12 +82,5 @@ struct VoltagesInfo voltages_api_get_cellboard_info(enum CellboardId cellboard);
  * \return The minimum, maximum, average and total voltage of the pack
  */
 struct VoltagesInfo voltages_api_get_pack_info(void);
-
-/*!
- * \brief Initialize the voltages API
- * 
- * \retval VOLTAGES_RC_OK if the initialization was successful
- */
-enum VoltagesReturnCode voltages_api_init(void);
 
 #endif // VOLTAGES_API_H
