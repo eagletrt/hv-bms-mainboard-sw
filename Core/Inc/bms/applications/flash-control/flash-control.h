@@ -10,4 +10,26 @@
 #ifndef FLASH_CONTROL_H
 #define FLASH_CONTROL_H
 
+#include <stdbool.h>
+#include "request-control.h"
+
+/*!
+ * \brief The return codes for the flash control
+ */
+enum FlashControlReturnCode {
+    FLASH_CONTROL_RC_OK,                   /*!< Operation completed successfully */
+    FLASH_CONTROL_RC_INVALID_PARAMETERS,   /*!< Invalid parameters provided */
+    FLASH_CONTROL_RC_FLASH_NOT_STARTED,    /*!< The flash procedure has not been started */
+    FLASH_CONTROL_RC_FLASH_ALREADY_STARTED /*!< The flash procedure has already been started */
+};
+
+/*!
+ * \brief Handler for the flash control
+ */
+struct FlashControlHandler {
+    enum RequestControlFlashRequestState target; /*!< The target of the flash procedure */
+    bool flash_active;                           /*!< Flag indicating if the flash procedure is currently active */
+    bool valid_parameters;                       /*!< Flag indicating if the parameters are valid */
+};
+
 #endif // FLASH_CONTROL_H
