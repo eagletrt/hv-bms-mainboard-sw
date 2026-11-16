@@ -20,7 +20,7 @@
  * 
  * \param req_state The state that you want the flag to be
  */
-EAGLETRT_STATIC void prv_set_TS_request(enum RequestContolTSRequestState req_state) {
+EAGLETRT_STATIC void prv_set_TS_request(enum RequestConetolTSRequestState req_state) {
 
     if (req_state >= REQUEST_CONTROL_TS_REQUEST_STATE_COUNT) {
         req_state = (REQUEST_CONTROL_TS_REQUEST_STATE_OFF);
@@ -31,7 +31,11 @@ EAGLETRT_STATIC void prv_set_TS_request(enum RequestContolTSRequestState req_sta
     mainboard_status_api_set_request(MAINBOARD_STATUS_REQUEST_KEEP_TS_ON, (req_state == REQUEST_CONTROL_TS_REQUEST_STATE_KEEP));
 }
 
-enum RequestControlReturnCode request_control_api_handle_request(enum RequestControlRequestType request_type, union RequestControlData data) {
+enum RequestControlReturnCode request_control_api_handle_request(struct RequestControlRequest request) {
+
+    enum RequestControlRequestType request_type = request.request_type;
+    union RequestControlData data = request.request_data;
+
     if (request_type >= REQUEST_CONTROL_REQUEST_COUNT) {
         return REQUEST_CONTROL_RC_INVALID_REQUEST;
     }

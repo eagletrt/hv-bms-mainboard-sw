@@ -20,6 +20,6 @@
  * \retval REQUEST_CONTROL_RC_OK if the request was handled successfully
  * \retval REQUEST_CONTROL_RC_INVALID_REQUEST if the request type is invalid
  */
-enum RequestControlReturnCode request_control_api_handle_request(enum RequestControlRequestType request_type, union RequestControlData data);
+enum RequestControlReturnCode request_control_api_handle_request(struct RequestControlRequest request);
 
 #endif // REQUEST_CONTROL_API_H

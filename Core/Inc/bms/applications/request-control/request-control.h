@@ -25,7 +25,7 @@ enum RequestControlRequestType {
 /*!
  * \brief State of the TS request
  */
-enum RequestContolTSRequestState {
+enum RequestConetolTSRequestState {
     REQUEST_CONTROL_TS_REQUEST_STATE_OFF,  /*!< The TS request is off */
     REQUEST_CONTROL_TS_REQUEST_STATE_ON,   /*!< The TS request is on */
     REQUEST_CONTROL_TS_REQUEST_STATE_KEEP, /*!< The TS request is keep state */
@@ -59,9 +59,14 @@ struct RequestControlBalancingData {
  * \brief Data for the request control
  */
 union RequestControlData {
-    enum RequestContolTSRequestState ts_request_state;         /*!< The state of the TS request */
+    enum RequestConetolTSRequestState ts_request_state;        /*!< The state of the TS request */
     enum RequestControlFlashRequestState flash_request_state;  /*!< The state of the flash request */
     struct RequestControlBalancingData balancing_request_data; /*!< The data for the balancing request*/
+};
+
+struct RequestControlRequest {
+    enum RequestControlRequestType request_type; /*!< The type of the request */
+    union RequestControlData request_data;       /*!< The data for the request */
 };
 
 /*!
