@@ -13,15 +13,6 @@
 #include "request-control.h"
 
 /*!
- * \brief Initialize the request control API
- * \param watchdog_handler The watchdog handler to use
- * 
- * \retval REQUEST_CONTROL_RC_OK if the initialization was successful
- * \retval REQUEST_CONTROL_RC_ERROR if the initialization failed
- */
-enum RequestControlReturnCode request_control_api_init(struct WatchdogHandler *watchdog_handler);
-
-/*!
  * \brief Handle an external request
  * \param request_type The type of the request
  * \param data The data associated with the request

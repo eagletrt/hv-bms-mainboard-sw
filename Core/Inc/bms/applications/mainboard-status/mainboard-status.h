@@ -86,12 +86,11 @@ enum MainboardStatusFault {
  *          after it has validated the message and its parameters
  */
 enum MainboardStatusRequest {
-    MAINBOARD_STATUS_REQUEST_TS_ON,           /*!< The ECU asked to turn on the Tractive System */
-    MAINBOARD_STATUS_REQUEST_TS_OFF,          /*!< The ECU asked to turn off the Tractive System, or its messages timed out */
-    MAINBOARD_STATUS_REQUEST_ECU_OK,          /*!< The ECU acknowledged the BMS during the TS-ON procedure */
-    MAINBOARD_STATUS_REQUEST_FLASH,           /*!< A flash procedure was requested */
-    MAINBOARD_STATUS_REQUEST_BALANCING_START, /*!< The start of the cell balancing was requested */
-    MAINBOARD_STATUS_REQUEST_BALANCING_STOP,  /*!< The stop of the cell balancing was requested */
+    MAINBOARD_STATUS_REQUEST_TS_ON,      /*!< The ECU asked to turn on the Tractive System */
+    MAINBOARD_STATUS_REQUEST_TS_OFF,     /*!< The ECU asked to turn off the Tractive System, or its messages timed out */
+    MAINBOARD_STATUS_REQUEST_KEEP_TS_ON, /*!< The ECU asked to keep the Tractive System on */
+    MAINBOARD_STATUS_REQUEST_FLASH,      /*!< A flash procedure was requested */
+    MAINBOARD_STATUS_REQUEST_BALANCING,  /*!< The start of the cell balancing was requested */
 
     MAINBOARD_STATUS_REQUEST_COUNT
 };
