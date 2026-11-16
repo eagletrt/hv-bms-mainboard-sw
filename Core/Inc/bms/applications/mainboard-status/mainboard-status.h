@@ -114,6 +114,9 @@ enum MainboardStatusCondition {
     MAINBOARD_STATUS_CONDITION_AIRP_CLOSE_COMMANDED,      /*!< The AIR+ is commanded closed (old: AIRP_OPEN_COM, inverted) (owner: pcu) */
     MAINBOARD_STATUS_CONDITION_AIRP_CLOSED,               /*!< The AIR+ is mechanically closed (old: AIRP_OPEN_MEC, inverted) (owner: feedback) */
 
+    /* Balancing */
+    MAINBOARD_STATUS_CONDITION_PACK_BALANCED, /*!< The delta of the pack is below the balancing threshold (owner: PHC) */
+
     /* Tractive System */
     MAINBOARD_STATUS_CONDITION_TS_BELOW_60V,                /*!< The TS voltage is below 60V (old: TS_LESS_THAN_60V) (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_TSAL_GREEN,                  /*!< The TSAL shows green (old: TSAL_GREEN) (owner: feedback) */

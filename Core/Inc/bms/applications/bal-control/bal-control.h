@@ -10,6 +10,9 @@
 #ifndef BAL_CONTROL_H
 #define BAL_CONTROL_H
 
+#include <stdbool.h>
+#include "mainboard-def.h"
+
 /*! 
  * \brief The return codes for the balancing control 
  */
@@ -37,6 +40,9 @@ struct BalancingControlParameters {
  */
 struct BalancingControlHandler {
     struct BalancingControlParameters parameters; /*!< The parameters for the balancing control */
+    bool balancing_active;                        /*!< Flag indicating if balancing is currently active */
+    volt target;                                  /*!< The target voltage for balancing */
+    bool valid_parameters;                        /*!< Flag indicating if the parameters are valid */
 };
 
 #endif // BAL_CONTROL_H
