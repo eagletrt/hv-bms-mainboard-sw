@@ -12,4 +12,24 @@
 
 #include "request-control.h"
 
+/*!
+ * \brief Initialize the request control API
+ * \param watchdog_handler The watchdog handler to use
+ * 
+ * \retval REQUEST_CONTROL_RC_OK if the initialization was successful
+ * \retval REQUEST_CONTROL_RC_ERROR if the initialization failed
+ */
+enum RequestControlReturnCode request_control_api_init(struct WatchdogHandler *watchdog_handler);
+
+/*!
+ * \brief Handle an external request
+ * \param request_type The type of the request
+ * \param data The data associated with the request
+ *
+ * \retval REQUEST_CONTROL_RC_OK if the request was handled successfully
+ * \retval REQUEST_CONTROL_RC_INVALID_REQUEST if the request type is invalid
+ * \retval REQUEST_CONTROL_RC_ERROR if an error occurred while handling the request
+ */
+enum RequestControlReturnCode request_control_api_handle_request(enum RequestControlRequestType request_type, union RequestControlData data);
+
 #endif // REQUEST_CONTROL_API_H
