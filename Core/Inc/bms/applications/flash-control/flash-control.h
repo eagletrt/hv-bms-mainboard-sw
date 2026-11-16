@@ -11,7 +11,18 @@
 #define FLASH_CONTROL_H
 
 #include <stdbool.h>
-#include "request-control.h"
+
+/*!
+ * \brief State of the flash request
+ */
+enum FlashControlRequestState {
+    FLASH_CONTROL_REQUEST_MAINBOARD, /*!< The flash request pointed to the mainboard */
+    FLASH_CONTROL_REQUEST_CELLBOARD, /*!< The flash request is pointed to a cellboard */
+    FLASH_CONTROL_REQUEST_GENERAL,   /*!< The flash request is for a board that is not specifically the mainboard or a cellboard */
+    FLASH_CONTROL_REQUEST_NONE,      /*!< There is no more flash request */
+
+    FLASH_CONTROL_REQUEST_COUNT
+};
 
 /*!
  * \brief The return codes for the flash control
@@ -27,9 +38,9 @@ enum FlashControlReturnCode {
  * \brief Handler for the flash control
  */
 struct FlashControlHandler {
-    enum RequestControlFlashRequestState target; /*!< The target of the flash procedure */
-    bool flash_active;                           /*!< Flag indicating if the flash procedure is currently active */
-    bool valid_parameters;                       /*!< Flag indicating if the parameters are valid */
+    enum FlashControlRequestState target; /*!< The target of the flash procedure */
+    bool flash_active;                    /*!< Flag indicating if the flash procedure is currently active */
+    bool valid_parameters;                /*!< Flag indicating if the parameters are valid */
 };
 
 #endif // FLASH_CONTROL_H

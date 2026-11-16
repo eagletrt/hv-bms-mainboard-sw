@@ -28,7 +28,7 @@ enum FlashControlReturnCode flash_control_api_init(void);
  * \retval FLASH_CONTROL_RC_OK if the target was set successfully
  * \retval FLASH_CONTROL_RC_INVALID_PARAMETERS if the target is invalid
  */
-enum FlashControlReturnCode flash_control_api_set_target(enum RequestControlFlashRequestState target);
+enum FlashControlReturnCode flash_control_api_set_target(enum FlashControlRequestState target);
 
 /*!
  * \brief Starts the flash procedure

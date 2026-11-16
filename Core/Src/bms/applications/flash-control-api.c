@@ -16,16 +16,16 @@ EAGLETRT_STATIC struct FlashControlHandler flash_control_handler;
 
 enum FlashControlReturnCode flash_control_api_init(void) {
     memset(&flash_control_handler, 0, sizeof(flash_control_handler));
-    flash_control_handler.target = REQUEST_CONTROL_FLASH_REQUEST_NONE;
+    flash_control_handler.target = FLASH_CONTROL_REQUEST_NONE;
     return FLASH_CONTROL_RC_OK;
 }
 
-enum FlashControlReturnCode flash_control_api_set_target(const enum RequestControlFlashRequestState target) {
-    if (target >= REQUEST_CONTROL_FLASH_REQUEST_COUNT) {
+enum FlashControlReturnCode flash_control_api_set_target(const enum FlashControlRequestState target) {
+    if (target >= FLASH_CONTROL_REQUEST_COUNT) {
         return FLASH_CONTROL_RC_INVALID_PARAMETERS;
     }
 
-    if (target == REQUEST_CONTROL_FLASH_REQUEST_NONE) {
+    if (target == FLASH_CONTROL_REQUEST_NONE) {
         flash_control_handler.target = target;
         flash_control_handler.valid_parameters = false;
         return FLASH_CONTROL_RC_OK;
@@ -44,11 +44,11 @@ enum FlashControlReturnCode flash_control_api_start_flash(void) {
         return FLASH_CONTROL_RC_FLASH_ALREADY_STARTED;
     }
 
-    if (flash_control_handler.target == REQUEST_CONTROL_FLASH_REQUEST_MAINBOARD) {
+    if (flash_control_handler.target == FLASH_CONTROL_REQUEST_MAINBOARD) {
         pcu_api_reset_microcontroller();
     }
 
-    if (flash_control_handler.target == REQUEST_CONTROL_FLASH_REQUEST_CELLBOARD) {
+    if (flash_control_handler.target == FLASH_CONTROL_REQUEST_CELLBOARD) {
         can_bridge_api_enable_bridge();
     }
 

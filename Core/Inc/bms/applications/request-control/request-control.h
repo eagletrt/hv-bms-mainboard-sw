@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include "bal-control.h"
+#include "flash-control.h"
 
 /*!
  * \brief Type of external requests
@@ -26,7 +27,7 @@ enum RequestControlRequestType {
 /*!
  * \brief State of the TS request
  */
-enum RequestConetolTSRequestState {
+enum RequestControlTSRequestState {
     REQUEST_CONTROL_TS_REQUEST_STATE_OFF,  /*!< The TS request is off */
     REQUEST_CONTROL_TS_REQUEST_STATE_ON,   /*!< The TS request is on */
     REQUEST_CONTROL_TS_REQUEST_STATE_KEEP, /*!< The TS request is keep state */
@@ -34,25 +35,12 @@ enum RequestConetolTSRequestState {
     REQUEST_CONTROL_TS_REQUEST_STATE_COUNT
 };
 
-//TODO: MOVE THIS TO FLASH CONTROL API ONCE THE MODULE IS READY
-/*!
- * \brief State of the flash request
- */
-enum RequestControlFlashRequestState {
-    REQUEST_CONTROL_FLASH_REQUEST_MAINBOARD, /*!< The flash request pointed to the mainboard */
-    REQUEST_CONTROL_FLASH_REQUEST_CELLBOARD, /*!< The flash request is pointed to a cellboard */
-    REQUEST_CONTROL_FLASH_REQUEST_GENERAL,   /*!< The flash request is for a board that is not specifically the mainboard or a cellboard */
-    REQUEST_CONTROL_FLASH_REQUEST_NONE,      /*!< There is no more flash request */
-
-    REQUEST_CONTROL_FLASH_REQUEST_COUNT
-};
-
 /*!
  * \brief Data for the request control
  */
 union RequestControlData {
-    enum RequestConetolTSRequestState ts_request_state;       /*!< The state of the TS request */
-    enum RequestControlFlashRequestState flash_request_state; /*!< The state of the flash request */
+    enum RequestControlTSRequestState ts_request_state;       /*!< The state of the TS request */
+    enum FlashControlRequestState flash_request_state;        /*!< The state of the flash request */
     struct BalancingControlParameters balancing_request_data; /*!< The data for the balancing request*/
 };
 
