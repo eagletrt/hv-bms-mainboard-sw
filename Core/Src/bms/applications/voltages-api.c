@@ -8,3 +8,102 @@
  */
 
 #include "voltages-api.h"
+
+#include <string.h>
+
+/*!
+ * \brief The global voltage handler
+ */
+static struct VoltagesHandler voltages_handler;
+
+void voltages_api_init(void) {
+    memset(&voltages_handler, 0, sizeof(voltages_handler));
+}
+
+enum VoltagesReturnCode voltages_api_set_value(enum CellboardId cellboard, uint8_t index, volt voltage) {
+    if (cellboard >= CELLBOARD_COUNT) {
+        return VOLTAGES_RC_INVALID_CELLBOARD;
+    }
+    if (index >= CELLBOARD_SEGMENT_SERIES_COUNT) {
+        return VOLTAGES_RC_INVALID_INDEX;
+    }
+
+    voltages_handler.voltages[cellboard][index] = voltage;
+    voltages_handler.is_updated_voltages[cellboard] = true;
+
+    return VOLTAGES_RC_OK;
+}
+
+enum VoltagesReturnCode voltages_api_reset_voltages_updated_flags(enum CellboardId cellboard) {
+    if (cellboard < CELLBOARD_COUNT) {
+        voltages_handler.is_updated_voltages[cellboard] = false;
+        return VOLTAGES_RC_OK;
+    }
+    return VOLTAGES_RC_INVALID_CELLBOARD;
+}
+
+enum VoltagesReturnCode voltages_api_reset_info_updated_flags(enum CellboardId cellboard) {
+    if (cellboard < CELLBOARD_COUNT) {
+        voltages_handler.is_updated_info[cellboard] = false;
+        return VOLTAGES_RC_OK;
+    }
+    return VOLTAGES_RC_INVALID_CELLBOARD;
+}
+
+enum VoltagesReturnCode voltages_api_set_cellboard_voltage_info(
+    enum CellboardId cellboard,
+    volt min,
+    volt max,
+    volt average,
+    volt sum) {
+    if (cellboard >= CELLBOARD_COUNT) {
+        return VOLTAGES_RC_INVALID_CELLBOARD;
+    }
+
+    voltages_handler.cellboard_info[cellboard].min = min;
+    voltages_handler.cellboard_info[cellboard].max = max;
+    voltages_handler.cellboard_info[cellboard].average = average;
+    voltages_handler.cellboard_info[cellboard].sum = sum;
+    voltages_handler.is_updated_info[cellboard] = true;
+
+    return VOLTAGES_RC_OK;
+}
+
+struct VoltagesInfo voltages_api_get_cellboard_info(enum CellboardId cellboard) {
+    struct VoltagesInfo info = { 0, 0, 0, 0 };
+
+    if (cellboard < CELLBOARD_COUNT) {
+        info = voltages_handler.cellboard_info[cellboard];
+    }
+
+    return info;
+}
+
+struct VoltagesInfo voltages_api_get_pack_info(void) {
+    struct VoltagesInfo pack_info = { 0, 0, 0, 0 };
+
+    if (CELLBOARD_COUNT == 0) {
+        return pack_info;
+    }
+
+    // Start from the first cellboard so that min and max are taken from real values
+    pack_info.min = voltages_handler.cellboard_info[0].min;
+    pack_info.max = voltages_handler.cellboard_info[0].max;
+
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_COUNT; ++cellboard) {
+        const struct VoltagesInfo *info = &voltages_handler.cellboard_info[cellboard];
+
+        if (info->min < pack_info.min) {
+            pack_info.min = info->min;
+        }
+        if (info->max > pack_info.max) {
+            pack_info.max = info->max;
+        }
+        pack_info.sum += info->sum;
+    }
+
+    // Every cellboard has the same number of cells in series, so the pack average is the total over all cells
+    pack_info.average = pack_info.sum / (CELLBOARD_COUNT * CELLBOARD_SEGMENT_SERIES_COUNT);
+
+    return pack_info;
+}
