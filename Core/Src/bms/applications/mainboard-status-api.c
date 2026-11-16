@@ -27,6 +27,7 @@ EAGLETRT_STATIC const char *const fault_names[MAINBOARD_STATUS_FAULT_COUNT] = {
     [MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE] = "cooling under temperature",
     [MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE] = "cooling over temperature",
     [MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT] = "cellboard fault",
+    [MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR] = "analog feedback in error state",
     [MAINBOARD_STATUS_FAULT_IMD_FAULT] = "imd fault",
     [MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED] = "voltage indicator disconnected",
     [MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES] = "stale cell voltages",

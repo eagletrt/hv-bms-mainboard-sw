@@ -52,19 +52,20 @@ enum MainboardStatusFault {
     MAINBOARD_STATUS_FAULT_POST_FAILED, /*!< The Power-On Self Test failed (owner: POST) */
 
     /* Values out of range */
-    MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE,        /*!< A cell voltage is below the minimum (owner: voltages) */
-    MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE,         /*!< A cell voltage is above the maximum (owner: voltages) */
-    MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE,    /*!< A cell temperature is below the minimum (owner: temperatures) */
-    MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE,     /*!< A cell temperature is above the maximum (owner: temperatures) */
-    MAINBOARD_STATUS_FAULT_OVER_CURRENT,              /*!< The pack current is above the maximum (owner: current) */
-    MAINBOARD_STATUS_FAULT_OVER_POWER,                /*!< The pack power is above the maximum (owner: current) */
-    MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE, /*!< A cooling temperature is below the minimum (owner: internal-temperatures) */
-    MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE,  /*!< A cooling temperature is above the maximum (owner: internal-temperatures) */
+    MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE,        /*!< A cell voltage is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE,         /*!< A cell voltage is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE,    /*!< A cell temperature is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE,     /*!< A cell temperature is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_OVER_CURRENT,              /*!< The pack current is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_OVER_POWER,                /*!< The pack power is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE, /*!< A cooling temperature is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE,  /*!< A cooling temperature is above the maximum (owner: PHC) */
 
     /* Hardware */
     MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT,                /*!< A cellboard reported an error or went in its fatal state (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_IMD_FAULT,                      /*!< The IMD detected an insulation fault (owner: sensors) */
-    MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, /*!< The TS voltage indicator is not connected (owner: sensors) */
+    MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR,                 /*!< An analog signal is in error state (owner: feedback) */
+    MAINBOARD_STATUS_FAULT_IMD_FAULT,                      /*!< The IMD detected an insulation fault (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, /*!< The TS voltage indicator is not connected (owner: PHC) */
 
     /* Freshness: the data was not updated in time */
     MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-router watchdogs) */
@@ -106,47 +107,47 @@ enum MainboardStatusRequest {
  *          by the old FSM, double check it against the schematic
  */
 enum MainboardStatusCondition {
-    /* Relays (owner: sensors) */
+    /* Relays (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_AIRN_CLOSE_COMMANDED,      /*!< The AIR- is commanded closed (old: AIRN_OPEN_COM, inverted) (owner: pcu) */
-    MAINBOARD_STATUS_CONDITION_AIRN_CLOSED,               /*!< The AIR- is mechanically closed (old: AIRN_OPEN_MEC, inverted) (owner: sensors) */
+    MAINBOARD_STATUS_CONDITION_AIRN_CLOSED,               /*!< The AIR- is mechanically closed (old: AIRN_OPEN_MEC, inverted) (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSE_COMMANDED, /*!< The precharge relay is commanded closed (old: PRECHARGE_OPEN_COM, inverted) (owner: pcu) */
-    MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSED,          /*!< The precharge relay is mechanically closed (old: PRECHARGE_OPEN_MEC, inverted) (owner: sensors) */
+    MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSED,          /*!< The precharge relay is mechanically closed (old: PRECHARGE_OPEN_MEC, inverted) (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_AIRP_CLOSE_COMMANDED,      /*!< The AIR+ is commanded closed (old: AIRP_OPEN_COM, inverted) (owner: pcu) */
-    MAINBOARD_STATUS_CONDITION_AIRP_CLOSED,               /*!< The AIR+ is mechanically closed (old: AIRP_OPEN_MEC, inverted) (owner: sensors) */
+    MAINBOARD_STATUS_CONDITION_AIRP_CLOSED,               /*!< The AIR+ is mechanically closed (old: AIRP_OPEN_MEC, inverted) (owner: feedback) */
 
     /* Tractive System */
-    MAINBOARD_STATUS_CONDITION_TS_BELOW_60V,                /*!< The TS voltage is below 60V (old: TS_LESS_THAN_60V) (owner: sensors) */
-    MAINBOARD_STATUS_CONDITION_TSAL_GREEN,                  /*!< The TSAL shows green (old: TSAL_GREEN) (owner: sensors) */
-    MAINBOARD_STATUS_CONDITION_VOLTAGE_INDICATOR_CONNECTED, /*!< The TS voltage indicator is connected (old: INDICATOR_CONNECTED) (owner: sensors) */
+    MAINBOARD_STATUS_CONDITION_TS_BELOW_60V,                /*!< The TS voltage is below 60V (old: TS_LESS_THAN_60V) (owner: feedback) */
+    MAINBOARD_STATUS_CONDITION_TSAL_GREEN,                  /*!< The TSAL shows green (old: TSAL_GREEN) (owner: feedback) */
+    MAINBOARD_STATUS_CONDITION_VOLTAGE_INDICATOR_CONNECTED, /*!< The TS voltage indicator is connected (old: INDICATOR_CONNECTED) (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_PRECHARGE_COMPLETE,          /*!< The TS voltage reached the precharge threshold (owner: internal-voltages) */
 
-    /* Hardware plausibility check (owner: sensors) */
+    /* Hardware plausibility check (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_PLAUSIBLE_STATE,           /*!< The plausibility check passes, raw value (old: PLAUSIBLE_STATE) */
     MAINBOARD_STATUS_CONDITION_PLAUSIBLE_STATE_FILTERED,  /*!< The plausibility check passes after the RC filter (old: PLAUSIBLE_STATE_RC) */
     MAINBOARD_STATUS_CONDITION_PLAUSIBLE_STATE_PERSISTED, /*!< The plausibility check passes, persisted value, prefer this one (old: PLAUSIBLE_STATE_PERSISTED) */
 
-    /* Hardware fault latches (owner: sensors) */
+    /* Hardware fault latches (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_AMS_FAULT_LATCHED,          /*!< The AMS fault latch tripped (old: BMS_FAULT_LATCHED, inverted) */
     MAINBOARD_STATUS_CONDITION_IMD_FAULT_LATCHED,          /*!< The IMD fault latch tripped (old: IMD_FAULT_LATCHED, inverted) */
     MAINBOARD_STATUS_CONDITION_PLAUSIBILITY_FAULT_LATCHED, /*!< The plausibility fault latch tripped (old: PLAUSIBLE_STATE_LATCHED, inverted) */
     MAINBOARD_STATUS_CONDITION_EXTERNAL_FAULT_LATCHED,     /*!< The external fault latch tripped (old: EXT_FAULT_LATCHED, inverted) */
     MAINBOARD_STATUS_CONDITION_LATCH_RESET_ACTIVE,         /*!< The latch reset signal is active (old: LATCH_RESET) */
 
-    /* Cockpit LEDs (owner: sensors) */
+    /* Cockpit LEDs (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_AMS_COCKPIT_LED_ON, /*!< The AMS LED in the cockpit is on (old: BMS_FAULT_COCKPIT_LED, inverted) */
     MAINBOARD_STATUS_CONDITION_IMD_COCKPIT_LED_ON, /*!< The IMD LED in the cockpit is on (old: IMD_FAULT_COCKPIT_LED, inverted) */
 
-    /* IMD (owner: sensors) */
+    /* IMD (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_IMD_OK, /*!< The IMD reports no insulation fault (old: IMD_OK) */
 
-    /* Shutdown circuit, closed means there is voltage at that point (owner: sensors) */
+    /* Shutdown circuit, closed means there is voltage at that point (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_SD_IN_CLOSED,       /*!< The shutdown circuit is closed up to the BMS input (old: SD_IN) */
     MAINBOARD_STATUS_CONDITION_SD_AMS_NODE_CLOSED, /*!< The shutdown circuit is closed after the AMS node (old: SD_BMS_FB) */
     MAINBOARD_STATUS_CONDITION_SD_IMD_NODE_CLOSED, /*!< The shutdown circuit is closed after the IMD node (old: SD_IMD_FB) */
     MAINBOARD_STATUS_CONDITION_SD_OUT_CLOSED,      /*!< The shutdown circuit is closed up to the BMS output (old: SD_OUT) */
     MAINBOARD_STATUS_CONDITION_SD_END_CLOSED,      /*!< The shutdown circuit is closed up to the AIRs (old: SD_END) */
 
-    /* Power supplies (owner: sensors) */
+    /* Power supplies (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_MCU_5V_OK,          /*!< The 5V supply of the MCU is present (old: V5_MCU) */
     MAINBOARD_STATUS_CONDITION_PROBING_3V3_OK,     /*!< The 3V3 supply is present (old: PROBING_3V3) */
     MAINBOARD_STATUS_CONDITION_HANDCART_CONNECTED, /*!< The mainboard is connected to the handcart (old: HC connected callback) */
