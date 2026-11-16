@@ -10,6 +10,7 @@
 #define REQUEST_CONTROL_H
 
 #include <stdbool.h>
+#include "bal-control.h"
 
 /*!
  * \brief Type of external requests
@@ -46,22 +47,13 @@ enum RequestControlFlashRequestState {
     REQUEST_CONTROL_FLASH_REQUEST_COUNT
 };
 
-//TODO: MOVE THIS TO BAL CONTROL API ONCE THE MODULE IS READY
-/*!
- * \brief Data for the balancing request
- */
-struct RequestControlBalancingData {
-    bool balancing_request_state; /*!< The state of the balancing request */
-    float threshold;              /*!< The treshold for the balancing procedure */
-};
-
 /*!
  * \brief Data for the request control
  */
 union RequestControlData {
-    enum RequestConetolTSRequestState ts_request_state;        /*!< The state of the TS request */
-    enum RequestControlFlashRequestState flash_request_state;  /*!< The state of the flash request */
-    struct RequestControlBalancingData balancing_request_data; /*!< The data for the balancing request*/
+    enum RequestConetolTSRequestState ts_request_state;       /*!< The state of the TS request */
+    enum RequestControlFlashRequestState flash_request_state; /*!< The state of the flash request */
+    struct BalancingControlParameters balancing_request_data; /*!< The data for the balancing request*/
 };
 
 struct RequestControlRequest {

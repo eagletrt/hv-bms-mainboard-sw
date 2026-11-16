@@ -9,3 +9,14 @@
  */
 
 #include "bal-control-api.h"
+#include "eagletrt.h"
+
+EAGLETRT_STATIC struct BalancingControlHandler bal_control_handler;
+
+enum BalancingControlReturnCode bal_control_api_set_parameters(const struct BalancingControlParameters parameters) {
+    if (parameters.threshold < 0.0F) {
+        return BAL_CONTROL_RC_INVALID_PARAMETERS;
+    }
+    bal_control_handler.parameters = parameters;
+    return BAL_CONTROL_RC_OK;
+}

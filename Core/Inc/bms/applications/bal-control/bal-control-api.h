@@ -13,4 +13,14 @@
 
 #include "bal-control.h"
 
+/*!
+ * \brief Sets the parameters for the balancing control
+ *
+ * \param parameters The parameters to set
+ * 
+ * \retval BAL_CONTROL_RC_OK if the parameters were set successfully
+ * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the parameters are invalid
+ */
+enum BalancingControlReturnCode bal_control_api_set_parameters(struct BalancingControlParameters parameters);
+
 #endif // BAL_CONTROL_API_H
