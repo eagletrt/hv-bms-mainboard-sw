@@ -12,4 +12,14 @@
 
 #include "request-control.h"
 
+/*!
+ * \brief Handle an external request
+ * \param request_type The type of the request
+ * \param data The data associated with the request
+ *
+ * \retval REQUEST_CONTROL_RC_OK if the request was handled successfully
+ * \retval REQUEST_CONTROL_RC_INVALID_REQUEST if the request type is invalid
+ */
+enum RequestControlReturnCode request_control_api_handle_request(struct RequestControlRequest request);
+
 #endif // REQUEST_CONTROL_API_H
