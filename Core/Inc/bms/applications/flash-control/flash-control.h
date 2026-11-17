@@ -11,11 +11,12 @@
 #define FLASH_CONTROL_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /*!
  * \brief State of the flash request
  */
-enum FlashControlRequestState {
+enum FlashControlRequestState : uint8_t {
     FLASH_CONTROL_REQUEST_MAINBOARD, /*!< The flash request pointed to the mainboard */
     FLASH_CONTROL_REQUEST_CELLBOARD, /*!< The flash request is pointed to a cellboard */
     FLASH_CONTROL_REQUEST_GENERAL,   /*!< The flash request is for a board that is not specifically the mainboard or a cellboard */
