@@ -27,12 +27,11 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "pal-api.h"
 
 /* USER CODE BEGIN Includes */
 
 #include <stdarg.h>
-
+#include "pal-api.h"
 #include "mainboard-def.h"
 
 /* USER CODE END Includes */
@@ -65,7 +64,7 @@ void usart_log(const char *fmt, ...);
  * @param fmt The string format
  * @param ... values to put inside the formatted string (optional)
  */
-void usart_log_ms(milliseconds_t interval, const char *fmt, ...);
+void usart_log_ms(milliseconds interval, const char *fmt, ...);
 
 /**
  * @brief Read a single character from the UART

@@ -33,6 +33,7 @@ extern "C" {
 #include "led.h"
 #include "display.h"
 #include "pcu.h"
+#include "sensing.h"
 
 /* USER CODE END Includes */
 
@@ -90,11 +91,15 @@ void gpio_pcu_set_state(enum PcuPin pin, enum PcuPinStatus state);
 void gpio_pcu_toggle_state(enum PcuPin pin);
 
 /*!
- * \brief Read all the digital feedbacks in one go
+ * \brief Read the level of a digital input of the sensing module
  *
- * \returns The state of the feedbacks as a bit flag
+ * \details Sensing callback (sensing_gpio_read_callback)
+ *
+ * \param gpio The digital input to read
+ *
+ * \returns true if the pin is high, false otherwise (or if the input is not valid)
  */
-bit_flag32_t gpio_feedback_read_all(void);
+bool gpio_sensing_read(enum SensingGpio gpio);
 
 /*!
  * \brief Read the HC connected status

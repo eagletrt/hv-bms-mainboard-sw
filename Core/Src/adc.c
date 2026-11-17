@@ -22,18 +22,9 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "cooling-temp.h"
-#include "eagletrt-api.h"
-#include "eagletrt.h"
-#include "feedback.h"
-#include "logger-api.h"
-#include "logger.h"
-#include "mainboard-conf.h"
-
-#include "feedback-api.h"
-#include "cooling-temp-api.h"
-#include "usart.h"
 #include <stdint.h>
+
+#include "sensing-api.h"
 
 /* USER CODE END 0 */
 
@@ -351,7 +342,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *adcHandle) {
         hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
         hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
         hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-        hdma_adc1.Init.Mode = DMA_CIRCULAR;
+        hdma_adc1.Init.Mode = DMA_NORMAL;
         hdma_adc1.Init.Priority = DMA_PRIORITY_LOW;
         hdma_adc1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
         if (HAL_DMA_Init(&hdma_adc1) != HAL_OK) {
@@ -395,7 +386,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *adcHandle) {
         hdma_adc3.Init.MemInc = DMA_MINC_ENABLE;
         hdma_adc3.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
         hdma_adc3.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-        hdma_adc3.Init.Mode = DMA_CIRCULAR;
+        hdma_adc3.Init.Mode = DMA_NORMAL;
         hdma_adc3.Init.Priority = DMA_PRIORITY_LOW;
         hdma_adc3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
         if (HAL_DMA_Init(&hdma_adc3) != HAL_OK) {
@@ -475,156 +466,43 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 /* USER CODE BEGIN 1 */
 
-EAGLETRT_STATIC EAGLETRT_VOLATILE raw_volt_t dma_data_1[ADC_1_CHANNEL_COUNT];
-EAGLETRT_STATIC EAGLETRT_VOLATILE raw_volt_t dma_data_2[ADC_2_CHANNEL_COUNT];
-
 /*!
- * \brief Get the feedback analog index from the first ADC channel index
+ * \brief Get the HAL handler of an MCU ADC
  *
- * \param channel The ADC channel index
+ * \param adc The ADC
  *
- * \return The feedback analog index
+ * \returns A pointer to the HAL handler, or NULL if the ADC is not valid
  */
-enum FeedbackAnalogIndex prv_adc_get_feedback_index_from_adc_1_channel(enum Adc1ChannelIndex channel) {
-    switch (channel) {
-        case ADC_1_CHANNEL_INDEX_SD_IN_MCU:
-            return FEEDBACK_ANALOG_INDEX_SD_IN;
-        case ADC_1_CHANNEL_INDEX_SD_END_MCU:
-            return FEEDBACK_ANALOG_INDEX_SD_END;
-        case ADC_1_CHANNEL_INDEX_SD_OUT:
-            return FEEDBACK_ANALOG_INDEX_SD_OUT;
-        case ADC_1_CHANNEL_INDEX_TSAL_GREEN_MCU:
-            return FEEDBACK_ANALOG_INDEX_TSAL_GREEN;
-        case ADC_1_CHANNEL_INDEX_IMD_OK_MCU:
-            return FEEDBACK_ANALOG_INDEX_IMD_OK;
+static ADC_HandleTypeDef *prv_adc_get_handle(const enum SensingAdc adc) {
+    switch (adc) {
+        case SENSING_ADC_1:
+            return &HADC_1;
+        case SENSING_ADC_2:
+            return &HADC_2;
         default:
-            return FEEDBACK_ANALOG_INDEX_INVALID;
+            return NULL;
     }
 }
 
-/*!
- * \brief Get the feedback analog index from the second ADC channel index
- *
- * \param channel The ADC channel index
- *
- * \return The feedback analog index
- */
-enum FeedbackAnalogIndex prv_adc_get_feedback_index_from_adc_2_channel(enum Adc2ChannelIndex channel) {
-    switch (channel) {
-        case ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC_MCU:
-            return FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC;
-        case ADC_2_CHANNEL_INDEX_V5_MCU:
-            return FEEDBACK_ANALOG_INDEX_V5_MCU;
-        case ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC_MCU:
-            return FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC;
-        case ADC_2_CHANNEL_INDEX_PROBING_3V3:
-            return FEEDBACK_ANALOG_INDEX_PROBING_3V3;
-        case ADC_2_CHANNEL_INDEX_SD_R_BMS_OUT_MCU:
-            return FEEDBACK_ANALOG_INDEX_SD_BMS_FB;
-        case ADC_2_CHANNEL_INDEX_SD_R_IMD_OUT_MCU:
-            return FEEDBACK_ANALOG_INDEX_SD_IMD_FB;
-        case ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC_MCU:
-            return FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC;
-        default:
-            return FEEDBACK_ANALOG_INDEX_INVALID;
+bool adc_sensing_start(const enum SensingAdc adc, volatile raw_volt *const buffer, const size_t count) {
+    ADC_HandleTypeDef *const hadc = prv_adc_get_handle(adc);
+    if (hadc == NULL || buffer == NULL || count == 0U) {
+        return false;
     }
+
+    /*
+     * The DMA writes 16 bit samples (half word alignment), the HAL just takes a
+     * generic pointer; the volatile qualifier is dropped because the buffer is
+     * only read by the sensing module after the conversion complete notification
+     */
+    return HAL_ADC_Start_DMA(hadc, (uint32_t *)(uintptr_t)buffer, (uint32_t)count) == HAL_OK;
 }
 
-/*!
- * \brief Get the cooling temperature index from the first ADC channel index
- *
- * \param channel The ADC channel index
- *
- * \return The cooling temperature index
- */
-enum CoolingTempIndex prv_adc_get_cooling_temp_index_from_adc_1_channel(enum Adc1ChannelIndex channel) {
-    switch (channel) {
-        case ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMP_MCU:
-            return COOLING_TEMP_INDEX_INLET_LIQUID_TEMPERATURE;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_1_MCU:
-            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_1;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_2_MCU:
-            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_2;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_3_MCU:
-            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_3;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_4_MCU:
-            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_4;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_5_MCU:
-            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_5;
-        case ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_6_MCU:
-            return COOLING_TEMP_INDEX_OUTLET_LIQUID_TEMPERATURE_6;
-        default:
-            return COOLING_TEMP_INDEX_INVALID;
-    }
-}
-
-void adc_start_feedback_conversion(void) {
-    HAL_ADC_Start_DMA(&HADC_1, (uint32_t *)dma_data_1, ADC_1_CHANNEL_COUNT);
-    HAL_ADC_Start_DMA(&HADC_2, (uint32_t *)dma_data_2, ADC_2_CHANNEL_COUNT);
-}
-
-// TODO: Handle return codes
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if (hadc->Instance == HADC_1.Instance) {
-        constexpr uint16_t feedback_count = 5U;
-        const enum Adc1ChannelIndex feedback_channels[feedback_count] = {
-            ADC_1_CHANNEL_INDEX_SD_IN_MCU,
-            ADC_1_CHANNEL_INDEX_SD_END_MCU,
-            ADC_1_CHANNEL_INDEX_SD_OUT,
-            ADC_1_CHANNEL_INDEX_TSAL_GREEN_MCU,
-            ADC_1_CHANNEL_INDEX_IMD_OK_MCU
-        };
-
-        // Copy all feedbacks values
-        for (uint16_t i = 0U; i < feedback_count; ++i) {
-            const enum Adc1ChannelIndex channel = feedback_channels[i];
-            const enum FeedbackAnalogIndex index = prv_adc_get_feedback_index_from_adc_1_channel(channel);
-            if (index < FEEDBACK_ANALOG_INDEX_COUNT) {
-                const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[channel], ADC_VREF, ADC_RESOLUTION);
-                EAGLETRT_API_UNUSED(feedback_api_update_analog_feedback(index, volt));
-            }
-        }
-
-        constexpr uint16_t cooling_count = 7U;
-        const enum Adc1ChannelIndex cooling_channels[cooling_count] = {
-            ADC_1_CHANNEL_INDEX_INLET_LIQUID_TEMP_MCU,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_1_MCU,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_2_MCU,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_3_MCU,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_4_MCU,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_5_MCU,
-            ADC_1_CHANNEL_INDEX_OUTLET_LIQUID_TEMP_6_MCU
-        };
-        // Copy all cooling temperature values
-        for (uint16_t i = 0U; i < cooling_count; ++i) {
-            const enum Adc1ChannelIndex channel = cooling_channels[i];
-            const enum CoolingTempIndex index = prv_adc_get_cooling_temp_index_from_adc_1_channel(channel);
-            if (index < COOLING_TEMP_INDEX_COUNT) {
-                const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_1[channel], ADC_VREF, ADC_RESOLUTION);
-                EAGLETRT_API_UNUSED(cooling_temp_api_notify_conversion_complete(index, volt));
-            }
-        }
+        (void)sensing_api_adc_conversion_complete(SENSING_ADC_1);
     } else if (hadc->Instance == HADC_2.Instance) {
-        constexpr uint16_t feedback_count = 7U;
-        const enum Adc2ChannelIndex channels[feedback_count] = {
-            ADC_2_CHANNEL_INDEX_AIRN_OPEN_MEC_MCU,
-            ADC_2_CHANNEL_INDEX_V5_MCU,
-            ADC_2_CHANNEL_INDEX_PLAUSIBLE_STATE_RC_MCU,
-            ADC_2_CHANNEL_INDEX_PROBING_3V3,
-            ADC_2_CHANNEL_INDEX_SD_R_BMS_OUT_MCU,
-            ADC_2_CHANNEL_INDEX_SD_R_IMD_OUT_MCU,
-            ADC_2_CHANNEL_INDEX_AIRP_OPEN_MEC_MCU
-        };
-
-        // Copy all feedbacks values
-        for (uint16_t i = 0U; i < feedback_count; ++i) {
-            const enum Adc2ChannelIndex channel = channels[i];
-            const enum FeedbackAnalogIndex index = prv_adc_get_feedback_index_from_adc_2_channel(channel);
-            if (index < FEEDBACK_ANALOG_INDEX_COUNT) {
-                const volt_t volt = MAINBOARD_ADC_RAW_VALUE_TO_VOLT(dma_data_2[channel], ADC_VREF, ADC_RESOLUTION);
-                feedback_api_update_analog_feedback(index, volt);
-            }
-        }
+        (void)sensing_api_adc_conversion_complete(SENSING_ADC_2);
     }
 }
 

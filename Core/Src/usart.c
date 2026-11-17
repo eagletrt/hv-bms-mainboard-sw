@@ -139,7 +139,7 @@ void usart_log(const char *const fmt, ...) {
     HAL_UART_Transmit(&huart1, (uint8_t *)buffer, size, HAL_MAX_DELAY);
 }
 
-void usart_log_ms(const milliseconds_t interval, const char *const fmt, ...) {
+void usart_log_ms(const milliseconds interval, const char *const fmt, ...) {
     EAGLETRT_STATIC uint32_t t = 0U;
     if (HAL_GetTick() - t >= interval) {
         va_list args;
