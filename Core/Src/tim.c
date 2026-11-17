@@ -28,7 +28,7 @@
 #include "eagletrt-api.h"
 #include "mainboard-def.h"
 
-#include "imd-api.h"
+#include "sensing-api.h"
 #include "stm32f4xx_hal_tim.h"
 #include "timebase.h"
 
@@ -581,12 +581,12 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
          * incremented for the entire duration where the signal stays high
          * inside the period
          */
-        ticks_t period_count = 0U, high_count = 0U;
+        ticks period_count = 0U, high_count = 0U;
 
-        // Update IMD module data
+        // Update the IMD measurement
         if ((period_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1)) != 0U) {
             high_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
-            imd_api_update(TIM_GET_FREQ(htim), period_count, high_count);
+            (void)sensing_api_imd_capture(TIM_GET_FREQ(htim), period_count, high_count);
         }
     }
 }
