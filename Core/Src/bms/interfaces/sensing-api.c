@@ -20,6 +20,8 @@
 
 EAGLETRT_STATIC struct SensingHandler sensing_handler;
 
+// TODO: ADC error handling and timeout, IMD signal timeout
+
 /*! \brief Digital feedback fed by every GPIO */
 EAGLETRT_STATIC const enum FeedbackDigitalIndex sensing_gpio_feedback[SENSING_GPIO_COUNT] = {
     [SENSING_GPIO_PRECH_OPEN_MEC] = FEEDBACK_DIGITAL_INDEX_PRECHARGE_OPEN_MEC,
@@ -107,6 +109,7 @@ EAGLETRT_STATIC celsius prv_sensing_cooling_ntc_to_celsius(volt value) {
  * \brief Convert the external ADC voltage of the TS or pack divider to the high voltage
  *
  * \param value The voltage read by the external ADC in V
+ * \param divider_gain The nominal gain of the divider
  * \return The high voltage in V (never negative)
  */
 EAGLETRT_STATIC volt prv_sensing_hv_divider_to_volt(volt value, float divider_gain) {

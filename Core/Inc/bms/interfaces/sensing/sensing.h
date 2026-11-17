@@ -56,7 +56,7 @@
  * \brief Empirical correction applied on top of the nominal divider gain
  *
  * \details volt = max(0, adc / GAIN * MULTIPLIER - OFFSET)
- *          Fitted against <reference meter> on <board / date>
+ *          Fitted against <reference meter> on <board / date> TODO
  */
 #define SENSING_HV_CALIBRATION_MULTIPLIER (1.0273F)
 #define SENSING_HV_CALIBRATION_OFFSET_V (2.19F)

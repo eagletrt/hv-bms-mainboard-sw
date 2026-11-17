@@ -27,12 +27,11 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "pal-api.h"
 
 /* USER CODE BEGIN Includes */
 
 #include <stdarg.h>
-
+#include "pal-api.h"
 #include "mainboard-def.h"
 
 /* USER CODE END Includes */
