@@ -9,4 +9,21 @@
 #ifndef CAN_COMMUNICATION_ROUTER_API_H
 #define CAN_COMMUNICATION_ROUTER_API_H
 
+#include "can-communication.h"
+
+/*!
+ * \brief Deserialize a frame received on the BMS network and forward its content
+ * to the module that handles it
+ *
+ * \details Frames with a valid ID that no module handles are ignored
+ *
+ * \param[in] frame The received frame
+ *
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if \p frame is \c NULL
+ * \retval CAN_COMMUNICATION_RC_INVALID_NETWORK if the ID does not belong to the BMS network
+ * \retval CAN_COMMUNICATION_RC_ERROR if the payload cannot be deserialized
+ * \retval CAN_COMMUNICATION_RC_OK otherwise
+ */
+enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct CanCommunicationFrame *frame);
+
 #endif // CAN_COMMUNICATION_ROUTER_API_H

@@ -33,6 +33,8 @@ struct BalancingControlParameters {
     volt threshold;               /*!< The threshold for the balancing procedure */
 };
 
+static_assert(CELLBOARD_SEGMENT_SERIES_COUNT <= 32, "balancing_cells flag is too small to hold all cellboard states");
+
 /*!
  * \brief Handler for the balancing control
  */
@@ -41,6 +43,7 @@ struct BalancingControlHandler {
     bool balancing_active;                        /*!< Flag indicating if balancing is currently active */
     volt target;                                  /*!< The target voltage for balancing */
     bool valid_parameters;                        /*!< Flag indicating if the parameters are valid */
+    uint32_t balancing_cells[CELLBOARD_COUNT];    /*! Bit flag containing the balancing status of the single cells as reported by the cellboards*/
 };
 
 #endif // BAL_CONTROL_H

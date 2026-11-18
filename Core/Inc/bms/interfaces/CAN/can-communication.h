@@ -82,6 +82,9 @@ typedef enum CanCommunicationReturnCode (*can_communication_send_callback)(const
  *
  * \retval CAN_COMMUNICATION_RC_OK on success.
  * \retval CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR if dispatch fails.
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if \p frame is \c NULL.
+ * \retval CAN_COMMUNICATION_RC_INVALID_NETWORK if the frame's network is invalid.
+ * \retval CAN_COMMUNICATION_RC_ERROR if deserialization fails.
  */
 typedef enum CanCommunicationReturnCode (*can_communication_receive_callback)(struct CanCommunicationFrame *frame);
 

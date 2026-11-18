@@ -3,8 +3,8 @@
  * \date 2026-11-10
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Cells temperature measurement and control
- * 
+ * \brief Cells and discharge resistors temperature measurement and control
+ *
  * \warning The old code also had a map for the temperatures and their positions, if needed it can be reintroduced in the future
  */
 
@@ -20,65 +20,106 @@
 void temperatures_api_init(void);
 
 /*!
- * \brief Set a single temperature value
+ * \brief Set a single cell temperature value
  *
  * \param[in] cellboard The cellboard id
- * \param[in] index The index of the temperature to update
+ * \param[in] index The index of the cell temperature to update
  * \param[in] temperature The temperature value
  *
  * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
  * \retval TEMPERATURES_RC_INVALID_INDEX if the given index is out of range
  * \retval TEMPERATURES_RC_OK otherwise
  */
-enum TemperaturesReturnCode temperatures_api_set_value(enum CellboardId cellboard, uint8_t index, celsius temperature);
+enum TemperaturesReturnCode temperatures_api_set_cell_temperature(enum CellboardId cellboard, uint8_t index, celsius temperature);
 
 /*!
- * \brief Reset the updated flags for the temperatures of a specific cellboard
+ * \brief Reset the updated flags for the cell temperatures of a specific cellboard
  *
  * \param[in] cellboard The cellboard id
  *
  * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
  * \retval TEMPERATURES_RC_OK otherwise
  */
-enum TemperaturesReturnCode temperatures_api_reset_temperatures_updated_flags(enum CellboardId cellboard);
+enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_updated_flags(enum CellboardId cellboard);
 
 /*!
- * \brief Reset the updated flags for the temperature information of a specific cellboard
+ * \brief Reset the updated flags for the cell temperature information of a specific cellboard
  *
  * \param[in] cellboard The cellboard id
  *
  * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
  * \retval TEMPERATURES_RC_OK otherwise
  */
-enum TemperaturesReturnCode temperatures_api_reset_info_updated_flags(enum CellboardId cellboard);
+enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_info_updated_flags(enum CellboardId cellboard);
 
 /*!
- * \brief Set the temperature information for a specific cellboard
+ * \brief Set the cell temperature information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id
- * \param[in] min The minimum temperature
- * \param[in] max The maximum temperature
- * \param[in] average The average temperature
+ * \param[in] min The minimum cell temperature
+ * \param[in] max The maximum cell temperature
+ * \param[in] average The average cell temperature
  *
  * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
  * \retval TEMPERATURES_RC_OK otherwise
  */
-enum TemperaturesReturnCode temperatures_api_set_cellboard_temperature_info(enum CellboardId cellboard, celsius min, celsius max, celsius average);
+enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(enum CellboardId cellboard, celsius min, celsius max, celsius average);
 
 /*!
- * \brief Get the temperature information for a specific cellboard
+ * \brief Get the cell temperature information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id
  *
- * \return The temperature information of the cellboard, all zeros if the cellboard does not exist
+ * \return The cell temperature information of the cellboard, all zeros if the cellboard does not exist
  */
-struct TemperaturesInfo temperatures_api_get_cellboard_info(enum CellboardId cellboard);
+struct TemperaturesInfo temperatures_api_get_cell_temperatures_info(enum CellboardId cellboard);
 
 /*!
- * \brief Get the temperature information for the entire pack
+ * \brief Get the cell temperature information for the entire pack
  *
- * \return The minimum, maximum and average temperature of the pack
+ * \return The minimum, maximum and average cell temperature of the pack
  */
-struct TemperaturesInfo temperatures_api_get_pack_info(void);
+struct TemperaturesInfo temperatures_api_get_pack_cell_temperatures_info(void);
+
+/*!
+ * \brief Set a single discharge resistor temperature value
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] index The index of the discharge resistor temperature to update
+ * \param[in] temperature The temperature value
+ *
+ * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval TEMPERATURES_RC_INVALID_INDEX if the given index is out of range
+ * \retval TEMPERATURES_RC_OK otherwise
+ */
+enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum CellboardId cellboard, uint8_t index, celsius temperature);
+
+/*!
+ * \brief Reset the updated flags for the discharge resistor temperatures of a specific cellboard
+ *
+ * \param[in] cellboard The cellboard id
+ *
+ * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval TEMPERATURES_RC_OK otherwise
+ */
+enum TemperaturesReturnCode temperatures_api_reset_discharge_temperatures_updated_flags(enum CellboardId cellboard);
+
+/*!
+ * \brief Get the discharge resistor temperature information for a specific cellboard
+ *
+ * \details The cellboards do not send this information, it is computed from the single values
+ *
+ * \param[in] cellboard The cellboard id
+ *
+ * \return The discharge resistor temperature information of the cellboard, all zeros if the cellboard does not exist
+ */
+struct TemperaturesInfo temperatures_api_get_discharge_temperatures_info(enum CellboardId cellboard);
+
+/*!
+ * \brief Get the discharge resistor temperature information for the entire pack
+ *
+ * \return The minimum, maximum and average discharge resistor temperature of the pack
+ */
+struct TemperaturesInfo temperatures_api_get_pack_discharge_temperatures_info(void);
 
 #endif // TEMPERATURES_API_H

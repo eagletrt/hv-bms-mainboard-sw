@@ -9,8 +9,12 @@
  */
 
 #include "bal-control-api.h"
+#include "bal-control.h"
 #include "eagletrt.h"
+#include "eagletrt-api.h"
+#include "mainboard-def.h"
 #include "voltages-api.h"
+#include <stdint.h>
 #include <string.h>
 
 EAGLETRT_STATIC struct BalancingControlHandler bal_control_handler;
@@ -81,4 +85,37 @@ bool bal_control_api_has_valid_parameters(void) {
 
 volt bal_control_api_get_target_voltage(void) {
     return bal_control_handler.target;
+}
+
+enum BalancingControlReturnCode bal_control_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell) {
+
+    if (cellboard >= CELLBOARD_ID_COUNT) {
+        return BAL_CONTROL_RC_INVALID_PARAMETERS;
+    }
+    if (cell >= CELLBOARD_SEGMENT_SERIES_COUNT) {
+        return BAL_CONTROL_RC_INVALID_PARAMETERS;
+    }
+
+    if (set) {
+        bal_control_handler.balancing_cells[cellboard] = EAGLETRT_API_BIT_SET(bal_control_handler.balancing_cells[cellboard], cell);
+    } else {
+        bal_control_handler.balancing_cells[cellboard] = EAGLETRT_API_BIT_RESET(bal_control_handler.balancing_cells[cellboard], cell);
+    }
+
+    return BAL_CONTROL_RC_OK;
+}
+
+enum BalancingControlReturnCode bal_control_set_balancing_status_flag(enum CellboardId cellboard, uint32_t flag) {
+    if (cellboard >= CELLBOARD_ID_COUNT) {
+        return BAL_CONTROL_RC_INVALID_PARAMETERS;
+    }
+    bal_control_handler.balancing_cells[cellboard] = flag;
+    return BAL_CONTROL_RC_OK;
+}
+
+uint32_t bal_control_get_balancing_status(enum CellboardId cellboard) {
+    if (cellboard >= CELLBOARD_ID_COUNT) {
+        return 0;
+    }
+    return bal_control_handler.balancing_cells[cellboard];
 }
