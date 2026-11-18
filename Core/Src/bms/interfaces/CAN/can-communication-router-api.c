@@ -475,7 +475,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
                     .ts_request_state = (message.bmsset.status == 1U)
                                             ? REQUEST_CONTROL_TS_REQUEST_STATE_ON
                                             : REQUEST_CONTROL_TS_REQUEST_STATE_OFF,
-                },
+                }, // TODO: modify once the canlib is updated
             };
             return prv_forward_request(request);
         }
