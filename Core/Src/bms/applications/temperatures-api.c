@@ -8,13 +8,14 @@
  */
 
 #include "temperatures-api.h"
+#include "eagletrt.h"
 
 #include <string.h>
 
 /*!
  * \brief The global temperature handler
  */
-static struct TemperaturesHandler temperatures_handler;
+EAGLETRT_STATIC struct TemperaturesHandler temperatures_handler;
 
 /*!
  * \brief Compute the minimum, maximum and average of a group of temperatures
@@ -24,7 +25,7 @@ static struct TemperaturesHandler temperatures_handler;
  *
  * \return The temperature information of the group
  */
-static struct TemperaturesInfo prv_temperatures_compute_info(const celsius *temperatures, size_t count) {
+EAGLETRT_STATIC struct TemperaturesInfo prv_temperatures_compute_info(const celsius *temperatures, size_t count) {
     // Start from the first value: 0°C (or below) is a valid temperature, so it can't mean "no value yet"
     struct TemperaturesInfo info = { temperatures[0], temperatures[0], 0 };
 

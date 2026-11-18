@@ -31,7 +31,7 @@ enum CellboardsMonitorReturnCode {
 /*!
  * \brief State of the FSM of a cellboard, as reported by the cellboard itself
  */
-enum CellboardsMonitorState {
+enum CellboardsMonitorState : uint8_t {
     CELLBOARDS_MONITOR_STATE_INIT,      /*!< The cellboard is initializing */
     CELLBOARDS_MONITOR_STATE_IDLE,      /*!< The cellboard is idle */
     CELLBOARDS_MONITOR_STATE_ERROR,     /*!< The cellboard is in its fatal error state */
