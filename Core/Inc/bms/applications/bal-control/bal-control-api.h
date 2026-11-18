@@ -88,7 +88,7 @@ volt bal_control_api_get_target_voltage(void);
  * \retval BAL_CONTROL_RC_OK if the status was set successfully
  * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the parameters are invalid
  */
-enum BalancingControlReturnCode bal_control_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell);
+enum BalancingControlReturnCode bal_control_api_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell);
 
 /*!
  * \brief Sets the balancing status of all the cells of a cellboard at once
@@ -99,7 +99,7 @@ enum BalancingControlReturnCode bal_control_set_balancing_status(bool set, enum 
  * \retval BAL_CONTROL_RC_OK if the status was set successfully
  * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the cellboard is invalid
  */
-enum BalancingControlReturnCode bal_control_set_balancing_status_flag(enum CellboardId cellboard, uint32_t flag);
+enum BalancingControlReturnCode bal_control_api_set_balancing_status_flag(enum CellboardId cellboard, uint32_t flag);
 
 /*!
  * \brief Gets the balancing status for a specific cellboard
@@ -107,6 +107,6 @@ enum BalancingControlReturnCode bal_control_set_balancing_status_flag(enum Cellb
  * \param cellboard The cellboard to get the status for
  * \returns The balancing status for the specified cellboard
  */
-uint32_t bal_control_get_balancing_status(enum CellboardId cellboard);
+uint32_t bal_control_api_get_balancing_status(enum CellboardId cellboard);
 
 #endif // BAL_CONTROL_API_H

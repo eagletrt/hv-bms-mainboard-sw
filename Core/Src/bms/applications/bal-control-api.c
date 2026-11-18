@@ -87,7 +87,7 @@ volt bal_control_api_get_target_voltage(void) {
     return bal_control_handler.target;
 }
 
-enum BalancingControlReturnCode bal_control_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell) {
+enum BalancingControlReturnCode bal_control_api_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell) {
 
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
@@ -105,7 +105,7 @@ enum BalancingControlReturnCode bal_control_set_balancing_status(bool set, enum 
     return BAL_CONTROL_RC_OK;
 }
 
-enum BalancingControlReturnCode bal_control_set_balancing_status_flag(enum CellboardId cellboard, uint32_t flag) {
+enum BalancingControlReturnCode bal_control_api_set_balancing_status_flag(enum CellboardId cellboard, uint32_t flag) {
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
     }
@@ -113,7 +113,7 @@ enum BalancingControlReturnCode bal_control_set_balancing_status_flag(enum Cellb
     return BAL_CONTROL_RC_OK;
 }
 
-uint32_t bal_control_get_balancing_status(enum CellboardId cellboard) {
+uint32_t bal_control_api_get_balancing_status(enum CellboardId cellboard) {
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return 0;
     }

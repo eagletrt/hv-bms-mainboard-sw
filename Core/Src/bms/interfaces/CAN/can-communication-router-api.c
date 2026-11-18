@@ -6,12 +6,16 @@
  *
  * \brief Routing of the received CAN frames to the modules that handle them
  *
- * \details libcan generates a distinct struct for each cellboard (TsacCellboard1Voltage,
+ * \details BMS network: libcan generates a distinct struct for each cellboard (TsacCellboard1Voltage,
  * TsacCellboard2Voltage, ...) but all of them share the same packed layout and live at
  * offset 0 of the same messages union. Every per-cellboard message is therefore read through
  * the cellboard 1 member of the union by a single handler that takes the cellboard as a
- * parameter, and a route table maps each frame ID to its handler and cellboard.
+ * parameter, and a route table maps each frame ID to its handler and cellboard. Messages not sent
+ * by a cellboard, such as the IVT current, live in the same table with CELLBOARD_ID_COUNT as cellboard.
  * The static assertions below break the build if a libcan update makes the layouts diverge.
+ *
+ * Primary network: the few messages addressed to the mainboard are handled by a switch,
+ * and the flashing messages of every board are forwarded as flash requests.
  */
 
 #include "can-communication-router-api.h"
@@ -22,12 +26,16 @@
 #include "eagletrt.h"
 #include "can-bms-api.h"
 #include "can-bms.h"
+#include "can-primary-api.h"
+#include "can-primary.h"
+#include "flash-control.h"
 #include "mainboard-def.h"
 #include "voltages-api.h"
 #include "temperatures-api.h"
 #include "internal-voltages-api.h"
 #include "bal-control-api.h"
 #include "cellboards-monitor-api.h"
+#include "request-control-api.h"
 #include "eagletrt-api.h"
 
 // Every cellboard message must have the same layout as the cellboard 1 one
@@ -195,7 +203,7 @@ EAGLETRT_STATIC void prv_handle_balancing(enum CellboardId cellboard, const unio
     // of the first byte, which is already the layout of the balancing status flag
     uint32_t cells = 0U;
     memcpy(&cells, &messages->tsaccellboard1balancing, CAN_ROUTER_BALANCING_FLAG_SIZE);
-    bal_control_set_balancing_status_flag(cellboard, cells);
+    bal_control_api_set_balancing_status_flag(cellboard, cells);
 }
 
 /*!
@@ -276,82 +284,131 @@ EAGLETRT_STATIC void prv_handle_error(enum CellboardId cellboard, const union Ca
 }
 
 /*!
- * \brief Handler of a per-cellboard message
+ * \brief Forward the current measured by the IVT to the internal voltages module
  *
- * \param[in] cellboard The cellboard that sent the message
+ * \param[in] cellboard Unused, the message is not sent by a cellboard
+ * \param[in] messages The deserialized message
+ */
+EAGLETRT_STATIC void prv_handle_current(enum CellboardId cellboard, const union CanBmsMessages *messages) {
+    (void)cellboard;
+
+    constexpr ampere ampere_per_milliampere = 0.001F;
+    // TODO: handle the other fields of this message, which are not used yet
+    const milliampere current = (milliampere)messages->ivtmessageresulti.current;
+    internal_voltages_api_set_current(current * ampere_per_milliampere);
+}
+
+/*!
+ * \brief Forward a request to the request control
+ *
+ * \param[in] request The request to forward
+ *
+ * \retval CAN_COMMUNICATION_RC_ERROR if the request control rejected the request
+ * \retval CAN_COMMUNICATION_RC_OK otherwise
+ */
+EAGLETRT_STATIC enum CanCommunicationReturnCode prv_forward_request(struct RequestControlRequest request) {
+    if (request_control_api_handle_request(request) != REQUEST_CONTROL_RC_OK) {
+        return CAN_COMMUNICATION_RC_ERROR;
+    }
+    return CAN_COMMUNICATION_RC_OK;
+}
+
+/*!
+ * \brief Handler of a BMS network message
+ *
+ * \param[in] cellboard The cellboard that sent the message, CELLBOARD_ID_COUNT if not sent by a cellboard
  * \param[in] messages The deserialized message
  */
 typedef void (*can_communication_router_handler)(enum CellboardId cellboard, const union CanBmsMessages *messages);
 
 /*!
- * \brief Association between a per-cellboard frame ID, its cellboard and its handler
+ * \brief Association between a BMS network frame ID, its sender cellboard and its handler
  */
 struct CanCommunicationRouterRoute {
     enum CanBmsMessageFrameId id;            /*!< The frame ID of the message */
-    enum CellboardId cellboard;              /*!< The cellboard that sends the message */
+    uint8_t length;                          /*!< The expected length of the frame payload, in bytes */
+    enum CellboardId cellboard;              /*!< The cellboard that sends the message, CELLBOARD_ID_COUNT if none */
     can_communication_router_handler handle; /*!< The function that handles the message */
 };
 
 /*!
- * \brief Routes of the per-cellboard messages received on the BMS network
+ * \brief Routes of the messages received on the BMS network
  */
 EAGLETRT_STATIC const struct CanCommunicationRouterRoute bms_routes[] = {
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGE, CELLBOARD_ID_0, prv_handle_voltage },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGE, CELLBOARD_ID_1, prv_handle_voltage },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGE, CELLBOARD_ID_2, prv_handle_voltage },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGE, CELLBOARD_ID_3, prv_handle_voltage },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGE, CELLBOARD_ID_4, prv_handle_voltage },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGE, CELLBOARD_ID_5, prv_handle_voltage },
+    { CAN_BMS_MESSAGE_FRAME_ID_IVTMESSAGERESULTI, can_bms_byte_size_ivtmessageresulti, CELLBOARD_ID_COUNT, prv_handle_current },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGEINFO, CELLBOARD_ID_0, prv_handle_voltage_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGEINFO, CELLBOARD_ID_1, prv_handle_voltage_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGEINFO, CELLBOARD_ID_2, prv_handle_voltage_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGEINFO, CELLBOARD_ID_3, prv_handle_voltage_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGEINFO, CELLBOARD_ID_4, prv_handle_voltage_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGEINFO, CELLBOARD_ID_5, prv_handle_voltage_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGE, can_bms_byte_size_tsaccellboard1voltage, CELLBOARD_ID_0, prv_handle_voltage },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGE, can_bms_byte_size_tsaccellboard2voltage, CELLBOARD_ID_1, prv_handle_voltage },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGE, can_bms_byte_size_tsaccellboard3voltage, CELLBOARD_ID_2, prv_handle_voltage },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGE, can_bms_byte_size_tsaccellboard4voltage, CELLBOARD_ID_3, prv_handle_voltage },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGE, can_bms_byte_size_tsaccellboard5voltage, CELLBOARD_ID_4, prv_handle_voltage },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGE, can_bms_byte_size_tsaccellboard6voltage, CELLBOARD_ID_5, prv_handle_voltage },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATURE, CELLBOARD_ID_0, prv_handle_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATURE, CELLBOARD_ID_1, prv_handle_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATURE, CELLBOARD_ID_2, prv_handle_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATURE, CELLBOARD_ID_3, prv_handle_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATURE, CELLBOARD_ID_4, prv_handle_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATURE, CELLBOARD_ID_5, prv_handle_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGEINFO, can_bms_byte_size_tsaccellboard1voltageinfo, CELLBOARD_ID_0, prv_handle_voltage_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGEINFO, can_bms_byte_size_tsaccellboard2voltageinfo, CELLBOARD_ID_1, prv_handle_voltage_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGEINFO, can_bms_byte_size_tsaccellboard3voltageinfo, CELLBOARD_ID_2, prv_handle_voltage_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGEINFO, can_bms_byte_size_tsaccellboard4voltageinfo, CELLBOARD_ID_3, prv_handle_voltage_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGEINFO, can_bms_byte_size_tsaccellboard5voltageinfo, CELLBOARD_ID_4, prv_handle_voltage_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGEINFO, can_bms_byte_size_tsaccellboard6voltageinfo, CELLBOARD_ID_5, prv_handle_voltage_info },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATUREINFO, CELLBOARD_ID_0, prv_handle_temperature_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATUREINFO, CELLBOARD_ID_1, prv_handle_temperature_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATUREINFO, CELLBOARD_ID_2, prv_handle_temperature_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATUREINFO, CELLBOARD_ID_3, prv_handle_temperature_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATUREINFO, CELLBOARD_ID_4, prv_handle_temperature_info },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATUREINFO, CELLBOARD_ID_5, prv_handle_temperature_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATURE, can_bms_byte_size_tsaccellboard1temperature, CELLBOARD_ID_0, prv_handle_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATURE, can_bms_byte_size_tsaccellboard2temperature, CELLBOARD_ID_1, prv_handle_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATURE, can_bms_byte_size_tsaccellboard3temperature, CELLBOARD_ID_2, prv_handle_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATURE, can_bms_byte_size_tsaccellboard4temperature, CELLBOARD_ID_3, prv_handle_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATURE, can_bms_byte_size_tsaccellboard5temperature, CELLBOARD_ID_4, prv_handle_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATURE, can_bms_byte_size_tsaccellboard6temperature, CELLBOARD_ID_5, prv_handle_temperature },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCINGTEMPERATURE, CELLBOARD_ID_0, prv_handle_balancing_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCINGTEMPERATURE, CELLBOARD_ID_1, prv_handle_balancing_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCINGTEMPERATURE, CELLBOARD_ID_2, prv_handle_balancing_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCINGTEMPERATURE, CELLBOARD_ID_3, prv_handle_balancing_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCINGTEMPERATURE, CELLBOARD_ID_4, prv_handle_balancing_temperature },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCINGTEMPERATURE, CELLBOARD_ID_5, prv_handle_balancing_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATUREINFO, can_bms_byte_size_tsaccellboard1temperatureinfo, CELLBOARD_ID_0, prv_handle_temperature_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATUREINFO, can_bms_byte_size_tsaccellboard2temperatureinfo, CELLBOARD_ID_1, prv_handle_temperature_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATUREINFO, can_bms_byte_size_tsaccellboard3temperatureinfo, CELLBOARD_ID_2, prv_handle_temperature_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATUREINFO, can_bms_byte_size_tsaccellboard4temperatureinfo, CELLBOARD_ID_3, prv_handle_temperature_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATUREINFO, can_bms_byte_size_tsaccellboard5temperatureinfo, CELLBOARD_ID_4, prv_handle_temperature_info },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATUREINFO, can_bms_byte_size_tsaccellboard6temperatureinfo, CELLBOARD_ID_5, prv_handle_temperature_info },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCING, CELLBOARD_ID_0, prv_handle_balancing },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCING, CELLBOARD_ID_1, prv_handle_balancing },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCING, CELLBOARD_ID_2, prv_handle_balancing },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCING, CELLBOARD_ID_3, prv_handle_balancing },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCING, CELLBOARD_ID_4, prv_handle_balancing },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCING, CELLBOARD_ID_5, prv_handle_balancing },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCINGTEMPERATURE, can_bms_byte_size_tsaccellboard1balancingtemperature, CELLBOARD_ID_0, prv_handle_balancing_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCINGTEMPERATURE, can_bms_byte_size_tsaccellboard2balancingtemperature, CELLBOARD_ID_1, prv_handle_balancing_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCINGTEMPERATURE, can_bms_byte_size_tsaccellboard3balancingtemperature, CELLBOARD_ID_2, prv_handle_balancing_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCINGTEMPERATURE, can_bms_byte_size_tsaccellboard4balancingtemperature, CELLBOARD_ID_3, prv_handle_balancing_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCINGTEMPERATURE, can_bms_byte_size_tsaccellboard5balancingtemperature, CELLBOARD_ID_4, prv_handle_balancing_temperature },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCINGTEMPERATURE, can_bms_byte_size_tsaccellboard6balancingtemperature, CELLBOARD_ID_5, prv_handle_balancing_temperature },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1FSM, CELLBOARD_ID_0, prv_handle_fsm },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2FSM, CELLBOARD_ID_1, prv_handle_fsm },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3FSM, CELLBOARD_ID_2, prv_handle_fsm },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4FSM, CELLBOARD_ID_3, prv_handle_fsm },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5FSM, CELLBOARD_ID_4, prv_handle_fsm },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6FSM, CELLBOARD_ID_5, prv_handle_fsm },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCING, can_bms_byte_size_tsaccellboard1balancing, CELLBOARD_ID_0, prv_handle_balancing },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCING, can_bms_byte_size_tsaccellboard2balancing, CELLBOARD_ID_1, prv_handle_balancing },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCING, can_bms_byte_size_tsaccellboard3balancing, CELLBOARD_ID_2, prv_handle_balancing },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCING, can_bms_byte_size_tsaccellboard4balancing, CELLBOARD_ID_3, prv_handle_balancing },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCING, can_bms_byte_size_tsaccellboard5balancing, CELLBOARD_ID_4, prv_handle_balancing },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCING, can_bms_byte_size_tsaccellboard6balancing, CELLBOARD_ID_5, prv_handle_balancing },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1ERROR, CELLBOARD_ID_0, prv_handle_error },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2ERROR, CELLBOARD_ID_1, prv_handle_error },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3ERROR, CELLBOARD_ID_2, prv_handle_error },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4ERROR, CELLBOARD_ID_3, prv_handle_error },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5ERROR, CELLBOARD_ID_4, prv_handle_error },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6ERROR, CELLBOARD_ID_5, prv_handle_error },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1FSM, can_bms_byte_size_tsaccellboard1fsm, CELLBOARD_ID_0, prv_handle_fsm },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2FSM, can_bms_byte_size_tsaccellboard2fsm, CELLBOARD_ID_1, prv_handle_fsm },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3FSM, can_bms_byte_size_tsaccellboard3fsm, CELLBOARD_ID_2, prv_handle_fsm },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4FSM, can_bms_byte_size_tsaccellboard4fsm, CELLBOARD_ID_3, prv_handle_fsm },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5FSM, can_bms_byte_size_tsaccellboard5fsm, CELLBOARD_ID_4, prv_handle_fsm },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6FSM, can_bms_byte_size_tsaccellboard6fsm, CELLBOARD_ID_5, prv_handle_fsm },
+
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1ERROR, can_bms_byte_size_tsaccellboard1error, CELLBOARD_ID_0, prv_handle_error },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2ERROR, can_bms_byte_size_tsaccellboard2error, CELLBOARD_ID_1, prv_handle_error },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3ERROR, can_bms_byte_size_tsaccellboard3error, CELLBOARD_ID_2, prv_handle_error },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4ERROR, can_bms_byte_size_tsaccellboard4error, CELLBOARD_ID_3, prv_handle_error },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5ERROR, can_bms_byte_size_tsaccellboard5error, CELLBOARD_ID_4, prv_handle_error },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6ERROR, can_bms_byte_size_tsaccellboard6error, CELLBOARD_ID_5, prv_handle_error },
 };
+
+/*!
+ * \brief Find the route of a per-cellboard message
+ *
+ * \param[in] id The frame ID of the message
+ *
+ * \return The route of the message, \c NULL if the message is not routed
+ */
+EAGLETRT_STATIC const struct CanCommunicationRouterRoute *prv_find_bms_route(uint32_t id) {
+    for (size_t i = 0U; i < sizeof(bms_routes) / sizeof(bms_routes[0]); ++i) {
+        if (bms_routes[i].id == id) {
+            return &bms_routes[i];
+        }
+    }
+    return nullptr;
+}
 
 enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct CanCommunicationFrame *frame) {
     if (frame == nullptr) {
@@ -361,24 +418,104 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
         return CAN_COMMUNICATION_RC_INVALID_NETWORK;
     }
 
+    const struct CanCommunicationRouterRoute *route = prv_find_bms_route(frame->id);
+    if (route == nullptr) {
+        // Valid BMS message that no module handles
+        return CAN_COMMUNICATION_RC_OK;
+    }
+
+    // A length mismatch means the sender uses a different libcan version: decoding the payload would give garbage
+    if (frame->length != route->length) {
+        return CAN_COMMUNICATION_RC_INVALID_LENGTH;
+    }
+
     union CanBmsMessages message = { 0 };
     if (can_bms_api_deserialize_from_id(frame->id, frame->data, &message) != 0) {
         return CAN_COMMUNICATION_RC_ERROR;
     }
 
-    if (frame->id == CAN_BMS_MESSAGE_FRAME_ID_IVTMESSAGERESULTI) {
-        constexpr ampere ampere_per_milliampere = 0.001F;
-        // TODO: handle the other fields of this message, which are not used yet
-        const milliampere current = (milliampere)message.ivtmessageresulti.current;
-        internal_voltages_api_set_current(current * ampere_per_milliampere);
-        return CAN_COMMUNICATION_RC_OK;
+    route->handle(route->cellboard, &message);
+    return CAN_COMMUNICATION_RC_OK;
+}
+
+enum CanCommunicationReturnCode can_communication_router_api_receive_primary(struct CanCommunicationFrame *frame) {
+    if (frame == nullptr) {
+        return CAN_COMMUNICATION_RC_NULL_POINTER;
     }
 
-    for (size_t i = 0U; i < sizeof(bms_routes) / sizeof(bms_routes[0]); ++i) {
-        if (bms_routes[i].id == frame->id) {
-            bms_routes[i].handle(bms_routes[i].cellboard, &message);
-            break;
+    if (!can_primary_api_id_is_valid(frame->id)) {
+        return CAN_COMMUNICATION_RC_INVALID_NETWORK;
+    }
+
+    // The length is checked only for the messages whose payload is read, see the switch below:
+    // a mismatch means the sender uses a different libcan version
+    union CanPrimaryMessages message = { 0 };
+    if (can_primary_api_deserialize_from_id(frame->id, frame->data, &message) != 0) {
+        return CAN_COMMUNICATION_RC_ERROR;
+    }
+
+    switch (frame->id) {
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDFLASHINGRX: {
+            const struct RequestControlRequest request = {
+                .request_type = REQUEST_CONTROL_REQUEST_FLASH,
+                .request_data = { .flash_request_state = FLASH_CONTROL_REQUEST_MAINBOARD },
+            };
+            return prv_forward_request(request);
         }
+
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET: {
+            if (frame->length != can_primary_byte_size_bmsset) {
+                return CAN_COMMUNICATION_RC_INVALID_LENGTH;
+            }
+
+            // Anything that is not an explicit "on" turns the TS off
+            const struct RequestControlRequest request = {
+                .request_type = REQUEST_CONTROL_REQUEST_TS,
+                .request_data = {
+                    .ts_request_state = (message.bmsset.status == 1U)
+                                            ? REQUEST_CONTROL_TS_REQUEST_STATE_ON
+                                            : REQUEST_CONTROL_TS_REQUEST_STATE_OFF,
+                },
+            };
+            return prv_forward_request(request);
+        }
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET: {
+            if (frame->length != can_primary_byte_size_raspberrytsacbalancingset) {
+                return CAN_COMMUNICATION_RC_INVALID_LENGTH;
+            }
+
+            const struct RequestControlRequest request = {
+                .request_type = REQUEST_CONTROL_REQUEST_BALANCING,
+                .request_data = {
+                    .balancing_request_data = {
+                        .balancing_request_state = (message.raspberrytsacbalancingset.start != 0U),
+                        .threshold = message.raspberrytsacbalancingset.threshold,
+                    },
+                },
+            };
+            return prv_forward_request(request);
+        }
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM:
+            // TODO: feed the ECU watchdog once the mainboard-watchdogs module is implemented;
+            // the vehicle and kraken status are not used
+            break;
+        default:
+
+            if (frame->id >= CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1FLASHINGTX && frame->id <= CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6FLASHINGRX) {
+                const struct RequestControlRequest request = {
+                    .request_type = REQUEST_CONTROL_REQUEST_FLASH,
+                    .request_data = { .flash_request_state = FLASH_CONTROL_REQUEST_CELLBOARD },
+                };
+                return prv_forward_request(request);
+            } else if (frame->id >= CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFLASHINGTX && frame->id <= CAN_PRIMARY_MESSAGE_FRAME_ID_STEERINGBOARDFLASHINGRX) {
+                const struct RequestControlRequest request = {
+                    .request_type = REQUEST_CONTROL_REQUEST_FLASH,
+                    .request_data = { .flash_request_state = FLASH_CONTROL_REQUEST_GENERAL },
+                };
+                return prv_forward_request(request);
+            }
+
+            break;
     }
 
     return CAN_COMMUNICATION_RC_OK;
