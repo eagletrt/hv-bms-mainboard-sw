@@ -38,7 +38,7 @@ enum CanCommunicationReturnCode : uint8_t {
     CAN_COMMUNICATION_RC_OK,                    /*!< Operation completed successfully. */
     CAN_COMMUNICATION_RC_NULL_POINTER,          /*!< A required pointer argument was NULL. */
     CAN_COMMUNICATION_RC_INVALID_NETWORK,       /*!< Network ID is out of range or already initialized. */
-    CAN_COMMUNICATION_RC_INVALID_LENGTH,        /*!< Frame length is larger than CAN_COMMUNICATION_FRAME_DATA_SIZE. */
+    CAN_COMMUNICATION_RC_INVALID_LENGTH,        /*!< Frame length is larger than CAN_COMMUNICATION_FRAME_DATA_SIZE or differs from the expected one. */
     CAN_COMMUNICATION_RC_QUEUE_FULL,            /*!< Target queue has no space left. */
     CAN_COMMUNICATION_RC_QUEUE_EMPTY,           /*!< Target queue is empty. */
     CAN_COMMUNICATION_RC_TRANSMISSION_ERROR,    /*!< The user-supplied send callback reported failure. */
@@ -82,6 +82,9 @@ typedef enum CanCommunicationReturnCode (*can_communication_send_callback)(const
  *
  * \retval CAN_COMMUNICATION_RC_OK on success.
  * \retval CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR if dispatch fails.
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if \p frame is \c NULL.
+ * \retval CAN_COMMUNICATION_RC_INVALID_NETWORK if the frame's network is invalid.
+ * \retval CAN_COMMUNICATION_RC_ERROR if deserialization fails.
  */
 typedef enum CanCommunicationReturnCode (*can_communication_receive_callback)(struct CanCommunicationFrame *frame);
 

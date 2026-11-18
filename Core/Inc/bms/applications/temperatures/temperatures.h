@@ -4,7 +4,7 @@
  * \author Riccardo Segala [riccardo.segala@icloud.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Data types and structures for the cells temperature measurement and control
+ * \brief Data types and structures for the cells and discharge resistors temperature measurement and control
  */
 
 #ifndef TEMPERATURES_H
@@ -24,7 +24,7 @@ enum TemperaturesReturnCode {
 };
 
 /*!
- * \brief Structure to hold the temperature information of a group of cells
+ * \brief Structure to hold the temperature information of a group of sensors
  */
 struct TemperaturesInfo {
     celsius min;     /*!< The minimum temperature */
@@ -36,11 +36,14 @@ struct TemperaturesInfo {
  * \brief Structure to hold the temperature data for each cellboard
  */
 struct TemperaturesHandler {
-    celsius temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT]; /*!< The temperature values for each cellboard */
-    volatile bool is_updated_temperatures[CELLBOARD_COUNT];                     /*!< Indicates if the temperatures for a specific cellboard have been updated */
+    celsius cell_temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT]; /*!< The cell temperature values for each cellboard */
+    volatile bool is_updated_cell_temperatures[CELLBOARD_COUNT];                     /*!< Indicates if the cell temperatures for a specific cellboard have been updated */
 
-    struct TemperaturesInfo cellboard_info[CELLBOARD_COUNT]; /*!< The temperature information for each cellboard */
-    volatile bool is_updated_info[CELLBOARD_COUNT];          /*!< Indicates if the temperature information for a specific cellboard has been updated */
+    struct TemperaturesInfo cell_temperatures_info[CELLBOARD_COUNT];  /*!< The cell temperature information for each cellboard, as reported by the cellboard */
+    volatile bool is_updated_cell_temperatures_info[CELLBOARD_COUNT]; /*!< Indicates if the cell temperature information for a specific cellboard has been updated */
+
+    celsius discharge_temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT]; /*!< The discharge resistor temperature values for each cellboard */
+    volatile bool is_updated_discharge_temperatures[CELLBOARD_COUNT];                        /*!< Indicates if the discharge resistor temperatures for a specific cellboard have been updated */
 };
 
 #endif // TEMPERATURES_H

@@ -26,7 +26,6 @@
 
 #include "can-communication.h"
 #include "can-communication-api.h"
-#include "can-primary.h"
 #include "logger-api.h"
 #include "logger.h"
 #include "main.h"
@@ -246,15 +245,17 @@ void prv_can_primary_start() {
       as the combination of:
       STDID + RTR + IDE + 4 most significant bits of EXTID
     */
+
+    //TODO: if there are too many interrupts then a filter could be added
     CAN_FilterTypeDef filter = {
         .FilterActivation = CAN_FILTER_ENABLE,
         .FilterBank = 0,
         .FilterFIFOAssignment = CAN_FILTER_FIFO0,
-        .FilterIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET << 5,
-        .FilterIdLow = CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFSM << 5,
-        .FilterMaskIdHigh = CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET << 5,
-        .FilterMaskIdLow = 0x20U << 5,
-        .FilterMode = CAN_FILTERMODE_IDLIST,
+        .FilterIdHigh = 0, // A zero mask makes every ID match: the router discards
+        .FilterIdLow = 0,  // the messages that are not addressed to the mainboard
+        .FilterMaskIdHigh = 0,
+        .FilterMaskIdLow = 0,
+        .FilterMode = CAN_FILTERMODE_IDMASK,
         .FilterScale = CAN_FILTERSCALE_16BIT,
         .SlaveStartFilterBank = 14
     };

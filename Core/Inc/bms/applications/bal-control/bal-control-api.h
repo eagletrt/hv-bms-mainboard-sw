@@ -78,4 +78,35 @@ bool bal_control_api_is_pack_balanced(void);
  */
 volt bal_control_api_get_target_voltage(void);
 
+/*!
+ * \brief Sets the balancing status for a specific cellboard
+ *
+ * \param set The desired balancing status (true for balancing, false for not balancing)
+ * \param cellboard The cellboard to set the status for
+ * \param cell The specific cell within the cellboard to set the status for
+ *
+ * \retval BAL_CONTROL_RC_OK if the status was set successfully
+ * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the parameters are invalid
+ */
+enum BalancingControlReturnCode bal_control_api_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell);
+
+/*!
+ * \brief Sets the balancing status of all the cells of a cellboard at once
+ *
+ * \param cellboard The cellboard to set the status for
+ * \param flag Bit flag of the cells being discharged, bit N for cell N + 1
+ *
+ * \retval BAL_CONTROL_RC_OK if the status was set successfully
+ * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the cellboard is invalid
+ */
+enum BalancingControlReturnCode bal_control_api_set_balancing_status_flag(enum CellboardId cellboard, uint32_t flag);
+
+/*!
+ * \brief Gets the balancing status for a specific cellboard
+ *
+ * \param cellboard The cellboard to get the status for
+ * \returns The balancing status for the specified cellboard
+ */
+uint32_t bal_control_api_get_balancing_status(enum CellboardId cellboard);
+
 #endif // BAL_CONTROL_API_H
