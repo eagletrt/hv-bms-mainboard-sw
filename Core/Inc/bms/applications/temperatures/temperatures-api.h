@@ -33,26 +33,6 @@ void temperatures_api_init(void);
 enum TemperaturesReturnCode temperatures_api_set_cell_temperature(enum CellboardId cellboard, uint8_t index, celsius temperature);
 
 /*!
- * \brief Reset the updated flags for the cell temperatures of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval TEMPERATURES_RC_OK otherwise
- */
-enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_updated_flags(enum CellboardId cellboard);
-
-/*!
- * \brief Reset the updated flags for the cell temperature information of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval TEMPERATURES_RC_OK otherwise
- */
-enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_info_updated_flags(enum CellboardId cellboard);
-
-/*!
  * \brief Set the cell temperature information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id
@@ -103,16 +83,6 @@ struct TemperaturesInfo temperatures_api_get_pack_cell_temperatures_info(void);
  * \retval TEMPERATURES_RC_OK otherwise
  */
 enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum CellboardId cellboard, uint8_t index, celsius temperature);
-
-/*!
- * \brief Reset the updated flags for the discharge resistor temperatures of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval TEMPERATURES_RC_OK otherwise
- */
-enum TemperaturesReturnCode temperatures_api_reset_discharge_temperatures_updated_flags(enum CellboardId cellboard);
 
 /*!
  * \brief Get the temperature of a single discharge resistor

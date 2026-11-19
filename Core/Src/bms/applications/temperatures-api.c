@@ -57,25 +57,8 @@ enum TemperaturesReturnCode temperatures_api_set_cell_temperature(enum Cellboard
     }
 
     temperatures_handler.cell_temperatures[cellboard][index] = temperature;
-    temperatures_handler.is_updated_cell_temperatures[cellboard] = true;
 
     return TEMPERATURES_RC_OK;
-}
-
-enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_updated_flags(enum CellboardId cellboard) {
-    if (cellboard < CELLBOARD_COUNT) {
-        temperatures_handler.is_updated_cell_temperatures[cellboard] = false;
-        return TEMPERATURES_RC_OK;
-    }
-    return TEMPERATURES_RC_INVALID_CELLBOARD;
-}
-
-enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_info_updated_flags(enum CellboardId cellboard) {
-    if (cellboard < CELLBOARD_COUNT) {
-        temperatures_handler.is_updated_cell_temperatures_info[cellboard] = false;
-        return TEMPERATURES_RC_OK;
-    }
-    return TEMPERATURES_RC_INVALID_CELLBOARD;
 }
 
 enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(
@@ -90,7 +73,6 @@ enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(
     temperatures_handler.cell_temperatures_info[cellboard].min = min;
     temperatures_handler.cell_temperatures_info[cellboard].max = max;
     temperatures_handler.cell_temperatures_info[cellboard].average = average;
-    temperatures_handler.is_updated_cell_temperatures_info[cellboard] = true;
     temperatures_handler.is_received_cell_temperatures_info[cellboard] = true;
 
     return TEMPERATURES_RC_OK;
@@ -151,18 +133,9 @@ enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum Cell
     }
 
     temperatures_handler.discharge_temperatures[cellboard][index] = temperature;
-    temperatures_handler.is_updated_discharge_temperatures[cellboard] = true;
     temperatures_handler.is_received_discharge_temperatures[cellboard][index] = true;
 
     return TEMPERATURES_RC_OK;
-}
-
-enum TemperaturesReturnCode temperatures_api_reset_discharge_temperatures_updated_flags(enum CellboardId cellboard) {
-    if (cellboard < CELLBOARD_COUNT) {
-        temperatures_handler.is_updated_discharge_temperatures[cellboard] = false;
-        return TEMPERATURES_RC_OK;
-    }
-    return TEMPERATURES_RC_INVALID_CELLBOARD;
 }
 
 celsius temperatures_api_get_discharge_temperature(enum CellboardId cellboard, uint8_t index) {

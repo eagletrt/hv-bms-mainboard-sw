@@ -59,7 +59,7 @@ enum PHCCheckResult : uint8_t {
  *
  * \returns The result of the check, see \ref PHCCheckResult
  */
-typedef enum PHCCheckResult (*PHCCheckFunction)(void);
+typedef enum PHCCheckResult (*PHC_check_function)(void);
 
 /*!
  * \brief Structure representing a PHC check
@@ -71,7 +71,7 @@ struct PHCCheck {
         enum MainboardStatusFault fault;         /*!< The fault set when the check fails (kind FAULT) */
         enum MainboardStatusCondition condition; /*!< The condition updated with the result (kind CONDITION) */
     };
-    PHCCheckFunction check_function; /*!< The function to perform the check */
+    PHC_check_function check_function; /*!< The function to perform the check */
 };
 
 /*!

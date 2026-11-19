@@ -142,7 +142,8 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_current(void) {
     if (!internal_voltages_api_is_current_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (internal_voltages_api_get_current() >= PHC_MAX_CURRENT) {
+    const ampere current = internal_voltages_api_get_current();
+    if (current >= PHC_MAX_CURRENT || current <= PHC_MIN_CURRENT) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -175,14 +176,14 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cellboard_fault(void) {
             all_ok = false;
         }
 
-        uint8_t err = 0;
+        uint8_t error_idx = 0;
 
         while (errors != 0) {
             if (errors & 0x1) {
                 EAGLETRT_API_NOP();
             }
             errors >>= 1;
-            err++;
+            error_idx++;
         }
 
         uint32_t open_wires = cellboards_monitor_api_get_open_wires(i);
@@ -190,14 +191,14 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cellboard_fault(void) {
             all_ok = false;
         }
 
-        uint8_t open_wire_indx = 0;
+        uint8_t open_wire_idx = 0;
 
         while (open_wires != 0) {
             if (open_wires & 0x1) {
                 EAGLETRT_API_NOP();
             }
             open_wires >>= 1;
-            open_wire_indx++;
+            open_wire_idx++;
         }
 
         if (cellboards_monitor_api_get_state(i) == CELLBOARDS_MONITOR_STATE_ERROR) {
@@ -296,6 +297,7 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
     return PHC_RC_OK;
 }
 
+// TODO: switch these out for watchdogs so that this can be deleted
 enum PHCReturnCode phc_api_check_phc(void) {
     for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
         if (phc_handler.last_check_updated[control]) {

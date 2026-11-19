@@ -135,7 +135,9 @@
 
 /*!
  * \brief Thresholds for the current PHC checks
+ * \details The current is signed, the minimum is the limit in the opposite direction
  */
+#define PHC_MIN_CURRENT (0)
 #define PHC_MAX_CURRENT (0)
 
 /*!

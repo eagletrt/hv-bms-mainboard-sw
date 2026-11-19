@@ -88,26 +88,6 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version_info(
     bool dirty);
 
 /*!
- * \brief Reset the updated flag for the state of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval CELLBOARDS_MONITOR_RC_OK otherwise
- */
-enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_state_updated_flag(enum CellboardId cellboard);
-
-/*!
- * \brief Reset the updated flag for the errors of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval CELLBOARDS_MONITOR_RC_OK otherwise
- */
-enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_errors_updated_flag(enum CellboardId cellboard);
-
-/*!
  * \brief Get the FSM state of a specific cellboard
  *
  * \param[in] cellboard The cellboard id

@@ -34,26 +34,6 @@ enum VoltagesReturnCode voltages_api_init(void);
 enum VoltagesReturnCode voltages_api_set_value(enum CellboardId cellboard, uint8_t index, volt voltage);
 
 /*!
- * \brief Reset the updated flags for the voltages of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval VOLTAGES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval VOLTAGES_RC_OK otherwise
- */
-enum VoltagesReturnCode voltages_api_reset_voltages_updated_flags(enum CellboardId cellboard);
-
-/*!
- * \brief Reset the updated flags for the voltage information of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval VOLTAGES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval VOLTAGES_RC_OK otherwise
- */
-enum VoltagesReturnCode voltages_api_reset_info_updated_flags(enum CellboardId cellboard);
-
-/*!
  * \brief Set the voltage information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id

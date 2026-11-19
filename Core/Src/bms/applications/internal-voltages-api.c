@@ -28,7 +28,6 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
     }
 
     internal_voltages_handler.voltages[index] = voltage;
-    internal_voltages_handler.is_updated_voltages = true;
     internal_voltages_handler.is_received_voltages[index] = true;
 
     return INTERNAL_VOLTAGES_RC_OK;
@@ -36,16 +35,7 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
 
 void internal_voltages_api_set_current(ampere current) {
     internal_voltages_handler.current = current;
-    internal_voltages_handler.is_updated_current = true;
     internal_voltages_handler.is_received_current = true;
-}
-
-void internal_voltages_api_reset_voltages_updated_flag(void) {
-    internal_voltages_handler.is_updated_voltages = false;
-}
-
-void internal_voltages_api_reset_current_updated_flag(void) {
-    internal_voltages_handler.is_updated_current = false;
 }
 
 volt internal_voltages_api_get_value(enum InternalVoltagesIndex index) {

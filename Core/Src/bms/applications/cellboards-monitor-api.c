@@ -47,7 +47,6 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_state(enum Cellboard
     }
 
     cellboards_monitor_handler.states[cellboard] = state;
-    cellboards_monitor_handler.is_updated_state[cellboard] = true;
     cellboards_monitor_handler.is_received_state[cellboard] = true;
 
     return CELLBOARDS_MONITOR_RC_OK;
@@ -61,7 +60,6 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_errors(enum Cellboar
     // Drop the bits that do not correspond to any error so they cannot report a fault
     cellboards_monitor_handler.errors[cellboard] = errors & CELLBOARDS_MONITOR_ERRORS_MASK;
     cellboards_monitor_handler.open_wires[cellboard] = open_wires & CELLBOARDS_MONITOR_OPEN_WIRES_MASK;
-    cellboards_monitor_handler.is_updated_errors[cellboard] = true;
     cellboards_monitor_handler.is_received_errors[cellboard] = true;
 
     return CELLBOARDS_MONITOR_RC_OK;
@@ -107,22 +105,6 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version_info(
     version->dirty = dirty;
 
     return CELLBOARDS_MONITOR_RC_OK;
-}
-
-enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_state_updated_flag(enum CellboardId cellboard) {
-    if (cellboard < CELLBOARD_COUNT) {
-        cellboards_monitor_handler.is_updated_state[cellboard] = false;
-        return CELLBOARDS_MONITOR_RC_OK;
-    }
-    return CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD;
-}
-
-enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_errors_updated_flag(enum CellboardId cellboard) {
-    if (cellboard < CELLBOARD_COUNT) {
-        cellboards_monitor_handler.is_updated_errors[cellboard] = false;
-        return CELLBOARDS_MONITOR_RC_OK;
-    }
-    return CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD;
 }
 
 enum CellboardsMonitorState cellboards_monitor_api_get_state(enum CellboardId cellboard) {

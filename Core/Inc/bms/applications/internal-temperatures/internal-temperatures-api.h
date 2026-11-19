@@ -33,11 +33,6 @@ void internal_temperatures_api_init(void);
 enum InternalTemperaturesReturnCode internal_temperatures_api_set_value(enum InternalTemperaturesIndex index, celsius temperature);
 
 /*!
- * \brief Reset the updated flag of the internal temperatures
- */
-void internal_temperatures_api_reset_temperatures_updated_flag(void);
-
-/*!
  * \brief Get a single internal temperature value
  *
  * \param[in] index The index of the temperature

@@ -44,7 +44,6 @@ enum InternalTemperaturesIndex {
  */
 struct InternalTemperaturesHandler {
     celsius temperatures[INTERNAL_TEMPERATURES_INDEX_COUNT];                   /*!< The internal temperature values */
-    volatile bool is_updated_temperatures;                                     /*!< Indicates if the internal temperatures have been updated */
     volatile bool is_received_temperatures[INTERNAL_TEMPERATURES_INDEX_COUNT]; /*!< Indicates if each internal temperature has been received at least once, never reset */
 };
 

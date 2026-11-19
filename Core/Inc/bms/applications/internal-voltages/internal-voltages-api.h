@@ -41,16 +41,6 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
 void internal_voltages_api_set_current(ampere current);
 
 /*!
- * \brief Reset the updated flag of the internal voltages
- */
-void internal_voltages_api_reset_voltages_updated_flag(void);
-
-/*!
- * \brief Reset the updated flag of the current
- */
-void internal_voltages_api_reset_current_updated_flag(void);
-
-/*!
  * \brief Get a single internal voltage value
  *
  * \param[in] index The index of the voltage

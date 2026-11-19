@@ -51,11 +51,9 @@ struct InternalVoltagesInfo {
  */
 struct InternalVoltagesHandler {
     volt voltages[INTERNAL_VOLTAGES_INDEX_COUNT];                      /*!< The internal voltage values */
-    volatile bool is_updated_voltages;                                 /*!< Indicates if the internal voltages have been updated */
     volatile bool is_received_voltages[INTERNAL_VOLTAGES_INDEX_COUNT]; /*!< Indicates if each internal voltage has been received at least once, never reset */
 
     ampere current;                    /*!< The current value */
-    volatile bool is_updated_current;  /*!< Indicates if the current has been updated */
     volatile bool is_received_current; /*!< Indicates if the current has been received at least once, never reset */
 };
 
