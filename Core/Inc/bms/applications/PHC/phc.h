@@ -56,7 +56,8 @@ typedef bool (*PHCCheckFunction)(void);
  * \brief Structure representing a PHC check
  */
 struct PHCCheck {
-    enum PHCCheckKind kind; /*!< Whether the check sets a fault or updates a condition */
+    enum PHCControl control; /*!< The PHC control to check */
+    enum PHCCheckKind kind;  /*!< Whether the check sets a fault or updates a condition */
     union {
         enum MainboardStatusFault fault;         /*!< The fault set when the check fails (kind FAULT) */
         enum MainboardStatusCondition condition; /*!< The condition updated with the result (kind CONDITION) */

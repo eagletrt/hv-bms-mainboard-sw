@@ -201,30 +201,22 @@ EAGLETRT_STATIC bool prv_phc_check_pack_balanced(void) {
     return bal_control_api_is_pack_balanced();
 }
 
-#define PHC_FAULT_CHECK(FAULT, FUNCTION) \
-    { .kind = PHC_CHECK_KIND_FAULT, .fault = (FAULT), .check_function = (FUNCTION) }
-#define PHC_CONDITION_CHECK(CONDITION, FUNCTION) \
-    { .kind = PHC_CHECK_KIND_CONDITION, .condition = (CONDITION), .check_function = (FUNCTION) }
-
 EAGLETRT_STATIC const struct PHCCheck phc_checks[PHC_CONTROL_COUNT] = {
-    [PHC_CONTROL_CELL_UNDER_VOLTAGE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE, prv_phc_check_cell_under_voltage),
-    [PHC_CONTROL_CELL_OVER_VOLTAGE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE, prv_phc_check_cell_over_voltage),
-    [PHC_CONTROL_CELL_UNDER_TEMPERATURE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE, prv_phc_check_cell_under_temperature),
-    [PHC_CONTROL_CELL_OVER_TEMPERATURE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE, prv_phc_check_cell_over_temperature),
-    [PHC_CONTROL_DISCHARGE_UNDER_TEMPERATURE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_DISCHARGE_UNDER_TEMPERATURE, prv_phc_check_discharge_under_temperature),
-    [PHC_CONTROL_DISCHARGE_OVER_TEMPERATURE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_DISCHARGE_OVER_TEMPERATURE, prv_phc_check_discharge_over_temperature),
-    [PHC_CONTROL_OVER_CURRENT] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_OVER_CURRENT, prv_phc_check_over_current),
-    [PHC_CONTROL_OVER_POWER] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_OVER_POWER, prv_phc_check_over_power),
-    [PHC_CONTROL_COOLING_UNDER_TEMPERATURE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE, prv_phc_check_cooling_under_temperature),
-    [PHC_CONTROL_COOLING_OVER_TEMPERATURE] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE, prv_phc_check_cooling_over_temperature),
-    [PHC_CONTROL_CELLBOARD_FAULT] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT, prv_phc_check_cellboard_fault),
-    [PHC_CONTROL_IMD_FAULT] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_IMD_FAULT, prv_phc_check_imd_fault),
-    [PHC_CONTROL_VOLTAGE_INDICATOR_DISCONNECTED] = PHC_FAULT_CHECK(MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, prv_phc_check_voltage_indicator_disconnected),
-    [PHC_CONTROL_PACK_BALANCED] = PHC_CONDITION_CHECK(MAINBOARD_STATUS_CONDITION_PACK_BALANCED, prv_phc_check_pack_balanced),
+    { PHC_CONTROL_CELL_UNDER_VOLTAGE,             PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE },             prv_phc_check_cell_under_voltage             },
+    { PHC_CONTROL_CELL_OVER_VOLTAGE,              PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE },              prv_phc_check_cell_over_voltage              },
+    { PHC_CONTROL_CELL_UNDER_TEMPERATURE,         PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE },         prv_phc_check_cell_under_temperature         },
+    { PHC_CONTROL_CELL_OVER_TEMPERATURE,          PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE },          prv_phc_check_cell_over_temperature          },
+    { PHC_CONTROL_DISCHARGE_UNDER_TEMPERATURE,    PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_DISCHARGE_UNDER_TEMPERATURE },    prv_phc_check_discharge_under_temperature    },
+    { PHC_CONTROL_DISCHARGE_OVER_TEMPERATURE,     PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_DISCHARGE_OVER_TEMPERATURE },     prv_phc_check_discharge_over_temperature     },
+    { PHC_CONTROL_OVER_CURRENT,                   PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_OVER_CURRENT },                   prv_phc_check_over_current                   },
+    { PHC_CONTROL_OVER_POWER,                     PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_OVER_POWER },                     prv_phc_check_over_power                     },
+    { PHC_CONTROL_COOLING_UNDER_TEMPERATURE,      PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE },      prv_phc_check_cooling_under_temperature      },
+    { PHC_CONTROL_COOLING_OVER_TEMPERATURE,       PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE },       prv_phc_check_cooling_over_temperature       },
+    { PHC_CONTROL_CELLBOARD_FAULT,                PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT },                prv_phc_check_cellboard_fault                },
+    { PHC_CONTROL_IMD_FAULT,                      PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_IMD_FAULT },                      prv_phc_check_imd_fault                      },
+    { PHC_CONTROL_VOLTAGE_INDICATOR_DISCONNECTED, PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED }, prv_phc_check_voltage_indicator_disconnected },
+    { PHC_CONTROL_PACK_BALANCED,                  PHC_CHECK_KIND_CONDITION, { .condition = MAINBOARD_STATUS_CONDITION_PACK_BALANCED },          prv_phc_check_pack_balanced                  },
 };
-
-#undef PHC_FAULT_CHECK
-#undef PHC_CONDITION_CHECK
 
 enum PHCReturnCode phc_api_init(void) {
     memset(&phc_handler, 0, sizeof(phc_handler));
