@@ -48,6 +48,27 @@ enum FeedbackReturnCode feedback_api_set_digital_value(enum FeedbackDigitalIndex
 enum FeedbackReturnCode feedback_api_set_analog_value(enum FeedbackAnalogIndex index, volt value);
 
 /*!
+ * \brief Get the filtered value of a digital feedback
+ *
+ * \details The value keeps the polarity of the physical signal (see \ref FeedbackDigitalIndex)
+ *
+ * \param index The index of the digital feedback
+ * \returns The filtered value, false if the index is invalid or the feedback is not ready
+ */
+bool feedback_api_get_digital_value(enum FeedbackDigitalIndex index);
+
+/*!
+ * \brief Get the filtered voltage of an analog feedback
+ *
+ * \details The voltage is the one at the MCU pin, use the FEEDBACK_TO_*_VOLT macros
+ *          to get the voltage of the measured line
+ *
+ * \param index The index of the analog feedback
+ * \returns The filtered voltage, 0 if the index is invalid or the feedback is not ready
+ */
+volt feedback_api_get_analog_value(enum FeedbackAnalogIndex index);
+
+/*!
  * \brief Return the readyness of the module
  * 
  * \returns true once all the feedbacks are ready

@@ -68,6 +68,16 @@ enum VoltagesReturnCode voltages_api_reset_info_updated_flags(enum CellboardId c
 enum VoltagesReturnCode voltages_api_set_cellboard_voltage_info(enum CellboardId cellboard, volt min, volt max, volt average, volt sum);
 
 /*!
+ * \brief Get the voltage of a single cell
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] index The index of the cell in the cellboard
+ *
+ * \return The cell voltage, 0 if the cellboard or the index does not exist
+ */
+volt voltages_api_get_value(enum CellboardId cellboard, uint8_t index);
+
+/*!
  * \brief Get the voltage information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id

@@ -70,6 +70,13 @@ enum VoltagesReturnCode voltages_api_set_cellboard_voltage_info(
     return VOLTAGES_RC_OK;
 }
 
+volt voltages_api_get_value(enum CellboardId cellboard, uint8_t index) {
+    if (cellboard >= CELLBOARD_COUNT || index >= CELLBOARD_SEGMENT_SERIES_COUNT) {
+        return 0.F;
+    }
+    return voltages_handler.voltages[cellboard][index];
+}
+
 struct VoltagesInfo voltages_api_get_cellboard_info(enum CellboardId cellboard) {
     struct VoltagesInfo info = { 0, 0, 0, 0 };
 

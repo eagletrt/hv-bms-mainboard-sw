@@ -66,6 +66,16 @@ enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_info_update
 enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(enum CellboardId cellboard, celsius min, celsius max, celsius average);
 
 /*!
+ * \brief Get the temperature of a single cell sensor
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] index The index of the sensor in the cellboard
+ *
+ * \return The cell temperature, 0 if the cellboard or the index does not exist
+ */
+celsius temperatures_api_get_cell_temperature(enum CellboardId cellboard, uint8_t index);
+
+/*!
  * \brief Get the cell temperature information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id
@@ -103,6 +113,16 @@ enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum Cell
  * \retval TEMPERATURES_RC_OK otherwise
  */
 enum TemperaturesReturnCode temperatures_api_reset_discharge_temperatures_updated_flags(enum CellboardId cellboard);
+
+/*!
+ * \brief Get the temperature of a single discharge resistor
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] index The index of the discharge resistor in the cellboard
+ *
+ * \return The discharge resistor temperature, 0 if the cellboard or the index does not exist
+ */
+celsius temperatures_api_get_discharge_temperature(enum CellboardId cellboard, uint8_t index);
 
 /*!
  * \brief Get the discharge resistor temperature information for a specific cellboard

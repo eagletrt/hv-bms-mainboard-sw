@@ -289,6 +289,20 @@ enum FeedbackReturnCode feedback_api_set_analog_value(enum FeedbackAnalogIndex i
     return FEEDBACK_RC_OK;
 }
 
+bool feedback_api_get_digital_value(enum FeedbackDigitalIndex index) {
+    if (index >= FEEDBACK_DIGITAL_INDEX_COUNT || !feedback_handler.digital[index].ready) {
+        return false;
+    }
+    return feedback_handler.digital[index].filtered;
+}
+
+volt feedback_api_get_analog_value(enum FeedbackAnalogIndex index) {
+    if (index >= FEEDBACK_ANALOG_INDEX_COUNT || !feedback_handler.analog[index].ready) {
+        return 0.F;
+    }
+    return feedback_handler.analog[index].filtered;
+}
+
 bool feedback_api_is_ready(void) {
     return feedback_handler.is_ready;
 }
