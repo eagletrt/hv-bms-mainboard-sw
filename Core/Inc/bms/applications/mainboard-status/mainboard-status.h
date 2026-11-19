@@ -52,20 +52,25 @@ enum MainboardStatusFault {
     MAINBOARD_STATUS_FAULT_POST_FAILED, /*!< The Power-On Self Test failed (owner: POST) */
 
     /* Values out of range */
-    MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE,        /*!< A cell voltage is below the minimum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE,         /*!< A cell voltage is above the maximum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE,    /*!< A cell temperature is below the minimum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE,     /*!< A cell temperature is above the maximum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_OVER_CURRENT,              /*!< The pack current is above the maximum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_OVER_POWER,                /*!< The pack power is above the maximum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE, /*!< A cooling temperature is below the minimum (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE,  /*!< A cooling temperature is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE,          /*!< A cell voltage is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE,           /*!< A cell voltage is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE,      /*!< A cell temperature is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE,       /*!< A cell temperature is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_DISCHARGE_UNDER_TEMPERATURE, /*!< A discharge resistor temperature is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_DISCHARGE_OVER_TEMPERATURE,  /*!< A discharge resistor temperature is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_OVER_CURRENT,                /*!< The pack current is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_OVER_POWER,                  /*!< The pack power is above the maximum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE,   /*!< A cooling temperature is below the minimum (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE,    /*!< A cooling temperature is above the maximum (owner: PHC) */
 
     /* Hardware */
     MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT,                /*!< A cellboard reported an error or went in its fatal state (owner: PHC) */
     MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR,                 /*!< An analog signal is in error state (owner: feedback) */
     MAINBOARD_STATUS_FAULT_IMD_FAULT,                      /*!< The IMD detected an insulation fault (owner: PHC) */
     MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, /*!< The TS voltage indicator is not connected (owner: PHC) */
+
+    /* Control */
+    MAINBOARD_STATUS_FAULT_PCU_FAULT, /*!< The Pack Control Unit detected an error (owner: PCU) */
 
     /* Freshness: the data was not updated in time */
     MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-router watchdogs) */
