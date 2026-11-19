@@ -74,7 +74,6 @@ struct SerializerHandler {
     uint8_t voltages_group[CELLBOARD_COUNT];     /*!< The next voltages group to send for each cellboard */
     uint8_t temperatures_group[CELLBOARD_COUNT]; /*!< The next temperatures group to send for each cellboard */
     uint32_t build_time;                         /*!< The firmware build time as a Unix timestamp, 0 if unknown */
-    bool comms_suppressed;                       /*!< True while the periodic messages must not be sent (e.g. during a flash) */
 };
 
 #endif // SERIALIZER_H

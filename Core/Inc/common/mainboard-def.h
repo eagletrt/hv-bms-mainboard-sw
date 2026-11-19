@@ -111,7 +111,7 @@
  * \details A mainboard identifier is added for utility purposes but it is not included
  * in the cellboard id count
  */
-enum CellboardId {
+enum CellboardId : uint8_t {
     CELLBOARD_ID_0 = 0U, //!< Cellboard 0
     CELLBOARD_ID_1,      //!< Cellboard 1
     CELLBOARD_ID_2,      //!< Cellboard 2
