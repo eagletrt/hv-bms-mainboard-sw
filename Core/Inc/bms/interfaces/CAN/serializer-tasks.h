@@ -166,7 +166,4 @@ struct SerializerTask {
     union SerializerTaskFunction function; /*!< The function to call to build the message */
 };
 
-/*! \brief Table of the serializer tasks, indexed by \ref SerializerTasksID */
-extern const struct SerializerTask serializer_tasks[SERIALIZER_TASKS_COUNT];
-
 #endif // SERIALIZER_TASKS_H
