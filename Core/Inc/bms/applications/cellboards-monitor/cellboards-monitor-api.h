@@ -174,4 +174,15 @@ bool cellboards_monitor_api_is_cellboard_faulty(enum CellboardId cellboard);
  */
 bool cellboards_monitor_api_is_any_cellboard_faulty(void);
 
+/*!
+ * \brief Check if the state and the errors of every cellboard have been received at least once
+ *
+ * \details The faulty checks are meaningful only then: before, the cellboards that did not
+ *          report yet look like they are initializing with no errors
+ *
+ * \retval true if every cellboard has sent its state and its errors
+ * \retval false otherwise
+ */
+bool cellboards_monitor_api_is_ready(void);
+
 #endif // CELLBOARDS_MONITOR_API_H

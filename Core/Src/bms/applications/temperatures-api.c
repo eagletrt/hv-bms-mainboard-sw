@@ -91,6 +91,7 @@ enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(
     temperatures_handler.cell_temperatures_info[cellboard].max = max;
     temperatures_handler.cell_temperatures_info[cellboard].average = average;
     temperatures_handler.is_updated_cell_temperatures_info[cellboard] = true;
+    temperatures_handler.is_received_cell_temperatures_info[cellboard] = true;
 
     return TEMPERATURES_RC_OK;
 }
@@ -151,6 +152,7 @@ enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum Cell
 
     temperatures_handler.discharge_temperatures[cellboard][index] = temperature;
     temperatures_handler.is_updated_discharge_temperatures[cellboard] = true;
+    temperatures_handler.is_received_discharge_temperatures[cellboard][index] = true;
 
     return TEMPERATURES_RC_OK;
 }
@@ -178,6 +180,26 @@ struct TemperaturesInfo temperatures_api_get_discharge_temperatures_info(enum Ce
     }
 
     return info;
+}
+
+bool temperatures_api_is_cell_temperatures_ready(void) {
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_COUNT; ++cellboard) {
+        if (!temperatures_handler.is_received_cell_temperatures_info[cellboard]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool temperatures_api_is_discharge_temperatures_ready(void) {
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_COUNT; ++cellboard) {
+        for (size_t index = 0U; index < CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT; ++index) {
+            if (!temperatures_handler.is_received_discharge_temperatures[cellboard][index]) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 struct TemperaturesInfo temperatures_api_get_pack_discharge_temperatures_info(void) {

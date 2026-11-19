@@ -28,12 +28,22 @@ enum InternalTemperaturesReturnCode internal_temperatures_api_set_value(enum Int
 
     internal_temperatures_handler.temperatures[index] = temperature;
     internal_temperatures_handler.is_updated_temperatures = true;
+    internal_temperatures_handler.is_received_temperatures[index] = true;
 
     return INTERNAL_TEMPERATURES_RC_OK;
 }
 
 void internal_temperatures_api_reset_temperatures_updated_flag(void) {
     internal_temperatures_handler.is_updated_temperatures = false;
+}
+
+bool internal_temperatures_api_is_ready(void) {
+    for (enum InternalTemperaturesIndex index = 0; index < INTERNAL_TEMPERATURES_INDEX_COUNT; ++index) {
+        if (!internal_temperatures_handler.is_received_temperatures[index]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 celsius internal_temperatures_api_get_value(enum InternalTemperaturesIndex index) {

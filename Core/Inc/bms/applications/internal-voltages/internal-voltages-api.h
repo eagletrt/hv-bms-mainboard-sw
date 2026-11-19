@@ -80,4 +80,20 @@ kilowatt internal_voltages_api_get_power(void);
  */
 struct InternalVoltagesInfo internal_voltages_api_get_info(void);
 
+/*!
+ * \brief Check if every internal voltage has been received at least once
+ *
+ * \retval true if every internal voltage has been received
+ * \retval false otherwise
+ */
+bool internal_voltages_api_is_voltages_ready(void);
+
+/*!
+ * \brief Check if the current has been received at least once
+ *
+ * \retval true if the current has been received
+ * \retval false otherwise
+ */
+bool internal_voltages_api_is_current_ready(void);
+
 #endif // INTERNAL_VOLTAGES_API_H

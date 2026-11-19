@@ -142,4 +142,26 @@ struct TemperaturesInfo temperatures_api_get_discharge_temperatures_info(enum Ce
  */
 struct TemperaturesInfo temperatures_api_get_pack_discharge_temperatures_info(void);
 
+/*!
+ * \brief Check if the cell temperature information of every cellboard has been received at least once
+ *
+ * \details The pack cell temperature information is meaningful only then: before, the cellboards
+ *          that did not report yet count as 0°C
+ *
+ * \retval true if every cellboard has sent its cell temperature information
+ * \retval false otherwise
+ */
+bool temperatures_api_is_cell_temperatures_ready(void);
+
+/*!
+ * \brief Check if every discharge resistor temperature of every cellboard has been received at least once
+ *
+ * \details The discharge resistor temperature information is meaningful only then: before,
+ *          the values that were not received yet count as 0°C
+ *
+ * \retval true if every discharge resistor temperature has been received
+ * \retval false otherwise
+ */
+bool temperatures_api_is_discharge_temperatures_ready(void);
+
 #endif // TEMPERATURES_API_H

@@ -46,4 +46,12 @@ void internal_temperatures_api_reset_temperatures_updated_flag(void);
  */
 celsius internal_temperatures_api_get_value(enum InternalTemperaturesIndex index);
 
+/*!
+ * \brief Check if every internal temperature has been received at least once
+ *
+ * \retval true if every internal temperature has been received
+ * \retval false otherwise
+ */
+bool internal_temperatures_api_is_ready(void);
+
 #endif // INTERNAL_TEMPERATURES_API_H

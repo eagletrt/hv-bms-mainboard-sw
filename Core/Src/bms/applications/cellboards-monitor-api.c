@@ -48,6 +48,7 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_state(enum Cellboard
 
     cellboards_monitor_handler.states[cellboard] = state;
     cellboards_monitor_handler.is_updated_state[cellboard] = true;
+    cellboards_monitor_handler.is_received_state[cellboard] = true;
 
     return CELLBOARDS_MONITOR_RC_OK;
 }
@@ -61,6 +62,7 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_errors(enum Cellboar
     cellboards_monitor_handler.errors[cellboard] = errors & CELLBOARDS_MONITOR_ERRORS_MASK;
     cellboards_monitor_handler.open_wires[cellboard] = open_wires & CELLBOARDS_MONITOR_OPEN_WIRES_MASK;
     cellboards_monitor_handler.is_updated_errors[cellboard] = true;
+    cellboards_monitor_handler.is_received_errors[cellboard] = true;
 
     return CELLBOARDS_MONITOR_RC_OK;
 }
@@ -165,6 +167,15 @@ bool cellboards_monitor_api_is_cellboard_faulty(enum CellboardId cellboard) {
     return cellboards_monitor_handler.states[cellboard] == CELLBOARDS_MONITOR_STATE_ERROR ||
            cellboards_monitor_handler.errors[cellboard] != 0U ||
            cellboards_monitor_handler.open_wires[cellboard] != 0U;
+}
+
+bool cellboards_monitor_api_is_ready(void) {
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_COUNT; ++cellboard) {
+        if (!cellboards_monitor_handler.is_received_state[cellboard] || !cellboards_monitor_handler.is_received_errors[cellboard]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool cellboards_monitor_api_is_any_cellboard_faulty(void) {

@@ -66,6 +66,7 @@ enum VoltagesReturnCode voltages_api_set_cellboard_voltage_info(
     voltages_handler.cellboard_info[cellboard].average = average;
     voltages_handler.cellboard_info[cellboard].sum = sum;
     voltages_handler.is_updated_info[cellboard] = true;
+    voltages_handler.is_received_info[cellboard] = true;
 
     return VOLTAGES_RC_OK;
 }
@@ -85,6 +86,15 @@ struct VoltagesInfo voltages_api_get_cellboard_info(enum CellboardId cellboard) 
     }
 
     return info;
+}
+
+bool voltages_api_is_ready(void) {
+    for (enum CellboardId cellboard = 0; cellboard < CELLBOARD_COUNT; ++cellboard) {
+        if (!voltages_handler.is_received_info[cellboard]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 struct VoltagesInfo voltages_api_get_pack_info(void) {

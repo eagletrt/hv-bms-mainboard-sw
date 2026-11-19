@@ -42,6 +42,7 @@ struct VoltagesHandler {
 
     struct VoltagesInfo cellboard_info[CELLBOARD_COUNT]; /*!< The voltage information for each cellboard */
     volatile bool is_updated_info[CELLBOARD_COUNT];      /*!< Indicates if the voltage information for a specific cellboard has been updated */
+    volatile bool is_received_info[CELLBOARD_COUNT];     /*!< Indicates if the voltage information of a specific cellboard has been received at least once, never reset */
 };
 
 #endif // VOLTAGES_H

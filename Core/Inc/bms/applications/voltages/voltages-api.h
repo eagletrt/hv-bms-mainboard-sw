@@ -93,4 +93,15 @@ struct VoltagesInfo voltages_api_get_cellboard_info(enum CellboardId cellboard);
  */
 struct VoltagesInfo voltages_api_get_pack_info(void);
 
+/*!
+ * \brief Check if the voltage information of every cellboard has been received at least once
+ *
+ * \details The pack information is meaningful only then: before, the cellboards that
+ *          did not report yet count as 0V
+ *
+ * \retval true if every cellboard has sent its voltage information
+ * \retval false otherwise
+ */
+bool voltages_api_is_ready(void);
+
 #endif // VOLTAGES_API_H

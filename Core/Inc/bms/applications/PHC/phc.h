@@ -16,6 +16,7 @@ enum PHCReturnCode : uint8_t {
     PHC_RC_OK,           /*!< The function completed successfully */
     PHC_RC_NULL_POINTER, /*!< A NULL pointer was passed to the function */
     PHC_RC_ERROR,        /*!< An error occurred */
+    PHC_RC_NOT_READY,    /*!< The check did not run because its data has not been received yet */
 };
 
 enum PHCControl : uint8_t {
@@ -40,17 +41,25 @@ enum PHCControl : uint8_t {
  * \brief What a PHC check writes to the mainboard status
  */
 enum PHCCheckKind : uint8_t {
-    PHC_CHECK_KIND_FAULT,     /*!< A false result sets the fault, which is never cleared */
-    PHC_CHECK_KIND_CONDITION, /*!< The result is written to the condition every time */
+    PHC_CHECK_KIND_FAULT,     /*!< A PHC_CHECK_RESULT_FAILED result sets the fault, which is never cleared */
+    PHC_CHECK_KIND_CONDITION, /*!< The result is written to the condition every time it runs */
+};
+
+/*!
+ * \brief Result of a PHC check function
+ */
+enum PHCCheckResult : uint8_t {
+    PHC_CHECK_RESULT_OK,        /*!< Fault check: the values are within their limits. Condition check: the condition holds */
+    PHC_CHECK_RESULT_FAILED,    /*!< Fault check: a value is out of its limits. Condition check: the condition does not hold */
+    PHC_CHECK_RESULT_NOT_READY, /*!< The data needed by the check has not been received yet, nothing is written and the check does not count as run */
 };
 
 /*!
  * \brief Function pointer type for PHC check functions
  *
- * \returns For a fault check: true if everything is OK, false to set the fault.
- *          For a condition check: true if the condition holds, false otherwise.
+ * \returns The result of the check, see \ref PHCCheckResult
  */
-typedef bool (*PHCCheckFunction)(void);
+typedef enum PHCCheckResult (*PHCCheckFunction)(void);
 
 /*!
  * \brief Structure representing a PHC check
@@ -69,8 +78,8 @@ struct PHCCheck {
  * \brief Structure representing the PHC handler
  */
 struct PHCHandler {
-    uint32_t last_check_time[PHC_CONTROL_COUNT]; /*!< The time of the last check of the condition */
-    bool last_check_updated[PHC_CONTROL_COUNT];  /*!< Whether the last check time has been updated once*/
+    uint32_t last_check_time[PHC_CONTROL_COUNT]; /*!< The time of the last run of each check, not updated when the check was not ready */
+    bool last_check_updated[PHC_CONTROL_COUNT];  /*!< Whether each check has run at least once */
 };
 
 #endif // PHC_H

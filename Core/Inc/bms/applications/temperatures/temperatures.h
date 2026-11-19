@@ -39,11 +39,13 @@ struct TemperaturesHandler {
     celsius cell_temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT]; /*!< The cell temperature values for each cellboard */
     volatile bool is_updated_cell_temperatures[CELLBOARD_COUNT];                     /*!< Indicates if the cell temperatures for a specific cellboard have been updated */
 
-    struct TemperaturesInfo cell_temperatures_info[CELLBOARD_COUNT];  /*!< The cell temperature information for each cellboard, as reported by the cellboard */
-    volatile bool is_updated_cell_temperatures_info[CELLBOARD_COUNT]; /*!< Indicates if the cell temperature information for a specific cellboard has been updated */
+    struct TemperaturesInfo cell_temperatures_info[CELLBOARD_COUNT];   /*!< The cell temperature information for each cellboard, as reported by the cellboard */
+    volatile bool is_updated_cell_temperatures_info[CELLBOARD_COUNT];  /*!< Indicates if the cell temperature information for a specific cellboard has been updated */
+    volatile bool is_received_cell_temperatures_info[CELLBOARD_COUNT]; /*!< Indicates if the cell temperature information of a specific cellboard has been received at least once, never reset */
 
-    celsius discharge_temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT]; /*!< The discharge resistor temperature values for each cellboard */
-    volatile bool is_updated_discharge_temperatures[CELLBOARD_COUNT];                        /*!< Indicates if the discharge resistor temperatures for a specific cellboard have been updated */
+    celsius discharge_temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT];                   /*!< The discharge resistor temperature values for each cellboard */
+    volatile bool is_updated_discharge_temperatures[CELLBOARD_COUNT];                                          /*!< Indicates if the discharge resistor temperatures for a specific cellboard have been updated */
+    volatile bool is_received_discharge_temperatures[CELLBOARD_COUNT][CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT]; /*!< Indicates if each discharge resistor temperature has been received at least once, never reset */
 };
 
 #endif // TEMPERATURES_H

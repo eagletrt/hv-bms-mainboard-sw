@@ -94,10 +94,12 @@ static_assert(CELLBOARDS_MONITOR_OPEN_WIRE_COUNT <= 16U, "The open wires must fi
 struct CellboardsMonitorHandler {
     enum CellboardsMonitorState states[CELLBOARD_COUNT]; /*!< The FSM state of each cellboard */
     volatile bool is_updated_state[CELLBOARD_COUNT];     /*!< Indicates if the state of a specific cellboard has been updated */
+    volatile bool is_received_state[CELLBOARD_COUNT];    /*!< Indicates if the state of a specific cellboard has been received at least once, never reset */
 
-    bit_flag16 errors[CELLBOARD_COUNT];               /*!< The errors of each cellboard, bit N for CellboardsMonitorError N */
-    bit_flag16 open_wires[CELLBOARD_COUNT];           /*!< The open wire errors of each cellboard, bit N for open wire N + 1 */
-    volatile bool is_updated_errors[CELLBOARD_COUNT]; /*!< Indicates if the errors of a specific cellboard have been updated */
+    bit_flag16 errors[CELLBOARD_COUNT];                /*!< The errors of each cellboard, bit N for CellboardsMonitorError N */
+    bit_flag16 open_wires[CELLBOARD_COUNT];            /*!< The open wire errors of each cellboard, bit N for open wire N + 1 */
+    volatile bool is_updated_errors[CELLBOARD_COUNT];  /*!< Indicates if the errors of a specific cellboard have been updated */
+    volatile bool is_received_errors[CELLBOARD_COUNT]; /*!< Indicates if the errors of a specific cellboard have been received at least once, never reset */
 
     struct CellboardsMonitorVersion versions[CELLBOARD_COUNT][CELLBOARDS_MONITOR_VERSION_COUNT]; /*!< The versions reported by each cellboard */
 };

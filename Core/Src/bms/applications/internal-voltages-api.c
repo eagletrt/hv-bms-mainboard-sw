@@ -29,6 +29,7 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
 
     internal_voltages_handler.voltages[index] = voltage;
     internal_voltages_handler.is_updated_voltages = true;
+    internal_voltages_handler.is_received_voltages[index] = true;
 
     return INTERNAL_VOLTAGES_RC_OK;
 }
@@ -36,6 +37,7 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
 void internal_voltages_api_set_current(ampere current) {
     internal_voltages_handler.current = current;
     internal_voltages_handler.is_updated_current = true;
+    internal_voltages_handler.is_received_current = true;
 }
 
 void internal_voltages_api_reset_voltages_updated_flag(void) {
@@ -61,6 +63,19 @@ kilowatt internal_voltages_api_get_power(void) {
     return internal_voltages_handler.current *
            internal_voltages_handler.voltages[INTERNAL_VOLTAGES_INDEX_TS] *
            INTERNAL_VOLTAGES_W_TO_KW;
+}
+
+bool internal_voltages_api_is_voltages_ready(void) {
+    for (enum InternalVoltagesIndex index = 0; index < INTERNAL_VOLTAGES_INDEX_COUNT; ++index) {
+        if (!internal_voltages_handler.is_received_voltages[index]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool internal_voltages_api_is_current_ready(void) {
+    return internal_voltages_handler.is_received_current;
 }
 
 struct InternalVoltagesInfo internal_voltages_api_get_info(void) {

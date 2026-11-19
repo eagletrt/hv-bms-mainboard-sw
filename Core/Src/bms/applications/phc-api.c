@@ -30,107 +30,142 @@
 
 EAGLETRT_STATIC struct PHCHandler phc_handler;
 
-EAGLETRT_STATIC bool prv_phc_check_cell_under_voltage(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_voltage(void) {
+    if (!voltages_api_is_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (voltages_api_get_pack_info().min <= PHC_MIN_CELL_VOLTAGE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_cell_over_voltage(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_voltage(void) {
+    if (!voltages_api_is_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (voltages_api_get_pack_info().max >= PHC_MAX_CELL_VOLTAGE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_cell_over_temperature(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_temperature(void) {
+    if (!temperatures_api_is_cell_temperatures_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (temperatures_api_get_pack_cell_temperatures_info().max >= PHC_MAX_CELL_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_cell_under_temperature(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_temperature(void) {
+    if (!temperatures_api_is_cell_temperatures_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (temperatures_api_get_pack_cell_temperatures_info().min <= PHC_MIN_CELL_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_discharge_over_temperature(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_over_temperature(void) {
+    if (!temperatures_api_is_discharge_temperatures_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (temperatures_api_get_pack_discharge_temperatures_info().max >= PHC_MAX_DISCHARGE_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_discharge_under_temperature(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_under_temperature(void) {
+    if (!temperatures_api_is_discharge_temperatures_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (temperatures_api_get_pack_discharge_temperatures_info().min <= PHC_MIN_DISCHARGE_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_cooling_over_temperature(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_over_temperature(void) {
+    if (!internal_temperatures_api_is_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
         if (internal_temperatures_api_get_value(index) >= PHC_MAX_COOLING_TEMPERATURE) {
             EAGLETRT_API_NOP();
-            return false;
+            return PHC_CHECK_RESULT_FAILED;
         }
     }
     if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) >= PHC_MAX_LINEAR_REGULATOR_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
     if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) >= PHC_MAX_PRECHARGE_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_cooling_under_temperature(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_under_temperature(void) {
+    if (!internal_temperatures_api_is_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
         if (internal_temperatures_api_get_value(index) <= PHC_MIN_COOLING_TEMPERATURE) {
             EAGLETRT_API_NOP();
-            return false;
+            return PHC_CHECK_RESULT_FAILED;
         }
     }
     if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) <= PHC_MIN_LINEAR_REGULATOR_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
     if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) <= PHC_MIN_PRECHARGE_TEMPERATURE) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_over_current(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_current(void) {
+    if (!internal_voltages_api_is_current_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (internal_voltages_api_get_current() >= PHC_MAX_CURRENT) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_over_power(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_power(void) {
+    // The power is the current times the TS voltage, both are needed
+    if (!internal_voltages_api_is_current_ready() || !internal_voltages_api_is_voltages_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (internal_voltages_api_get_power() >= PHC_MAX_POWER) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_cellboard_fault(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cellboard_fault(void) {
+    // Before every cellboard has reported, the missing ones look like they are initializing with no errors
+    if (!cellboards_monitor_api_is_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
 
     bool all_ok = true;
 
@@ -170,35 +205,45 @@ EAGLETRT_STATIC bool prv_phc_check_cellboard_fault(void) {
         }
     }
 
-    return all_ok;
+    if (!all_ok) {
+        return PHC_CHECK_RESULT_FAILED;
+    }
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_imd_fault(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_imd_fault(void) {
     // The conditions are meaningful only once the feedback filters are full
     if (!feedback_api_is_ready()) {
-        return true;
+        return PHC_CHECK_RESULT_NOT_READY;
     }
     if (!mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_IMD_OK)) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_voltage_indicator_disconnected(void) {
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_voltage_indicator_disconnected(void) {
     // The conditions are meaningful only once the feedback filters are full
     if (!feedback_api_is_ready()) {
-        return true;
+        return PHC_CHECK_RESULT_NOT_READY;
     }
     if (!mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_VOLTAGE_INDICATOR_CONNECTED)) {
         EAGLETRT_API_NOP();
-        return false;
+        return PHC_CHECK_RESULT_FAILED;
     }
-    return true;
+    return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC bool prv_phc_check_pack_balanced(void) {
-    return bal_control_api_is_pack_balanced();
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_pack_balanced(void) {
+    // The pack delta is computed from the voltage information of every cellboard
+    if (!voltages_api_is_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
+    if (!bal_control_api_is_pack_balanced()) {
+        return PHC_CHECK_RESULT_FAILED;
+    }
+    return PHC_CHECK_RESULT_OK;
 }
 
 EAGLETRT_STATIC const struct PHCCheck phc_checks[PHC_CONTROL_COUNT] = {
@@ -230,11 +275,18 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
 
     const struct PHCCheck *check = &phc_checks[control];
 
-    const bool check_result = check->check_function();
+    const enum PHCCheckResult check_result = check->check_function();
+
+    // Without data the check did not run: the last run time is not updated, so
+    // phc_api_check_phc sets the PHC fault if the data never arrives
+    if (check_result == PHC_CHECK_RESULT_NOT_READY) {
+        return PHC_RC_NOT_READY;
+    }
 
     if (check->kind == PHC_CHECK_KIND_CONDITION) {
-        mainboard_status_api_set_condition(check->condition, check_result);
-    } else if (!check_result) {
+        mainboard_status_api_set_condition(check->condition, check_result == PHC_CHECK_RESULT_OK);
+    } else if (check_result != PHC_CHECK_RESULT_OK) {
+        // Anything that is not an explicit OK sets the fault
         mainboard_status_api_set_fault(check->fault);
     }
 
