@@ -94,7 +94,7 @@
 /*!
  * \defgroup phc-conf
  * \brief Configuration of the Pack Health Controller (PHC)
- * {\
+ * \{
  */
 
 /*!
