@@ -137,7 +137,7 @@ static_assert((int)CAN_PRIMARY_TSACMAINBOARDSHUTDOWN_IMDSTATUS_EARTH_FAULT == (i
 static_assert((int)CAN_PRIMARY_TSACMAINBOARDSHUTDOWN_IMDSTATUS_INVALID == (int)CAN_PRIMARY_TSACMAINBOARDIMD_STATUS_INVALID, "IMD status mismatch");
 
 /*! \brief Frame ID of the balancing message of each cellboard */
-static const enum CanPrimaryMessageFrameId balancing_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId balancing_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCING,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCING,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCING,
@@ -147,7 +147,7 @@ static const enum CanPrimaryMessageFrameId balancing_frame_ids[CELLBOARD_COUNT] 
 };
 
 /*! \brief Frame ID of the discharge resistor temperatures message of each cellboard */
-static const enum CanPrimaryMessageFrameId balancing_temperatures_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId balancing_temperatures_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCINGTEMPERATURE,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCINGTEMPERATURE,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCINGTEMPERATURE,
@@ -157,7 +157,7 @@ static const enum CanPrimaryMessageFrameId balancing_temperatures_frame_ids[CELL
 };
 
 /*! \brief Frame ID of the cell voltages message of each cellboard */
-static const enum CanPrimaryMessageFrameId voltages_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId voltages_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGE,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGE,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGE,
@@ -167,7 +167,7 @@ static const enum CanPrimaryMessageFrameId voltages_frame_ids[CELLBOARD_COUNT] =
 };
 
 /*! \brief Frame ID of the cell temperatures message of each cellboard */
-static const enum CanPrimaryMessageFrameId temperatures_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId temperatures_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATURE,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATURE,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATURE,
@@ -177,7 +177,7 @@ static const enum CanPrimaryMessageFrameId temperatures_frame_ids[CELLBOARD_COUN
 };
 
 /*! \brief Frame ID of the firmware version number message of each cellboard */
-static const enum CanPrimaryMessageFrameId cellboard_version_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId cellboard_version_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSION,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSION,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSION,
@@ -187,7 +187,7 @@ static const enum CanPrimaryMessageFrameId cellboard_version_frame_ids[CELLBOARD
 };
 
 /*! \brief Frame ID of the firmware version info message of each cellboard */
-static const enum CanPrimaryMessageFrameId cellboard_version_info_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId cellboard_version_info_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSIONINFO,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSIONINFO,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSIONINFO,
@@ -197,7 +197,7 @@ static const enum CanPrimaryMessageFrameId cellboard_version_info_frame_ids[CELL
 };
 
 /*! \brief Frame ID of the libcan version number message of each cellboard */
-static const enum CanPrimaryMessageFrameId cellboard_libcan_version_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId cellboard_libcan_version_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSION,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSION,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSION,
@@ -207,7 +207,7 @@ static const enum CanPrimaryMessageFrameId cellboard_libcan_version_frame_ids[CE
 };
 
 /*! \brief Frame ID of the libcan version info message of each cellboard */
-static const enum CanPrimaryMessageFrameId cellboard_libcan_version_info_frame_ids[CELLBOARD_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId cellboard_libcan_version_info_frame_ids[CELLBOARD_COUNT] = {
     [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSIONINFO,
     [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSIONINFO,
     [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSIONINFO,
@@ -217,7 +217,7 @@ static const enum CanPrimaryMessageFrameId cellboard_libcan_version_info_frame_i
 };
 
 /*! \brief Frame ID of each cellboard errors message */
-static const enum CanPrimaryMessageFrameId cellboard_errors_frame_ids[SERIALIZER_CELLBOARD_ERRORS_MESSAGE_COUNT] = {
+EAGLETRT_STATIC const enum CanPrimaryMessageFrameId cellboard_errors_frame_ids[SERIALIZER_CELLBOARD_ERRORS_MESSAGE_COUNT] = {
     CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARDERRORA,
     CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARDERRORB,
     CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARDERRORC,
@@ -226,7 +226,7 @@ static const enum CanPrimaryMessageFrameId cellboard_errors_frame_ids[SERIALIZER
 /*!
  * \brief The global serializer handler
  */
-static struct SerializerHandler serializer_handler;
+EAGLETRT_STATIC struct SerializerHandler serializer_handler;
 
 /*!
  * \brief Set the frame ID of a message and clear its signals
@@ -234,7 +234,7 @@ static struct SerializerHandler serializer_handler;
  * \param[out] message The message to reset
  * \param[in] frame_id The frame ID of the message
  */
-static void prv_reset_message(struct SerializerMessage *message, enum CanPrimaryMessageFrameId frame_id) {
+EAGLETRT_STATIC void prv_reset_message(struct SerializerMessage *message, enum CanPrimaryMessageFrameId frame_id) {
     memset(message, 0, sizeof(*message));
     message->id = frame_id;
 }
@@ -246,7 +246,7 @@ static void prv_reset_message(struct SerializerMessage *message, enum CanPrimary
  *
  * \return The CAN signal value, CAN_PRIMARY_TSACMAINBOARDIMD_STATUS_INVALID if the status is unknown
  */
-static enum CanPrimaryTsacmainboardimdStatus prv_imd_status_to_can(enum Ir1553204Status status) {
+EAGLETRT_STATIC enum CanPrimaryTsacmainboardimdStatus prv_imd_status_to_can(enum Ir1553204Status status) {
     switch (status) {
         case IR1553204_STATUS_SHORT_CIRCUIT:
             return CAN_PRIMARY_TSACMAINBOARDIMD_STATUS_SHORT_CIRCUIT;
@@ -275,7 +275,7 @@ static enum CanPrimaryTsacmainboardimdStatus prv_imd_status_to_can(enum Ir155320
  *
  * \return The CAN signal value, CAN_PRIMARY_TSACSTATUS_CELLBOARD1STATUS_ERROR if the state is unknown
  */
-static enum CanPrimaryTsacstatusCellboard1status prv_cellboard_state_to_can(enum CellboardsMonitorState state) {
+EAGLETRT_STATIC enum CanPrimaryTsacstatusCellboard1status prv_cellboard_state_to_can(enum CellboardsMonitorState state) {
     switch (state) {
         case CELLBOARDS_MONITOR_STATE_INIT:
             return CAN_PRIMARY_TSACSTATUS_CELLBOARD1STATUS_INIT;
@@ -301,7 +301,7 @@ static enum CanPrimaryTsacstatusCellboard1status prv_cellboard_state_to_can(enum
  *
  * \return The voltage of the analog feedback in V
  */
-static volt prv_feedback_voltage(enum FeedbackAnalogIndex index) {
+EAGLETRT_STATIC volt prv_feedback_voltage(enum FeedbackAnalogIndex index) {
     // TODO: check if everything needs the same scaling
     return FEEDBACK_TO_SD_VOLT(feedback_api_get_analog_value(index));
 }

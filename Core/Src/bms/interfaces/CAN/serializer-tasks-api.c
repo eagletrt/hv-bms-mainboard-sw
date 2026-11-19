@@ -163,7 +163,7 @@ const struct SerializerTask serializer_tasks[SERIALIZER_TASKS_COUNT] = {
  *
  * \param[in] message The message to send
  */
-static void prv_serializer_tasks_send_primary(struct SerializerMessage *message) {
+EAGLETRT_STATIC void prv_serializer_tasks_send_primary(struct SerializerMessage *message) {
     struct CanCommunicationFrame frame = { .id = (uint32_t)message->id };
     const int length = can_primary_api_serialize_from_id(message->id, &message->payload, frame.data);
     if (length < 0 || length > (int)CAN_COMMUNICATION_FRAME_DATA_SIZE) {
@@ -180,7 +180,7 @@ static void prv_serializer_tasks_send_primary(struct SerializerMessage *message)
  *
  * \param[in] message The message to send
  */
-static void prv_serializer_tasks_send_bms(struct SerializerBmsMessage *message) {
+EAGLETRT_STATIC void prv_serializer_tasks_send_bms(struct SerializerBmsMessage *message) {
     struct CanCommunicationFrame frame = { .id = (uint32_t)message->id };
     const int length = can_bms_api_serialize_from_id(message->id, &message->payload, frame.data);
     if (length < 0 || length > (int)CAN_COMMUNICATION_FRAME_DATA_SIZE) {
@@ -198,7 +198,7 @@ static void prv_serializer_tasks_send_bms(struct SerializerBmsMessage *message) 
  *
  * \param[in] task_id The ID of the executed task, a \ref SerializerTasksID
  */
-static void prv_serializer_tasks_run(uint8_t task_id) {
+EAGLETRT_STATIC void prv_serializer_tasks_run(uint8_t task_id) {
     if (task_id >= SERIALIZER_TASKS_COUNT) {
         return;
     }
