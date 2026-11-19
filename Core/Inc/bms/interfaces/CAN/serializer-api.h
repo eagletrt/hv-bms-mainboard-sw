@@ -274,6 +274,62 @@ enum SerializerReturnCode serializer_api_get_libcan_version_message(struct Seria
 enum SerializerReturnCode serializer_api_get_libcan_version_info_message(struct SerializerMessage *message);
 
 /*!
+ * \brief Build the firmware version message of a cellboard (TsacCellboardNVersion)
+ *
+ * \details Relays the version received from the cellboard, all zeros until it is received
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[out] message The message to fill
+ *
+ * \retval SERIALIZER_RC_NULL_POINTER if message is NULL
+ * \retval SERIALIZER_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval SERIALIZER_RC_OK otherwise
+ */
+enum SerializerReturnCode serializer_api_get_cellboard_version_message(enum CellboardId cellboard, struct SerializerMessage *message);
+
+/*!
+ * \brief Build the firmware version info message of a cellboard (TsacCellboardNVersionInfo)
+ *
+ * \details Relays the version info received from the cellboard, all zeros until it is received
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[out] message The message to fill
+ *
+ * \retval SERIALIZER_RC_NULL_POINTER if message is NULL
+ * \retval SERIALIZER_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval SERIALIZER_RC_OK otherwise
+ */
+enum SerializerReturnCode serializer_api_get_cellboard_version_info_message(enum CellboardId cellboard, struct SerializerMessage *message);
+
+/*!
+ * \brief Build the libcan version message of a cellboard (TsacCellboardNLibcanVersion)
+ *
+ * \details Relays the libcan version received from the cellboard, all zeros until it is received
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[out] message The message to fill
+ *
+ * \retval SERIALIZER_RC_NULL_POINTER if message is NULL
+ * \retval SERIALIZER_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval SERIALIZER_RC_OK otherwise
+ */
+enum SerializerReturnCode serializer_api_get_cellboard_libcan_version_message(enum CellboardId cellboard, struct SerializerMessage *message);
+
+/*!
+ * \brief Build the libcan version info message of a cellboard (TsacCellboardNLibcanVersionInfo)
+ *
+ * \details Relays the libcan version info received from the cellboard, all zeros until it is received
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[out] message The message to fill
+ *
+ * \retval SERIALIZER_RC_NULL_POINTER if message is NULL
+ * \retval SERIALIZER_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval SERIALIZER_RC_OK otherwise
+ */
+enum SerializerReturnCode serializer_api_get_cellboard_libcan_version_info_message(enum CellboardId cellboard, struct SerializerMessage *message);
+
+/*!
  * \brief Build the next cell voltages message of a cellboard (TsacCellboardNVoltage)
  *
  * \details Each call sends the next group of voltages, wrapping around after the last one

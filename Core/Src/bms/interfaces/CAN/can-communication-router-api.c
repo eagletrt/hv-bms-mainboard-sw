@@ -87,6 +87,30 @@ static_assert(sizeof(struct CanBmsTsaccellboard4error) == sizeof(struct CanBmsTs
 static_assert(sizeof(struct CanBmsTsaccellboard5error) == sizeof(struct CanBmsTsaccellboard1error), "Layout mismatch");
 static_assert(sizeof(struct CanBmsTsaccellboard6error) == sizeof(struct CanBmsTsaccellboard1error), "Layout mismatch");
 
+static_assert(sizeof(struct CanBmsTsaccellboard2version) == sizeof(struct CanBmsTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard3version) == sizeof(struct CanBmsTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard4version) == sizeof(struct CanBmsTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard5version) == sizeof(struct CanBmsTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard6version) == sizeof(struct CanBmsTsaccellboard1version), "Layout mismatch");
+
+static_assert(sizeof(struct CanBmsTsaccellboard2versioninfo) == sizeof(struct CanBmsTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard3versioninfo) == sizeof(struct CanBmsTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard4versioninfo) == sizeof(struct CanBmsTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard5versioninfo) == sizeof(struct CanBmsTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard6versioninfo) == sizeof(struct CanBmsTsaccellboard1versioninfo), "Layout mismatch");
+
+static_assert(sizeof(struct CanBmsTsaccellboard2libcanversion) == sizeof(struct CanBmsTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard3libcanversion) == sizeof(struct CanBmsTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard4libcanversion) == sizeof(struct CanBmsTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard5libcanversion) == sizeof(struct CanBmsTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard6libcanversion) == sizeof(struct CanBmsTsaccellboard1libcanversion), "Layout mismatch");
+
+static_assert(sizeof(struct CanBmsTsaccellboard2libcanversioninfo) == sizeof(struct CanBmsTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard3libcanversioninfo) == sizeof(struct CanBmsTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard4libcanversioninfo) == sizeof(struct CanBmsTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard5libcanversioninfo) == sizeof(struct CanBmsTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanBmsTsaccellboard6libcanversioninfo) == sizeof(struct CanBmsTsaccellboard1libcanversioninfo), "Layout mismatch");
+
 /*! \brief Number of cell voltages carried by a single TsacCellboardNVoltage group */
 #define CAN_ROUTER_VOLTAGES_PER_GROUP (sizeof(struct CanBmsTsaccellboard1voltageGroupMux0) / sizeof(float))
 
@@ -284,6 +308,50 @@ EAGLETRT_STATIC void prv_handle_error(enum CellboardId cellboard, const union Ca
 }
 
 /*!
+ * \brief Forward the firmware version number of a cellboard to the cellboards monitor
+ *
+ * \param[in] cellboard The cellboard that sent the message
+ * \param[in] messages The deserialized message, read through its cellboard 1 member
+ */
+EAGLETRT_STATIC void prv_handle_version(enum CellboardId cellboard, const union CanBmsMessages *messages) {
+    const struct CanBmsTsaccellboard1version *message = &messages->tsaccellboard1version;
+    (void)cellboards_monitor_api_set_version(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE, message->major, message->minor, message->patch);
+}
+
+/*!
+ * \brief Forward the firmware version info of a cellboard to the cellboards monitor
+ *
+ * \param[in] cellboard The cellboard that sent the message
+ * \param[in] messages The deserialized message, read through its cellboard 1 member
+ */
+EAGLETRT_STATIC void prv_handle_version_info(enum CellboardId cellboard, const union CanBmsMessages *messages) {
+    const struct CanBmsTsaccellboard1versioninfo *message = &messages->tsaccellboard1versioninfo;
+    (void)cellboards_monitor_api_set_version_info(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE, message->buildtime, message->commithash, message->dirty != 0U);
+}
+
+/*!
+ * \brief Forward the libcan version number of a cellboard to the cellboards monitor
+ *
+ * \param[in] cellboard The cellboard that sent the message
+ * \param[in] messages The deserialized message, read through its cellboard 1 member
+ */
+EAGLETRT_STATIC void prv_handle_libcan_version(enum CellboardId cellboard, const union CanBmsMessages *messages) {
+    const struct CanBmsTsaccellboard1libcanversion *message = &messages->tsaccellboard1libcanversion;
+    (void)cellboards_monitor_api_set_version(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN, message->major, message->minor, message->patch);
+}
+
+/*!
+ * \brief Forward the libcan version info of a cellboard to the cellboards monitor
+ *
+ * \param[in] cellboard The cellboard that sent the message
+ * \param[in] messages The deserialized message, read through its cellboard 1 member
+ */
+EAGLETRT_STATIC void prv_handle_libcan_version_info(enum CellboardId cellboard, const union CanBmsMessages *messages) {
+    const struct CanBmsTsaccellboard1libcanversioninfo *message = &messages->tsaccellboard1libcanversioninfo;
+    (void)cellboards_monitor_api_set_version_info(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN, message->generationtime, message->commithash, message->dirty != 0U);
+}
+
+/*!
  * \brief Forward the current measured by the IVT to the internal voltages module
  *
  * \param[in] cellboard Unused, the message is not sent by a cellboard
@@ -392,6 +460,34 @@ EAGLETRT_STATIC const struct CanCommunicationRouterRoute bms_routes[] = {
     { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4ERROR,                can_bms_byte_size_tsaccellboard4error,                CELLBOARD_ID_3,     prv_handle_error                 },
     { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5ERROR,                can_bms_byte_size_tsaccellboard5error,                CELLBOARD_ID_4,     prv_handle_error                 },
     { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6ERROR,                can_bms_byte_size_tsaccellboard6error,                CELLBOARD_ID_5,     prv_handle_error                 },
+
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSION,              can_bms_byte_size_tsaccellboard1version,              CELLBOARD_ID_0,     prv_handle_version               },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSION,              can_bms_byte_size_tsaccellboard2version,              CELLBOARD_ID_1,     prv_handle_version               },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSION,              can_bms_byte_size_tsaccellboard3version,              CELLBOARD_ID_2,     prv_handle_version               },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSION,              can_bms_byte_size_tsaccellboard4version,              CELLBOARD_ID_3,     prv_handle_version               },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSION,              can_bms_byte_size_tsaccellboard5version,              CELLBOARD_ID_4,     prv_handle_version               },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSION,              can_bms_byte_size_tsaccellboard6version,              CELLBOARD_ID_5,     prv_handle_version               },
+
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSIONINFO,          can_bms_byte_size_tsaccellboard1versioninfo,          CELLBOARD_ID_0,     prv_handle_version_info          },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSIONINFO,          can_bms_byte_size_tsaccellboard2versioninfo,          CELLBOARD_ID_1,     prv_handle_version_info          },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSIONINFO,          can_bms_byte_size_tsaccellboard3versioninfo,          CELLBOARD_ID_2,     prv_handle_version_info          },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSIONINFO,          can_bms_byte_size_tsaccellboard4versioninfo,          CELLBOARD_ID_3,     prv_handle_version_info          },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSIONINFO,          can_bms_byte_size_tsaccellboard5versioninfo,          CELLBOARD_ID_4,     prv_handle_version_info          },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSIONINFO,          can_bms_byte_size_tsaccellboard6versioninfo,          CELLBOARD_ID_5,     prv_handle_version_info          },
+
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSION,        can_bms_byte_size_tsaccellboard1libcanversion,        CELLBOARD_ID_0,     prv_handle_libcan_version        },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSION,        can_bms_byte_size_tsaccellboard2libcanversion,        CELLBOARD_ID_1,     prv_handle_libcan_version        },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSION,        can_bms_byte_size_tsaccellboard3libcanversion,        CELLBOARD_ID_2,     prv_handle_libcan_version        },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSION,        can_bms_byte_size_tsaccellboard4libcanversion,        CELLBOARD_ID_3,     prv_handle_libcan_version        },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSION,        can_bms_byte_size_tsaccellboard5libcanversion,        CELLBOARD_ID_4,     prv_handle_libcan_version        },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSION,        can_bms_byte_size_tsaccellboard6libcanversion,        CELLBOARD_ID_5,     prv_handle_libcan_version        },
+
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSIONINFO,    can_bms_byte_size_tsaccellboard1libcanversioninfo,    CELLBOARD_ID_0,     prv_handle_libcan_version_info   },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSIONINFO,    can_bms_byte_size_tsaccellboard2libcanversioninfo,    CELLBOARD_ID_1,     prv_handle_libcan_version_info   },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSIONINFO,    can_bms_byte_size_tsaccellboard3libcanversioninfo,    CELLBOARD_ID_2,     prv_handle_libcan_version_info   },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSIONINFO,    can_bms_byte_size_tsaccellboard4libcanversioninfo,    CELLBOARD_ID_3,     prv_handle_libcan_version_info   },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSIONINFO,    can_bms_byte_size_tsaccellboard5libcanversioninfo,    CELLBOARD_ID_4,     prv_handle_libcan_version_info   },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSIONINFO,    can_bms_byte_size_tsaccellboard6libcanversioninfo,    CELLBOARD_ID_5,     prv_handle_libcan_version_info   },
 };
 
 /*!

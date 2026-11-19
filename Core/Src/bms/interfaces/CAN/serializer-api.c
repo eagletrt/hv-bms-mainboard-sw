@@ -23,6 +23,7 @@
  * - Shutdown (2 messages, shutdown nodes and shutdown feedback)
  * - Temperatures (1 for each cellboard, 1 for general info)
  * - Version (4 messages, firmware and libcan version and version info)
+ * - Cellboard versions (4 for each cellboard, relayed from the BMS network)
  * - Voltages (1 for each cellboard)
  *
  * BMS network messages:
@@ -82,6 +83,30 @@ static_assert(sizeof(struct CanPrimaryTsaccellboard3balancingtemperature) == siz
 static_assert(sizeof(struct CanPrimaryTsaccellboard4balancingtemperature) == sizeof(struct CanPrimaryTsaccellboard1balancingtemperature), "Layout mismatch");
 static_assert(sizeof(struct CanPrimaryTsaccellboard5balancingtemperature) == sizeof(struct CanPrimaryTsaccellboard1balancingtemperature), "Layout mismatch");
 static_assert(sizeof(struct CanPrimaryTsaccellboard6balancingtemperature) == sizeof(struct CanPrimaryTsaccellboard1balancingtemperature), "Layout mismatch");
+
+static_assert(sizeof(struct CanPrimaryTsaccellboard2version) == sizeof(struct CanPrimaryTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard3version) == sizeof(struct CanPrimaryTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard4version) == sizeof(struct CanPrimaryTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard5version) == sizeof(struct CanPrimaryTsaccellboard1version), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard6version) == sizeof(struct CanPrimaryTsaccellboard1version), "Layout mismatch");
+
+static_assert(sizeof(struct CanPrimaryTsaccellboard2versioninfo) == sizeof(struct CanPrimaryTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard3versioninfo) == sizeof(struct CanPrimaryTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard4versioninfo) == sizeof(struct CanPrimaryTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard5versioninfo) == sizeof(struct CanPrimaryTsaccellboard1versioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard6versioninfo) == sizeof(struct CanPrimaryTsaccellboard1versioninfo), "Layout mismatch");
+
+static_assert(sizeof(struct CanPrimaryTsaccellboard2libcanversion) == sizeof(struct CanPrimaryTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard3libcanversion) == sizeof(struct CanPrimaryTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard4libcanversion) == sizeof(struct CanPrimaryTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard5libcanversion) == sizeof(struct CanPrimaryTsaccellboard1libcanversion), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard6libcanversion) == sizeof(struct CanPrimaryTsaccellboard1libcanversion), "Layout mismatch");
+
+static_assert(sizeof(struct CanPrimaryTsaccellboard2libcanversioninfo) == sizeof(struct CanPrimaryTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard3libcanversioninfo) == sizeof(struct CanPrimaryTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard4libcanversioninfo) == sizeof(struct CanPrimaryTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard5libcanversioninfo) == sizeof(struct CanPrimaryTsaccellboard1libcanversioninfo), "Layout mismatch");
+static_assert(sizeof(struct CanPrimaryTsaccellboard6libcanversioninfo) == sizeof(struct CanPrimaryTsaccellboard1libcanversioninfo), "Layout mismatch");
 
 // The discharge resistor temperatures are copied as a plain float array: the message must contain nothing but them
 static_assert(sizeof(struct CanPrimaryTsaccellboard1balancingtemperature) == CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT * sizeof(float), "Unexpected balancing temperature layout");
@@ -149,6 +174,46 @@ static const enum CanPrimaryMessageFrameId temperatures_frame_ids[CELLBOARD_COUN
     [CELLBOARD_ID_3] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATURE,
     [CELLBOARD_ID_4] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATURE,
     [CELLBOARD_ID_5] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATURE,
+};
+
+/*! \brief Frame ID of the firmware version number message of each cellboard */
+static const enum CanPrimaryMessageFrameId cellboard_version_frame_ids[CELLBOARD_COUNT] = {
+    [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSION,
+    [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSION,
+    [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSION,
+    [CELLBOARD_ID_3] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSION,
+    [CELLBOARD_ID_4] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSION,
+    [CELLBOARD_ID_5] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSION,
+};
+
+/*! \brief Frame ID of the firmware version info message of each cellboard */
+static const enum CanPrimaryMessageFrameId cellboard_version_info_frame_ids[CELLBOARD_COUNT] = {
+    [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSIONINFO,
+    [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSIONINFO,
+    [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSIONINFO,
+    [CELLBOARD_ID_3] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSIONINFO,
+    [CELLBOARD_ID_4] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSIONINFO,
+    [CELLBOARD_ID_5] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSIONINFO,
+};
+
+/*! \brief Frame ID of the libcan version number message of each cellboard */
+static const enum CanPrimaryMessageFrameId cellboard_libcan_version_frame_ids[CELLBOARD_COUNT] = {
+    [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSION,
+    [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSION,
+    [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSION,
+    [CELLBOARD_ID_3] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSION,
+    [CELLBOARD_ID_4] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSION,
+    [CELLBOARD_ID_5] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSION,
+};
+
+/*! \brief Frame ID of the libcan version info message of each cellboard */
+static const enum CanPrimaryMessageFrameId cellboard_libcan_version_info_frame_ids[CELLBOARD_COUNT] = {
+    [CELLBOARD_ID_0] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSIONINFO,
+    [CELLBOARD_ID_1] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSIONINFO,
+    [CELLBOARD_ID_2] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSIONINFO,
+    [CELLBOARD_ID_3] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSIONINFO,
+    [CELLBOARD_ID_4] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSIONINFO,
+    [CELLBOARD_ID_5] = CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSIONINFO,
 };
 
 /*! \brief Frame ID of each cellboard errors message */
@@ -809,6 +874,78 @@ enum SerializerReturnCode serializer_api_get_libcan_version_info_message(struct 
     // TODO: send the libcan commit hash and dirty flag once can-version.h provides them
     payload->commithash = 0U;
     payload->dirty = 0U;
+    return SERIALIZER_RC_OK;
+}
+
+enum SerializerReturnCode serializer_api_get_cellboard_version_message(enum CellboardId cellboard, struct SerializerMessage *message) {
+    if (message == NULL) {
+        return SERIALIZER_RC_NULL_POINTER;
+    }
+    if (cellboard >= CELLBOARD_COUNT) {
+        return SERIALIZER_RC_INVALID_CELLBOARD;
+    }
+
+    prv_reset_message(message, cellboard_version_frame_ids[cellboard]);
+
+    const struct CellboardsMonitorVersion version = cellboards_monitor_api_get_version(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE);
+    struct CanPrimaryTsaccellboard1version *payload = &message->payload.tsaccellboard1version;
+    payload->major = version.major;
+    payload->minor = version.minor;
+    payload->patch = version.patch;
+    return SERIALIZER_RC_OK;
+}
+
+enum SerializerReturnCode serializer_api_get_cellboard_version_info_message(enum CellboardId cellboard, struct SerializerMessage *message) {
+    if (message == NULL) {
+        return SERIALIZER_RC_NULL_POINTER;
+    }
+    if (cellboard >= CELLBOARD_COUNT) {
+        return SERIALIZER_RC_INVALID_CELLBOARD;
+    }
+
+    prv_reset_message(message, cellboard_version_info_frame_ids[cellboard]);
+
+    const struct CellboardsMonitorVersion version = cellboards_monitor_api_get_version(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE);
+    struct CanPrimaryTsaccellboard1versioninfo *payload = &message->payload.tsaccellboard1versioninfo;
+    payload->buildtime = version.time;
+    payload->commithash = version.commit_hash;
+    payload->dirty = version.dirty ? 1U : 0U;
+    return SERIALIZER_RC_OK;
+}
+
+enum SerializerReturnCode serializer_api_get_cellboard_libcan_version_message(enum CellboardId cellboard, struct SerializerMessage *message) {
+    if (message == NULL) {
+        return SERIALIZER_RC_NULL_POINTER;
+    }
+    if (cellboard >= CELLBOARD_COUNT) {
+        return SERIALIZER_RC_INVALID_CELLBOARD;
+    }
+
+    prv_reset_message(message, cellboard_libcan_version_frame_ids[cellboard]);
+
+    const struct CellboardsMonitorVersion version = cellboards_monitor_api_get_version(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN);
+    struct CanPrimaryTsaccellboard1libcanversion *payload = &message->payload.tsaccellboard1libcanversion;
+    payload->major = version.major;
+    payload->minor = version.minor;
+    payload->patch = version.patch;
+    return SERIALIZER_RC_OK;
+}
+
+enum SerializerReturnCode serializer_api_get_cellboard_libcan_version_info_message(enum CellboardId cellboard, struct SerializerMessage *message) {
+    if (message == NULL) {
+        return SERIALIZER_RC_NULL_POINTER;
+    }
+    if (cellboard >= CELLBOARD_COUNT) {
+        return SERIALIZER_RC_INVALID_CELLBOARD;
+    }
+
+    prv_reset_message(message, cellboard_libcan_version_info_frame_ids[cellboard]);
+
+    const struct CellboardsMonitorVersion version = cellboards_monitor_api_get_version(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN);
+    struct CanPrimaryTsaccellboard1libcanversioninfo *payload = &message->payload.tsaccellboard1libcanversioninfo;
+    payload->generationtime = version.time;
+    payload->commithash = version.commit_hash;
+    payload->dirty = version.dirty ? 1U : 0U;
     return SERIALIZER_RC_OK;
 }
 
