@@ -70,7 +70,7 @@ enum MainboardStatusFault {
     MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, /*!< The TS voltage indicator is not connected (owner: PHC) */
 
     /* Control */
-    MAINBOARD_STATUS_FAULT_PCU_FAULT, /*!< The Pack Control Unit detected an error (owner: PCU) */
+    MAINBOARD_STATUS_FAULT_PHC_FAULT, /*!< A PHC check was not run in time (owner: PHC) */
 
     /* Freshness: the data was not updated in time */
     MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-router watchdogs) */

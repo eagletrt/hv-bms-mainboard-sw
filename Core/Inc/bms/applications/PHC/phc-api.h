@@ -20,7 +20,8 @@
 enum PHCReturnCode phc_api_init(void);
 
 /*!
- * \brief Check a specific PHC control and set the corresponding fault in the mainboard status
+ * \brief Run a specific PHC control and set the corresponding fault or update
+ *        the corresponding condition in the mainboard status
  *
  * \param control The PHC control to check
  *
@@ -30,6 +31,8 @@ enum PHCReturnCode phc_api_check(enum PHCControl control);
 
 /*!
  * \brief Check if all the PHC checks are OK and have been called in due time
+ * 
+ * \warning Obviously this function should not be called as the checks are called
  *
  * \returns PHC_RC_OK if the check was performed successfully, PHC_RC_ERROR if an error occurred
 */

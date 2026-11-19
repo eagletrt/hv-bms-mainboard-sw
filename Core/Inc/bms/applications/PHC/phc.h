@@ -32,11 +32,23 @@ enum PHCControl : uint8_t {
     PHC_CONTROL_CELLBOARD_FAULT,                /*!< Check for cellboard fault */
     PHC_CONTROL_IMD_FAULT,                      /*!< Check for IMD fault */
     PHC_CONTROL_VOLTAGE_INDICATOR_DISCONNECTED, /*!< Check for voltage indicator disconnected */
+    PHC_CONTROL_PACK_BALANCED,                  /*!< Update the pack balanced condition */
     PHC_CONTROL_COUNT                           /*!< Number of controls */
 };
 
 /*!
+ * \brief What a PHC check writes to the mainboard status
+ */
+enum PHCCheckKind : uint8_t {
+    PHC_CHECK_KIND_FAULT,     /*!< A false result sets the fault, which is never cleared */
+    PHC_CHECK_KIND_CONDITION, /*!< The result is written to the condition every time */
+};
+
+/*!
  * \brief Function pointer type for PHC check functions
+ *
+ * \returns For a fault check: true if everything is OK, false to set the fault.
+ *          For a condition check: true if the condition holds, false otherwise.
  */
 typedef bool (*PHCCheckFunction)(void);
 
@@ -44,8 +56,11 @@ typedef bool (*PHCCheckFunction)(void);
  * \brief Structure representing a PHC check
  */
 struct PHCCheck {
-    enum PHCControl control;         /*!< The PHC control to check */
-    enum MainboardStatusFault fault; /*!< The corresponding fault in the mainboard status */
+    enum PHCCheckKind kind; /*!< Whether the check sets a fault or updates a condition */
+    union {
+        enum MainboardStatusFault fault;         /*!< The fault set when the check fails (kind FAULT) */
+        enum MainboardStatusCondition condition; /*!< The condition updated with the result (kind CONDITION) */
+    };
     PHCCheckFunction check_function; /*!< The function to perform the check */
 };
 
