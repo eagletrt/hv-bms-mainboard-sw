@@ -316,14 +316,6 @@ void serializer_api_init(void) {
     }
 }
 
-void serializer_api_suppress_comms(bool suppress) {
-    serializer_handler.comms_suppressed = suppress;
-}
-
-bool serializer_api_is_comms_suppressed(void) {
-    return serializer_handler.comms_suppressed;
-}
-
 // STATUS
 
 enum SerializerReturnCode serializer_api_get_status_message(struct SerializerMessage *message) {

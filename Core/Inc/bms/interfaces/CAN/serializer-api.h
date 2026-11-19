@@ -20,24 +20,6 @@
 void serializer_api_init(void);
 
 /*!
- * \brief Suppress or resume the periodic messages
- *
- * \details Used during a flash procedure, when the mainboard must stay quiet on the CAN networks;
- * the message builders still work, the senders must check \ref serializer_api_is_comms_suppressed
- *
- * \param[in] suppress true to stop sending the periodic messages, false to resume them
- */
-void serializer_api_suppress_comms(bool suppress);
-
-/*!
- * \brief Check if the periodic messages are suppressed
- *
- * \retval true if the periodic messages must not be sent
- * \retval false otherwise
- */
-bool serializer_api_is_comms_suppressed(void);
-
-/*!
  * \brief Build the TSAC status message (TsacStatus)
  *
  * \details Carries the state of the mainboard FSM and of every cellboard
