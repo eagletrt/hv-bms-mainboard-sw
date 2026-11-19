@@ -146,7 +146,7 @@ const struct SerializerTask serializer_tasks[SERIALIZER_TASKS_COUNT] = {
     [SERIALIZER_TASKS_SEND_CELLBOARD_ERRORS_C] = CB_TASK(HIGH, 2U, can_primary_cycle_time_tsaccellboarderrorc, serializer_api_get_cellboard_errors_message),
 
     // BMS network
-    [SERIALIZER_TASKS_SEND_CELLBOARD_SET_BALANCING_STATUS] = BMS_TASK(HIGH, can_bms_cycle_time_tsacmainboardbalancingset, serializer_api_get_balancing_set_message),
+    [SERIALIZER_TASKS_SEND_CELLBOARD_SET_BALANCING_STATUS] = BMS_TASK(LOW, can_bms_cycle_time_tsacmainboardbalancingset, serializer_api_get_balancing_set_message),
 };
 
 #undef HIGH

@@ -302,6 +302,7 @@ static enum CanPrimaryTsacstatusCellboard1status prv_cellboard_state_to_can(enum
  * \return The voltage of the analog feedback in V
  */
 static volt prv_feedback_voltage(enum FeedbackAnalogIndex index) {
+    // TODO: check if everything needs the same scaling
     return FEEDBACK_TO_SD_VOLT(feedback_api_get_analog_value(index));
 }
 
