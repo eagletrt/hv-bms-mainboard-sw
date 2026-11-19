@@ -87,6 +87,14 @@ volt bal_control_api_get_target_voltage(void) {
     return bal_control_handler.target;
 }
 
+volt bal_control_api_get_threshold(void) {
+    return bal_control_handler.parameters.threshold;
+}
+
+bool bal_control_api_is_balancing_active(void) {
+    return bal_control_handler.balancing_active;
+}
+
 enum BalancingControlReturnCode bal_control_api_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell) {
 
     if (cellboard >= CELLBOARD_ID_COUNT) {

@@ -3,7 +3,7 @@
  * \date 2026-11-18
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Monitoring of the cellboards state and errors
+ * \brief Monitoring of the cellboards state, errors and versions
  */
 
 #ifndef CELLBOARDS_MONITOR_API_H
@@ -46,6 +46,46 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_state(enum Cellboard
  * \retval CELLBOARDS_MONITOR_RC_OK otherwise
  */
 enum CellboardsMonitorReturnCode cellboards_monitor_api_set_errors(enum CellboardId cellboard, bit_flag16 errors, bit_flag16 open_wires);
+
+/*!
+ * \brief Set a version number reported by a specific cellboard
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] kind The kind of version
+ * \param[in] major The major version number
+ * \param[in] minor The minor version number
+ * \param[in] patch The patch version number
+ *
+ * \retval CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval CELLBOARDS_MONITOR_RC_INVALID_VERSION if the given version kind does not exist
+ * \retval CELLBOARDS_MONITOR_RC_OK otherwise
+ */
+enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version(
+    enum CellboardId cellboard,
+    enum CellboardsMonitorVersionKind kind,
+    uint16_t major,
+    uint16_t minor,
+    uint16_t patch);
+
+/*!
+ * \brief Set a version info reported by a specific cellboard
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] kind The kind of version
+ * \param[in] time The firmware build time or the libcan generation time, as a Unix timestamp
+ * \param[in] commit_hash The (truncated) commit hash
+ * \param[in] dirty True if built from a working tree with uncommitted changes
+ *
+ * \retval CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD if the given cellboard does not exist
+ * \retval CELLBOARDS_MONITOR_RC_INVALID_VERSION if the given version kind does not exist
+ * \retval CELLBOARDS_MONITOR_RC_OK otherwise
+ */
+enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version_info(
+    enum CellboardId cellboard,
+    enum CellboardsMonitorVersionKind kind,
+    uint32_t time,
+    uint32_t commit_hash,
+    bool dirty);
 
 /*!
  * \brief Reset the updated flag for the state of a specific cellboard
@@ -104,6 +144,17 @@ bit_flag16 cellboards_monitor_api_get_errors(enum CellboardId cellboard);
  * \return The open wire errors of the cellboard, bit N for open wire N + 1, 0 if the cellboard does not exist
  */
 bit_flag16 cellboards_monitor_api_get_open_wires(enum CellboardId cellboard);
+
+/*!
+ * \brief Get a version reported by a specific cellboard
+ *
+ * \param[in] cellboard The cellboard id
+ * \param[in] kind The kind of version
+ *
+ * \return The version reported by the cellboard, all zeros if it was not reported yet
+ *         or if the cellboard or the version kind do not exist
+ */
+struct CellboardsMonitorVersion cellboards_monitor_api_get_version(enum CellboardId cellboard, enum CellboardsMonitorVersionKind kind);
 
 /*!
  * \brief Check if a specific cellboard is faulty

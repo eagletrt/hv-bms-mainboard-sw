@@ -17,6 +17,26 @@
 
 #include "mainboard-def.h"
 
+/*!* ######################### VERSION #################################### *!*/
+
+/*!
+ * \defgroups version-conf
+ * \brief Version of the mainboard firmware
+ * {\
+ */
+
+/*! \brief Major version of the mainboard firmware */
+#define MAINBOARD_VERSION_MAJOR (0U)
+/*! \brief Minor version of the mainboard firmware */
+#define MAINBOARD_VERSION_MINOR (1U)
+/*! \brief Patch version of the mainboard firmware */
+#define MAINBOARD_VERSION_PATCH (0U)
+
+/*! \brief Build date and time of the firmware, in the format of __DATE__ and __TIME__ */
+#define MAINBOARD_BUILD_TIME_STR (__DATE__ " " __TIME__)
+
+/*! \} */
+
 /*!* ######################### FEEDBACK ################################### *!*/
 
 /*!

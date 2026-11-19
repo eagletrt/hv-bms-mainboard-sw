@@ -3,7 +3,7 @@
  * \date 2026-11-18
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Data types and structures for the monitoring of the cellboards state and errors
+ * \brief Data types and structures for the monitoring of the cellboards state, errors and versions
  */
 
 #ifndef CELLBOARDS_MONITOR_H
@@ -25,7 +25,32 @@ enum CellboardsMonitorReturnCode {
     CELLBOARDS_MONITOR_RC_OK,                /*!< The function executed succesfully */
     CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD, /*!< The given cellboard does not exist */
     CELLBOARDS_MONITOR_RC_INVALID_STATE,     /*!< The given state does not exist */
-    CELLBOARDS_MONITOR_RC_INVALID_ERROR      /*!< The given error does not exist */
+    CELLBOARDS_MONITOR_RC_INVALID_ERROR,     /*!< The given error does not exist */
+    CELLBOARDS_MONITOR_RC_INVALID_VERSION    /*!< The given version kind does not exist */
+};
+
+/*!
+ * \brief Kind of version reported by a cellboard
+ */
+enum CellboardsMonitorVersionKind {
+    CELLBOARDS_MONITOR_VERSION_FIRMWARE, /*!< The version of the cellboard firmware */
+    CELLBOARDS_MONITOR_VERSION_LIBCAN,   /*!< The version of the libcan used by the cellboard firmware */
+    CELLBOARDS_MONITOR_VERSION_COUNT     /*!< Number of version kinds */
+};
+
+/*!
+ * \brief Version reported by a cellboard
+ *
+ * \details The cellboard sends the version number and the version info in two different
+ * messages, so the two parts of this structure are updated independently
+ */
+struct CellboardsMonitorVersion {
+    uint16_t major;       /*!< The major version number */
+    uint16_t minor;       /*!< The minor version number */
+    uint16_t patch;       /*!< The patch version number */
+    uint32_t time;        /*!< The firmware build time or the libcan generation time, as a Unix timestamp */
+    uint32_t commit_hash; /*!< The (truncated) commit hash */
+    bool dirty;           /*!< True if built from a working tree with uncommitted changes */
 };
 
 /*!
@@ -73,6 +98,8 @@ struct CellboardsMonitorHandler {
     bit_flag16 errors[CELLBOARD_COUNT];               /*!< The errors of each cellboard, bit N for CellboardsMonitorError N */
     bit_flag16 open_wires[CELLBOARD_COUNT];           /*!< The open wire errors of each cellboard, bit N for open wire N + 1 */
     volatile bool is_updated_errors[CELLBOARD_COUNT]; /*!< Indicates if the errors of a specific cellboard have been updated */
+
+    struct CellboardsMonitorVersion versions[CELLBOARD_COUNT][CELLBOARDS_MONITOR_VERSION_COUNT]; /*!< The versions reported by each cellboard */
 };
 
 #endif // CELLBOARDS_MONITOR_H

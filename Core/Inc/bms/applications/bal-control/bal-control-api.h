@@ -79,6 +79,21 @@ bool bal_control_api_is_pack_balanced(void);
 volt bal_control_api_get_target_voltage(void);
 
 /*!
+ * \brief Gets the voltage delta threshold for balancing
+ *
+ * \returns The threshold below which the pack is considered balanced
+ */
+volt bal_control_api_get_threshold(void);
+
+/*!
+ * \brief Checks if the balancing is currently active
+ *
+ * \retval true if the balancing was started and not stopped yet
+ * \retval false otherwise
+ */
+bool bal_control_api_is_balancing_active(void);
+
+/*!
  * \brief Sets the balancing status for a specific cellboard
  *
  * \param set The desired balancing status (true for balancing, false for not balancing)

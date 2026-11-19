@@ -3,7 +3,7 @@
  * \date 2026-11-18
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Monitoring of the cellboards state and errors
+ * \brief Monitoring of the cellboards state, errors and versions
  */
 
 #include "cellboards-monitor-api.h"
@@ -65,6 +65,48 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_errors(enum Cellboar
     return CELLBOARDS_MONITOR_RC_OK;
 }
 
+enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version(
+    enum CellboardId cellboard,
+    enum CellboardsMonitorVersionKind kind,
+    uint16_t major,
+    uint16_t minor,
+    uint16_t patch) {
+    if (cellboard >= CELLBOARD_COUNT) {
+        return CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD;
+    }
+    if (kind >= CELLBOARDS_MONITOR_VERSION_COUNT) {
+        return CELLBOARDS_MONITOR_RC_INVALID_VERSION;
+    }
+
+    struct CellboardsMonitorVersion *version = &cellboards_monitor_handler.versions[cellboard][kind];
+    version->major = major;
+    version->minor = minor;
+    version->patch = patch;
+
+    return CELLBOARDS_MONITOR_RC_OK;
+}
+
+enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version_info(
+    enum CellboardId cellboard,
+    enum CellboardsMonitorVersionKind kind,
+    uint32_t time,
+    uint32_t commit_hash,
+    bool dirty) {
+    if (cellboard >= CELLBOARD_COUNT) {
+        return CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD;
+    }
+    if (kind >= CELLBOARDS_MONITOR_VERSION_COUNT) {
+        return CELLBOARDS_MONITOR_RC_INVALID_VERSION;
+    }
+
+    struct CellboardsMonitorVersion *version = &cellboards_monitor_handler.versions[cellboard][kind];
+    version->time = time;
+    version->commit_hash = commit_hash;
+    version->dirty = dirty;
+
+    return CELLBOARDS_MONITOR_RC_OK;
+}
+
 enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_state_updated_flag(enum CellboardId cellboard) {
     if (cellboard < CELLBOARD_COUNT) {
         cellboards_monitor_handler.is_updated_state[cellboard] = false;
@@ -107,6 +149,13 @@ bit_flag16 cellboards_monitor_api_get_open_wires(enum CellboardId cellboard) {
         return 0U;
     }
     return cellboards_monitor_handler.open_wires[cellboard];
+}
+
+struct CellboardsMonitorVersion cellboards_monitor_api_get_version(enum CellboardId cellboard, enum CellboardsMonitorVersionKind kind) {
+    if (cellboard >= CELLBOARD_COUNT || kind >= CELLBOARDS_MONITOR_VERSION_COUNT) {
+        return (struct CellboardsMonitorVersion){ 0 };
+    }
+    return cellboards_monitor_handler.versions[cellboard][kind];
 }
 
 bool cellboards_monitor_api_is_cellboard_faulty(enum CellboardId cellboard) {

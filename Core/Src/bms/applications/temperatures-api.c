@@ -95,6 +95,13 @@ enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(
     return TEMPERATURES_RC_OK;
 }
 
+celsius temperatures_api_get_cell_temperature(enum CellboardId cellboard, uint8_t index) {
+    if (cellboard >= CELLBOARD_COUNT || index >= CELLBOARD_SEGMENT_TEMP_SENSOR_COUNT) {
+        return 0.F;
+    }
+    return temperatures_handler.cell_temperatures[cellboard][index];
+}
+
 struct TemperaturesInfo temperatures_api_get_cell_temperatures_info(enum CellboardId cellboard) {
     struct TemperaturesInfo info = { 0, 0, 0 };
 
@@ -154,6 +161,13 @@ enum TemperaturesReturnCode temperatures_api_reset_discharge_temperatures_update
         return TEMPERATURES_RC_OK;
     }
     return TEMPERATURES_RC_INVALID_CELLBOARD;
+}
+
+celsius temperatures_api_get_discharge_temperature(enum CellboardId cellboard, uint8_t index) {
+    if (cellboard >= CELLBOARD_COUNT || index >= CELLBOARD_SEGMENT_DISCHARGE_TEMP_COUNT) {
+        return 0.F;
+    }
+    return temperatures_handler.discharge_temperatures[cellboard][index];
 }
 
 struct TemperaturesInfo temperatures_api_get_discharge_temperatures_info(enum CellboardId cellboard) {
