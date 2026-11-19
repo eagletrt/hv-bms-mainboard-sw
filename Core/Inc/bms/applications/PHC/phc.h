@@ -35,17 +35,26 @@ enum PHCControl : uint8_t {
     PHC_CONTROL_COUNT                           /*!< Number of controls */
 };
 
+/*!
+ * \brief Function pointer type for PHC check functions
+ */
 typedef bool (*PHCCheckFunction)(void);
 
+/*!
+ * \brief Structure representing a PHC check
+ */
 struct PHCCheck {
-    enum PHCControl control;
-    enum MainboardStatusFault fault;
-    PHCCheckFunction check_function;
+    enum PHCControl control;         /*!< The PHC control to check */
+    enum MainboardStatusFault fault; /*!< The corresponding fault in the mainboard status */
+    PHCCheckFunction check_function; /*!< The function to perform the check */
 };
 
+/*!
+ * \brief Structure representing the PHC handler
+ */
 struct PHCHandler {
-    uint32_t last_check_time[PHC_CONTROL_COUNT];
-    bool last_check_updated[PHC_CONTROL_COUNT];
+    uint32_t last_check_time[PHC_CONTROL_COUNT]; /*!< The time of the last check of the condition */
+    bool last_check_updated[PHC_CONTROL_COUNT];  /*!< Whether the last check time has been updated once*/
 };
 
 #endif // PHC_H

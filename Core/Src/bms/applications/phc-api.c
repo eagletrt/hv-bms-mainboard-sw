@@ -122,7 +122,7 @@ EAGLETRT_STATIC bool prv_phc_check_over_current(void) {
 }
 
 EAGLETRT_STATIC bool prv_phc_check_over_power(void) {
-    if (internal_voltages_api_get_power() >= PHC_MAX_CURRENT * PHC_MAX_CELL_VOLTAGE) {
+    if (internal_voltages_api_get_power() >= PHC_MAX_POWER) {
         EAGLETRT_API_NOP();
         return false;
     }
