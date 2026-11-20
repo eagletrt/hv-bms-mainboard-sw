@@ -34,7 +34,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_voltage(void) {
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (voltages_api_get_pack_info().min <= PHC_MIN_CELL_VOLTAGE) {
+    if (voltages_api_get_pack_info().min <= PHC_MIN_CELL_VOLTAGE_V) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -45,7 +45,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_voltage(void) {
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (voltages_api_get_pack_info().max >= PHC_MAX_CELL_VOLTAGE) {
+    if (voltages_api_get_pack_info().max >= PHC_MAX_CELL_VOLTAGE_V) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -56,7 +56,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_temperature(void) {
     if (!temperatures_api_is_cell_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_cell_temperatures_info().max >= PHC_MAX_CELL_TEMPERATURE) {
+    if (temperatures_api_get_pack_cell_temperatures_info().max >= PHC_MAX_CELL_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -67,7 +67,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_temperature(void) {
     if (!temperatures_api_is_cell_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_cell_temperatures_info().min <= PHC_MIN_CELL_TEMPERATURE) {
+    if (temperatures_api_get_pack_cell_temperatures_info().min <= PHC_MIN_CELL_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -78,7 +78,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_over_temperature(voi
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_discharge_temperatures_info().max >= PHC_MAX_DISCHARGE_TEMPERATURE) {
+    if (temperatures_api_get_pack_discharge_temperatures_info().max >= PHC_MAX_DISCHARGE_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -89,7 +89,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_under_temperature(vo
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_discharge_temperatures_info().min <= PHC_MIN_DISCHARGE_TEMPERATURE) {
+    if (temperatures_api_get_pack_discharge_temperatures_info().min <= PHC_MIN_DISCHARGE_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -101,16 +101,16 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_over_temperature(void)
         return PHC_CHECK_RESULT_NOT_READY;
     }
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
-        if (internal_temperatures_api_get_value(index) >= PHC_MAX_COOLING_TEMPERATURE) {
+        if (internal_temperatures_api_get_value(index) >= PHC_MAX_COOLING_TEMPERATURE_C) {
             EAGLETRT_API_NOP();
             return PHC_CHECK_RESULT_FAILED;
         }
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) >= PHC_MAX_LINEAR_REGULATOR_TEMPERATURE) {
+    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) >= PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) >= PHC_MAX_PRECHARGE_TEMPERATURE) {
+    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) >= PHC_MAX_PRECHARGE_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -122,16 +122,16 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_under_temperature(void
         return PHC_CHECK_RESULT_NOT_READY;
     }
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
-        if (internal_temperatures_api_get_value(index) <= PHC_MIN_COOLING_TEMPERATURE) {
+        if (internal_temperatures_api_get_value(index) <= PHC_MIN_COOLING_TEMPERATURE_C) {
             EAGLETRT_API_NOP();
             return PHC_CHECK_RESULT_FAILED;
         }
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) <= PHC_MIN_LINEAR_REGULATOR_TEMPERATURE) {
+    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) <= PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) <= PHC_MIN_PRECHARGE_TEMPERATURE) {
+    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) <= PHC_MIN_PRECHARGE_TEMPERATURE_C) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -143,7 +143,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_current(void) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
     const ampere current = internal_voltages_api_get_current();
-    if (current >= PHC_MAX_CURRENT || current <= PHC_MIN_CURRENT) {
+    if (current >= PHC_MAX_CURRENT_A || current <= PHC_MIN_CURRENT_A) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -155,7 +155,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_power(void) {
     if (!internal_voltages_api_is_current_ready() || !internal_voltages_api_is_voltages_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (internal_voltages_api_get_power() >= PHC_MAX_POWER) {
+    if (internal_voltages_api_get_power() >= PHC_MAX_POWER_W) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
