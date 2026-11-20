@@ -9,6 +9,7 @@
  */
 
 #include "flash-control-api.h"
+#include "can-bridge-api.h"
 #include "eagletrt.h"
 #include "serializer-tasks-api.h"
 #include <string.h>
