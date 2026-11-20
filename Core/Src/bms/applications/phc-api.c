@@ -22,6 +22,7 @@
 #include "mainboard-def.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
+#include "pcu-api.h"
 
 #include "voltages-api.h"
 #include "temperatures-api.h"

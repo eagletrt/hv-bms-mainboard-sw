@@ -42,6 +42,7 @@
 #include "internal-temperatures-api.h"
 #include "internal-voltages-api.h"
 #include "mainboard-status-api.h"
+#include "pcu-api.h"
 #include "sensing-api.h"
 /* USER CODE END Includes */
 
@@ -136,12 +137,12 @@ int main(void) {
     can_configure_and_start_primary(gpio_read_hc_connected());
 
     /*
-     * This GPIO (AMS OK) has to be always pulled high, if at any moment the pin
-     * state is low that means that the board is not working properly
-     *
-     * TODO: Move to the PCU module once it is implemented
+     * Open the relays and pull the AMS OK pin high as soon as possible,
+     * the GPIO initialization leaves them low (relays closed, AMS active)
      */
-    HAL_GPIO_WritePin(BMS_OK_3V3_GPIO_Port, BMS_OK_3V3_Pin, GPIO_PIN_SET);
+    if (pcu_api_init(gpio_pcu_set_state, HAL_GetTick, system_reset) != PCU_RC_OK) {
+        Error_Handler();
+    }
 
     /* USER CODE END 2 */
 
