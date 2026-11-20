@@ -141,9 +141,9 @@
 #define PHC_MAX_CURRENT_A (0)
 
 /*!
- * \brief Thresholds for the power PHC checks
+ * \brief Thresholds for the power PHC checks, in kW like internal_voltages_api_get_power
  */
-#define PHC_MAX_POWER_W (0)
+#define PHC_MAX_POWER_KW (0)
 
 /*!
  * \brief Maximum interval between two consecutive PHC checks in ms

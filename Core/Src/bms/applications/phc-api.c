@@ -155,7 +155,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_power(void) {
     if (!internal_voltages_api_is_current_ready() || !internal_voltages_api_is_voltages_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (internal_voltages_api_get_power() >= PHC_MAX_POWER_W) {
+    if (internal_voltages_api_get_power() >= PHC_MAX_POWER_KW) {
         EAGLETRT_API_NOP();
         return PHC_CHECK_RESULT_FAILED;
     }
@@ -247,7 +247,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_pack_balanced(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC const struct PHCCheck phc_checks[PHC_CONTROL_COUNT] = {
+EAGLETRT_STATIC const struct PHCCheck phc_checks[] = {
     { PHC_CONTROL_CELL_UNDER_VOLTAGE,             PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE },             prv_phc_check_cell_under_voltage             },
     { PHC_CONTROL_CELL_OVER_VOLTAGE,              PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE },              prv_phc_check_cell_over_voltage              },
     { PHC_CONTROL_CELL_UNDER_TEMPERATURE,         PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE },         prv_phc_check_cell_under_temperature         },
@@ -264,6 +264,25 @@ EAGLETRT_STATIC const struct PHCCheck phc_checks[PHC_CONTROL_COUNT] = {
     { PHC_CONTROL_PACK_BALANCED,                  PHC_CHECK_KIND_CONDITION, { .condition = MAINBOARD_STATUS_CONDITION_PACK_BALANCED },          prv_phc_check_pack_balanced                  },
 };
 
+// Every control needs exactly one entry; the entries are looked up by control, so their order does not matter
+static_assert(sizeof(phc_checks) / sizeof(phc_checks[0]) == PHC_CONTROL_COUNT, "Every PHC control needs exactly one check");
+
+/*!
+ * \brief Find the check of a control in \ref phc_checks
+ *
+ * \param[in] control The control to look up
+ *
+ * \return The check of the control, \c NULL if the table has no entry for it
+ */
+EAGLETRT_STATIC const struct PHCCheck *prv_phc_find_check(enum PHCControl control) {
+    for (size_t i = 0U; i < sizeof(phc_checks) / sizeof(phc_checks[0]); ++i) {
+        if (phc_checks[i].control == control) {
+            return &phc_checks[i];
+        }
+    }
+    return NULL;
+}
+
 enum PHCReturnCode phc_api_init(void) {
     memset(&phc_handler, 0, sizeof(phc_handler));
     return PHC_RC_OK;
@@ -274,7 +293,10 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
         return PHC_RC_ERROR;
     }
 
-    const struct PHCCheck *check = &phc_checks[control];
+    const struct PHCCheck *check = prv_phc_find_check(control);
+    if (check == NULL || check->check_function == NULL) {
+        return PHC_RC_ERROR;
+    }
 
     const enum PHCCheckResult check_result = check->check_function();
 
