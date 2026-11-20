@@ -89,4 +89,71 @@
 
 /*! \} */
 
+/*!* ######################### SAFETY #################################### *!*/
+
+/*!
+ * \defgroup phc-conf
+ * \brief Configuration of the Pack Health Controller (PHC)
+ * \{
+ */
+
+/*!
+ * \brief Thresholds for the voltages PHC checks
+ */
+#define PHC_MIN_CELL_VOLTAGE_V (0)
+#define PHC_MAX_CELL_VOLTAGE_V (0)
+
+/*!
+ * \brief Thresholds for the temperatures PHC checks
+ */
+#define PHC_MIN_CELL_TEMPERATURE_C (0)
+#define PHC_MAX_CELL_TEMPERATURE_C (0)
+
+/*!
+ * \brief Thresholds for the discharge resistor temperature PHC checks
+ */
+#define PHC_MIN_DISCHARGE_TEMPERATURE_C (0)
+#define PHC_MAX_DISCHARGE_TEMPERATURE_C (0)
+
+/*!
+ * \brief Thresholds for the cooling system temperature PHC checks
+ */
+#define PHC_MIN_COOLING_TEMPERATURE_C (0)
+#define PHC_MAX_COOLING_TEMPERATURE_C (0)
+
+/*!
+ * \brief Thresholds for the linear regulator temperature PHC checks
+ */
+#define PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C (0)
+#define PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C (0)
+
+/*!
+ * \brief Thresholds for the precharge temperature PHC checks
+ */
+#define PHC_MIN_PRECHARGE_TEMPERATURE_C (0)
+#define PHC_MAX_PRECHARGE_TEMPERATURE_C (0)
+
+/*!
+ * \brief Thresholds for the current PHC checks
+ * \details The current is signed, the minimum is the limit in the opposite direction
+ */
+#define PHC_MIN_CURRENT_A (0)
+#define PHC_MAX_CURRENT_A (0)
+
+/*!
+ * \brief Thresholds for the power PHC checks
+ */
+#define PHC_MAX_POWER_W (0)
+
+/*!
+ * \brief Maximum interval between two consecutive PHC checks in ms
+ *
+ * \details If a check is not called within this time, the corresponding fault
+ *          is set
+ */
+#define PHC_MAX_CHECK_INTERVAL_MS (50U)
+#define PHC_MAX_STARTUP_INTERVAL_MS (500U)
+
+/*! \} */
+
 #endif // MAINBOARD_CONF_H

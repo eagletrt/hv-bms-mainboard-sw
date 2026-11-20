@@ -88,26 +88,6 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version_info(
     bool dirty);
 
 /*!
- * \brief Reset the updated flag for the state of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval CELLBOARDS_MONITOR_RC_OK otherwise
- */
-enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_state_updated_flag(enum CellboardId cellboard);
-
-/*!
- * \brief Reset the updated flag for the errors of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval CELLBOARDS_MONITOR_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval CELLBOARDS_MONITOR_RC_OK otherwise
- */
-enum CellboardsMonitorReturnCode cellboards_monitor_api_reset_errors_updated_flag(enum CellboardId cellboard);
-
-/*!
  * \brief Get the FSM state of a specific cellboard
  *
  * \param[in] cellboard The cellboard id
@@ -173,5 +153,16 @@ bool cellboards_monitor_api_is_cellboard_faulty(enum CellboardId cellboard);
  * \retval false otherwise
  */
 bool cellboards_monitor_api_is_any_cellboard_faulty(void);
+
+/*!
+ * \brief Check if the state and the errors of every cellboard have been received at least once
+ *
+ * \details The faulty checks are meaningful only then: before, the cellboards that did not
+ *          report yet look like they are initializing with no errors
+ *
+ * \retval true if every cellboard has sent its state and its errors
+ * \retval false otherwise
+ */
+bool cellboards_monitor_api_is_ready(void);
 
 #endif // CELLBOARDS_MONITOR_API_H

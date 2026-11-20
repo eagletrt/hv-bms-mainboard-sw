@@ -41,16 +41,6 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
 void internal_voltages_api_set_current(ampere current);
 
 /*!
- * \brief Reset the updated flag of the internal voltages
- */
-void internal_voltages_api_reset_voltages_updated_flag(void);
-
-/*!
- * \brief Reset the updated flag of the current
- */
-void internal_voltages_api_reset_current_updated_flag(void);
-
-/*!
  * \brief Get a single internal voltage value
  *
  * \param[in] index The index of the voltage
@@ -79,5 +69,21 @@ kilowatt internal_voltages_api_get_power(void);
  * \return The TS and pack voltages, the current and the power
  */
 struct InternalVoltagesInfo internal_voltages_api_get_info(void);
+
+/*!
+ * \brief Check if every internal voltage has been received at least once
+ *
+ * \retval true if every internal voltage has been received
+ * \retval false otherwise
+ */
+bool internal_voltages_api_is_voltages_ready(void);
+
+/*!
+ * \brief Check if the current has been received at least once
+ *
+ * \retval true if the current has been received
+ * \retval false otherwise
+ */
+bool internal_voltages_api_is_current_ready(void);
 
 #endif // INTERNAL_VOLTAGES_API_H

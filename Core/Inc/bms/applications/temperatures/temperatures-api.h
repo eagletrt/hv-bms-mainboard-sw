@@ -33,26 +33,6 @@ void temperatures_api_init(void);
 enum TemperaturesReturnCode temperatures_api_set_cell_temperature(enum CellboardId cellboard, uint8_t index, celsius temperature);
 
 /*!
- * \brief Reset the updated flags for the cell temperatures of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval TEMPERATURES_RC_OK otherwise
- */
-enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_updated_flags(enum CellboardId cellboard);
-
-/*!
- * \brief Reset the updated flags for the cell temperature information of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval TEMPERATURES_RC_OK otherwise
- */
-enum TemperaturesReturnCode temperatures_api_reset_cell_temperatures_info_updated_flags(enum CellboardId cellboard);
-
-/*!
  * \brief Set the cell temperature information for a specific cellboard
  *
  * \param[in] cellboard The cellboard id
@@ -105,16 +85,6 @@ struct TemperaturesInfo temperatures_api_get_pack_cell_temperatures_info(void);
 enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum CellboardId cellboard, uint8_t index, celsius temperature);
 
 /*!
- * \brief Reset the updated flags for the discharge resistor temperatures of a specific cellboard
- *
- * \param[in] cellboard The cellboard id
- *
- * \retval TEMPERATURES_RC_INVALID_CELLBOARD if the given cellboard does not exist
- * \retval TEMPERATURES_RC_OK otherwise
- */
-enum TemperaturesReturnCode temperatures_api_reset_discharge_temperatures_updated_flags(enum CellboardId cellboard);
-
-/*!
  * \brief Get the temperature of a single discharge resistor
  *
  * \param[in] cellboard The cellboard id
@@ -141,5 +111,27 @@ struct TemperaturesInfo temperatures_api_get_discharge_temperatures_info(enum Ce
  * \return The minimum, maximum and average discharge resistor temperature of the pack
  */
 struct TemperaturesInfo temperatures_api_get_pack_discharge_temperatures_info(void);
+
+/*!
+ * \brief Check if the cell temperature information of every cellboard has been received at least once
+ *
+ * \details The pack cell temperature information is meaningful only then: before, the cellboards
+ *          that did not report yet count as 0°C
+ *
+ * \retval true if every cellboard has sent its cell temperature information
+ * \retval false otherwise
+ */
+bool temperatures_api_is_cell_temperatures_ready(void);
+
+/*!
+ * \brief Check if every discharge resistor temperature of every cellboard has been received at least once
+ *
+ * \details The discharge resistor temperature information is meaningful only then: before,
+ *          the values that were not received yet count as 0°C
+ *
+ * \retval true if every discharge resistor temperature has been received
+ * \retval false otherwise
+ */
+bool temperatures_api_is_discharge_temperatures_ready(void);
 
 #endif // TEMPERATURES_API_H

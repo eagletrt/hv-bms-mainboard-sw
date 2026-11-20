@@ -33,11 +33,6 @@ void internal_temperatures_api_init(void);
 enum InternalTemperaturesReturnCode internal_temperatures_api_set_value(enum InternalTemperaturesIndex index, celsius temperature);
 
 /*!
- * \brief Reset the updated flag of the internal temperatures
- */
-void internal_temperatures_api_reset_temperatures_updated_flag(void);
-
-/*!
  * \brief Get a single internal temperature value
  *
  * \param[in] index The index of the temperature
@@ -45,5 +40,13 @@ void internal_temperatures_api_reset_temperatures_updated_flag(void);
  * \return The temperature value, 0 if the index is out of range
  */
 celsius internal_temperatures_api_get_value(enum InternalTemperaturesIndex index);
+
+/*!
+ * \brief Check if every internal temperature has been received at least once
+ *
+ * \retval true if every internal temperature has been received
+ * \retval false otherwise
+ */
+bool internal_temperatures_api_is_ready(void);
 
 #endif // INTERNAL_TEMPERATURES_API_H
