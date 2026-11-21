@@ -161,4 +161,33 @@
 
 /*! \} */
 
+/*!* ######################### CAN ####################################### *!*/
+
+/*!
+ * \defgroup can-conf
+ * \brief Configuration of the CAN communication
+ * \{
+ */
+
+/*!
+ * \brief Maximum number of consecutive messages that can be dropped
+ *
+ * \details CELLBOARD applies to the messages sent by the cellboards, IVT to
+ *          the ones sent by the IVT, PRIMARY to the ones received on the
+ *          primary network
+ */
+#define CAN_MAX_CELLBOARD_DROPPED (3U)
+#define CAN_MAX_IVT_DROPPED (3U)
+#define CAN_MAX_PRIMARY_DROPPED (3U)
+
+/*!
+ * \brief Cycle time of the IVT current message in ms
+ *
+ * \details libcan marks the IVT messages as one-shot, the actual period is
+ *          the one configured on the IVT
+ */
+#define CAN_IVT_CYCLE_TIME_MS (10U)
+
+/*! \} */
+
 #endif // MAINBOARD_CONF_H
