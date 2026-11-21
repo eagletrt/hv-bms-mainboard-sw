@@ -13,102 +13,105 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "bal-control-api.h"
 #include "can-bms.h"
 #include "can-primary.h"
 #include "eagletrt.h"
 #include "mainboard-conf.h"
+#include "mainboard-status-api.h"
 #include "mainboard-watchdogs-api.h"
+#include "request-control-api.h"
 #include "watchdogs.h"
 
 /*!
  * \brief Information about the messages received on the BMS network
  */
 EAGLETRT_STATIC const struct CanCommunicationInfoBmsMessage bms_messages[] = {
-    { CAN_BMS_MESSAGE_FRAME_ID_IVTMESSAGERESULTI,                  CAN_IVT_CYCLE_TIME_MS,                                 CAN_MAX_IVT_DROPPED       },
+    { CAN_BMS_MESSAGE_FRAME_ID_IVTMESSAGERESULTI,                  CAN_IVT_CYCLE_TIME_MS,                                 CAN_MAX_IVT_DROPPED,       MAINBOARD_STATUS_FAULT_STALE_CURRENT           },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGE,              can_bms_cycle_time_tsaccellboard1voltage,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGE,              can_bms_cycle_time_tsaccellboard2voltage,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGE,              can_bms_cycle_time_tsaccellboard3voltage,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGE,              can_bms_cycle_time_tsaccellboard4voltage,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGE,              can_bms_cycle_time_tsaccellboard5voltage,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGE,              can_bms_cycle_time_tsaccellboard6voltage,              CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGE,              can_bms_cycle_time_tsaccellboard1voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGE,              can_bms_cycle_time_tsaccellboard2voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGE,              can_bms_cycle_time_tsaccellboard3voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGE,              can_bms_cycle_time_tsaccellboard4voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGE,              can_bms_cycle_time_tsaccellboard5voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGE,              can_bms_cycle_time_tsaccellboard6voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard1voltageinfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard2voltageinfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard3voltageinfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard4voltageinfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard5voltageinfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard6voltageinfo,          CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard1voltageinfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard2voltageinfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard3voltageinfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard4voltageinfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard5voltageinfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VOLTAGEINFO,          can_bms_cycle_time_tsaccellboard6voltageinfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATURE,          can_bms_cycle_time_tsaccellboard1temperature,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATURE,          can_bms_cycle_time_tsaccellboard2temperature,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATURE,          can_bms_cycle_time_tsaccellboard3temperature,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATURE,          can_bms_cycle_time_tsaccellboard4temperature,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATURE,          can_bms_cycle_time_tsaccellboard5temperature,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATURE,          can_bms_cycle_time_tsaccellboard6temperature,          CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATURE,          can_bms_cycle_time_tsaccellboard1temperature,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATURE,          can_bms_cycle_time_tsaccellboard2temperature,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATURE,          can_bms_cycle_time_tsaccellboard3temperature,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATURE,          can_bms_cycle_time_tsaccellboard4temperature,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATURE,          can_bms_cycle_time_tsaccellboard5temperature,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATURE,          can_bms_cycle_time_tsaccellboard6temperature,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard1temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard2temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard3temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard4temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard5temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard6temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard1temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard2temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard3temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard4temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard5temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6TEMPERATUREINFO,      can_bms_cycle_time_tsaccellboard6temperatureinfo,      CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard1balancingtemperature, CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard2balancingtemperature, CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard3balancingtemperature, CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard4balancingtemperature, CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard5balancingtemperature, CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard6balancingtemperature, CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard1balancingtemperature, CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard2balancingtemperature, CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard3balancingtemperature, CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard4balancingtemperature, CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard5balancingtemperature, CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCINGTEMPERATURE, can_bms_cycle_time_tsaccellboard6balancingtemperature, CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCING,            can_bms_cycle_time_tsaccellboard1balancing,            CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCING,            can_bms_cycle_time_tsaccellboard2balancing,            CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCING,            can_bms_cycle_time_tsaccellboard3balancing,            CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCING,            can_bms_cycle_time_tsaccellboard4balancing,            CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCING,            can_bms_cycle_time_tsaccellboard5balancing,            CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCING,            can_bms_cycle_time_tsaccellboard6balancing,            CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1BALANCING,            can_bms_cycle_time_tsaccellboard1balancing,            CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2BALANCING,            can_bms_cycle_time_tsaccellboard2balancing,            CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3BALANCING,            can_bms_cycle_time_tsaccellboard3balancing,            CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4BALANCING,            can_bms_cycle_time_tsaccellboard4balancing,            CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5BALANCING,            can_bms_cycle_time_tsaccellboard5balancing,            CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6BALANCING,            can_bms_cycle_time_tsaccellboard6balancing,            CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1FSM,                  can_bms_cycle_time_tsaccellboard1fsm,                  CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2FSM,                  can_bms_cycle_time_tsaccellboard2fsm,                  CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3FSM,                  can_bms_cycle_time_tsaccellboard3fsm,                  CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4FSM,                  can_bms_cycle_time_tsaccellboard4fsm,                  CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5FSM,                  can_bms_cycle_time_tsaccellboard5fsm,                  CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6FSM,                  can_bms_cycle_time_tsaccellboard6fsm,                  CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1FSM,                  can_bms_cycle_time_tsaccellboard1fsm,                  CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2FSM,                  can_bms_cycle_time_tsaccellboard2fsm,                  CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3FSM,                  can_bms_cycle_time_tsaccellboard3fsm,                  CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4FSM,                  can_bms_cycle_time_tsaccellboard4fsm,                  CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5FSM,                  can_bms_cycle_time_tsaccellboard5fsm,                  CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6FSM,                  can_bms_cycle_time_tsaccellboard6fsm,                  CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1ERROR,                can_bms_cycle_time_tsaccellboard1error,                CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2ERROR,                can_bms_cycle_time_tsaccellboard2error,                CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3ERROR,                can_bms_cycle_time_tsaccellboard3error,                CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4ERROR,                can_bms_cycle_time_tsaccellboard4error,                CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5ERROR,                can_bms_cycle_time_tsaccellboard5error,                CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6ERROR,                can_bms_cycle_time_tsaccellboard6error,                CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1ERROR,                can_bms_cycle_time_tsaccellboard1error,                CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2ERROR,                can_bms_cycle_time_tsaccellboard2error,                CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3ERROR,                can_bms_cycle_time_tsaccellboard3error,                CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4ERROR,                can_bms_cycle_time_tsaccellboard4error,                CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5ERROR,                can_bms_cycle_time_tsaccellboard5error,                CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6ERROR,                can_bms_cycle_time_tsaccellboard6error,                CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSION,              can_bms_cycle_time_tsaccellboard1version,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSION,              can_bms_cycle_time_tsaccellboard2version,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSION,              can_bms_cycle_time_tsaccellboard3version,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSION,              can_bms_cycle_time_tsaccellboard4version,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSION,              can_bms_cycle_time_tsaccellboard5version,              CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSION,              can_bms_cycle_time_tsaccellboard6version,              CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSION,              can_bms_cycle_time_tsaccellboard1version,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSION,              can_bms_cycle_time_tsaccellboard2version,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSION,              can_bms_cycle_time_tsaccellboard3version,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSION,              can_bms_cycle_time_tsaccellboard4version,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSION,              can_bms_cycle_time_tsaccellboard5version,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSION,              can_bms_cycle_time_tsaccellboard6version,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSIONINFO,          can_bms_cycle_time_tsaccellboard1versioninfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSIONINFO,          can_bms_cycle_time_tsaccellboard2versioninfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSIONINFO,          can_bms_cycle_time_tsaccellboard3versioninfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSIONINFO,          can_bms_cycle_time_tsaccellboard4versioninfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSIONINFO,          can_bms_cycle_time_tsaccellboard5versioninfo,          CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSIONINFO,          can_bms_cycle_time_tsaccellboard6versioninfo,          CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VERSIONINFO,          can_bms_cycle_time_tsaccellboard1versioninfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2VERSIONINFO,          can_bms_cycle_time_tsaccellboard2versioninfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3VERSIONINFO,          can_bms_cycle_time_tsaccellboard3versioninfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4VERSIONINFO,          can_bms_cycle_time_tsaccellboard4versioninfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5VERSIONINFO,          can_bms_cycle_time_tsaccellboard5versioninfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6VERSIONINFO,          can_bms_cycle_time_tsaccellboard6versioninfo,          CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSION,        can_bms_cycle_time_tsaccellboard1libcanversion,        CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSION,        can_bms_cycle_time_tsaccellboard2libcanversion,        CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSION,        can_bms_cycle_time_tsaccellboard3libcanversion,        CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSION,        can_bms_cycle_time_tsaccellboard4libcanversion,        CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSION,        can_bms_cycle_time_tsaccellboard5libcanversion,        CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSION,        can_bms_cycle_time_tsaccellboard6libcanversion,        CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSION,        can_bms_cycle_time_tsaccellboard1libcanversion,        CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSION,        can_bms_cycle_time_tsaccellboard2libcanversion,        CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSION,        can_bms_cycle_time_tsaccellboard3libcanversion,        CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSION,        can_bms_cycle_time_tsaccellboard4libcanversion,        CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSION,        can_bms_cycle_time_tsaccellboard5libcanversion,        CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSION,        can_bms_cycle_time_tsaccellboard6libcanversion,        CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard1libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard2libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard3libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard4libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard5libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED },
-    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard6libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard1libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD2LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard2libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD3LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard3libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD4LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard4libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD5LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard5libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
+    { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD6LIBCANVERSIONINFO,    can_bms_cycle_time_tsaccellboard6libcanversioninfo,    CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS  },
 };
 
 /*!
@@ -166,24 +169,48 @@ EAGLETRT_STATIC struct CanCommunicationInfoHandler info_handler;
  * \brief Handle a message that dropped out on the BMS network
  *
  * \details Called once, when the message reaches its maximum number of
- *          consecutive drops
+ *          consecutive drops, and sets the stale fault of the data carried
+ *          by the message
  *
  * \param[in] index The index of the message in bms_messages
  */
 EAGLETRT_STATIC void prv_handle_bms_message_fatal(const size_t index) {
-    (void)index;
+    (void)mainboard_status_api_set_fault(bms_messages[index].fault);
 }
 
 /*!
  * \brief Handle a message that dropped out on the primary network
  *
  * \details Called once, when the message reaches its maximum number of
- *          consecutive drops
+ *          consecutive drops, and clears the requests carried by the message
+ *          through the request control, which owns the request flags
+ *
+ *          The TS request goes to off, which also clears the TS on and keep
+ *          TS on requests. The balancing request is turned off keeping the
+ *          last threshold received
  *
  * \param[in] index The index of the message in primary_messages
  */
 EAGLETRT_STATIC void prv_handle_primary_message_fatal(const size_t index) {
-    (void)index;
+    struct RequestControlRequest request = { 0 };
+
+    switch (primary_messages[index].id) {
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET:
+            request.request_type = REQUEST_CONTROL_REQUEST_TS;
+            request.request_data.ts_request_state = REQUEST_CONTROL_TS_REQUEST_STATE_OFF;
+            break;
+
+        case CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET:
+            request.request_type = REQUEST_CONTROL_REQUEST_BALANCING;
+            request.request_data.balancing_request_data.balancing_request_state = false;
+            request.request_data.balancing_request_data.threshold = bal_control_api_get_threshold();
+            break;
+
+        default:
+            return;
+    }
+
+    (void)request_control_api_handle_request(request);
 }
 
 /*!

@@ -73,10 +73,10 @@ enum MainboardStatusFault {
     MAINBOARD_STATUS_FAULT_PHC_FAULT, /*!< A PHC check was not run in time (owner: PHC) */
 
     /* Freshness: the data was not updated in time */
-    MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-router watchdogs) */
-    MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES,     /*!< The cell temperatures from the cellboards are too old (owner: can-router watchdogs) */
-    MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS,      /*!< The status of a cellboard is too old (owner: can-router watchdogs) */
-    MAINBOARD_STATUS_FAULT_STALE_CURRENT,               /*!< The current sensor readings are too old (owner: can-router watchdogs) */
+    MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-communication-info) */
+    MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES,     /*!< The cell temperatures from the cellboards are too old (owner: can-communication-info) */
+    MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS,      /*!< The status of a cellboard is too old (owner: can-communication-info) */
+    MAINBOARD_STATUS_FAULT_STALE_CURRENT,               /*!< The current sensor readings are too old (owner: can-communication-info) */
     MAINBOARD_STATUS_FAULT_STALE_INTERNAL_VOLTAGES,     /*!< The TS and pack voltage readings are too old (owner: can-router watchdogs) */
     MAINBOARD_STATUS_FAULT_STALE_INTERNAL_TEMPERATURES, /*!< The cooling temperature readings are too old (owner: can-router watchdogs) */
     MAINBOARD_STATUS_FAULT_STALE_SENSORS,               /*!< The shutdown, IMD and relay readings are too old (owner: can-router watchdogs) */

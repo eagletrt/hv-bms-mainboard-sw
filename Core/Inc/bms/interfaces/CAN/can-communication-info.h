@@ -13,6 +13,7 @@
 
 #include "can-bms.h"
 #include "can-primary.h"
+#include "mainboard-status.h"
 
 /*!
  * \brief Return codes of the CAN communication info functions
@@ -28,9 +29,10 @@ enum CanCommunicationInfoReturnCode {
  * \brief Information about a message received on the BMS network
  */
 struct CanCommunicationInfoBmsMessage {
-    enum CanBmsMessageFrameId id; /*!< The frame ID of the message */
-    int32_t cycle_time;           /*!< The cycle time of the message in ms */
-    uint8_t max_dropped;          /*!< The maximum number of consecutive messages that can be dropped */
+    enum CanBmsMessageFrameId id;    /*!< The frame ID of the message */
+    int32_t cycle_time;              /*!< The cycle time of the message in ms */
+    uint8_t max_dropped;             /*!< The maximum number of consecutive messages that can be dropped */
+    enum MainboardStatusFault fault; /*!< The fault set when the message reaches its maximum number of consecutive drops */
 };
 
 /*!
