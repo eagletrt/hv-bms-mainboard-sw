@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "can-communication-info-api.h"
 #include "eagletrt.h"
 #include "can-bms-api.h"
 #include "can-bms.h"
@@ -515,6 +516,9 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
     }
 
     const struct CanCommunicationRouterRoute *route = prv_find_bms_route(frame->id);
+
+    (void)can_communication_info_handle_bms_message(frame->id);
+
     if (route == nullptr) {
         // Valid BMS message that no module handles
         return CAN_COMMUNICATION_RC_OK;
@@ -542,6 +546,8 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
     if (!can_primary_api_id_is_valid(frame->id)) {
         return CAN_COMMUNICATION_RC_INVALID_NETWORK;
     }
+
+    (void)can_communication_info_handle_primary_message(frame->id);
 
     // The length is checked only for the messages whose payload is read, see the switch below:
     // a mismatch means the sender uses a different libcan version

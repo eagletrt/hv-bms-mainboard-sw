@@ -4,6 +4,9 @@
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
  * \brief Information about the CAN communication
+ *
+ * \warning Once the init function is called all watchdogs for cycle time will be started immediately. 
+ * only call the init funciton once some allowance has passed and all cellboards are fine.
  */
 
 #include "can-communication-info-api.h"
@@ -15,6 +18,7 @@
 
 #include "bal-control-api.h"
 #include "can-bms.h"
+#include "can-communication-info.h"
 #include "can-primary.h"
 #include "eagletrt.h"
 #include "mainboard-conf.h"
@@ -328,7 +332,7 @@ EAGLETRT_STATIC void prv_handle_timeframe_switch(void *context) {
 }
 
 /*!
- * \brief Initialize the cycle and leeway watchdogs of a message
+ * \brief Initialize the cycle and leeway watchdogs of a message and start the cycle watchdogs
  *
  * \details The wiggle room must be smaller than the cycle time, otherwise the
  *          leeway window of a slot would overlap the next slot
@@ -358,9 +362,14 @@ EAGLETRT_STATIC enum CanCommunicationInfoReturnCode prv_init_message_watchdogs(s
     if (mainboard_watchdogs_api_init_watchdog(cycle_watchdog, (milliseconds)cycle_time, cycle_callback, context) != WATCHDOG_RC_OK) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
+
     if (mainboard_watchdogs_api_init_watchdog(leeway_watchdog, CAN_CYCLE_TIME_WIGGLE_ROOM_MS, leeway_callback, context) != WATCHDOG_RC_OK) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
+
+    if (mainboard_watchdogs_api_start(cycle_watchdog) != WATCHDOG_RC_OK) {
+        return CAN_COMMUNICATION_INFO_RC_ERROR;
+    };
 
     return CAN_COMMUNICATION_INFO_RC_OK;
 }
@@ -398,4 +407,30 @@ enum CanCommunicationInfoReturnCode can_communication_info_init(void) {
     }
 
     return CAN_COMMUNICATION_INFO_RC_OK;
+}
+
+enum CanCommunicationInfoReturnCode can_communication_info_handle_primary_message(uint16_t message_id) {
+    for (size_t i = 0; i < PRIMARY_MESSAGES_COUNT; i++) {
+        if (message_id == primary_messages[i].id) {
+            mainboard_watchdogs_api_stop(&info_handler.primary_leeway_watchdogs[i]);
+            mainboard_watchdogs_api_restart(&info_handler.primary_cycle_watchdogs[i]);
+            info_handler.primary_consecutive_drops[i] = 0;
+            return CAN_COMMUNICATION_INFO_RC_OK;
+        }
+    }
+
+    return CAN_COMMUNICATION_INFO_RC_INVALID_INDEX;
+}
+
+enum CanCommunicationInfoReturnCode can_communication_info_handle_bms_message(uint16_t message_id) {
+    for (size_t i = 0; i < BMS_MESSAGES_COUNT; i++) {
+        if (message_id == bms_messages[i].id) {
+            mainboard_watchdogs_api_stop(&info_handler.bms_leeway_watchdogs[i]);
+            mainboard_watchdogs_api_restart(&info_handler.bms_cycle_watchdogs[i]);
+            info_handler.bms_consecutive_drops[i] = 0;
+            return CAN_COMMUNICATION_INFO_RC_OK;
+        }
+    }
+
+    return CAN_COMMUNICATION_INFO_RC_INVALID_INDEX;
 }

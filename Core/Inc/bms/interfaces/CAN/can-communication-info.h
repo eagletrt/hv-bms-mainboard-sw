@@ -21,7 +21,6 @@
 enum CanCommunicationInfoReturnCode {
     CAN_COMMUNICATION_INFO_RC_OK = 0,        /*!< The information was retrieved successfully */
     CAN_COMMUNICATION_INFO_RC_INVALID_INDEX, /*!< The index is invalid */
-    CAN_COMMUNICATION_INFO_RC_NULL_POINTER,  /*!< A pointer parameter is NULL */
     CAN_COMMUNICATION_INFO_RC_ERROR,         /*!< An error occurred */
 };
 
