@@ -18,12 +18,14 @@
 #include "internal-temperatures-api.h"
 #include "internal-temperatures.h"
 #include "internal-voltages-api.h"
+#include "internal-voltages.h"
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 #include "pcu-api.h"
 
+#include "phc.h"
 #include "voltages-api.h"
 #include "temperatures-api.h"
 #include <stdint.h>
@@ -248,6 +250,13 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_pack_balanced(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
+EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_precharge_complete(void) {
+    if (internal_voltages_api_get_value(INTERNAL_VOLTAGES_INDEX_TS) < PHC_PRECHARGE_VOLTAGE_V) {
+        return PHC_CHECK_RESULT_FAILED;
+    }
+    return PHC_CHECK_RESULT_OK;
+}
+
 EAGLETRT_STATIC const struct PHCCheck phc_checks[] = {
     { PHC_CONTROL_CELL_UNDER_VOLTAGE,             PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE },             prv_phc_check_cell_under_voltage             },
     { PHC_CONTROL_CELL_OVER_VOLTAGE,              PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE },              prv_phc_check_cell_over_voltage              },
@@ -263,6 +272,7 @@ EAGLETRT_STATIC const struct PHCCheck phc_checks[] = {
     { PHC_CONTROL_IMD_FAULT,                      PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_IMD_FAULT },                      prv_phc_check_imd_fault                      },
     { PHC_CONTROL_VOLTAGE_INDICATOR_DISCONNECTED, PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED }, prv_phc_check_voltage_indicator_disconnected },
     { PHC_CONTROL_PACK_BALANCED,                  PHC_CHECK_KIND_CONDITION, { .condition = MAINBOARD_STATUS_CONDITION_PACK_BALANCED },          prv_phc_check_pack_balanced                  },
+    { PHC_CONTROL_PRECHARGE_COMPLETE,             PHC_CHECK_KIND_CONDITION, { .condition = MAINBOARD_STATUS_CONDITION_PRECHARGE_COMPLETE },     prv_phc_check_precharge_complete             },
 };
 
 // Every control needs exactly one entry; the entries are looked up by control, so their order does not matter
