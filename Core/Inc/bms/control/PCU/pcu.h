@@ -66,20 +66,11 @@ enum PcuRelay : uint8_t {
 typedef void (*pcu_set_state_callback)(const enum PcuPin pcu_pin, const enum PcuPinStatus state);
 
 /*!
- * \brief Callback used to get the current time
- *
- * \returns The time elapsed since boot in ms, it must be monotonic
- */
-typedef milliseconds (*pcu_get_tick_callback)(void);
-
-/*!
  * \brief Fixed description of a relay
  */
 struct PcuRelayInfo {
     enum PcuPin pin;                         /*!< The pin that drives the relay */
     enum MainboardStatusCondition commanded; /*!< The condition that mirrors the close command, owned by the PCU */
-    enum MainboardStatusCondition done;      /*!< The condition that confirms the step started by closing the relay */
-    milliseconds timeout;                    /*!< Time allowed for \c done to become true after the relay is closed */
 };
 
 /*!
@@ -87,11 +78,9 @@ struct PcuRelayInfo {
  */
 struct PcuHandler {
     pcu_set_state_callback set;  /*!< The callback used to set a PCU pin */
-    pcu_get_tick_callback tick;  /*!< The callback used to get the current time */
     system_reset_callback reset; /*!< The callback used to reset the microcontroller */
 
-    bool closed[PCU_RELAY_COUNT];             /*!< Whether each relay is commanded closed */
-    milliseconds close_time[PCU_RELAY_COUNT]; /*!< The time each relay was last commanded closed */
+    bool closed[PCU_RELAY_COUNT]; /*!< Whether each relay is commanded closed */
 };
 
 #endif // PCU_H
