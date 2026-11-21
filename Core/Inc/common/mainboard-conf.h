@@ -193,8 +193,15 @@
  *
  * \details Gives some leeway to account for jitter on the bus and on the sender
  *          before a message is considered dropped
+ *
+ * \warning Must be smaller than the shortest cycle time (CAN_IVT_CYCLE_TIME_MS)
  */
-#define CAN_CYCLE_TIME_WIGGLE_ROOM_MS (10U)
+#define CAN_CYCLE_TIME_WIGGLE_ROOM_MS (5U)
+
+/*!
+ * \brief Length in ms of the timeframe over which the dropped messages are counted
+ */
+#define CAN_TIMEFRAME (1000U)
 
 /*! \} */
 
