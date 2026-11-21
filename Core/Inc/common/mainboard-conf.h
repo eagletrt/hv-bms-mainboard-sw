@@ -151,12 +151,19 @@
 #define PHC_PRECHARGE_VOLTAGE_V (0)
 
 /*!
- * \brief Maximum interval between two consecutive PHC checks in ms
+ * \brief Maximum interval between two consecutive runs of a PHC check in ms
  *
- * \details If a check is not called within this time, the corresponding fault
- *          is set
+ * \details If a check does not run within this time after its last run, the
+ *          PHC fault is set
  */
 #define PHC_MAX_CHECK_INTERVAL_MS (50U)
+
+/*!
+ * \brief Time from the PHC init within which every PHC check must have run once, in ms
+ *
+ * \details If a check has not run within this time (e.g. its data never arrived),
+ *          the PHC fault is set
+ */
 #define PHC_MAX_STARTUP_INTERVAL_MS (500U)
 
 /*! \} */
