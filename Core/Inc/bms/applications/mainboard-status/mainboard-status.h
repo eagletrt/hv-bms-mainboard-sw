@@ -71,6 +71,7 @@ enum MainboardStatusFault {
 
     /* Control */
     MAINBOARD_STATUS_FAULT_PHC_FAULT, /*!< A PHC check was not run in time (owner: PHC) */
+    MAINBOARD_STATUS_FAULT_WATCHDOGS, /*!< A function of the watchdog pool returned an error (owner: mainboard-watchdogs) */
 
     /* Freshness: the data was not updated in time */
     MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES,         /*!< The cell voltages from the cellboards are too old (owner: can-communication-info) */

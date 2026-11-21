@@ -216,6 +216,8 @@ EAGLETRT_STATIC void prv_handle_primary_message_fatal(const size_t index) {
 /*!
  * \brief Open the leeway window of a message and schedule its next slot
  *
+ * \details A failed restart latches the watchdogs fault in the wrapper
+ *
  * \param[in] cycle_watchdog The cycle watchdog of the message, which just timed out
  * \param[in] leeway_watchdog The leeway watchdog of the message
  */
@@ -307,6 +309,11 @@ EAGLETRT_STATIC void prv_handle_primary_message_dropped(void *context) {
     }
 }
 
+/*!
+ * \brief Called every CAN_TIMEFRAME, swaps the timeframe being written and clears it
+ *
+ * \param[in] context Unused
+ */
 EAGLETRT_STATIC void prv_handle_timeframe_switch(void *context) {
     (void)context;
 
@@ -316,7 +323,8 @@ EAGLETRT_STATIC void prv_handle_timeframe_switch(void *context) {
 
     memset(info_handler.bms_timeframe_drops[index], 0, sizeof(info_handler.bms_timeframe_drops[index]));
     memset(info_handler.primary_timeframe_drops[index], 0, sizeof(info_handler.primary_timeframe_drops[index]));
-    mainboard_watchdogs_api_restart(&info_handler.timeframe_switcher);
+
+    (void)mainboard_watchdogs_api_restart(&info_handler.timeframe_switcher);
 }
 
 /*!

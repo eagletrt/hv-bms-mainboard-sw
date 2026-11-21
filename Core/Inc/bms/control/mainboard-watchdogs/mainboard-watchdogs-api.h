@@ -14,6 +14,10 @@
  *            must be called from the same context as \ref mainboard_watchdogs_api_routine,
  *            never from an interrupt
  * \attention The pool holds at most WATCHDOGS_MAX_COUNT running watchdogs
+ * \attention Every function that returns NULL_POINTER, UNINITIALIZED, TEMPORAL_DISCONTINUITY
+ *            or ERROR latches MAINBOARD_STATUS_FAULT_WATCHDOGS, so the callers do not need to
+ *            report it. BUSY, NOT_RUNNING and TIMED_OUT only describe the state of the watchdog
+ *            and do not latch it
  */
 
 #ifndef MAINBOARD_WATCHDOGS_API_H
