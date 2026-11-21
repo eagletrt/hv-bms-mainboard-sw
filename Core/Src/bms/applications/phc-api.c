@@ -251,6 +251,10 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_pack_balanced(void) {
 }
 
 EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_precharge_complete(void) {
+    // Before the TS voltage arrives it reads 0V, which must not count as a voltage reading
+    if (!internal_voltages_api_is_voltages_ready()) {
+        return PHC_CHECK_RESULT_NOT_READY;
+    }
     if (internal_voltages_api_get_value(INTERNAL_VOLTAGES_INDEX_TS) < PHC_PRECHARGE_VOLTAGE_V) {
         return PHC_CHECK_RESULT_FAILED;
     }

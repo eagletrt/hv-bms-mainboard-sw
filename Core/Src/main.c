@@ -140,7 +140,7 @@ int main(void) {
      * Open the relays and pull the AMS OK pin high as soon as possible,
      * the GPIO initialization leaves them low (relays closed, AMS active)
      */
-    if (pcu_api_init(gpio_pcu_set_state, HAL_GetTick, system_reset) != PCU_RC_OK) {
+    if (pcu_api_init(gpio_pcu_set_state, system_reset) != PCU_RC_OK) {
         Error_Handler();
     }
 

@@ -161,24 +161,4 @@
 
 /*! \} */
 
-/*!* ######################### PCU ####################################### *!*/
-
-/*!
- * \defgroup pcu-conf
- * \brief Configuration of the Pack Control Unit (PCU)
- * \{
- */
-
-/*!
- * \brief Time allowed for each step of the TS on sequence in ms
- *
- * \details Counted from the moment the relay is closed until its done condition
- *          is true, see \ref pcu_api_is_timed_out
- */
-#define PCU_AIRN_TIMEOUT_MS (1000U)
-#define PCU_PRECHARGE_TIMEOUT_MS (15000U)
-#define PCU_AIRP_TIMEOUT_MS (1000U)
-
-/*! \} */
-
 #endif // MAINBOARD_CONF_H
