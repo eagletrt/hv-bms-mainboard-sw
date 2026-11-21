@@ -188,6 +188,14 @@
  */
 #define CAN_IVT_CYCLE_TIME_MS (10U)
 
+/*!
+ * \brief Wiggle room in ms added to the cycle time of every received message
+ *
+ * \details Gives some leeway to account for jitter on the bus and on the sender
+ *          before a message is considered dropped
+ */
+#define CAN_CYCLE_TIME_WIGGLE_ROOM_MS (10U)
+
 /*! \} */
 
 #endif // MAINBOARD_CONF_H

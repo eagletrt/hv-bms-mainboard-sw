@@ -15,6 +15,7 @@
 #include "can-bms.h"
 #include "mainboard-conf.h"
 #include "watchdogs.h"
+#include "mainboard-watchdogs-api.h"
 
 /*!
  * \brief Information about a message received on the BMS network
@@ -38,13 +39,20 @@ struct CanCommunicationInfoPrimaryMessage {
     watchdog_timeout_callback fatal_dropped_out_timeout; /*!< Called when the message completely drops out */
 };
 
+enum CanCommunicationInfoReturnCode {
+    CAN_COMMUNICATION_INFO_RC_OK = 0,        /*!< The information was retrieved successfully */
+    CAN_COMMUNICATION_INFO_RC_INVALID_INDEX, /*!< The index is invalid */
+    CAN_COMMUNICATION_INFO_RC_NULL_POINTER,  /*!< A pointer parameter is NULL */
+    CAN_COMMUNICATION_INFO_RC_ERROR,         /*!< An error occurred */
+};
+
 /*!
  * \brief Handle a message dropped on the BMS network
  *
  * \param[in] context The index of the message in bms_messages, cast to a pointer
  */
 EAGLETRT_STATIC void prv_handle_bms_message_dropped(void *context) {
-    (void)context;
+    uint16_t index = 3;
 }
 
 /*!
@@ -196,3 +204,22 @@ struct CanCommunicationInfoHandler {
     uint16_t primary_cumulative_drops[PRIMARY_MESSAGES_COUNT];        /*!< The cumulative amount of messages dropped for a given ID on the primary network */
     uint16_t primary_last_second_drops[2][PRIMARY_MESSAGES_COUNT];    /*!< The amount of messages dropped in a timeframe on the primary network */
 };
+
+EAGLETRT_STATIC struct CanCommunicationInfoHandler can_communication_info_handler;
+
+enum CanCommunicationInfoReturnCode can_communication_info_init(void) {
+    for (size_t i = 0; i < BMS_MESSAGES_COUNT; i++) {
+        if (mainboard_watchdogs_api_init_watchdog(&can_communication_info_handler.bms_dropped_packages[i],
+                                                  bms_messages[i].cycle_time + CAN_CYCLE_TIME_WIGGLE_ROOM_MS,
+                                                  bms_messages[i].message_dropped_timeout,
+                                                  (void *)(uintptr_t)i) != WATCHDOG_RC_OK) {
+            return CAN_COMMUNICATION_INFO_RC_ERROR;
+        }
+        if (mainboard_watchdogs_api_init_watchdog(&can_communication_info_handler.bms_fatal_timeouts[i],
+                                                  (bms_messages[i].cycle_time + CAN_CYCLE_TIME_WIGGLE_ROOM_MS) * bms_messages[i].max_dropped,
+                                                  bms_messages[i].fatal_dropped_out_timeout,
+                                                  (void *)(uintptr_t)i) != WATCHDOG_RC_OK) {
+            return CAN_COMMUNICATION_INFO_RC_ERROR;
+        }
+    }
+}
