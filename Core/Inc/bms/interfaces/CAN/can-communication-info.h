@@ -21,6 +21,7 @@ enum CanCommunicationInfoReturnCode {
     CAN_COMMUNICATION_INFO_RC_OK = 0,          /*!< The information was retrieved successfully */
     CAN_COMMUNICATION_INFO_RC_INVALID_NETWORK, /*!< The network is out of range */
     CAN_COMMUNICATION_INFO_RC_INVALID_INDEX,   /*!< The message is not monitored on the given network */
+    CAN_COMMUNICATION_INFO_RC_NOT_INITIALIZED, /*!< The module has not been initialized yet */
     CAN_COMMUNICATION_INFO_RC_ERROR,           /*!< An error occurred */
 };
 

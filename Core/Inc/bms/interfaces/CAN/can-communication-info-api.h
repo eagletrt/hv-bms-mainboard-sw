@@ -29,11 +29,14 @@ enum CanCommunicationInfoReturnCode can_communication_info_init(void);
  *
  * \details Stops the leeway watchdog of the message, restarts its cycle
  *          watchdog, which re-syncs the expected slots to the sender, and
- *          clears its consecutive drops
+ *          clears its consecutive drops.
+ *          Call it only for messages whose length has been validated, so a
+ *          sender using a different libcan version does not look healthy
  *
  * \param[in] network The network the message was received on
  * \param[in] message_id The ID of the received message
  *
+ * \retval CAN_COMMUNICATION_INFO_RC_NOT_INITIALIZED if can_communication_info_init has not completed, the message is ignored
  * \retval CAN_COMMUNICATION_INFO_RC_INVALID_NETWORK if the network is out of range
  * \retval CAN_COMMUNICATION_INFO_RC_INVALID_INDEX if the message is not monitored on the network
  * \retval CAN_COMMUNICATION_INFO_RC_OK otherwise

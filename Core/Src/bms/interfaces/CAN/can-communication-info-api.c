@@ -5,8 +5,9 @@
  *
  * \brief Information about the CAN communication
  *
- * \warning Once the init function is called all watchdogs for cycle time will be started immediately. 
- * only call the init funciton once some allowance has passed and all cellboards are fine.
+ * \warning Once the init function is called all watchdogs for cycle time will be started immediately.
+ * Only call the init function once some allowance has passed and all cellboards are fine.
+ * Messages received before init are ignored.
  */
 
 #include "can-communication-info-api.h"
@@ -14,7 +15,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "bal-control-api.h"
 #include "can-bms.h"
@@ -148,9 +148,9 @@ EAGLETRT_STATIC const struct CanCommunicationInfoMessage primary_messages[] = {
  *            the message CAN_CYCLE_TIME_WIGGLE_ROOM_MS to arrive, when it
  *            times out the message is counted as dropped
  *
- *          When a message is received the cycle watchdog has to be fed and the
- *          leeway watchdog has to be reset, which also re-syncs the slots to
- *          the sender
+ *          When a message is received the leeway watchdog is stopped and the
+ *          cycle watchdog is restarted, which also re-syncs the slots to the
+ *          sender
  */
 struct CanCommunicationInfoMessageState {
     struct Watchdog cycle_watchdog;            /*!< The watchdog marking the expected arrival of the message */
@@ -180,6 +180,7 @@ struct CanCommunicationInfoNetwork {
 struct CanCommunicationInfoHandler {
     struct Watchdog timeframe_switcher; /*!< The watchdog that swaps the timeframe being written every CAN_TIMEFRAME */
     uint8_t writing_timeframe_index;    /*!< The index of the timeframe drops currently being written */
+    bool initialized;                   /*!< True once every watchdog has been initialized and started */
 };
 
 /*!
@@ -398,10 +399,16 @@ enum CanCommunicationInfoReturnCode can_communication_info_init(void) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
 
+    info_handler.initialized = true;
     return CAN_COMMUNICATION_INFO_RC_OK;
 }
 
 enum CanCommunicationInfoReturnCode can_communication_info_handle_message(enum CanNetwork network, can_id message_id) {
+    // The watchdogs are not initialized yet: touching them would latch the watchdogs fault
+    if (!info_handler.initialized) {
+        return CAN_COMMUNICATION_INFO_RC_NOT_INITIALIZED;
+    }
+
     struct CanCommunicationInfoMessageState *state = NULL;
     const enum CanCommunicationInfoReturnCode rc = prv_find_state(network, message_id, &state);
     if (rc != CAN_COMMUNICATION_INFO_RC_OK) {

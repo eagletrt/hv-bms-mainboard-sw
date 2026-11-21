@@ -517,8 +517,6 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
 
     const struct CanCommunicationRouterRoute *route = prv_find_bms_route(frame->id);
 
-    (void)can_communication_info_handle_message(CAN_NETWORK_BMS, frame->id);
-
     if (route == nullptr) {
         // Valid BMS message that no module handles
         return CAN_COMMUNICATION_RC_OK;
@@ -528,6 +526,8 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
     if (frame->length != route->length) {
         return CAN_COMMUNICATION_RC_INVALID_LENGTH;
     }
+
+    (void)can_communication_info_handle_message(CAN_NETWORK_BMS, frame->id);
 
     union CanBmsMessages message = { 0 };
     if (can_bms_api_deserialize_from_id(frame->id, frame->data, &message) != 0) {
@@ -546,8 +546,6 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
     if (!can_primary_api_id_is_valid(frame->id)) {
         return CAN_COMMUNICATION_RC_INVALID_NETWORK;
     }
-
-    (void)can_communication_info_handle_message(CAN_NETWORK_PRIMARY, frame->id);
 
     // The length is checked only for the messages whose payload is read, see the switch below:
     // a mismatch means the sender uses a different libcan version
@@ -569,6 +567,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
             if (frame->length != can_primary_byte_size_bmsset) {
                 return CAN_COMMUNICATION_RC_INVALID_LENGTH;
             }
+            (void)can_communication_info_handle_message(CAN_NETWORK_PRIMARY, frame->id);
 
             // Anything that is not an explicit "on" turns the TS off
             const struct RequestControlRequest request = {
@@ -585,6 +584,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
             if (frame->length != can_primary_byte_size_raspberrytsacbalancingset) {
                 return CAN_COMMUNICATION_RC_INVALID_LENGTH;
             }
+            (void)can_communication_info_handle_message(CAN_NETWORK_PRIMARY, frame->id);
 
             const struct RequestControlRequest request = {
                 .request_type = REQUEST_CONTROL_REQUEST_BALANCING,
