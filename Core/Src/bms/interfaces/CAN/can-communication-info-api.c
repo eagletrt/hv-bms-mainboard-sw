@@ -30,7 +30,7 @@
 /*!
  * \brief Information about the messages received on the BMS network
  */
-EAGLETRT_STATIC const struct CanCommunicationInfoBmsMessage bms_messages[] = {
+EAGLETRT_STATIC const struct CanCommunicationInfoMessage bms_messages[] = {
     { CAN_BMS_MESSAGE_FRAME_ID_IVTMESSAGERESULTI,                  CAN_IVT_CYCLE_TIME_MS,                                 CAN_MAX_IVT_DROPPED,       MAINBOARD_STATUS_FAULT_STALE_CURRENT           },
 
     { CAN_BMS_MESSAGE_FRAME_ID_TSACCELLBOARD1VOLTAGE,              can_bms_cycle_time_tsaccellboard1voltage,              CAN_MAX_CELLBOARD_DROPPED, MAINBOARD_STATUS_FAULT_STALE_CELL_VOLTAGES     },
@@ -121,11 +121,12 @@ EAGLETRT_STATIC const struct CanCommunicationInfoBmsMessage bms_messages[] = {
 /*!
  * \brief Information about the messages received on the primary network
  *
- * \details The one-shot messages (e.g. flashing) are not listed since they have no cycle time
+ * \details The one-shot messages (e.g. flashing) are not listed since they have no cycle time.
+ *          No fault is set on this network, the requests are cleared instead
  */
-EAGLETRT_STATIC const struct CanCommunicationInfoPrimaryMessage primary_messages[] = {
-    { CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET,                    can_primary_cycle_time_bmsset,                    CAN_MAX_PRIMARY_DROPPED },
-    { CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET, can_primary_cycle_time_raspberrytsacbalancingset, CAN_MAX_PRIMARY_DROPPED },
+EAGLETRT_STATIC const struct CanCommunicationInfoMessage primary_messages[] = {
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET,                    can_primary_cycle_time_bmsset,                    CAN_MAX_PRIMARY_DROPPED, MAINBOARD_STATUS_FAULT_COUNT },
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET, can_primary_cycle_time_raspberrytsacbalancingset, CAN_MAX_PRIMARY_DROPPED, MAINBOARD_STATUS_FAULT_COUNT },
 };
 
 /*! \brief Number of messages received on the BMS network */
@@ -133,12 +134,13 @@ EAGLETRT_STATIC const struct CanCommunicationInfoPrimaryMessage primary_messages
 /*! \brief Number of messages received on the primary network */
 #define PRIMARY_MESSAGES_COUNT (sizeof(primary_messages) / sizeof(primary_messages[0]))
 
+/*! \brief Number of timeframes kept, one being written and one completed */
+#define TIMEFRAMES_COUNT (2U)
+
 /*!
- * \brief CAN communication info handler structure
+ * \brief Runtime state of a monitored message
  *
- * \details Every array is indexed like the table of its network
- *
- *          Each message has two watchdogs:
+ * \details Each message has two watchdogs:
  *          - the cycle watchdog times out every exact cycle time and is
  *            restarted from its own callback, so it marks the slots in which
  *            a message is expected without accumulating the wiggle room
@@ -150,55 +152,63 @@ EAGLETRT_STATIC const struct CanCommunicationInfoPrimaryMessage primary_messages
  *          leeway watchdog has to be reset, which also re-syncs the slots to
  *          the sender
  */
+struct CanCommunicationInfoMessageState {
+    struct Watchdog cycle_watchdog;            /*!< The watchdog marking the expected arrival of the message */
+    struct Watchdog leeway_watchdog;           /*!< The watchdog counting the dropped messages */
+    uint8_t consecutive_drops;                 /*!< The amount of consecutive messages dropped */
+    uint16_t cumulative_drops;                 /*!< The cumulative amount of messages dropped */
+    uint8_t timeframe_drops[TIMEFRAMES_COUNT]; /*!< The amount of messages dropped in each timeframe */
+    enum CanNetwork network;                   /*!< The network of the message, used by the watchdog callbacks */
+    size_t index;                              /*!< The index of the message in the table of its network */
+};
+
+/*!
+ * \brief A monitored network
+ *
+ * \details states is indexed like messages
+ */
+struct CanCommunicationInfoNetwork {
+    const struct CanCommunicationInfoMessage *messages;                      /*!< The monitored messages of the network */
+    struct CanCommunicationInfoMessageState *states;                         /*!< The runtime state of each monitored message */
+    size_t count;                                                            /*!< The number of monitored messages */
+    void (*handle_fatal)(const struct CanCommunicationInfoMessage *message); /*!< Called once when a message reaches its maximum number of consecutive drops */
+};
+
+/*!
+ * \brief CAN communication info handler structure
+ */
 struct CanCommunicationInfoHandler {
-    struct Watchdog bms_cycle_watchdogs[BMS_MESSAGES_COUNT];  /*!< The watchdogs marking the expected arrival of the messages on the BMS network */
-    struct Watchdog bms_leeway_watchdogs[BMS_MESSAGES_COUNT]; /*!< The watchdogs counting the dropped messages on the BMS network */
-    uint8_t bms_consecutive_drops[BMS_MESSAGES_COUNT];        /*!< The amount of consecutive messages dropped for a given ID on the BMS network */
-    uint16_t bms_cumulative_drops[BMS_MESSAGES_COUNT];        /*!< The cumulative amount of messages dropped for a given ID on the BMS network */
-    uint8_t bms_timeframe_drops[2][BMS_MESSAGES_COUNT];       /*!< The amount of messages dropped in a timeframe on the BMS network */
-
-    struct Watchdog primary_cycle_watchdogs[PRIMARY_MESSAGES_COUNT];  /*!< The watchdogs marking the expected arrival of the messages on the primary network */
-    struct Watchdog primary_leeway_watchdogs[PRIMARY_MESSAGES_COUNT]; /*!< The watchdogs counting the dropped messages on the primary network */
-    uint8_t primary_consecutive_drops[PRIMARY_MESSAGES_COUNT];        /*!< The amount of consecutive messages dropped for a given ID on the primary network */
-    uint16_t primary_cumulative_drops[PRIMARY_MESSAGES_COUNT];        /*!< The cumulative amount of messages dropped for a given ID on the primary network */
-    uint8_t primary_timeframe_drops[2][PRIMARY_MESSAGES_COUNT];       /*!< The amount of messages dropped in a timeframe on the primary network */
-
     struct Watchdog timeframe_switcher; /*!< The watchdog that swaps the timeframe being written every CAN_TIMEFRAME */
     uint8_t writing_timeframe_index;    /*!< The index of the timeframe drops currently being written */
 };
 
-EAGLETRT_STATIC struct CanCommunicationInfoHandler info_handler;
-
 /*!
  * \brief Handle a message that dropped out on the BMS network
  *
- * \details Called once, when the message reaches its maximum number of
- *          consecutive drops, and sets the stale fault of the data carried
- *          by the message
+ * \details Sets the stale fault of the data carried by the message
  *
- * \param[in] index The index of the message in bms_messages
+ * \param[in] message The message that dropped out
  */
-EAGLETRT_STATIC void prv_handle_bms_message_fatal(const size_t index) {
-    (void)mainboard_status_api_set_fault(bms_messages[index].fault);
+EAGLETRT_STATIC void prv_handle_bms_message_fatal(const struct CanCommunicationInfoMessage *message) {
+    (void)mainboard_status_api_set_fault(message->fault);
 }
 
 /*!
  * \brief Handle a message that dropped out on the primary network
  *
- * \details Called once, when the message reaches its maximum number of
- *          consecutive drops, and clears the requests carried by the message
- *          through the request control, which owns the request flags
+ * \details Clears the requests carried by the message through the request
+ *          control, which owns the request flags
  *
  *          The TS request goes to off, which also clears the TS on and keep
  *          TS on requests. The balancing request is turned off keeping the
  *          last threshold received
  *
- * \param[in] index The index of the message in primary_messages
+ * \param[in] message The message that dropped out
  */
-EAGLETRT_STATIC void prv_handle_primary_message_fatal(const size_t index) {
+EAGLETRT_STATIC void prv_handle_primary_message_fatal(const struct CanCommunicationInfoMessage *message) {
     struct RequestControlRequest request = { 0 };
 
-    switch (primary_messages[index].id) {
+    switch (message->id) {
         case CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET:
             request.request_type = REQUEST_CONTROL_REQUEST_TS;
             request.request_data.ts_request_state = REQUEST_CONTROL_TS_REQUEST_STATE_OFF;
@@ -217,99 +227,59 @@ EAGLETRT_STATIC void prv_handle_primary_message_fatal(const size_t index) {
     (void)request_control_api_handle_request(request);
 }
 
+EAGLETRT_STATIC struct CanCommunicationInfoMessageState info_bms_states[BMS_MESSAGES_COUNT];
+EAGLETRT_STATIC struct CanCommunicationInfoMessageState info_primary_states[PRIMARY_MESSAGES_COUNT];
+
 /*!
- * \brief Open the leeway window of a message and schedule its next slot
+ * \brief The monitored networks, indexed by enum CanNetwork
+ */
+EAGLETRT_STATIC const struct CanCommunicationInfoNetwork info_networks[CAN_NETWORK_COUNT] = {
+    [CAN_NETWORK_PRIMARY] = { primary_messages, info_primary_states, PRIMARY_MESSAGES_COUNT, prv_handle_primary_message_fatal },
+    [CAN_NETWORK_BMS] = { bms_messages,     info_bms_states,     BMS_MESSAGES_COUNT,     prv_handle_bms_message_fatal     },
+};
+
+EAGLETRT_STATIC struct CanCommunicationInfoHandler info_handler;
+
+/*!
+ * \brief Called when a message is expected, opens its leeway window and schedules its next slot
  *
  * \details A failed restart latches the watchdogs fault in the wrapper
  *
- * \param[in] cycle_watchdog The cycle watchdog of the message, which just timed out
- * \param[in] leeway_watchdog The leeway watchdog of the message
+ * \param[in] context The state of the message
  */
-EAGLETRT_STATIC void prv_cycle_elapsed(struct Watchdog *const cycle_watchdog, struct Watchdog *const leeway_watchdog) {
-    (void)mainboard_watchdogs_api_restart(leeway_watchdog);
-    (void)mainboard_watchdogs_api_restart(cycle_watchdog);
+EAGLETRT_STATIC void prv_handle_cycle_elapsed(void *context) {
+    struct CanCommunicationInfoMessageState *const state = context;
+
+    (void)mainboard_watchdogs_api_restart(&state->leeway_watchdog);
+    (void)mainboard_watchdogs_api_restart(&state->cycle_watchdog);
 }
 
 /*!
- * \brief Count a dropped message
+ * \brief Called when a message did not arrive within the wiggle room, counts it as dropped
  *
- * \param[in,out] consecutive_drops The consecutive drops of the message
- * \param[in,out] cumulative_drops The cumulative drops of the message
- * \param[in] max_dropped The maximum number of consecutive drops of the message
+ * \details The counters saturate, the fatal handler of the network is called
+ *          once, when the message reaches its maximum number of consecutive drops
  *
- * \return true if the message just reached its maximum number of consecutive drops
+ * \param[in] context The state of the message
  */
-EAGLETRT_STATIC bool prv_leeway_elapsed(uint8_t *const consecutive_drops,
-                                        uint16_t *const cumulative_drops,
-                                        uint8_t *const timeframe_drops,
-                                        const uint8_t max_dropped) {
+EAGLETRT_STATIC void prv_handle_message_dropped(void *context) {
+    struct CanCommunicationInfoMessageState *const state = context;
+    const struct CanCommunicationInfoNetwork *const network = &info_networks[state->network];
+    const struct CanCommunicationInfoMessage *const message = &network->messages[state->index];
+    uint8_t *const timeframe_drops = &state->timeframe_drops[info_handler.writing_timeframe_index];
 
-    if (*cumulative_drops < UINT16_MAX) {
-        ++(*cumulative_drops);
+    if (state->cumulative_drops < UINT16_MAX) {
+        ++state->cumulative_drops;
     }
-    if (*consecutive_drops < UINT8_MAX) {
-        ++(*consecutive_drops);
+    if (state->consecutive_drops < UINT8_MAX) {
+        ++state->consecutive_drops;
     }
     if (*timeframe_drops < UINT8_MAX) {
         ++(*timeframe_drops);
     }
 
-    return *consecutive_drops == max_dropped;
-}
-
-/*!
- * \brief Called when a message on the BMS network is expected
- *
- * \param[in] context The index of the message in bms_messages, cast to a pointer
- */
-EAGLETRT_STATIC void prv_handle_bms_cycle_elapsed(void *context) {
-    const size_t index = (size_t)(uintptr_t)context;
-
-    prv_cycle_elapsed(&info_handler.bms_cycle_watchdogs[index],
-                      &info_handler.bms_leeway_watchdogs[index]);
-}
-
-/*!
- * \brief Called when a message on the BMS network did not arrive within the wiggle room
- *
- * \param[in] context The index of the message in bms_messages, cast to a pointer
- */
-EAGLETRT_STATIC void prv_handle_bms_message_dropped(void *context) {
-    const size_t index = (size_t)(uintptr_t)context;
-
-    if (prv_leeway_elapsed(&info_handler.bms_consecutive_drops[index],
-                           &info_handler.bms_cumulative_drops[index],
-                           &info_handler.bms_timeframe_drops[info_handler.writing_timeframe_index][index],
-                           bms_messages[index].max_dropped)) {
-        prv_handle_bms_message_fatal(index);
-    }
-}
-
-/*!
- * \brief Called when a message on the primary network is expected
- *
- * \param[in] context The index of the message in primary_messages, cast to a pointer
- */
-EAGLETRT_STATIC void prv_handle_primary_cycle_elapsed(void *context) {
-    const size_t index = (size_t)(uintptr_t)context;
-
-    prv_cycle_elapsed(&info_handler.primary_cycle_watchdogs[index],
-                      &info_handler.primary_leeway_watchdogs[index]);
-}
-
-/*!
- * \brief Called when a message on the primary network did not arrive within the wiggle room
- *
- * \param[in] context The index of the message in primary_messages, cast to a pointer
- */
-EAGLETRT_STATIC void prv_handle_primary_message_dropped(void *context) {
-    const size_t index = (size_t)(uintptr_t)context;
-
-    if (prv_leeway_elapsed(&info_handler.primary_consecutive_drops[index],
-                           &info_handler.primary_cumulative_drops[index],
-                           &info_handler.primary_timeframe_drops[info_handler.writing_timeframe_index][index],
-                           primary_messages[index].max_dropped)) {
-        prv_handle_primary_message_fatal(index);
+    if (state->consecutive_drops == message->max_dropped) {
+        network->handle_fatal(message);
     }
 }
 
@@ -322,83 +292,105 @@ EAGLETRT_STATIC void prv_handle_timeframe_switch(void *context) {
     (void)context;
 
     info_handler.writing_timeframe_index = !info_handler.writing_timeframe_index;
+    const uint8_t timeframe = info_handler.writing_timeframe_index;
 
-    uint8_t index = info_handler.writing_timeframe_index;
-
-    memset(info_handler.bms_timeframe_drops[index], 0, sizeof(info_handler.bms_timeframe_drops[index]));
-    memset(info_handler.primary_timeframe_drops[index], 0, sizeof(info_handler.primary_timeframe_drops[index]));
+    for (size_t n = 0; n < CAN_NETWORK_COUNT; n++) {
+        const struct CanCommunicationInfoNetwork *const network = &info_networks[n];
+        for (size_t i = 0; i < network->count; i++) {
+            network->states[i].timeframe_drops[timeframe] = 0U;
+        }
+    }
 
     (void)mainboard_watchdogs_api_restart(&info_handler.timeframe_switcher);
 }
 
 /*!
- * \brief Initialize the cycle and leeway watchdogs of a message and start the cycle watchdogs
+ * \brief Get the index of the last completed timeframe
+ *
+ * \return The index of the timeframe drops not currently being written
+ */
+EAGLETRT_STATIC uint8_t prv_completed_timeframe_index(void) {
+    return (uint8_t)!info_handler.writing_timeframe_index;
+}
+
+/*!
+ * \brief Find the state of a monitored message
+ *
+ * \param[in] network The network of the message
+ * \param[in] message_id The ID of the message
+ * \param[out] state The state of the message, untouched if not found
+ *
+ * \retval CAN_COMMUNICATION_INFO_RC_INVALID_NETWORK if the network is out of range
+ * \retval CAN_COMMUNICATION_INFO_RC_INVALID_INDEX if the message is not monitored on the network
+ * \retval CAN_COMMUNICATION_INFO_RC_OK otherwise
+ */
+EAGLETRT_STATIC enum CanCommunicationInfoReturnCode prv_find_state(const enum CanNetwork network,
+                                                                   const can_id message_id,
+                                                                   struct CanCommunicationInfoMessageState **const state) {
+    if (network >= CAN_NETWORK_COUNT) {
+        return CAN_COMMUNICATION_INFO_RC_INVALID_NETWORK;
+    }
+
+    const struct CanCommunicationInfoNetwork *const info_network = &info_networks[network];
+    for (size_t i = 0; i < info_network->count; i++) {
+        if (message_id == info_network->messages[i].id) {
+            *state = &info_network->states[i];
+            return CAN_COMMUNICATION_INFO_RC_OK;
+        }
+    }
+
+    return CAN_COMMUNICATION_INFO_RC_INVALID_INDEX;
+}
+
+/*!
+ * \brief Initialize the cycle and leeway watchdogs of a message and start the cycle watchdog
  *
  * \details The wiggle room must be smaller than the cycle time, otherwise the
  *          leeway window of a slot would overlap the next slot
  *
- * \param[out] cycle_watchdog The cycle watchdog of the message
- * \param[out] leeway_watchdog The leeway watchdog of the message
+ * \param[in,out] state The state of the message, passed as the context of the callbacks
  * \param[in] cycle_time The cycle time of the message in ms
- * \param[in] cycle_callback Called when the cycle watchdog times out
- * \param[in] leeway_callback Called when the leeway watchdog times out
- * \param[in] index The index of the message in its table, passed as the context of the callbacks
  *
- * \retval CAN_COMMUNICATION_INFO_RC_ERROR if the cycle time is not greater than the wiggle room or a watchdog fails to initialize
+ * \retval CAN_COMMUNICATION_INFO_RC_ERROR if the cycle time is not greater than the wiggle room or a watchdog fails to initialize or start
  * \retval CAN_COMMUNICATION_INFO_RC_OK otherwise
  */
-EAGLETRT_STATIC enum CanCommunicationInfoReturnCode prv_init_message_watchdogs(struct Watchdog *const cycle_watchdog,
-                                                                               struct Watchdog *const leeway_watchdog,
-                                                                               const int32_t cycle_time,
-                                                                               const watchdog_timeout_callback cycle_callback,
-                                                                               const watchdog_timeout_callback leeway_callback,
-                                                                               const size_t index) {
+EAGLETRT_STATIC enum CanCommunicationInfoReturnCode prv_init_message_watchdogs(struct CanCommunicationInfoMessageState *const state,
+                                                                               const int32_t cycle_time) {
     if (cycle_time <= (int32_t)CAN_CYCLE_TIME_WIGGLE_ROOM_MS) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
 
-    void *const context = (void *)(uintptr_t)index;
-
-    if (mainboard_watchdogs_api_init_watchdog(cycle_watchdog, (milliseconds)cycle_time, cycle_callback, context) != WATCHDOG_RC_OK) {
+    if (mainboard_watchdogs_api_init_watchdog(&state->cycle_watchdog, (milliseconds)cycle_time, prv_handle_cycle_elapsed, state) != WATCHDOG_RC_OK) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
 
-    if (mainboard_watchdogs_api_init_watchdog(leeway_watchdog, CAN_CYCLE_TIME_WIGGLE_ROOM_MS, leeway_callback, context) != WATCHDOG_RC_OK) {
+    if (mainboard_watchdogs_api_init_watchdog(&state->leeway_watchdog, CAN_CYCLE_TIME_WIGGLE_ROOM_MS, prv_handle_message_dropped, state) != WATCHDOG_RC_OK) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
 
-    if (mainboard_watchdogs_api_start(cycle_watchdog) != WATCHDOG_RC_OK) {
+    if (mainboard_watchdogs_api_start(&state->cycle_watchdog) != WATCHDOG_RC_OK) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
-    };
+    }
 
     return CAN_COMMUNICATION_INFO_RC_OK;
 }
 
 enum CanCommunicationInfoReturnCode can_communication_info_init(void) {
-
     if (mainboard_watchdogs_api_init_watchdog(&info_handler.timeframe_switcher, CAN_TIMEFRAME, prv_handle_timeframe_switch, NULL) != WATCHDOG_RC_OK) {
         return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
 
-    for (size_t i = 0; i < BMS_MESSAGES_COUNT; i++) {
-        if (prv_init_message_watchdogs(&info_handler.bms_cycle_watchdogs[i],
-                                       &info_handler.bms_leeway_watchdogs[i],
-                                       bms_messages[i].cycle_time,
-                                       prv_handle_bms_cycle_elapsed,
-                                       prv_handle_bms_message_dropped,
-                                       i) != CAN_COMMUNICATION_INFO_RC_OK) {
-            return CAN_COMMUNICATION_INFO_RC_ERROR;
-        }
-    }
+    for (enum CanNetwork n = 0; n < CAN_NETWORK_COUNT; n++) {
+        const struct CanCommunicationInfoNetwork *const network = &info_networks[n];
 
-    for (size_t i = 0; i < PRIMARY_MESSAGES_COUNT; i++) {
-        if (prv_init_message_watchdogs(&info_handler.primary_cycle_watchdogs[i],
-                                       &info_handler.primary_leeway_watchdogs[i],
-                                       primary_messages[i].cycle_time,
-                                       prv_handle_primary_cycle_elapsed,
-                                       prv_handle_primary_message_dropped,
-                                       i) != CAN_COMMUNICATION_INFO_RC_OK) {
-            return CAN_COMMUNICATION_INFO_RC_ERROR;
+        for (size_t i = 0; i < network->count; i++) {
+            struct CanCommunicationInfoMessageState *const state = &network->states[i];
+            state->network = n;
+            state->index = i;
+
+            if (prv_init_message_watchdogs(state, network->messages[i].cycle_time) != CAN_COMMUNICATION_INFO_RC_OK) {
+                return CAN_COMMUNICATION_INFO_RC_ERROR;
+            }
         }
     }
 
@@ -409,28 +401,80 @@ enum CanCommunicationInfoReturnCode can_communication_info_init(void) {
     return CAN_COMMUNICATION_INFO_RC_OK;
 }
 
-enum CanCommunicationInfoReturnCode can_communication_info_handle_primary_message(uint16_t message_id) {
-    for (size_t i = 0; i < PRIMARY_MESSAGES_COUNT; i++) {
-        if (message_id == primary_messages[i].id) {
-            mainboard_watchdogs_api_stop(&info_handler.primary_leeway_watchdogs[i]);
-            mainboard_watchdogs_api_restart(&info_handler.primary_cycle_watchdogs[i]);
-            info_handler.primary_consecutive_drops[i] = 0;
-            return CAN_COMMUNICATION_INFO_RC_OK;
-        }
+enum CanCommunicationInfoReturnCode can_communication_info_handle_message(enum CanNetwork network, can_id message_id) {
+    struct CanCommunicationInfoMessageState *state = NULL;
+    const enum CanCommunicationInfoReturnCode rc = prv_find_state(network, message_id, &state);
+    if (rc != CAN_COMMUNICATION_INFO_RC_OK) {
+        return rc;
     }
 
-    return CAN_COMMUNICATION_INFO_RC_INVALID_INDEX;
+    (void)mainboard_watchdogs_api_stop(&state->leeway_watchdog);
+    (void)mainboard_watchdogs_api_restart(&state->cycle_watchdog);
+    state->consecutive_drops = 0U;
+    return CAN_COMMUNICATION_INFO_RC_OK;
 }
 
-enum CanCommunicationInfoReturnCode can_communication_info_handle_bms_message(uint16_t message_id) {
-    for (size_t i = 0; i < BMS_MESSAGES_COUNT; i++) {
-        if (message_id == bms_messages[i].id) {
-            mainboard_watchdogs_api_stop(&info_handler.bms_leeway_watchdogs[i]);
-            mainboard_watchdogs_api_restart(&info_handler.bms_cycle_watchdogs[i]);
-            info_handler.bms_consecutive_drops[i] = 0;
-            return CAN_COMMUNICATION_INFO_RC_OK;
-        }
+enum CanCommunicationInfoReturnCode can_communication_info_get_consecutive_drops(enum CanNetwork network, can_id message_id, uint8_t *drops) {
+    if (drops == NULL) {
+        return CAN_COMMUNICATION_INFO_RC_ERROR;
     }
 
-    return CAN_COMMUNICATION_INFO_RC_INVALID_INDEX;
+    struct CanCommunicationInfoMessageState *state = NULL;
+    const enum CanCommunicationInfoReturnCode rc = prv_find_state(network, message_id, &state);
+    if (rc != CAN_COMMUNICATION_INFO_RC_OK) {
+        return rc;
+    }
+
+    *drops = state->consecutive_drops;
+    return CAN_COMMUNICATION_INFO_RC_OK;
+}
+
+enum CanCommunicationInfoReturnCode can_communication_info_get_cumulative_drops(enum CanNetwork network, can_id message_id, uint16_t *drops) {
+    if (drops == NULL) {
+        return CAN_COMMUNICATION_INFO_RC_ERROR;
+    }
+
+    struct CanCommunicationInfoMessageState *state = NULL;
+    const enum CanCommunicationInfoReturnCode rc = prv_find_state(network, message_id, &state);
+    if (rc != CAN_COMMUNICATION_INFO_RC_OK) {
+        return rc;
+    }
+
+    *drops = state->cumulative_drops;
+    return CAN_COMMUNICATION_INFO_RC_OK;
+}
+
+enum CanCommunicationInfoReturnCode can_communication_info_get_timeframe_drops(enum CanNetwork network, can_id message_id, uint8_t *drops) {
+    if (drops == NULL) {
+        return CAN_COMMUNICATION_INFO_RC_ERROR;
+    }
+
+    struct CanCommunicationInfoMessageState *state = NULL;
+    const enum CanCommunicationInfoReturnCode rc = prv_find_state(network, message_id, &state);
+    if (rc != CAN_COMMUNICATION_INFO_RC_OK) {
+        return rc;
+    }
+
+    *drops = state->timeframe_drops[prv_completed_timeframe_index()];
+    return CAN_COMMUNICATION_INFO_RC_OK;
+}
+
+enum CanCommunicationInfoReturnCode can_communication_info_get_total_timeframe_drops(enum CanNetwork network, uint32_t *drops) {
+    if (drops == NULL) {
+        return CAN_COMMUNICATION_INFO_RC_ERROR;
+    }
+    if (network >= CAN_NETWORK_COUNT) {
+        return CAN_COMMUNICATION_INFO_RC_INVALID_NETWORK;
+    }
+
+    const struct CanCommunicationInfoNetwork *const info_network = &info_networks[network];
+    const uint8_t timeframe = prv_completed_timeframe_index();
+    uint32_t total = 0U;
+
+    for (size_t i = 0; i < info_network->count; i++) {
+        total += info_network->states[i].timeframe_drops[timeframe];
+    }
+
+    *drops = total;
+    return CAN_COMMUNICATION_INFO_RC_OK;
 }

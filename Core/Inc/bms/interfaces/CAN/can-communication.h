@@ -13,6 +13,7 @@
 
 #include "pal.h"
 #include "arena-allocator.h"
+#include "mainboard-def.h"
 
 /*!
  * \brief Maximum payload size of a classic-CAN frame, in bytes.
@@ -44,15 +45,6 @@ enum CanCommunicationReturnCode : uint8_t {
     CAN_COMMUNICATION_RC_TRANSMISSION_ERROR,    /*!< The user-supplied send callback reported failure. */
     CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR, /*!< The user-supplied receive callback reported failure. */
     CAN_COMMUNICATION_RC_ERROR,                 /*!< Generic failure (PAL/arena/internal). */
-};
-
-/*!
- * \brief Identifiers for the physical CAN networks managed by the ECU.
- */
-enum CanCommunicationNetwork : uint8_t {
-    CAN_COMMUNICATION_NETWORK_PRIMARY, /*!< Target the Primary CAN bus. */
-    CAN_COMMUNICATION_NETWORK_BMS,     /*!< Target the Primary CAN bus. */
-    CAN_COMMUNICATION_NETWORK_COUNT    /*!< Sentinel value used exclusively to verify network parameter validity. */
 };
 
 /*!
@@ -120,8 +112,8 @@ struct CanCommunicationNetworkState {
  *          all PAL instances since PAL only allocates at init time.
  */
 struct CanCommunicationHandler {
-    struct ArenaAllocatorHandler arena;                                            /*!< Internal memory arena shared across network handlers */
-    struct CanCommunicationNetworkState networks[CAN_COMMUNICATION_NETWORK_COUNT]; /*!< State structures managing individual physical networks */
+    struct ArenaAllocatorHandler arena;                              /*!< Internal memory arena shared across network handlers */
+    struct CanCommunicationNetworkState networks[CAN_NETWORK_COUNT]; /*!< State structures managing individual physical networks */
 };
 
 #endif // CAN_COMMUNICATION_H

@@ -517,7 +517,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
 
     const struct CanCommunicationRouterRoute *route = prv_find_bms_route(frame->id);
 
-    (void)can_communication_info_handle_bms_message(frame->id);
+    (void)can_communication_info_handle_message(CAN_NETWORK_BMS, frame->id);
 
     if (route == nullptr) {
         // Valid BMS message that no module handles
@@ -547,7 +547,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
         return CAN_COMMUNICATION_RC_INVALID_NETWORK;
     }
 
-    (void)can_communication_info_handle_primary_message(frame->id);
+    (void)can_communication_info_handle_message(CAN_NETWORK_PRIMARY, frame->id);
 
     // The length is checked only for the messages whose payload is read, see the switch below:
     // a mismatch means the sender uses a different libcan version

@@ -312,11 +312,11 @@ void MX_CAN1_Init_1M(void) {
  * \param[in] network The target network track enum.
  * \return Pointer to the matched global CAN_HandleTypeDef, or \c NULL if invalid.
  */
-EAGLETRT_STATIC_INLINE CAN_HandleTypeDef *prv_can_get_handler(enum CanCommunicationNetwork network) {
+EAGLETRT_STATIC_INLINE CAN_HandleTypeDef *prv_can_get_handler(enum CanNetwork network) {
     switch (network) {
-        case CAN_COMMUNICATION_NETWORK_BMS:
+        case CAN_NETWORK_BMS:
             return &HCAN_BMS;
-        case CAN_COMMUNICATION_NETWORK_PRIMARY:
+        case CAN_NETWORK_PRIMARY:
             return &HCAN_PRIMARY;
         default:
             return NULL;
@@ -333,7 +333,7 @@ EAGLETRT_STATIC_INLINE CAN_HandleTypeDef *prv_can_get_handler(enum CanCommunicat
  * \retval CAN_COMMUNICATION_RC_INVALID_LENGTH if the frame length exceeds CAN_COMMUNICATION_FRAME_DATA_SIZE.
  * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the native HAL layer rejects the transmission.
  */
-EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_send_to_hardware(enum CanCommunicationNetwork network, const struct CanCommunicationFrame *frame) {
+EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_send_to_hardware(enum CanNetwork network, const struct CanCommunicationFrame *frame) {
     CAN_HandleTypeDef *hcan = prv_can_get_handler(network);
 
     if (hcan == NULL || frame == NULL) {
@@ -367,11 +367,11 @@ EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_send_to_hardware(enum Ca
 }
 
 enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame *frame) {
-    return prv_can_send_to_hardware(CAN_COMMUNICATION_NETWORK_BMS, frame);
+    return prv_can_send_to_hardware(CAN_NETWORK_BMS, frame);
 }
 
 enum CanCommunicationReturnCode can_send_primary(const struct CanCommunicationFrame *frame) {
-    return prv_can_send_to_hardware(CAN_COMMUNICATION_NETWORK_PRIMARY, frame);
+    return prv_can_send_to_hardware(CAN_NETWORK_PRIMARY, frame);
 }
 
 void can_configure_and_start_primary(bool is_handcart_connected) {
@@ -394,7 +394,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
         frame.length = (uint8_t)header.DLC;
 
         // Based on the handler, retrieve the selected network
-        constexpr enum CanCommunicationNetwork network = CAN_COMMUNICATION_NETWORK_PRIMARY;
+        constexpr enum CanNetwork network = CAN_NETWORK_PRIMARY;
 
         /* TODO: Handle return value of RX function */
         EAGLETRT_API_UNUSED(can_communication_api_add_to_rx(network, &frame));
@@ -414,7 +414,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
         frame.length = (uint8_t)header.DLC;
 
         // Based on the handler, retrieve the selected network
-        constexpr enum CanCommunicationNetwork network = CAN_COMMUNICATION_NETWORK_BMS;
+        constexpr enum CanNetwork network = CAN_NETWORK_BMS;
 
         /* TODO: Handle return value of RX function */
         EAGLETRT_API_UNUSED(can_communication_api_add_to_rx(network, &frame));

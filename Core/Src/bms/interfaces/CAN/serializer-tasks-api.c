@@ -170,7 +170,7 @@ EAGLETRT_STATIC void prv_serializer_tasks_send_primary(struct SerializerMessage 
         return;
     }
     frame.length = (uint8_t)length;
-    (void)can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_PRIMARY, &frame);
+    (void)can_communication_api_add_to_tx(CAN_NETWORK_PRIMARY, &frame);
 }
 
 /*!
@@ -187,7 +187,7 @@ EAGLETRT_STATIC void prv_serializer_tasks_send_bms(struct SerializerBmsMessage *
         return;
     }
     frame.length = (uint8_t)length;
-    (void)can_communication_api_add_to_tx(CAN_COMMUNICATION_NETWORK_BMS, &frame);
+    (void)can_communication_api_add_to_tx(CAN_NETWORK_BMS, &frame);
 }
 
 /*!

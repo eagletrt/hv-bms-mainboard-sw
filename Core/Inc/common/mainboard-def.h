@@ -129,6 +129,13 @@ enum SpiNetwork {
     SPI_NETWORK_COUNT        //!< Total number of SPI networks
 };
 
+/*! \brief Type definition for a CAN network */
+enum CanNetwork : uint8_t {
+    CAN_NETWORK_PRIMARY = 0U, //!< The primary network of the car
+    CAN_NETWORK_BMS,          //!< The BMS network, shared with the cellboards and the IVT
+    CAN_NETWORK_COUNT         //!< Total number of CAN networks
+};
+
 /*! \brief Definition of possible CAN frame types */
 enum CanFrameType {
     CAN_FRAME_TYPE_INVALID = -1, //!< The CAN frame type is not valid

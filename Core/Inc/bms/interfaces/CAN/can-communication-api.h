@@ -19,7 +19,7 @@
  * \retval CAN_COMMUNICATION_RC_INVALID_NETWORK if a network ID within the initialization sequence is out of range.
  * \retval CAN_COMMUNICATION_RC_ERROR if PAL or the arena fail to set up.
  */
-enum CanCommunicationReturnCode can_communication_api_init(const struct CanCommunicationNetworkConfig configs[CAN_COMMUNICATION_NETWORK_COUNT]);
+enum CanCommunicationReturnCode can_communication_api_init(const struct CanCommunicationNetworkConfig configs[CAN_NETWORK_COUNT]);
 
 /*!
  * \brief Pushes an abstracted data frame into a specific network's local TX buffer queue.
@@ -34,7 +34,7 @@ enum CanCommunicationReturnCode can_communication_api_init(const struct CanCommu
  * \retval CAN_COMMUNICATION_RC_QUEUE_FULL If the underlying transmission queue is completely saturated.
  * \retval CAN_COMMUNICATION_RC_ERROR If a low-level structural exception occurs inside the PAL ring buffer.
  */
-enum CanCommunicationReturnCode can_communication_api_add_to_tx(enum CanCommunicationNetwork network,
+enum CanCommunicationReturnCode can_communication_api_add_to_tx(enum CanNetwork network,
                                                                 const struct CanCommunicationFrame *frame);
 
 /*!
@@ -51,7 +51,7 @@ enum CanCommunicationReturnCode can_communication_api_add_to_tx(enum CanCommunic
  * \retval CAN_COMMUNICATION_RC_QUEUE_FULL If the reception queue is saturated.
  * \retval CAN_COMMUNICATION_RC_ERROR If an internal verification error occurs within the PAL layer.
  */
-enum CanCommunicationReturnCode can_communication_api_add_to_rx(enum CanCommunicationNetwork network,
+enum CanCommunicationReturnCode can_communication_api_add_to_rx(enum CanNetwork network,
                                                                 const struct CanCommunicationFrame *frame);
 
 /*!
@@ -67,7 +67,7 @@ enum CanCommunicationReturnCode can_communication_api_add_to_rx(enum CanCommunic
  * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR If the underlying hardware driver callback reports an operation failure.
  * \retval CAN_COMMUNICATION_RC_ERROR If a low-level internal driver fault occurs.
  */
-enum CanCommunicationReturnCode can_communication_api_process_tx(enum CanCommunicationNetwork network);
+enum CanCommunicationReturnCode can_communication_api_process_tx(enum CanNetwork network);
 
 /*!
  * \brief Drains the entire RX queue of a specific network, dispatching frames to the application layer.
@@ -82,6 +82,6 @@ enum CanCommunicationReturnCode can_communication_api_process_tx(enum CanCommuni
  * \retval CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR If the user routing callback fails to process an extracted frame.
  * \retval CAN_COMMUNICATION_RC_ERROR If a PAL internal pipeline fault is encountered.
  */
-enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanCommunicationNetwork network);
+enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanNetwork network);
 
 #endif // CAN_COMMUNICATION_API_H
