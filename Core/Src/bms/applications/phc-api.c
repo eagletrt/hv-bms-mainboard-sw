@@ -310,7 +310,7 @@ EAGLETRT_STATIC const struct PHCCheck *prv_phc_find_check(enum PHCControl contro
  */
 EAGLETRT_STATIC void prv_phc_handle_check_timeout(void *context) {
     (void)context;
-    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT);
+    EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
 }
 
 /*!
@@ -327,7 +327,7 @@ EAGLETRT_STATIC void prv_phc_handle_startup_timeout(void *context) {
     for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
         struct Watchdog *const watchdog = &phc_handler.check_watchdogs[control];
         if (!mainboard_watchdogs_api_is_running(watchdog) && !mainboard_watchdogs_api_is_timed_out(watchdog)) {
-            (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT);
+            EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
             return;
         }
     }
@@ -390,7 +390,7 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
 
         // The first run starts the watchdog, a timed out one stays timed out since the fault is latched
         if (mainboard_watchdogs_api_pet(watchdog) == WATCHDOG_RC_NOT_RUNNING) {
-            (void)mainboard_watchdogs_api_start(watchdog);
+            EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(watchdog));
         }
     }
 

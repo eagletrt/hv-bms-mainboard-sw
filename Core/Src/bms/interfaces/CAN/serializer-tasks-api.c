@@ -17,6 +17,7 @@
 #include "can-bms-api.h"
 #include "can-communication-api.h"
 #include "can-primary-api.h"
+#include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "serializer-api.h"
 #include "tasks-api.h"
@@ -170,7 +171,7 @@ EAGLETRT_STATIC void prv_serializer_tasks_send_primary(struct SerializerMessage 
         return;
     }
     frame.length = (uint8_t)length;
-    (void)can_communication_api_add_to_tx(CAN_NETWORK_PRIMARY, &frame);
+    EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_NETWORK_PRIMARY, &frame));
 }
 
 /*!
@@ -187,7 +188,7 @@ EAGLETRT_STATIC void prv_serializer_tasks_send_bms(struct SerializerBmsMessage *
         return;
     }
     frame.length = (uint8_t)length;
-    (void)can_communication_api_add_to_tx(CAN_NETWORK_BMS, &frame);
+    EAGLETRT_API_UNUSED(can_communication_api_add_to_tx(CAN_NETWORK_BMS, &frame));
 }
 
 /*!

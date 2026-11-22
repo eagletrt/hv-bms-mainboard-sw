@@ -152,7 +152,7 @@ EAGLETRT_STATIC celsius prv_sensing_precharge_temp_to_celsius(volt value) {
 EAGLETRT_STATIC void prv_sensing_read_gpios(void) {
     for (size_t i = 0U; i < SENSING_GPIO_COUNT; ++i) {
         const bool level = sensing_handler.gpio_read((enum SensingGpio)i);
-        (void)feedback_api_set_digital_value(sensing_gpio_feedback[i], level);
+        EAGLETRT_API_UNUSED(feedback_api_set_digital_value(sensing_gpio_feedback[i], level));
     }
 }
 
@@ -169,12 +169,12 @@ EAGLETRT_STATIC void prv_sensing_process_adc_samples(enum SensingAdc adc) {
 
         switch (routes[i].target) {
             case SENSING_TARGET_FEEDBACK:
-                (void)feedback_api_set_analog_value((enum FeedbackAnalogIndex)routes[i].index, value);
+                EAGLETRT_API_UNUSED(feedback_api_set_analog_value((enum FeedbackAnalogIndex)routes[i].index, value));
                 break;
             case SENSING_TARGET_COOLING_TEMP:
-                (void)internal_temperatures_api_set_value(
+                EAGLETRT_API_UNUSED(internal_temperatures_api_set_value(
                     (enum InternalTemperaturesIndex)routes[i].index,
-                    prv_sensing_cooling_ntc_to_celsius(value));
+                    prv_sensing_cooling_ntc_to_celsius(value)));
                 break;
             case SENSING_TARGET_NONE:
             default:
@@ -200,7 +200,7 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_handle_adcs(void) {
             sensing_handler.adc_state[adc] = SENSING_ADC_STATE_IDLE;
 
             // A timed out watchdog stays timed out, the fault is never cleared
-            (void)mainboard_watchdogs_api_pet(&sensing_handler.internal_adc_watchdogs[adc]);
+            EAGLETRT_API_UNUSED(mainboard_watchdogs_api_pet(&sensing_handler.internal_adc_watchdogs[adc]));
         }
 
         if (sensing_handler.adc_state[adc] == SENSING_ADC_STATE_IDLE) {
@@ -229,21 +229,21 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
         return SENSING_RC_HARDWARE_ERROR;
     }
 
-    (void)internal_voltages_api_set_value(
+    EAGLETRT_API_UNUSED(internal_voltages_api_set_value(
         INTERNAL_VOLTAGES_INDEX_TS,
-        prv_sensing_hv_divider_to_volt(values[SENSING_EXT_ADC_CHANNEL_TS_VOLTAGE], SENSING_TS_DIVIDER_GAIN));
+        prv_sensing_hv_divider_to_volt(values[SENSING_EXT_ADC_CHANNEL_TS_VOLTAGE], SENSING_TS_DIVIDER_GAIN)));
 
-    (void)internal_voltages_api_set_value(
+    EAGLETRT_API_UNUSED(internal_voltages_api_set_value(
         INTERNAL_VOLTAGES_INDEX_PACK,
-        prv_sensing_hv_divider_to_volt(values[SENSING_EXT_ADC_CHANNEL_PACK_VOLTAGE], SENSING_PACK_DIVIDER_GAIN));
+        prv_sensing_hv_divider_to_volt(values[SENSING_EXT_ADC_CHANNEL_PACK_VOLTAGE], SENSING_PACK_DIVIDER_GAIN)));
 
-    (void)internal_temperatures_api_set_value(
+    EAGLETRT_API_UNUSED(internal_temperatures_api_set_value(
         INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR,
-        prv_sensing_linear_regulator_temp_to_celsius(values[SENSING_EXT_ADC_CHANNEL_LINEAR_REGULATOR_TEMPERATURE]));
+        prv_sensing_linear_regulator_temp_to_celsius(values[SENSING_EXT_ADC_CHANNEL_LINEAR_REGULATOR_TEMPERATURE])));
 
-    (void)internal_temperatures_api_set_value(
+    EAGLETRT_API_UNUSED(internal_temperatures_api_set_value(
         INTERNAL_TEMPERATURES_INDEX_PRECHARGE,
-        prv_sensing_precharge_temp_to_celsius(values[SENSING_EXT_ADC_CHANNEL_PRECHARGE_TEMPERATURE]));
+        prv_sensing_precharge_temp_to_celsius(values[SENSING_EXT_ADC_CHANNEL_PRECHARGE_TEMPERATURE])));
 
     return SENSING_RC_OK;
 }
@@ -255,7 +255,7 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
  */
 EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
     (void)context;
-    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_ADC);
+    EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_ADC));
 }
 
 /*!
@@ -265,7 +265,7 @@ EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
  */
 EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
     (void)context;
-    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_EXTERNAL_ADC);
+    EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_EXTERNAL_ADC));
 }
 
 /*!
@@ -275,7 +275,7 @@ EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
  */
 EAGLETRT_STATIC void prv_imd_stale_callback(void *context) {
     (void)context;
-    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_IMD);
+    EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_IMD));
 }
 
 /*!
@@ -310,9 +310,9 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_init_watchdogs(void) {
  */
 EAGLETRT_STATIC void prv_sensing_start_watchdogs(void) {
     for (size_t i = 0U; i < SENSING_ADC_COUNT; ++i) {
-        (void)mainboard_watchdogs_api_start(&sensing_handler.internal_adc_watchdogs[i]);
+        EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(&sensing_handler.internal_adc_watchdogs[i]));
     }
-    (void)mainboard_watchdogs_api_start(&sensing_handler.external_adc_watchdog);
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(&sensing_handler.external_adc_watchdog));
 }
 
 /*!
@@ -332,7 +332,7 @@ EAGLETRT_STATIC void prv_sensing_handle_imd_capture(void) {
         sensing_handler.imd_captured = false;
 
         if (mainboard_watchdogs_api_pet(&sensing_handler.imd_capture_watchdog) == WATCHDOG_RC_NOT_RUNNING) {
-            (void)mainboard_watchdogs_api_start(&sensing_handler.imd_capture_watchdog);
+            EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(&sensing_handler.imd_capture_watchdog));
         }
     }
 }
@@ -390,7 +390,7 @@ enum SensingReturnCode sensing_api_routine(void) {
     const enum SensingReturnCode ext_adc_rc = prv_sensing_read_external_adc();
 
     if (ext_adc_rc == SENSING_RC_OK) {
-        (void)mainboard_watchdogs_api_pet(&sensing_handler.external_adc_watchdog);
+        EAGLETRT_API_UNUSED(mainboard_watchdogs_api_pet(&sensing_handler.external_adc_watchdog));
     }
 
     prv_sensing_handle_imd_capture();
@@ -432,8 +432,8 @@ enum SensingReturnCode sensing_api_imd_capture(const ticks source_frequency, con
     const hertz frequency = (hertz)source_frequency / (hertz)period_count;
     const precise_percentage duty_cycle = (precise_percentage)high_count / (precise_percentage)period_count;
 
-    (void)ir1553204_api_set_frequency(&sensing_handler.ir1553204, frequency);
-    (void)ir1553204_api_set_duty_cycle(&sensing_handler.ir1553204, duty_cycle);
+    EAGLETRT_API_UNUSED(ir1553204_api_set_frequency(&sensing_handler.ir1553204, frequency));
+    EAGLETRT_API_UNUSED(ir1553204_api_set_duty_cycle(&sensing_handler.ir1553204, duty_cycle));
     return SENSING_RC_OK;
 }
 

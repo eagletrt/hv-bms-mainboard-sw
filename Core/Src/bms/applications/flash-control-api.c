@@ -10,6 +10,7 @@
 
 #include "flash-control-api.h"
 #include "can-bridge-api.h"
+#include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "pcu-api.h"
 #include "serializer-tasks-api.h"
@@ -56,7 +57,7 @@ enum FlashControlReturnCode flash_control_api_start_flash(void) {
     }
 
     // Only the low priority messages are stopped, the safety ones keep being sent during the flash
-    (void)serializer_tasks_api_suppress_comms(SERIALIZER_TASKS_PRIORITY_LOW, true);
+    EAGLETRT_API_UNUSED(serializer_tasks_api_suppress_comms(SERIALIZER_TASKS_PRIORITY_LOW, true));
 
     flash_control_handler.flash_active = true;
     return FLASH_CONTROL_RC_OK;
@@ -77,7 +78,7 @@ enum FlashControlReturnCode flash_control_api_stop_flash(void) {
         return FLASH_CONTROL_RC_FLASH_NOT_STARTED;
     }
 
-    (void)serializer_tasks_api_suppress_comms(SERIALIZER_TASKS_PRIORITY_LOW, false);
+    EAGLETRT_API_UNUSED(serializer_tasks_api_suppress_comms(SERIALIZER_TASKS_PRIORITY_LOW, false));
 
     can_bridge_api_disable_bridge();
 

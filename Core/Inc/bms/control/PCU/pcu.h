@@ -77,8 +77,8 @@ struct PcuRelayInfo {
  * \brief PCU handler structure
  */
 struct PcuHandler {
-    pcu_set_state_callback set;  /*!< The callback used to set a PCU pin */
-    system_reset_callback reset; /*!< The callback used to reset the microcontroller */
+    pcu_set_state_callback set_pin;  /*!< The callback used to set a PCU pin */
+    system_reset_callback reset_mcu; /*!< The callback used to reset the microcontroller */
 
     bool closed[PCU_RELAY_COUNT]; /*!< Whether each relay is commanded closed */
 };

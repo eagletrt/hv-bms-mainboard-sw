@@ -20,6 +20,7 @@
 #include "can-bms.h"
 #include "can-communication-info.h"
 #include "can-primary.h"
+#include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "mainboard-conf.h"
 #include "mainboard-status-api.h"
@@ -191,7 +192,7 @@ struct CanCommunicationInfoHandler {
  * \param[in] message The message that dropped out
  */
 EAGLETRT_STATIC void prv_handle_bms_message_fatal(const struct CanCommunicationInfoMessage *message) {
-    (void)mainboard_status_api_set_fault(message->fault);
+    EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(message->fault));
 }
 
 /*!
@@ -225,7 +226,7 @@ EAGLETRT_STATIC void prv_handle_primary_message_fatal(const struct CanCommunicat
             return;
     }
 
-    (void)request_control_api_handle_request(request);
+    EAGLETRT_API_UNUSED(request_control_api_handle_request(request));
 }
 
 EAGLETRT_STATIC struct CanCommunicationInfoMessageState info_bms_states[BMS_MESSAGES_COUNT];
@@ -251,8 +252,8 @@ EAGLETRT_STATIC struct CanCommunicationInfoHandler info_handler;
 EAGLETRT_STATIC void prv_handle_cycle_elapsed(void *context) {
     struct CanCommunicationInfoMessageState *const state = context;
 
-    (void)mainboard_watchdogs_api_restart(&state->leeway_watchdog);
-    (void)mainboard_watchdogs_api_restart(&state->cycle_watchdog);
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_restart(&state->leeway_watchdog));
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_restart(&state->cycle_watchdog));
 }
 
 /*!
@@ -302,7 +303,7 @@ EAGLETRT_STATIC void prv_handle_timeframe_switch(void *context) {
         }
     }
 
-    (void)mainboard_watchdogs_api_restart(&info_handler.timeframe_switcher);
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_restart(&info_handler.timeframe_switcher));
 }
 
 /*!
@@ -415,8 +416,8 @@ enum CanCommunicationInfoReturnCode can_communication_info_handle_message(enum C
         return rc;
     }
 
-    (void)mainboard_watchdogs_api_stop(&state->leeway_watchdog);
-    (void)mainboard_watchdogs_api_restart(&state->cycle_watchdog);
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_stop(&state->leeway_watchdog));
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_restart(&state->cycle_watchdog));
     state->consecutive_drops = 0U;
     return CAN_COMMUNICATION_INFO_RC_OK;
 }

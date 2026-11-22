@@ -8,6 +8,7 @@
 
 #include "mainboard-watchdogs-api.h"
 
+#include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "mainboard-status-api.h"
 #include "watchdogs-api.h"
@@ -38,7 +39,7 @@ EAGLETRT_STATIC enum WatchdogReturnCode prv_check(const enum WatchdogReturnCode 
         case WATCHDOG_RC_TEMPORAL_DISCONTINUITY:
         case WATCHDOG_RC_ERROR:
         default:
-            (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_WATCHDOGS);
+            EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_WATCHDOGS));
             break;
     }
 
