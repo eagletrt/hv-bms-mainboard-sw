@@ -249,7 +249,7 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
 }
 
 /*!
- * \brief Called when the samples of an MCU ADC were not processed within SENSING_MAX_ADC_CONVERSION_TIME_MS
+ * \brief Called when no conversion of an MCU ADC was processed within SENSING_MAX_ADC_CONVERSION_TIME_MS
  *
  * \param[in] context Unused
  */
@@ -300,11 +300,12 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_init_watchdogs(void) {
 }
 
 /*!
- * \brief Start every watchdog of the module
+ * \brief Start the watchdogs of the MCU ADCs and of the external ADC
  *
  * \details Started at the first routine instead of at init, so the first
  *          timeout is measured from when the sensing actually runs. A source
  *          that never delivers still times out since the watchdogs are never stopped.
+ *          The IMD watchdog is not started here, see \ref prv_sensing_handle_imd_capture.
  *          A failed start latches the watchdogs fault in the wrapper
  */
 EAGLETRT_STATIC void prv_sensing_start_watchdogs(void) {
@@ -312,13 +313,16 @@ EAGLETRT_STATIC void prv_sensing_start_watchdogs(void) {
         (void)mainboard_watchdogs_api_start(&sensing_handler.internal_adc_watchdogs[i]);
     }
     (void)mainboard_watchdogs_api_start(&sensing_handler.external_adc_watchdog);
-    (void)mainboard_watchdogs_api_start(&sensing_handler.imd_capture_watchdog);
 }
 
 /*!
- * \brief Pet the IMD watchdog if a valid capture arrived since the last routine
+ * \brief Start or pet the IMD watchdog if a valid capture arrived since the last routine
  *
- * \details The capture interrupt only sets a flag since the watchdog pool cannot
+ * \details The first capture starts the watchdog, so the startup of the IMD
+ *          (before its first PWM period) is not timed; until then the IMD
+ *          status reads as no signal. A timed out watchdog stays timed out since
+ *          the fault is never cleared.
+ *          The capture interrupt only sets a flag since the watchdog pool cannot
  *          be touched from an interrupt. A capture landing between the read and
  *          the clear of the flag is lost, which is harmless since the timeout spans
  *          several IMD periods
@@ -326,7 +330,10 @@ EAGLETRT_STATIC void prv_sensing_start_watchdogs(void) {
 EAGLETRT_STATIC void prv_sensing_handle_imd_capture(void) {
     if (sensing_handler.imd_captured) {
         sensing_handler.imd_captured = false;
-        (void)mainboard_watchdogs_api_pet(&sensing_handler.imd_capture_watchdog);
+
+        if (mainboard_watchdogs_api_pet(&sensing_handler.imd_capture_watchdog) == WATCHDOG_RC_NOT_RUNNING) {
+            (void)mainboard_watchdogs_api_start(&sensing_handler.imd_capture_watchdog);
+        }
     }
 }
 

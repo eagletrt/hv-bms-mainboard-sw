@@ -177,30 +177,37 @@
  */
 
 /*!
- * \brief Maximum time in ms from the start of an MCU ADC conversion to the processing of its samples
+ * \brief Maximum interval in ms between two consecutive processed conversions of an MCU ADC
  *
- * \details If the samples of a started conversion are not processed within this
- *          time (e.g. the DMA complete interrupt never fired), the data of that
- *          ADC is considered stale. It spans a few sensing periods since the
- *          samples are processed by the routine, not by the interrupt
+ * \details Measured from the processing of the samples of a conversion to the
+ *          processing of the next one, so it covers both a conversion that is
+ *          never completed (e.g. the DMA complete interrupt never fired) and a
+ *          conversion that cannot be started. When it elapses the data of that
+ *          ADC is considered stale.
+ *          The routine also reads the external ADC with a blocking SPI transfer
+ *          that can stall up to ~55 ms (1 + 10 bytes at 5 ms each), the timeout
+ *          must stay above it so that a stalled transfer does not latch this fault
  */
-#define SENSING_MAX_ADC_CONVERSION_TIME_MS (10U)
+#define SENSING_MAX_ADC_CONVERSION_TIME_MS (100U)
 
 /*!
  * \brief Maximum interval in ms between two consecutive successful reads of the external ADC
  *
  * \details The external ADC is read at every sensing routine, the timeout
- *          tolerates a few transient SPI failures. If no read succeeds within
- *          this time the external ADC data is considered stale
+ *          tolerates a few transient SPI failures and one stalled blocking
+ *          transfer (~55 ms). If no read succeeds within this time the external
+ *          ADC data is considered stale
  */
-#define SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS (10U)
+#define SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS (100U)
 
 /*!
  * \brief Maximum interval in ms between two consecutive IMD PWM captures
  *
  * \details The slowest valid IMD signal is 10 Hz (100 ms period), the timeout
- *          allows a few missed periods. If no capture arrives within this time
- *          (e.g. the signal is cut or the IMD is dead) the IMD data is considered stale
+ *          allows a few missed periods. The watchdog is started by the first
+ *          capture, so the startup of the IMD is not timed. Once started, if no
+ *          capture arrives within this time (e.g. the signal is cut or the IMD
+ *          is dead) the IMD data is considered stale
  */
 #define SENSING_MAX_IMD_UPDATE_MS (300U)
 

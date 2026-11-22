@@ -292,7 +292,7 @@ struct SensingHandler {
 
     struct Watchdog internal_adc_watchdogs[SENSING_ADC_COUNT]; /*!< One per MCU ADC, petted when its samples are processed */
     struct Watchdog external_adc_watchdog;                     /*!< Petted at every successful read of the external ADC */
-    struct Watchdog imd_capture_watchdog;                      /*!< Petted by the routine when a valid IMD capture arrived */
+    struct Watchdog imd_capture_watchdog;                      /*!< Started by the first valid IMD capture, then petted by the routine at every capture */
     volatile bool imd_captured;                                /*!< Set by the IMD capture interrupt, consumed by the routine */
     bool watchdogs_started;                                    /*!< True once the routine has started the watchdogs */
 

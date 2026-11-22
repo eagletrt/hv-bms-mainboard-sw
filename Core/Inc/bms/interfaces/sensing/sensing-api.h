@@ -46,7 +46,8 @@ enum SensingReturnCode sensing_api_init(const struct SensingInitData *data);
  *
  * \details Reads every GPIO, processes the MCU ADC samples of the last
  *          completed conversion and starts a new one, reads the external ADC.
- *          The first call starts the freshness watchdogs, every call pets the
+ *          The first call starts the MCU ADC and external ADC watchdogs, the IMD
+ *          watchdog is started by the first valid IMD capture. Every call pets the
  *          ones whose source delivered: a processed MCU ADC conversion, a
  *          successful external ADC read, a valid IMD capture since the last call.
  *          A watchdog that times out latches its STALE fault
@@ -77,7 +78,8 @@ enum SensingReturnCode sensing_api_adc_conversion_complete(enum SensingAdc adc);
  * \brief Update the IMD PWM measurement with the captured timer values
  *
  * \details Meant to be called from interrupt context. A valid capture is
- *          flagged for the next \ref sensing_api_routine, which pets the IMD watchdog
+ *          flagged for the next \ref sensing_api_routine, which starts the IMD
+ *          watchdog at the first capture and pets it at the following ones
  *
  * \param source_frequency The frequency of the timer counter in Hz
  * \param period_count The counter ticks of a whole PWM period
