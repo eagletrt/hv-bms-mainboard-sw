@@ -38,9 +38,9 @@ EAGLETRT_STATIC const char *const fault_names[MAINBOARD_STATUS_FAULT_COUNT] = {
     [MAINBOARD_STATUS_FAULT_STALE_CELL_TEMPERATURES] = "stale cell temperatures",
     [MAINBOARD_STATUS_FAULT_STALE_CELLBOARD_STATUS] = "stale cellboard status",
     [MAINBOARD_STATUS_FAULT_STALE_CURRENT] = "stale current",
-    [MAINBOARD_STATUS_FAULT_STALE_INTERNAL_VOLTAGES] = "stale internal voltages",
-    [MAINBOARD_STATUS_FAULT_STALE_INTERNAL_TEMPERATURES] = "stale internal temperatures",
-    [MAINBOARD_STATUS_FAULT_STALE_SENSORS] = "stale sensors",
+    [MAINBOARD_STATUS_FAULT_STALE_ADC] = "stale adc",
+    [MAINBOARD_STATUS_FAULT_STALE_EXTERNAL_ADC] = "stale external adc",
+    [MAINBOARD_STATUS_FAULT_STALE_IMD] = "stale imd",
 };
 
 EAGLETRT_STATIC const char *const request_names[MAINBOARD_STATUS_REQUEST_COUNT] = {

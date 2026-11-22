@@ -16,11 +16,16 @@
 #include "internal-temperatures-api.h"
 #include "internal-voltages-api.h"
 #include "ir1553204-api.h"
+#include "mainboard-status-api.h"
+#include "mainboard-status.h"
+#include "mainboard-watchdogs-api.h"
 #include "max22530-api.h"
+#include "sensing.h"
+#include "watchdogs.h"
 
 EAGLETRT_STATIC struct SensingHandler sensing_handler;
 
-// TODO: ADC error handling and timeout, IMD signal timeout
+// TODO: ADC error handling
 
 /*! \brief Digital feedback fed by every GPIO */
 EAGLETRT_STATIC const enum FeedbackDigitalIndex sensing_gpio_feedback[SENSING_GPIO_COUNT] = {
@@ -41,12 +46,12 @@ EAGLETRT_STATIC const enum FeedbackDigitalIndex sensing_gpio_feedback[SENSING_GP
 
 /*! \brief Destination of every sample of the first ADC (missing entries are unused) */
 EAGLETRT_STATIC const struct SensingAdcRoute sensing_adc_1_routes[SENSING_ADC_1_CHANNEL_COUNT] = {
-    [SENSING_ADC_1_CHANNEL_SD_IN] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_IN },
-    [SENSING_ADC_1_CHANNEL_SD_END] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_END },
-    [SENSING_ADC_1_CHANNEL_SD_OUT] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_OUT },
-    [SENSING_ADC_1_CHANNEL_TSAL_GREEN] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_TSAL_GREEN },
-    [SENSING_ADC_1_CHANNEL_IMD_OK] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_IMD_OK },
-    [SENSING_ADC_1_CHANNEL_INLET_LIQUID_TEMP] = { SENSING_TARGET_COOLING_TEMP, INTERNAL_TEMPERATURES_INDEX_COOLING_INLET },
+    [SENSING_ADC_1_CHANNEL_SD_IN] = { SENSING_TARGET_FEEDBACK,     FEEDBACK_ANALOG_INDEX_SD_IN                  },
+    [SENSING_ADC_1_CHANNEL_SD_END] = { SENSING_TARGET_FEEDBACK,     FEEDBACK_ANALOG_INDEX_SD_END                 },
+    [SENSING_ADC_1_CHANNEL_SD_OUT] = { SENSING_TARGET_FEEDBACK,     FEEDBACK_ANALOG_INDEX_SD_OUT                 },
+    [SENSING_ADC_1_CHANNEL_TSAL_GREEN] = { SENSING_TARGET_FEEDBACK,     FEEDBACK_ANALOG_INDEX_TSAL_GREEN             },
+    [SENSING_ADC_1_CHANNEL_IMD_OK] = { SENSING_TARGET_FEEDBACK,     FEEDBACK_ANALOG_INDEX_IMD_OK                 },
+    [SENSING_ADC_1_CHANNEL_INLET_LIQUID_TEMP] = { SENSING_TARGET_COOLING_TEMP, INTERNAL_TEMPERATURES_INDEX_COOLING_INLET    },
     [SENSING_ADC_1_CHANNEL_OUTLET_LIQUID_TEMP_1] = { SENSING_TARGET_COOLING_TEMP, INTERNAL_TEMPERATURES_INDEX_COOLING_OUTLET_1 },
     [SENSING_ADC_1_CHANNEL_OUTLET_LIQUID_TEMP_2] = { SENSING_TARGET_COOLING_TEMP, INTERNAL_TEMPERATURES_INDEX_COOLING_OUTLET_2 },
     [SENSING_ADC_1_CHANNEL_OUTLET_LIQUID_TEMP_3] = { SENSING_TARGET_COOLING_TEMP, INTERNAL_TEMPERATURES_INDEX_COOLING_OUTLET_3 },
@@ -57,13 +62,13 @@ EAGLETRT_STATIC const struct SensingAdcRoute sensing_adc_1_routes[SENSING_ADC_1_
 
 /*! \brief Destination of every sample of the second ADC (missing entries are unused) */
 EAGLETRT_STATIC const struct SensingAdcRoute sensing_adc_2_routes[SENSING_ADC_2_CHANNEL_COUNT] = {
-    [SENSING_ADC_2_CHANNEL_AIRN_OPEN_MEC] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC },
-    [SENSING_ADC_2_CHANNEL_V5_MCU] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_V5_MCU },
+    [SENSING_ADC_2_CHANNEL_AIRN_OPEN_MEC] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC      },
+    [SENSING_ADC_2_CHANNEL_V5_MCU] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_V5_MCU             },
     [SENSING_ADC_2_CHANNEL_PLAUSIBLE_STATE_RC] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_PLAUSIBLE_STATE_RC },
-    [SENSING_ADC_2_CHANNEL_PROBING_3V3] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_PROBING_3V3 },
-    [SENSING_ADC_2_CHANNEL_SD_R_BMS_OUT] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_AMS_FB },
-    [SENSING_ADC_2_CHANNEL_SD_R_IMD_OUT] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_IMD_FB },
-    [SENSING_ADC_2_CHANNEL_AIRP_OPEN_MEC] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC }
+    [SENSING_ADC_2_CHANNEL_PROBING_3V3] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_PROBING_3V3        },
+    [SENSING_ADC_2_CHANNEL_SD_R_BMS_OUT] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_AMS_FB          },
+    [SENSING_ADC_2_CHANNEL_SD_R_IMD_OUT] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_SD_IMD_FB          },
+    [SENSING_ADC_2_CHANNEL_AIRP_OPEN_MEC] = { SENSING_TARGET_FEEDBACK, FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC      }
 };
 
 /*! \brief Routing table and number of samples of every MCU ADC */
@@ -193,6 +198,9 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_handle_adcs(void) {
         if (sensing_handler.adc_state[adc] == SENSING_ADC_STATE_CONVERTED) {
             prv_sensing_process_adc_samples(adc);
             sensing_handler.adc_state[adc] = SENSING_ADC_STATE_IDLE;
+
+            // A timed out watchdog stays timed out, the fault is never cleared
+            (void)mainboard_watchdogs_api_pet(&sensing_handler.internal_adc_watchdogs[adc]);
         }
 
         if (sensing_handler.adc_state[adc] == SENSING_ADC_STATE_IDLE) {
@@ -240,7 +248,94 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
     return SENSING_RC_OK;
 }
 
+/*!
+ * \brief Called when the samples of an MCU ADC were not processed within SENSING_MAX_ADC_CONVERSION_TIME_MS
+ *
+ * \param[in] context Unused
+ */
+EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
+    (void)context;
+    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_ADC);
+}
+
+/*!
+ * \brief Called when the external ADC was not read successfully within SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS
+ *
+ * \param[in] context Unused
+ */
+EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
+    (void)context;
+    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_EXTERNAL_ADC);
+}
+
+/*!
+ * \brief Called when no valid IMD capture arrived within SENSING_MAX_IMD_UPDATE_MS
+ *
+ * \param[in] context Unused
+ */
+EAGLETRT_STATIC void prv_imd_stale_callback(void *context) {
+    (void)context;
+    (void)mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_IMD);
+}
+
+/*!
+ * \brief Initialize the watchdogs of the module, they are not started
+ *
+ * \retval SENSING_RC_ERROR if a watchdog could not be initialized
+ * \retval SENSING_RC_OK otherwise
+ */
+EAGLETRT_STATIC enum SensingReturnCode prv_sensing_init_watchdogs(void) {
+    for (size_t i = 0U; i < SENSING_ADC_COUNT; ++i) {
+        if (mainboard_watchdogs_api_init_watchdog(&sensing_handler.internal_adc_watchdogs[i], SENSING_MAX_ADC_CONVERSION_TIME_MS, prv_internal_adc_stale_callback, NULL) != WATCHDOG_RC_OK) {
+            return SENSING_RC_ERROR;
+        }
+    }
+    if (mainboard_watchdogs_api_init_watchdog(&sensing_handler.external_adc_watchdog, SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS, prv_external_adc_stale_callback, NULL) != WATCHDOG_RC_OK) {
+        return SENSING_RC_ERROR;
+    }
+    if (mainboard_watchdogs_api_init_watchdog(&sensing_handler.imd_capture_watchdog, SENSING_MAX_IMD_UPDATE_MS, prv_imd_stale_callback, NULL) != WATCHDOG_RC_OK) {
+        return SENSING_RC_ERROR;
+    }
+    return SENSING_RC_OK;
+}
+
+/*!
+ * \brief Start every watchdog of the module
+ *
+ * \details Started at the first routine instead of at init, so the first
+ *          timeout is measured from when the sensing actually runs. A source
+ *          that never delivers still times out since the watchdogs are never stopped.
+ *          A failed start latches the watchdogs fault in the wrapper
+ */
+EAGLETRT_STATIC void prv_sensing_start_watchdogs(void) {
+    for (size_t i = 0U; i < SENSING_ADC_COUNT; ++i) {
+        (void)mainboard_watchdogs_api_start(&sensing_handler.internal_adc_watchdogs[i]);
+    }
+    (void)mainboard_watchdogs_api_start(&sensing_handler.external_adc_watchdog);
+    (void)mainboard_watchdogs_api_start(&sensing_handler.imd_capture_watchdog);
+}
+
+/*!
+ * \brief Pet the IMD watchdog if a valid capture arrived since the last routine
+ *
+ * \details The capture interrupt only sets a flag since the watchdog pool cannot
+ *          be touched from an interrupt. A capture landing between the read and
+ *          the clear of the flag is lost, which is harmless since the timeout spans
+ *          several IMD periods
+ */
+EAGLETRT_STATIC void prv_sensing_handle_imd_capture(void) {
+    if (sensing_handler.imd_captured) {
+        sensing_handler.imd_captured = false;
+        (void)mainboard_watchdogs_api_pet(&sensing_handler.imd_capture_watchdog);
+    }
+}
+
 enum SensingReturnCode sensing_api_init(const struct SensingInitData *const data) {
+    // Zeroing the handler would corrupt the watchdog pool, which still holds the running watchdogs
+    if (sensing_handler.is_initialized) {
+        return SENSING_RC_ERROR;
+    }
+
     if (data == NULL ||
         data->gpio_read == NULL ||
         data->adc_start == NULL ||
@@ -254,6 +349,10 @@ enum SensingReturnCode sensing_api_init(const struct SensingInitData *const data
 
     sensing_handler.gpio_read = data->gpio_read;
     sensing_handler.adc_start = data->adc_start;
+
+    if (prv_sensing_init_watchdogs() != SENSING_RC_OK) {
+        return SENSING_RC_ERROR;
+    }
 
     if (max22530_api_init(&sensing_handler.max22530, data->spi_send, data->spi_send_receive) != MAX22530_RC_OK) {
         return SENSING_RC_HARDWARE_ERROR;
@@ -273,10 +372,21 @@ enum SensingReturnCode sensing_api_routine(void) {
         return SENSING_RC_NOT_INITIALIZED;
     }
 
+    if (!sensing_handler.watchdogs_started) {
+        prv_sensing_start_watchdogs();
+        sensing_handler.watchdogs_started = true;
+    }
+
     prv_sensing_read_gpios();
 
     const enum SensingReturnCode adc_rc = prv_sensing_handle_adcs();
     const enum SensingReturnCode ext_adc_rc = prv_sensing_read_external_adc();
+
+    if (ext_adc_rc == SENSING_RC_OK) {
+        (void)mainboard_watchdogs_api_pet(&sensing_handler.external_adc_watchdog);
+    }
+
+    prv_sensing_handle_imd_capture();
 
     return (adc_rc != SENSING_RC_OK) ? adc_rc : ext_adc_rc;
 }
@@ -308,6 +418,9 @@ enum SensingReturnCode sensing_api_imd_capture(const ticks source_frequency, con
     if (period_count == 0U || high_count > period_count) {
         return SENSING_RC_INVALID_DATA;
     }
+
+    // Interrupt context: the watchdog is petted by the routine
+    sensing_handler.imd_captured = true;
 
     const hertz frequency = (hertz)source_frequency / (hertz)period_count;
     const precise_percentage duty_cycle = (precise_percentage)high_count / (precise_percentage)period_count;
