@@ -145,6 +145,11 @@
  */
 #define PHC_MAX_POWER_KW (0)
 
+/*! 
+ * \brief Thresholds for the precharge complete PHC check
+ */
+#define PHC_PRECHARGE_VOLTAGE_V (0)
+
 /*!
  * \brief Maximum interval between two consecutive PHC checks in ms
  *

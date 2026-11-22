@@ -20,6 +20,7 @@ enum PHCReturnCode : uint8_t {
 };
 
 enum PHCControl : uint8_t {
+    // FAULTS
     PHC_CONTROL_CELL_UNDER_VOLTAGE,             /*!< Check for cell under voltage */
     PHC_CONTROL_CELL_OVER_VOLTAGE,              /*!< Check for cell over voltage */
     PHC_CONTROL_CELL_UNDER_TEMPERATURE,         /*!< Check for cell under temperature */
@@ -33,8 +34,12 @@ enum PHCControl : uint8_t {
     PHC_CONTROL_CELLBOARD_FAULT,                /*!< Check for cellboard fault */
     PHC_CONTROL_IMD_FAULT,                      /*!< Check for IMD fault */
     PHC_CONTROL_VOLTAGE_INDICATOR_DISCONNECTED, /*!< Check for voltage indicator disconnected */
-    PHC_CONTROL_PACK_BALANCED,                  /*!< Update the pack balanced condition */
-    PHC_CONTROL_COUNT                           /*!< Number of controls */
+
+    // CONDITIONS
+    PHC_CONTROL_PACK_BALANCED,      /*!< Update the pack balanced condition */
+    PHC_CONTROL_PRECHARGE_COMPLETE, /*!< Update the precharge complete condition */
+
+    PHC_CONTROL_COUNT /*!< Number of controls */
 };
 
 /*!
