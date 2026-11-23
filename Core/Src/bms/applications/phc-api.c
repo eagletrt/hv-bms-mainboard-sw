@@ -35,7 +35,7 @@
 
 EAGLETRT_STATIC struct PHCHandler phc_handler;
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_voltage(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_under_voltage(void) {
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -46,7 +46,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_voltage(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_voltage(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_over_voltage(void) {
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -57,7 +57,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_voltage(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_temperature(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_over_temperature(void) {
     if (!temperatures_api_is_cell_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -68,7 +68,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_over_temperature(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_temperature(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_under_temperature(void) {
     if (!temperatures_api_is_cell_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -79,7 +79,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cell_under_temperature(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_over_temperature(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_over_temperature(void) {
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -90,7 +90,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_over_temperature(voi
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_under_temperature(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_under_temperature(void) {
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -101,7 +101,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_discharge_under_temperature(vo
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_over_temperature(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cooling_over_temperature(void) {
     if (!internal_temperatures_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -122,7 +122,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_over_temperature(void)
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_under_temperature(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cooling_under_temperature(void) {
     if (!internal_temperatures_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -143,7 +143,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cooling_under_temperature(void
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_current(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_over_current(void) {
     if (!internal_voltages_api_is_current_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -155,7 +155,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_current(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_power(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_over_power(void) {
     // The power is the current times the TS voltage, both are needed
     if (!internal_voltages_api_is_current_ready() || !internal_voltages_api_is_voltages_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
@@ -167,7 +167,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_over_power(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cellboard_fault(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cellboard_fault(void) {
     // Before every cellboard has reported, the missing ones look like they are initializing with no errors
     if (!cellboards_monitor_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
@@ -217,7 +217,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_cellboard_fault(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_imd_fault(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_imd_fault(void) {
     // The conditions are meaningful only once the feedback filters are full
     if (!feedback_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
@@ -229,7 +229,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_imd_fault(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_voltage_indicator_disconnected(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_voltage_indicator_disconnected(void) {
     // The conditions are meaningful only once the feedback filters are full
     if (!feedback_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
@@ -241,7 +241,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_voltage_indicator_disconnected
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_pack_balanced(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_pack_balanced(void) {
     // The pack delta is computed from the voltage information of every cellboard
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
@@ -252,7 +252,7 @@ EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_pack_balanced(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PHCCheckResult prv_phc_check_precharge_complete(void) {
+EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_precharge_complete(void) {
     // Before the TS voltage arrives it reads 0V, which must not count as a voltage reading
     if (!internal_voltages_api_is_voltages_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
@@ -369,7 +369,7 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
         return PHC_RC_ERROR;
     }
 
-    const enum PHCCheckResult check_result = check->check_function();
+    const enum PhcCheckResult check_result = check->check_function();
 
     // Without data the check did not run: its watchdog is not touched, so the
     // PHC fault is set if the data never arrives or stops arriving
