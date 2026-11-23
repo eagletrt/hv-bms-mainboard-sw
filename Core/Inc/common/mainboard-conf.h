@@ -264,4 +264,23 @@
 
 /*! \} */
 
+/*!* ######################### FLASH ##################################### *!*/
+
+/*!
+ * \defgroup flash-conf
+ * \brief Configuration of the flash procedure control
+ * \{
+ */
+
+/*!
+ * \brief Maximum interval in ms between two consecutive flashing messages
+ *
+ * \details Every flashing message restarts the timeout. If no flashing message
+ *          is received within this time the flash request is dropped (target set
+ *          to none).
+ */
+#define FLASH_CONTROL_MAX_MESSAGE_INTERVAL_MS (1000U)
+
+/*! \} */
+
 #endif // MAINBOARD_CONF_H

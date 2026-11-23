@@ -16,17 +16,29 @@
 /*!
  * \brief Initializes the flash control module
  *
- * \retval FLASH_CONTROL_RC_OK always
+ * \details The message watchdog is initialized but not started, it is started
+ *          by the first flashing message
+ *
+ * \retval FLASH_CONTROL_RC_ERROR if the module is already initialized or the watchdog could not be initialized
+ * \retval FLASH_CONTROL_RC_OK otherwise
  */
 enum FlashControlReturnCode flash_control_api_init(void);
 
 /*!
  * \brief Sets the target of the flash procedure
  *
+ * \details Called for every flashing message. A target other than none restarts
+ *          the message watchdog: if no other flashing message arrives within
+ *          FLASH_CONTROL_MAX_MESSAGE_INTERVAL_MS the target is set to none and
+ *          MAINBOARD_STATUS_REQUEST_FLASH is cleared. Setting the target to none
+ *          stops the watchdog.
+ *          Must be called from the same context as the watchdog routine, never from an interrupt
+ *
  * \param target The board targeted by the flash request
  *
  * \retval FLASH_CONTROL_RC_OK if the target was set successfully
  * \retval FLASH_CONTROL_RC_INVALID_PARAMETERS if the target is invalid
+ * \retval FLASH_CONTROL_RC_ERROR if the module is not initialized
  */
 enum FlashControlReturnCode flash_control_api_set_target(enum FlashControlRequestState target);
 
