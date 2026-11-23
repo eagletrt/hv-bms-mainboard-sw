@@ -233,6 +233,13 @@
 #define CAN_MAX_PRIMARY_DROPPED (3U)
 
 /*!
+ * \brief Maximum number of system critical messages that can be dropped consecutively
+ */
+#define CAN_MAX_CELLBOARD_DROPPED_SCS (2U)
+#define CAN_MAX_IVT_DROPPED_SCS (2U)
+#define CAN_MAX_PRIMARY_DROPPED_SCS (2U)
+
+/*!
  * \brief Cycle time of the IVT current message in ms
  *
  * \details libcan marks the IVT messages as one-shot, the actual period is
