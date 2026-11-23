@@ -55,6 +55,9 @@ enum FeedbackReturnCode {
  * \brief Indices of the digital feedback (read from GPIOs)
  */
 enum FeedbackDigitalIndex {
+    FEEDBACK_DIGITAL_INDEX_AIRN_CLOSE_COM,            /*!< Readback of the AIR- command line, high when commanded closed */
+    FEEDBACK_DIGITAL_INDEX_PRECHARGE_CLOSE_COM,       /*!< Readback of the precharge relay command line, high when commanded closed */
+    FEEDBACK_DIGITAL_INDEX_AIRP_CLOSE_COM,            /*!< Readback of the AIR+ command line, high when commanded closed */
     FEEDBACK_DIGITAL_INDEX_PRECHARGE_OPEN_MEC,        /*!< Mechanical status of the precharge relay */
     FEEDBACK_DIGITAL_INDEX_TS_LESS_THAN_60V,          /*!< Less than 60V on the Tractive System */
     FEEDBACK_DIGITAL_INDEX_PLAUSIBLE_STATE_PERSISTED, /*!< Plausible state persisted value (prefer this over the other two) */

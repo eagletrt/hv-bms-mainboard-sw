@@ -14,7 +14,6 @@
 #include <stdint.h>
 
 #include "mainboard-def.h"
-#include "mainboard-status.h"
 
 /*!
  * \brief Return code for the PCU module functions
@@ -69,8 +68,7 @@ typedef void (*pcu_set_state_callback)(const enum PcuPin pcu_pin, const enum Pcu
  * \brief Fixed description of a relay
  */
 struct PcuRelayInfo {
-    enum PcuPin pin;                         /*!< The pin that drives the relay */
-    enum MainboardStatusCondition commanded; /*!< The condition that mirrors the close command, owned by the PCU */
+    enum PcuPin pin; /*!< The pin that drives the relay */
 };
 
 /*!
