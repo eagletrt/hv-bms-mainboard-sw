@@ -291,7 +291,7 @@ EAGLETRT_STATIC void prv_handle_message_dropped(void *context) {
  * \param[in] context Unused
  */
 EAGLETRT_STATIC void prv_handle_timeframe_switch(void *context) {
-    (void)context;
+    EAGLETRT_API_UNUSED(context);
 
     info_handler.writing_timeframe_index = !info_handler.writing_timeframe_index;
     const uint8_t timeframe = info_handler.writing_timeframe_index;

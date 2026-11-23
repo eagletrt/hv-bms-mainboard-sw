@@ -359,7 +359,7 @@ EAGLETRT_STATIC void prv_handle_libcan_version_info(enum CellboardId cellboard, 
  * \param[in] messages The deserialized message
  */
 EAGLETRT_STATIC void prv_handle_current(enum CellboardId cellboard, const union CanBmsMessages *messages) {
-    (void)cellboard;
+    EAGLETRT_API_UNUSED(cellboard);
 
     constexpr ampere ampere_per_milliampere = 0.001F;
     // TODO: handle the other fields of this message, which are not used yet

@@ -254,7 +254,7 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
  * \param[in] context Unused
  */
 EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
-    (void)context;
+    EAGLETRT_API_UNUSED(context);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_ADC));
 }
 
@@ -264,7 +264,7 @@ EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
  * \param[in] context Unused
  */
 EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
-    (void)context;
+    EAGLETRT_API_UNUSED(context);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_EXTERNAL_ADC));
 }
 
@@ -274,7 +274,7 @@ EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
  * \param[in] context Unused
  */
 EAGLETRT_STATIC void prv_imd_stale_callback(void *context) {
-    (void)context;
+    EAGLETRT_API_UNUSED(context);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_IMD));
 }
 

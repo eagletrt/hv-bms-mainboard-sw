@@ -309,7 +309,7 @@ EAGLETRT_STATIC const struct PHCCheck *prv_phc_find_check(enum PHCControl contro
  * \param[in] context Unused
  */
 EAGLETRT_STATIC void prv_phc_handle_check_timeout(void *context) {
-    (void)context;
+    EAGLETRT_API_UNUSED(context);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
 }
 
@@ -322,7 +322,7 @@ EAGLETRT_STATIC void prv_phc_handle_check_timeout(void *context) {
  * \param[in] context Unused
  */
 EAGLETRT_STATIC void prv_phc_handle_startup_timeout(void *context) {
-    (void)context;
+    EAGLETRT_API_UNUSED(context);
 
     for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
         struct Watchdog *const watchdog = &phc_handler.check_watchdogs[control];
