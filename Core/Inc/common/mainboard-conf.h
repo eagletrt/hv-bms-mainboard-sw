@@ -151,13 +151,116 @@
 #define PHC_PRECHARGE_VOLTAGE_V (0)
 
 /*!
- * \brief Maximum interval between two consecutive PHC checks in ms
+ * \brief Maximum interval between two consecutive runs of a PHC check in ms
  *
- * \details If a check is not called within this time, the corresponding fault
- *          is set
+ * \details If a check does not run within this time after its last run, the
+ *          PHC fault is set
  */
 #define PHC_MAX_CHECK_INTERVAL_MS (50U)
+
+/*!
+ * \brief Time from the PHC init within which every PHC check must have run once, in ms
+ *
+ * \details If a check has not run within this time (e.g. its data never arrived),
+ *          the PHC fault is set
+ */
 #define PHC_MAX_STARTUP_INTERVAL_MS (500U)
+
+/*! \} */
+
+/*!* ######################### SENSING ################################### *!*/
+
+/*!
+ * \defgroup sensing-conf
+ * \brief Configuration of the sensing interface
+ * \{
+ */
+
+/*!
+ * \brief Maximum interval in ms between two consecutive processed conversions of an MCU ADC
+ *
+ * \details Measured from the processing of the samples of a conversion to the
+ *          processing of the next one, so it covers both a conversion that is
+ *          never completed (e.g. the DMA complete interrupt never fired) and a
+ *          conversion that cannot be started. When it elapses the data of that
+ *          ADC is considered stale.
+ *          The routine also reads the external ADC with a blocking SPI transfer
+ *          that can stall up to ~55 ms (1 + 10 bytes at 5 ms each), the timeout
+ *          must stay above it so that a stalled transfer does not latch this fault
+ */
+#define SENSING_MAX_ADC_CONVERSION_TIME_MS (100U)
+
+/*!
+ * \brief Maximum interval in ms between two consecutive successful reads of the external ADC
+ *
+ * \details The external ADC is read at every sensing routine, the timeout
+ *          tolerates a few transient SPI failures and one stalled blocking
+ *          transfer (~55 ms). If no read succeeds within this time the external
+ *          ADC data is considered stale
+ */
+#define SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS (100U)
+
+/*!
+ * \brief Maximum interval in ms between two consecutive IMD PWM captures
+ *
+ * \details The slowest valid IMD signal is 10 Hz (100 ms period), the timeout
+ *          allows a few missed periods. The watchdog is started by the first
+ *          capture, so the startup of the IMD is not timed. Once started, if no
+ *          capture arrives within this time (e.g. the signal is cut or the IMD
+ *          is dead) the IMD data is considered stale
+ */
+#define SENSING_MAX_IMD_UPDATE_MS (300U)
+
+/*! \} */
+
+/*!* ######################### CAN ####################################### *!*/
+
+/*!
+ * \defgroup can-conf
+ * \brief Configuration of the CAN communication
+ * \{
+ */
+
+/*!
+ * \brief Maximum number of consecutive messages that can be dropped
+ *
+ * \details CELLBOARD applies to the messages sent by the cellboards, IVT to
+ *          the ones sent by the IVT, PRIMARY to the ones received on the
+ *          primary network
+ */
+#define CAN_MAX_CELLBOARD_DROPPED (3U)
+#define CAN_MAX_IVT_DROPPED (3U)
+#define CAN_MAX_PRIMARY_DROPPED (3U)
+
+/*!
+ * \brief Maximum number of system critical messages that can be dropped consecutively
+ */
+#define CAN_MAX_CELLBOARD_DROPPED_SCS (2U)
+#define CAN_MAX_IVT_DROPPED_SCS (2U)
+#define CAN_MAX_PRIMARY_DROPPED_SCS (2U)
+
+/*!
+ * \brief Cycle time of the IVT current message in ms
+ *
+ * \details libcan marks the IVT messages as one-shot, the actual period is
+ *          the one configured on the IVT
+ */
+#define CAN_IVT_CYCLE_TIME_MS (10U)
+
+/*!
+ * \brief Wiggle room in ms added to the cycle time of every received message
+ *
+ * \details Gives some leeway to account for jitter on the bus and on the sender
+ *          before a message is considered dropped
+ *
+ * \warning Must be smaller than the shortest cycle time (CAN_IVT_CYCLE_TIME_MS)
+ */
+#define CAN_CYCLE_TIME_WIGGLE_ROOM_MS (5U)
+
+/*!
+ * \brief Length in ms of the timeframe over which the dropped messages are counted
+ */
+#define CAN_TIMEFRAME (1000U)
 
 /*! \} */
 

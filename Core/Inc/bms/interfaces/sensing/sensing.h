@@ -21,6 +21,7 @@
 #include "ir1553204.h"
 #include "mainboard-def.h"
 #include "max22530.h"
+#include "watchdogs.h"
 
 /*!* ######################### CONVERSIONS ############################### *!*/
 
@@ -106,6 +107,7 @@ enum SensingReturnCode {
     SENSING_RC_INVALID_DATA,    /*!< The given data is not valid */
     SENSING_RC_NOT_INITIALIZED, /*!< The module was not initialized */
     SENSING_RC_HARDWARE_ERROR,  /*!< A hardware callback or a driver reported a failure */
+    SENSING_RC_ERROR,           /*!< An identified error occurred */
 };
 
 /*!
@@ -287,6 +289,12 @@ struct SensingHandler {
 
     volatile raw_volt adc_samples[SENSING_ADC_COUNT][SENSING_ADC_MAX_CHANNEL_COUNT]; /*!< DMA buffers of the MCU ADCs */
     volatile enum SensingAdcState adc_state[SENSING_ADC_COUNT];                      /*!< Conversion state of the MCU ADCs */
+
+    struct Watchdog internal_adc_watchdogs[SENSING_ADC_COUNT]; /*!< One per MCU ADC, petted when its samples are processed */
+    struct Watchdog external_adc_watchdog;                     /*!< Petted at every successful read of the external ADC */
+    struct Watchdog imd_capture_watchdog;                      /*!< Started by the first valid IMD capture, then petted by the routine at every capture */
+    volatile bool imd_captured;                                /*!< Set by the IMD capture interrupt, consumed by the routine */
+    bool watchdogs_started;                                    /*!< True once the routine has started the watchdogs */
 
     bool is_initialized; /*!< True once the module has been initialized */
 };

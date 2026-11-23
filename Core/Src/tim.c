@@ -586,7 +586,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
         // Update the IMD measurement
         if ((period_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1)) != 0U) {
             high_count = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
-            (void)sensing_api_imd_capture(TIM_GET_FREQ(htim), period_count, high_count);
+            EAGLETRT_API_UNUSED(sensing_api_imd_capture(TIM_GET_FREQ(htim), period_count, high_count));
         }
     }
 }

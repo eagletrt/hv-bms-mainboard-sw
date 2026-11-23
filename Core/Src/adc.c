@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 
+#include "eagletrt-api.h"
 #include "sensing-api.h"
 
 /* USER CODE END 0 */
@@ -500,9 +501,9 @@ bool adc_sensing_start(const enum SensingAdc adc, volatile raw_volt *const buffe
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if (hadc->Instance == HADC_1.Instance) {
-        (void)sensing_api_adc_conversion_complete(SENSING_ADC_1);
+        EAGLETRT_API_UNUSED(sensing_api_adc_conversion_complete(SENSING_ADC_1));
     } else if (hadc->Instance == HADC_2.Instance) {
-        (void)sensing_api_adc_conversion_complete(SENSING_ADC_2);
+        EAGLETRT_API_UNUSED(sensing_api_adc_conversion_complete(SENSING_ADC_2));
     }
 }
 

@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "can-communication-info-api.h"
 #include "eagletrt.h"
 #include "can-bms-api.h"
 #include "can-bms.h"
@@ -210,7 +211,7 @@ EAGLETRT_STATIC void prv_handle_balancing_temperature(enum CellboardId cellboard
     memcpy(resistors, &messages->tsaccellboard1balancingtemperature, sizeof(resistors));
 
     for (size_t i = 0U; i < CAN_ROUTER_DISCHARGE_TEMPERATURES_COUNT; ++i) {
-        (void)temperatures_api_set_discharge_temperature(cellboard, (uint8_t)i, resistors[i]);
+        EAGLETRT_API_UNUSED(temperatures_api_set_discharge_temperature(cellboard, (uint8_t)i, resistors[i]));
     }
 }
 
@@ -264,7 +265,7 @@ EAGLETRT_STATIC void prv_handle_fsm(enum CellboardId cellboard, const union CanB
             break;
     }
 
-    (void)cellboards_monitor_api_set_state(cellboard, state);
+    EAGLETRT_API_UNUSED(cellboards_monitor_api_set_state(cellboard, state));
 }
 
 /*!
@@ -304,7 +305,7 @@ EAGLETRT_STATIC void prv_handle_error(enum CellboardId cellboard, const union Ca
     open_wires = EAGLETRT_API_BIT_SET_IF(open_wires, 11U, message->openwire12);
     open_wires = EAGLETRT_API_BIT_SET_IF(open_wires, 12U, message->openwire13);
 
-    (void)cellboards_monitor_api_set_errors(cellboard, errors, open_wires);
+    EAGLETRT_API_UNUSED(cellboards_monitor_api_set_errors(cellboard, errors, open_wires));
 }
 
 /*!
@@ -315,7 +316,7 @@ EAGLETRT_STATIC void prv_handle_error(enum CellboardId cellboard, const union Ca
  */
 EAGLETRT_STATIC void prv_handle_version(enum CellboardId cellboard, const union CanBmsMessages *messages) {
     const struct CanBmsTsaccellboard1version *message = &messages->tsaccellboard1version;
-    (void)cellboards_monitor_api_set_version(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE, message->major, message->minor, message->patch);
+    EAGLETRT_API_UNUSED(cellboards_monitor_api_set_version(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE, message->major, message->minor, message->patch));
 }
 
 /*!
@@ -326,7 +327,7 @@ EAGLETRT_STATIC void prv_handle_version(enum CellboardId cellboard, const union 
  */
 EAGLETRT_STATIC void prv_handle_version_info(enum CellboardId cellboard, const union CanBmsMessages *messages) {
     const struct CanBmsTsaccellboard1versioninfo *message = &messages->tsaccellboard1versioninfo;
-    (void)cellboards_monitor_api_set_version_info(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE, message->buildtime, message->commithash, message->dirty != 0U);
+    EAGLETRT_API_UNUSED(cellboards_monitor_api_set_version_info(cellboard, CELLBOARDS_MONITOR_VERSION_FIRMWARE, message->buildtime, message->commithash, message->dirty != 0U));
 }
 
 /*!
@@ -337,7 +338,7 @@ EAGLETRT_STATIC void prv_handle_version_info(enum CellboardId cellboard, const u
  */
 EAGLETRT_STATIC void prv_handle_libcan_version(enum CellboardId cellboard, const union CanBmsMessages *messages) {
     const struct CanBmsTsaccellboard1libcanversion *message = &messages->tsaccellboard1libcanversion;
-    (void)cellboards_monitor_api_set_version(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN, message->major, message->minor, message->patch);
+    EAGLETRT_API_UNUSED(cellboards_monitor_api_set_version(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN, message->major, message->minor, message->patch));
 }
 
 /*!
@@ -348,7 +349,7 @@ EAGLETRT_STATIC void prv_handle_libcan_version(enum CellboardId cellboard, const
  */
 EAGLETRT_STATIC void prv_handle_libcan_version_info(enum CellboardId cellboard, const union CanBmsMessages *messages) {
     const struct CanBmsTsaccellboard1libcanversioninfo *message = &messages->tsaccellboard1libcanversioninfo;
-    (void)cellboards_monitor_api_set_version_info(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN, message->generationtime, message->commithash, message->dirty != 0U);
+    EAGLETRT_API_UNUSED(cellboards_monitor_api_set_version_info(cellboard, CELLBOARDS_MONITOR_VERSION_LIBCAN, message->generationtime, message->commithash, message->dirty != 0U));
 }
 
 /*!
@@ -358,7 +359,7 @@ EAGLETRT_STATIC void prv_handle_libcan_version_info(enum CellboardId cellboard, 
  * \param[in] messages The deserialized message
  */
 EAGLETRT_STATIC void prv_handle_current(enum CellboardId cellboard, const union CanBmsMessages *messages) {
-    (void)cellboard;
+    EAGLETRT_API_UNUSED(cellboard);
 
     constexpr ampere ampere_per_milliampere = 0.001F;
     // TODO: handle the other fields of this message, which are not used yet
@@ -515,6 +516,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
     }
 
     const struct CanCommunicationRouterRoute *route = prv_find_bms_route(frame->id);
+
     if (route == nullptr) {
         // Valid BMS message that no module handles
         return CAN_COMMUNICATION_RC_OK;
@@ -524,6 +526,8 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
     if (frame->length != route->length) {
         return CAN_COMMUNICATION_RC_INVALID_LENGTH;
     }
+
+    EAGLETRT_API_UNUSED(can_communication_info_handle_message(CAN_NETWORK_BMS, frame->id));
 
     union CanBmsMessages message = { 0 };
     if (can_bms_api_deserialize_from_id(frame->id, frame->data, &message) != 0) {
@@ -563,6 +567,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
             if (frame->length != can_primary_byte_size_bmsset) {
                 return CAN_COMMUNICATION_RC_INVALID_LENGTH;
             }
+            EAGLETRT_API_UNUSED(can_communication_info_handle_message(CAN_NETWORK_PRIMARY, frame->id));
 
             // Anything that is not an explicit "on" turns the TS off
             const struct RequestControlRequest request = {
@@ -579,6 +584,7 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
             if (frame->length != can_primary_byte_size_raspberrytsacbalancingset) {
                 return CAN_COMMUNICATION_RC_INVALID_LENGTH;
             }
+            EAGLETRT_API_UNUSED(can_communication_info_handle_message(CAN_NETWORK_PRIMARY, frame->id));
 
             const struct RequestControlRequest request = {
                 .request_type = REQUEST_CONTROL_REQUEST_BALANCING,

@@ -23,11 +23,13 @@
 #include "mainboard-def.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
-#include "pcu-api.h"
+#include "mainboard-watchdogs-api.h"
 
 #include "phc.h"
 #include "voltages-api.h"
 #include "temperatures-api.h"
+#include "watchdogs.h"
+
 #include <stdint.h>
 #include <string.h>
 
@@ -298,8 +300,62 @@ EAGLETRT_STATIC const struct PHCCheck *prv_phc_find_check(enum PHCControl contro
     return NULL;
 }
 
+/*!
+ * \brief Called when a check has not run within PHC_MAX_CHECK_INTERVAL_MS since its last run
+ *
+ * \details The watchdog is left timed out: the fault is never cleared, so it
+ *          does not need to fire again
+ *
+ * \param[in] context Unused
+ */
+EAGLETRT_STATIC void prv_phc_handle_check_timeout(void *context) {
+    EAGLETRT_API_UNUSED(context);
+    EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
+}
+
+/*!
+ * \brief Called PHC_MAX_STARTUP_INTERVAL_MS after init, sets the PHC fault if a check has never run
+ *
+ * \details A check that has run has its watchdog running or timed out, the
+ *          watchdog of a check that has never run is still idle
+ *
+ * \param[in] context Unused
+ */
+EAGLETRT_STATIC void prv_phc_handle_startup_timeout(void *context) {
+    EAGLETRT_API_UNUSED(context);
+
+    for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
+        struct Watchdog *const watchdog = &phc_handler.check_watchdogs[control];
+        if (!mainboard_watchdogs_api_is_running(watchdog) && !mainboard_watchdogs_api_is_timed_out(watchdog)) {
+            EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
+            return;
+        }
+    }
+}
+
 enum PHCReturnCode phc_api_init(void) {
+    // Zeroing the handler would corrupt the watchdog pool, which still holds the running watchdogs
+    if (phc_handler.initialized) {
+        return PHC_RC_ERROR;
+    }
+
     memset(&phc_handler, 0, sizeof(phc_handler));
+
+    for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
+        if (mainboard_watchdogs_api_init_watchdog(&phc_handler.check_watchdogs[control], PHC_MAX_CHECK_INTERVAL_MS, prv_phc_handle_check_timeout, NULL) != WATCHDOG_RC_OK) {
+            return PHC_RC_ERROR;
+        }
+    }
+
+    if (mainboard_watchdogs_api_init_watchdog(&phc_handler.startup_watchdog, PHC_MAX_STARTUP_INTERVAL_MS, prv_phc_handle_startup_timeout, NULL) != WATCHDOG_RC_OK) {
+        return PHC_RC_ERROR;
+    }
+
+    if (mainboard_watchdogs_api_start(&phc_handler.startup_watchdog) != WATCHDOG_RC_OK) {
+        return PHC_RC_ERROR;
+    }
+
+    phc_handler.initialized = true;
     return PHC_RC_OK;
 }
 
@@ -315,8 +371,8 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
 
     const enum PHCCheckResult check_result = check->check_function();
 
-    // Without data the check did not run: the last run time is not updated, so
-    // phc_api_check_phc sets the PHC fault if the data never arrives
+    // Without data the check did not run: its watchdog is not touched, so the
+    // PHC fault is set if the data never arrives or stops arriving
     if (check_result == PHC_CHECK_RESULT_NOT_READY) {
         return PHC_RC_NOT_READY;
     }
@@ -328,22 +384,15 @@ enum PHCReturnCode phc_api_check(enum PHCControl control) {
         mainboard_status_api_set_fault(check->fault);
     }
 
-    phc_handler.last_check_time[control] = pcu_api_get_tick();
-    phc_handler.last_check_updated[control] = true;
+    // The watchdogs are not initialized yet: touching them would latch the watchdogs fault
+    if (phc_handler.initialized) {
+        struct Watchdog *const watchdog = &phc_handler.check_watchdogs[control];
 
-    return PHC_RC_OK;
-}
-
-// TODO: switch these out for watchdogs so that this can be deleted
-enum PHCReturnCode phc_api_check_phc(void) {
-    for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
-        if (phc_handler.last_check_updated[control]) {
-            if ((pcu_api_get_tick() - phc_handler.last_check_time[control]) > PHC_MAX_CHECK_INTERVAL_MS) {
-                mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT);
-            }
-        } else if (pcu_api_get_tick() > PHC_MAX_STARTUP_INTERVAL_MS) {
-            mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT);
+        // The first run starts the watchdog, a timed out one stays timed out since the fault is latched
+        if (mainboard_watchdogs_api_pet(watchdog) == WATCHDOG_RC_NOT_RUNNING) {
+            EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(watchdog));
         }
     }
+
     return PHC_RC_OK;
 }

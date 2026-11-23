@@ -836,8 +836,8 @@ enum SerializerReturnCode serializer_api_get_mainboard_version_info_message(stru
     struct CanPrimaryTsacmainboardversioninfo *payload = &message->payload.tsacmainboardversioninfo;
     payload->buildtime = serializer_handler.build_time;
     // TODO: send the commit hash and the dirty flag once the build injects them
-    payload->commithash = 0U;
-    payload->dirty = 0U;
+    payload->commithash = GIT_COMMIT;
+    payload->dirty = GIT_DIRTY;
     return SERIALIZER_RC_OK;
 }
 

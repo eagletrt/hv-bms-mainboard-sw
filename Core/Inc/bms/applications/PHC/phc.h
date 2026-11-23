@@ -9,8 +9,11 @@
 #ifndef PHC_H
 #define PHC_H
 
+#include <stdbool.h>
 #include <stdint.h>
+
 #include "mainboard-status.h"
+#include "watchdogs.h"
 
 enum PHCReturnCode : uint8_t {
     PHC_RC_OK,           /*!< The function completed successfully */
@@ -83,8 +86,9 @@ struct PHCCheck {
  * \brief Structure representing the PHC handler
  */
 struct PHCHandler {
-    uint32_t last_check_time[PHC_CONTROL_COUNT]; /*!< The time of the last run of each check, not updated when the check was not ready */
-    bool last_check_updated[PHC_CONTROL_COUNT];  /*!< Whether each check has run at least once */
+    struct Watchdog check_watchdogs[PHC_CONTROL_COUNT]; /*!< One per check, started at its first run and petted at every run, sets the PHC fault if a check stops running */
+    struct Watchdog startup_watchdog;                   /*!< Started at init, sets the PHC fault if a check has never run when it times out */
+    bool initialized;                                   /*!< True once every watchdog is initialized and the startup watchdog is started */
 };
 
 #endif // PHC_H
