@@ -4,8 +4,8 @@
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  *
- * \brief Cellboard balancing control: starts the balancing, keeps track of the
- *        voltage delta and stops safely when done
+ * \brief Cellboard balancing control: holds the balancing parameters, the discharge
+ *        target and the balancing status reported by the cellboards
  */
 
 #include "bal-control-api.h"
@@ -19,6 +19,11 @@
 
 EAGLETRT_STATIC struct BalancingControlHandler bal_control_handler;
 
+enum BalancingControlReturnCode bal_control_api_init(void) {
+    memset(&bal_control_handler, 0, sizeof(bal_control_handler));
+    return BAL_CONTROL_RC_OK;
+}
+
 enum BalancingControlReturnCode bal_control_api_set_parameters(const struct BalancingControlParameters parameters) {
     if (parameters.threshold < 0.0F) {
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
@@ -28,59 +33,37 @@ enum BalancingControlReturnCode bal_control_api_set_parameters(const struct Bala
     return BAL_CONTROL_RC_OK;
 }
 
-enum BalancingControlReturnCode bal_control_api_init(void) {
-    memset(&bal_control_handler, 0, sizeof(bal_control_handler));
-    return BAL_CONTROL_RC_OK;
+bool bal_control_api_has_valid_parameters(void) {
+    return bal_control_handler.valid_parameters;
+}
+
+void bal_control_api_update_target(void) {
+    bal_control_handler.target = voltages_api_get_pack_info().min;
+}
+
+void bal_control_api_start_discharge(void) {
+    if (!bal_control_handler.valid_parameters) {
+        return;
+    }
+    bal_control_handler.discharging = true;
+}
+
+void bal_control_api_stop_discharge(void) {
+    bal_control_handler.discharging = false;
+}
+
+bool bal_control_api_is_discharging(void) {
+    return bal_control_handler.discharging;
 }
 
 bool bal_control_api_is_pack_balanced(void) {
-    struct VoltagesInfo pack_info = voltages_api_get_pack_info();
-
-    volt delta = pack_info.max - pack_info.min;
-
-    return (bool)(delta <= bal_control_handler.parameters.threshold && bal_control_handler.valid_parameters);
-}
-
-enum BalancingControlReturnCode bal_control_api_start_balancing(void) {
     if (!bal_control_handler.valid_parameters) {
-        return BAL_CONTROL_RC_INVALID_PARAMETERS;
+        return false;
     }
-    if (bal_control_handler.balancing_active) {
-        return BAL_CONTROL_RC_BALANCING_ALREADY_STARTED;
-    }
+    const struct VoltagesInfo pack_info = voltages_api_get_pack_info();
+    const volt delta = pack_info.max - pack_info.min;
 
-    bal_control_handler.target = voltages_api_get_pack_info().min;
-
-    // START THE TASK THAT FORWARDS THE BALANCING PARAMETERS TO THE CELLBOARDS
-
-    bal_control_handler.balancing_active = true;
-    return BAL_CONTROL_RC_OK;
-}
-
-enum BalancingControlReturnCode bal_control_api_routine(void) {
-    if (!bal_control_handler.balancing_active) {
-        return BAL_CONTROL_RC_BALANCING_NOT_STARTED;
-    }
-
-    // implement way for the mainboard to choose when cellboards are actively balancing so that it can update the target voltage accordingly
-    // the routine should be check target voltage -> x cycles of discharge -> wait for stable voltages -> update target voltage -> repeat until delta is below threshold
-
-    return BAL_CONTROL_RC_OK;
-}
-
-enum BalancingControlReturnCode bal_control_api_stop_balancing(void) {
-    if (!bal_control_handler.balancing_active) {
-        return BAL_CONTROL_RC_BALANCING_NOT_STARTED;
-    }
-
-    // STOP THE TASK THAT FORWARDS THE BALANCING PARAMETERS TO THE CELLBOARDS
-
-    bal_control_handler.balancing_active = false;
-    return BAL_CONTROL_RC_OK;
-}
-
-bool bal_control_api_has_valid_parameters(void) {
-    return bal_control_handler.valid_parameters;
+    return delta <= bal_control_handler.parameters.threshold;
 }
 
 volt bal_control_api_get_target_voltage(void) {
@@ -91,12 +74,7 @@ volt bal_control_api_get_threshold(void) {
     return bal_control_handler.parameters.threshold;
 }
 
-bool bal_control_api_is_balancing_active(void) {
-    return bal_control_handler.balancing_active;
-}
-
 enum BalancingControlReturnCode bal_control_api_set_balancing_status(bool set, enum CellboardId cellboard, uint8_t cell) {
-
     if (cellboard >= CELLBOARD_ID_COUNT) {
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
     }

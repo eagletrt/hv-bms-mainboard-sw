@@ -13,6 +13,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "watchdogs.h"
+
 /*!
  * \brief State of the flash request
  */
@@ -29,10 +31,11 @@ enum FlashControlRequestState : uint8_t {
  * \brief The return codes for the flash control
  */
 enum FlashControlReturnCode {
-    FLASH_CONTROL_RC_OK,                   /*!< Operation completed successfully */
-    FLASH_CONTROL_RC_INVALID_PARAMETERS,   /*!< Invalid parameters provided */
-    FLASH_CONTROL_RC_FLASH_NOT_STARTED,    /*!< The flash procedure has not been started */
-    FLASH_CONTROL_RC_FLASH_ALREADY_STARTED /*!< The flash procedure has already been started */
+    FLASH_CONTROL_RC_OK,                    /*!< Operation completed successfully */
+    FLASH_CONTROL_RC_INVALID_PARAMETERS,    /*!< Invalid parameters provided */
+    FLASH_CONTROL_RC_FLASH_NOT_STARTED,     /*!< The flash procedure has not been started */
+    FLASH_CONTROL_RC_FLASH_ALREADY_STARTED, /*!< The flash procedure has already been started */
+    FLASH_CONTROL_RC_ERROR                  /*!< The module is not initialized or its watchdog could not be initialized */
 };
 
 /*!
@@ -42,6 +45,8 @@ struct FlashControlHandler {
     enum FlashControlRequestState target; /*!< The target of the flash procedure */
     bool flash_active;                    /*!< Flag indicating if the flash procedure is currently active */
     bool valid_parameters;                /*!< Flag indicating if the parameters are valid */
+    struct Watchdog message_watchdog;     /*!< Restarted by every flashing message, drops the flash request when no message is heard */
+    bool initialized;                     /*!< True once the watchdog is initialized */
 };
 
 #endif // FLASH_CONTROL_H

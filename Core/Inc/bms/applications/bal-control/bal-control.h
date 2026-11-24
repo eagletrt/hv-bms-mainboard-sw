@@ -13,24 +13,19 @@
 #include <stdbool.h>
 #include "mainboard-def.h"
 
-/*! 
- * \brief The return codes for the balancing control 
+/*!
+ * \brief The return codes for the balancing control
  */
 enum BalancingControlReturnCode {
-    BAL_CONTROL_RC_OK,                       /*!< Operation completed successfully */
-    BAL_CONTROL_RC_INVALID_PARAMETERS,       /*!< Invalid parameters provided */
-    BAL_CONTROL_RC_BALANCING_NOT_STARTED,    /*!< Balancing has not been started */
-    BAL_CONTROL_RC_BALANCING_ALREADY_STARTED /*!< Balancing has already been started */
+    BAL_CONTROL_RC_OK,                 /*!< Operation completed successfully */
+    BAL_CONTROL_RC_INVALID_PARAMETERS, /*!< Invalid parameters provided */
 };
 
 /*!
  * \brief Parameters for the balancing control
- *
- * \details This structure holds the parameters for the balancing control.
  */
 struct BalancingControlParameters {
-    bool balancing_request_state; /*!< The state of the balancing request */
-    volt threshold;               /*!< The threshold for the balancing procedure */
+    volt threshold; /*!< The voltage delta below which the pack is considered balanced */
 };
 
 static_assert(CELLBOARD_SEGMENT_SERIES_COUNT <= 32, "balancing_cells flag is too small to hold all cellboard states");
@@ -40,10 +35,10 @@ static_assert(CELLBOARD_SEGMENT_SERIES_COUNT <= 32, "balancing_cells flag is too
  */
 struct BalancingControlHandler {
     struct BalancingControlParameters parameters; /*!< The parameters for the balancing control */
-    bool balancing_active;                        /*!< Flag indicating if balancing is currently active */
-    volt target;                                  /*!< The target voltage for balancing */
     bool valid_parameters;                        /*!< Flag indicating if the parameters are valid */
-    uint32_t balancing_cells[CELLBOARD_COUNT];    /*! Bit flag containing the balancing status of the single cells as reported by the cellboards*/
+    bool discharging;                             /*!< Flag indicating if the cellboards are told to discharge */
+    volt target;                                  /*!< The target voltage of the discharge */
+    uint32_t balancing_cells[CELLBOARD_COUNT];    /*!< Bit flag containing the balancing status of the single cells as reported by the cellboards */
 };
 
 #endif // BAL_CONTROL_H

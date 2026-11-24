@@ -100,8 +100,8 @@
 /*!
  * \brief Thresholds for the voltages PHC checks
  */
-#define PHC_MIN_CELL_VOLTAGE_V (0)
-#define PHC_MAX_CELL_VOLTAGE_V (0)
+#define PHC_MIN_CELL_VOLTAGE_V (2.6F)
+#define PHC_MAX_CELL_VOLTAGE_V (4.2F)
 
 /*!
  * \brief Thresholds for the temperatures PHC checks
@@ -261,6 +261,89 @@
  * \brief Length in ms of the timeframe over which the dropped messages are counted
  */
 #define CAN_TIMEFRAME (1000U)
+
+/*! \} */
+
+/*!* ######################### FLASH ##################################### *!*/
+
+/*!
+ * \defgroup flash-conf
+ * \brief Configuration of the flash procedure control
+ * \{
+ */
+
+/*!
+ * \brief Maximum interval in ms between two consecutive flashing messages
+ *
+ * \details Every flashing message restarts the timeout. If no flashing message
+ *          is received within this time the flash request is dropped (target set
+ *          to none).
+ */
+#define FLASH_CONTROL_MAX_MESSAGE_INTERVAL_MS (1000U)
+
+/*! \} */
+
+/*!* ######################### FSM ####################################### *!*/
+
+/*!
+ * \defgroup fsm-conf
+ * \brief Configuration of the mainboard FSM
+ * \{
+ */
+
+/*!
+ * \brief Maximum time in ms allowed for the checks before closing the AIR- to pass
+ *
+ * \details Counted from the entry in WAIT_OK. If the keep TS on request is not
+ *          received or the conditions do not match within this time the FSM
+ *          goes to DISCHARGE_TS
+ */
+#define MAINBOARD_FSM_WAIT_OK_TIMEOUT_MS (1000U)
+
+/*!
+ * \brief Maximum time in ms allowed for the AIR- to close
+ *
+ * \details Counted from the entry in AIRN_CHECK. If the AIR- is not closed
+ *          within this time the FSM goes to DISCHARGE_TS
+ */
+#define MAINBOARD_FSM_AIRN_TIMEOUT_MS (1000U)
+
+/*!
+ * \brief Maximum time in ms allowed for the precharge to complete
+ *
+ * \details Counted from the entry in PRECHARGE_CHECK. If the precharge is not
+ *          complete within this time the FSM goes to DISCHARGE_TS
+ */
+#define MAINBOARD_FSM_PRECHARGE_TIMEOUT_MS (15000U)
+
+/*!
+ * \brief Maximum time in ms allowed for the AIR+ to close
+ *
+ * \details Counted from the entry in AIRP_CHECK. If the AIR+ is not closed and
+ *          the precharge relay is not open within this time the FSM goes to DISCHARGE_TS
+ */
+#define MAINBOARD_FSM_AIRP_TIMEOUT_MS (1000U)
+
+/*!
+ * \brief Maximum time in ms allowed for the TS to discharge
+ *
+ * \details Counted from the entry in DISCHARGE_TS. If the relays are not open
+ *          and the TS is not below 60V within this time the FSM goes to FATAL
+ *          (the rules require the TS below 60V within 5s from the AIRs opening)
+ */
+#define MAINBOARD_FSM_DISCHARGE_TIMEOUT_MS (5000U)
+
+/*!
+ * \brief The time that the mainboard gives to the cells to settle
+ * after a discharge cycle before reading the voltages again, in ms
+ */
+#define MAINBOARD_FSM_BALANCING_READ_TIMEOUT_MS (2000U)
+
+/*!
+ * \brief The time that the mainboard gives to the cells to discharge
+ * before reading the voltages again, in ms
+ */
+#define MAINBOARD_FSM_BALANCING_DISCHARGE_TIMEOUT_MS (10000U)
 
 /*! \} */
 

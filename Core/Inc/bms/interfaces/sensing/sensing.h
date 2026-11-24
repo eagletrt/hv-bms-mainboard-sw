@@ -117,6 +117,9 @@ enum SensingReturnCode {
  *          pins are active low); the polarity is handled by the feedback module
  */
 enum SensingGpio {
+    SENSING_GPIO_AIRN_CLOSE_COM,                /*!< AIRN_CLOSE_COM_MCU */
+    SENSING_GPIO_PRECH_CLOSE_COM,               /*!< PRECH_CLOSE_COM_MCU */
+    SENSING_GPIO_AIRP_CLOSE_COM,                /*!< AIRP_CLOSE_COM_MCU */
     SENSING_GPIO_PRECH_OPEN_MEC,                /*!< PRECH_OPEN_MEC_MCU */
     SENSING_GPIO_TS_LESS_THAN_60V,              /*!< TS_LESS_THAN_60V_MCU */
     SENSING_GPIO_PLAUSIBLE_STATE_PERSISTED,     /*!< PLAUSIBLE_STATE_PERSISTED_MCU */

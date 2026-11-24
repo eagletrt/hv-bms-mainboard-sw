@@ -349,7 +349,7 @@ enum SerializerReturnCode serializer_api_get_balancing_set_message(struct Serial
     message->id = CAN_BMS_MESSAGE_FRAME_ID_TSACMAINBOARDBALANCINGSET;
 
     struct CanBmsTsacmainboardbalancingset *payload = &message->payload.tsacmainboardbalancingset;
-    payload->start = bal_control_api_is_balancing_active() ? 1U : 0U;
+    payload->start = bal_control_api_is_discharging() ? 1U : 0U;
     payload->target = bal_control_api_get_target_voltage();
     payload->threshold = bal_control_api_get_threshold();
     return SERIALIZER_RC_OK;
@@ -652,10 +652,10 @@ enum SerializerReturnCode serializer_api_get_feedback_message(struct SerializerM
     prv_reset_message(message, CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDFEEDBACK);
 
     struct CanPrimaryTsacmainboardfeedback *payload = &message->payload.tsacmainboardfeedback;
-    // The relay commands are owned by the PCU, the "open" signals are the opposite of the "close commanded" conditions
-    payload->airnopencom = mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_AIRN_CLOSE_COMMANDED) ? 0U : 1U;
-    payload->prechargeopencom = mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSE_COMMANDED) ? 0U : 1U;
-    payload->airpopencom = mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_AIRP_CLOSE_COMMANDED) ? 0U : 1U;
+    // Raw command line readback: despite the "open" name these are high when the relay is commanded closed
+    payload->airnopencom = feedback_api_get_digital_value(FEEDBACK_DIGITAL_INDEX_AIRN_CLOSE_COM) ? 1U : 0U;
+    payload->prechargeopencom = feedback_api_get_digital_value(FEEDBACK_DIGITAL_INDEX_PRECHARGE_CLOSE_COM) ? 1U : 0U;
+    payload->airpopencom = feedback_api_get_digital_value(FEEDBACK_DIGITAL_INDEX_AIRP_CLOSE_COM) ? 1U : 0U;
     payload->airnopenmec = prv_feedback_voltage(FEEDBACK_ANALOG_INDEX_AIRN_OPEN_MEC);
     payload->prechargeopenmec = feedback_api_get_digital_value(FEEDBACK_DIGITAL_INDEX_PRECHARGE_OPEN_MEC) ? 1U : 0U;
     payload->airpopenmec = prv_feedback_voltage(FEEDBACK_ANALOG_INDEX_AIRP_OPEN_MEC);

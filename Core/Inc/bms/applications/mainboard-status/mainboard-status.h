@@ -113,11 +113,11 @@ enum MainboardStatusRequest {
  */
 enum MainboardStatusCondition {
     /* Relays (owner: feedback) */
-    MAINBOARD_STATUS_CONDITION_AIRN_CLOSE_COMMANDED,      /*!< The AIR- is commanded closed (old: AIRN_OPEN_COM, inverted) (owner: pcu) */
+    MAINBOARD_STATUS_CONDITION_AIRN_CLOSE_COMMANDED,      /*!< The AIR- command line reads closed (old: AIRN_OPEN_COM, same polarity despite the name) */
     MAINBOARD_STATUS_CONDITION_AIRN_CLOSED,               /*!< The AIR- is mechanically closed (old: AIRN_OPEN_MEC, inverted) (owner: feedback) */
-    MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSE_COMMANDED, /*!< The precharge relay is commanded closed (old: PRECHARGE_OPEN_COM, inverted) (owner: pcu) */
+    MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSE_COMMANDED, /*!< The precharge relay command line reads closed (old: PRECHARGE_OPEN_COM, same polarity despite the name) */
     MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSED,          /*!< The precharge relay is mechanically closed (old: PRECHARGE_OPEN_MEC, inverted) (owner: feedback) */
-    MAINBOARD_STATUS_CONDITION_AIRP_CLOSE_COMMANDED,      /*!< The AIR+ is commanded closed (old: AIRP_OPEN_COM, inverted) (owner: pcu) */
+    MAINBOARD_STATUS_CONDITION_AIRP_CLOSE_COMMANDED,      /*!< The AIR+ command line reads closed (old: AIRP_OPEN_COM, same polarity despite the name) */
     MAINBOARD_STATUS_CONDITION_AIRP_CLOSED,               /*!< The AIR+ is mechanically closed (old: AIRP_OPEN_MEC, inverted) (owner: feedback) */
 
     /* Balancing */

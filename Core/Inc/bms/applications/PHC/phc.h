@@ -56,7 +56,7 @@ enum PHCCheckKind : uint8_t {
 /*!
  * \brief Result of a PHC check function
  */
-enum PHCCheckResult : uint8_t {
+enum PhcCheckResult : uint8_t {
     PHC_CHECK_RESULT_OK,        /*!< Fault check: the values are within their limits. Condition check: the condition holds */
     PHC_CHECK_RESULT_FAILED,    /*!< Fault check: a value is out of its limits. Condition check: the condition does not hold */
     PHC_CHECK_RESULT_NOT_READY, /*!< The data needed by the check has not been received yet, nothing is written and the check does not count as run */
@@ -65,9 +65,9 @@ enum PHCCheckResult : uint8_t {
 /*!
  * \brief Function pointer type for PHC check functions
  *
- * \returns The result of the check, see \ref PHCCheckResult
+ * \returns The result of the check, see \ref PhcCheckResult
  */
-typedef enum PHCCheckResult (*phc_check_function)(void);
+typedef enum PhcCheckResult (*phc_check_function)(void);
 
 /*!
  * \brief Structure representing a PHC check

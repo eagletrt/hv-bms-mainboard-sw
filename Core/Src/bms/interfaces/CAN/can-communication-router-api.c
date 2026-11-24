@@ -590,8 +590,8 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_primary(str
                 .request_type = REQUEST_CONTROL_REQUEST_BALANCING,
                 .request_data = {
                                  .balancing_request_data = {
-                        .balancing_request_state = (message.raspberrytsacbalancingset.start != 0U),
-                        .threshold = message.raspberrytsacbalancingset.threshold,
+                        .start = (message.raspberrytsacbalancingset.start != 0U),
+                        .parameters = { .threshold = message.raspberrytsacbalancingset.threshold },
                     },
                                  },
             };

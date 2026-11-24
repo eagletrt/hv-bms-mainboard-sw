@@ -6,8 +6,9 @@
  *
  * \brief Pack Control Unit (PCU): drives the relays and the AMS output on behalf of the FSM
  *
- * \details The PCU only actuates, the FSM decides when. Every relay command is mirrored
- *          in the corresponding *_CLOSE_COMMANDED condition of the mainboard status.
+ * \details The PCU only actuates, the FSM decides when. The hardware readback of every
+ *          relay command line is published by the feedback module in the corresponding
+ *          *_CLOSE_COMMANDED condition of the mainboard status.
  *          The PCU also provides the microcontroller reset to the rest of the firmware
  */
 
