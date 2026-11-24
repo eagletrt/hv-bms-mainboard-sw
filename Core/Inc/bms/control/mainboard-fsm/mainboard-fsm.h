@@ -10,6 +10,73 @@
 #define MAINBOARD_FSM_H
 
 #include "mainboard-status.h"
+#include "eagletrt-api.h"
+
+/*!
+ * \brief Watchdogs of the FSM, each one bounds the time spent in one state
+ *
+ * \details At most one of them runs at a time: it is restarted on entry in its
+ *          state and every other one is reset
+ */
+enum MainboardFsmWatchdog {
+    MAINBOARD_FSM_WATCHDOG_WAIT_OK,         /*!< Timeout of WAIT_OK, goes to DISCHARGE_TS */
+    MAINBOARD_FSM_WATCHDOG_AIRN_CHECK,      /*!< Timeout of AIRN_CHECK, goes to DISCHARGE_TS */
+    MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK, /*!< Timeout of PRECHARGE_CHECK, goes to DISCHARGE_TS */
+    MAINBOARD_FSM_WATCHDOG_AIRP_CHECK,      /*!< Timeout of AIRP_CHECK, goes to DISCHARGE_TS */
+    MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS,    /*!< Timeout of DISCHARGE_TS, goes to FATAL */
+
+    MAINBOARD_FSM_WATCHDOG_COUNT
+};
+
+enum MainboardFsmStateID {
+    MAINBOARD_FSM_STATE_INIT,
+    MAINBOARD_FSM_STATE_IDLE,
+
+    // TS-ON procedure
+    MAINBOARD_FSM_STATE_WAIT_OK,
+    MAINBOARD_FSM_STATE_AIRN_CHECK,
+    MAINBOARD_FSM_STATE_PRECHARGE_CHECK,
+    MAINBOARD_FSM_STATE_AIRP_CHECK,
+    MAINBOARD_FSM_STATE_TS_ON,
+    MAINBOARD_FSM_STATE_DISCHARGE_TS,
+
+    // BALANCING
+    MAINBOARD_FSM_STATE_BALANCING_READ,
+    MAINBOARD_FSM_STATE_BALANCING_DISCHARGE,
+
+    // FLASHING
+    MAINBOARD_FSM_STATE_FLASH,
+
+    // FATAL
+    MAINBOARD_FSM_STATE_FATAL,
+
+    MAINBOARD_FSM_STATE_COUNT
+};
+
+/*!
+ * \brief Steps of the TS on procedure that check the mainboard conditions
+ */
+enum MainboardFsmStep {
+    MAINBOARD_FSM_STEP_WAIT_OK,
+    MAINBOARD_FSM_STEP_AIRN_CHECK,
+    MAINBOARD_FSM_STEP_PRECHARGE_CHECK,
+    MAINBOARD_FSM_STEP_AIRP_CHECK,
+    MAINBOARD_FSM_STEP_TS_ON,
+    MAINBOARD_FSM_STEP_DISCHARGE_TS,
+
+    MAINBOARD_FSM_STEP_COUNT
+};
+
+/*!
+ * \brief Conditions checked by a step of the TS on procedure
+ *
+ * \details The conditions are checked with \ref mainboard_status_api_check_conditions
+ */
+struct MainboardFsmStepCheck {
+    bit_flag32 mask;               /*!< The conditions to check */
+    bit_flag32 expected;           /*!< The expected value of each condition in the mask */
+    enum MainboardFsmStateID next; /*!< The state to go to when every condition matches, for TS_ON the conditions must keep matching */
+};
 
 /*!
  * \brief Conditions checked in every step of the TS on procedure
@@ -130,9 +197,26 @@
         MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_AIRP_CLOSED))
 
 /*!
- * \brief Conditions needed to stay in TS_ON (old: FEEDBACK_TS_ON_*)
+ * \brief Conditions needed to stay in TS_ON
  */
 #define MAINBOARD_FSM_TS_ON_MASK (MAINBOARD_FSM_AIRP_CHECK_TO_TS_ON_MASK)
 #define MAINBOARD_FSM_TS_ON_EXPECTED (MAINBOARD_FSM_AIRP_CHECK_TO_TS_ON_EXPECTED)
+
+/*!
+ * \brief Conditions needed to go from DISCHARGE_TS to IDLE
+ *
+ * \details Every relay commanded open and mechanically open and TS below 60V.
+ * The TSAL and the common conditions are not checked, any fault is handled before this check
+ */
+#define MAINBOARD_FSM_DISCHARGE_TS_TO_IDLE_MASK                                      \
+    (                                                                                \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_AIRN_CLOSE_COMMANDED) |      \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_AIRN_CLOSED) |               \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSE_COMMANDED) | \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_PRECHARGE_CLOSED) |          \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_AIRP_CLOSE_COMMANDED) |      \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_AIRP_CLOSED) |               \
+        MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_TS_BELOW_60V))
+#define MAINBOARD_FSM_DISCHARGE_TS_TO_IDLE_EXPECTED (MAINBOARD_STATUS_BIT(MAINBOARD_STATUS_CONDITION_TS_BELOW_60V))
 
 #endif // MAINBOARD_FSM_H

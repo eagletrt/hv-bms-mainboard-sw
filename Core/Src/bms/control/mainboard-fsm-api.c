@@ -10,6 +10,9 @@
 #include "eagletrt-fsm-api.h"
 #include "eagletrt-fsm.h"
 #include <string.h>
+#include "mainboard-watchdogs-api.h"
+#include "watchdogs.h"
+#include "mainboard-conf.h"
 
 #include "eagletrt-api.h"
 #include "eagletrt.h"
@@ -18,54 +21,17 @@
 
 EAGLETRT_STATIC struct FSMHandler mainboard_fsm_handler;
 
-enum MainboardFsmStateID {
-    MAINBOARD_FSM_STATE_INIT,
-    MAINBOARD_FSM_STATE_IDLE,
-
-    // TS-ON procedure
-    MAINBOARD_FSM_STATE_WAIT_OK,
-    MAINBOARD_FSM_STATE_AIRN_CHECK,
-    MAINBOARD_FSM_STATE_PRECHARGE_CHECK,
-    MAINBOARD_FSM_STATE_AIRP_CHECK,
-    MAINBOARD_FSM_STATE_TS_ON,
-    MAINBOARD_FSM_STATE_DISCHARGE_TS,
-
-    // BALANCING
-    MAINBOARD_FSM_STATE_BALANCING_READ,
-    MAINBOARD_FSM_STATE_BALANCING_DISCHARGE,
-
-    // FLASHING
-    MAINBOARD_FSM_STATE_FLASH,
-
-    // FATAL
-    MAINBOARD_FSM_STATE_FATAL,
-
-    MAINBOARD_FSM_STATE_COUNT
+/*! \brief Timeout of each FSM watchdog, indexed by \ref MainboardFsmWatchdog */
+EAGLETRT_STATIC const milliseconds mainboard_fsm_watchdog_timeouts[MAINBOARD_FSM_WATCHDOG_COUNT] = {
+    [MAINBOARD_FSM_WATCHDOG_WAIT_OK] = MAINBOARD_FSM_WAIT_OK_TIMEOUT_MS,
+    [MAINBOARD_FSM_WATCHDOG_AIRN_CHECK] = MAINBOARD_FSM_AIRN_TIMEOUT_MS,
+    [MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK] = MAINBOARD_FSM_PRECHARGE_TIMEOUT_MS,
+    [MAINBOARD_FSM_WATCHDOG_AIRP_CHECK] = MAINBOARD_FSM_AIRP_TIMEOUT_MS,
+    [MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS] = MAINBOARD_FSM_DISCHARGE_TIMEOUT_MS,
 };
 
-/*!
- * \brief Steps of the TS on procedure that check the mainboard conditions
- */
-enum MainboardFsmStep {
-    MAINBOARD_FSM_STEP_WAIT_OK,
-    MAINBOARD_FSM_STEP_AIRN_CHECK,
-    MAINBOARD_FSM_STEP_PRECHARGE_CHECK,
-    MAINBOARD_FSM_STEP_AIRP_CHECK,
-    MAINBOARD_FSM_STEP_TS_ON,
-
-    MAINBOARD_FSM_STEP_COUNT
-};
-
-/*!
- * \brief Conditions checked by a step of the TS on procedure
- *
- * \details The conditions are checked with \ref mainboard_status_api_check_conditions
- */
-struct MainboardFsmStepCheck {
-    bit_flag32 mask;               /*!< The conditions to check */
-    bit_flag32 expected;           /*!< The expected value of each condition in the mask */
-    enum MainboardFsmStateID next; /*!< The state to go to when every condition matches, for TS_ON the conditions must keep matching */
-};
+/*! \brief The FSM watchdogs, indexed by \ref MainboardFsmWatchdog */
+EAGLETRT_STATIC struct Watchdog mainboard_fsm_watchdogs[MAINBOARD_FSM_WATCHDOG_COUNT];
 
 /*! \brief Checks of the TS on procedure, indexed by \ref MainboardFsmStep */
 EAGLETRT_STATIC const struct MainboardFsmStepCheck mainboard_fsm_steps[MAINBOARD_FSM_STEP_COUNT] = {
@@ -94,6 +60,11 @@ EAGLETRT_STATIC const struct MainboardFsmStepCheck mainboard_fsm_steps[MAINBOARD
                                     .expected = MAINBOARD_FSM_TS_ON_EXPECTED,
                                     .next = MAINBOARD_FSM_STATE_TS_ON,
                                     },
+    [MAINBOARD_FSM_STEP_DISCHARGE_TS] = {
+                                    .mask = MAINBOARD_FSM_DISCHARGE_TS_TO_IDLE_MASK,
+                                    .expected = MAINBOARD_FSM_DISCHARGE_TS_TO_IDLE_EXPECTED,
+                                    .next = MAINBOARD_FSM_STATE_IDLE,
+                                    },
 };
 
 /*!
@@ -105,50 +76,177 @@ void prv_mainboard_fsm_transition_to(enum MainboardFsmStateID state) {
     fsm_api_transition_to(&mainboard_fsm_handler, state);
 }
 
+/*!
+ * \brief Checks shared by every state of the TS on procedure, run before the step checks
+ *
+ * \details Any fault goes to FATAL, a TS off request (or an ECU timeout) goes to DISCHARGE_TS
+ *
+ * \returns true if a transition was requested and the state must not run other checks, false otherwise
+ */
+EAGLETRT_STATIC bool prv_mainboard_fsm_check_ts_abort(void) {
+    if (mainboard_status_api_has_faults()) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return true;
+    }
+    if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_TS_OFF)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+        return true;
+    }
+    return false;
+}
+
+/*!
+ * \brief Check the conditions of a step and go to its next state when every condition matches
+ *
+ * \param step The step to check
+ *
+ * \returns true if every condition of the step matches, false otherwise
+ */
+EAGLETRT_STATIC bool prv_mainboard_fsm_check_step(const enum MainboardFsmStep step) {
+    const struct MainboardFsmStepCheck *const check = &mainboard_fsm_steps[step];
+
+    // TODO: keep the mismatches to report the conditions that blocked the step
+    if (!mainboard_status_api_check_conditions(check->mask, check->expected, NULL)) {
+        return false;
+    }
+    prv_mainboard_fsm_transition_to(check->next);
+    return true;
+}
+
+/*!
+ * \brief Open the TS if the shutdown circuit is open, used once a relay may be commanded closed
+ *
+ * \returns true if a transition was requested and the state must not run other checks, false otherwise
+ */
+EAGLETRT_STATIC bool prv_mainboard_fsm_check_sd_end(void) {
+    if (mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_SD_END_CLOSED)) {
+        return false;
+    }
+    prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+    return true;
+}
+
+/*!
+ * \brief Timeout callback of every FSM watchdog
+ *
+ * \details Does nothing: the states poll \ref prv_mainboard_fsm_is_timed_out,
+ *          the watchdog stays timed out until it is reset or restarted
+ */
+EAGLETRT_STATIC void prv_mainboard_fsm_watchdog_timeout(void *context) {
+    EAGLETRT_API_UNUSED(context);
+}
+
+/*!
+ * \brief Check if a FSM watchdog has timed out
+ *
+ * \param watchdog The watchdog to check
+ *
+ * \returns true if the watchdog has timed out, false otherwise
+ */
+EAGLETRT_STATIC bool prv_mainboard_fsm_is_timed_out(const enum MainboardFsmWatchdog watchdog) {
+    return mainboard_watchdogs_api_is_timed_out(&mainboard_fsm_watchdogs[watchdog]);
+}
+
+/*!
+ * \brief Reset every FSM watchdog, so none of them keeps a slot of the pool
+ *
+ * \details Used as transition callback when entering a state without a timeout
+ *
+ * \param data Unused
+ */
+EAGLETRT_STATIC void prv_mainboard_fsm_reset_watchdogs(void *data) {
+    EAGLETRT_API_UNUSED(data);
+
+    // A failure latches the watchdogs fault in the wrapper
+    for (size_t i = 0U; i < MAINBOARD_FSM_WATCHDOG_COUNT; ++i) {
+        EAGLETRT_API_UNUSED(mainboard_watchdogs_api_reset(&mainboard_fsm_watchdogs[i]));
+    }
+}
+
+/*!
+ * \brief Reset every FSM watchdog and start the given one from now
+ *
+ * \param watchdog The watchdog to start
+ */
+EAGLETRT_STATIC void prv_mainboard_fsm_start_watchdog(const enum MainboardFsmWatchdog watchdog) {
+    prv_mainboard_fsm_reset_watchdogs(NULL);
+    EAGLETRT_API_UNUSED(mainboard_watchdogs_api_restart(&mainboard_fsm_watchdogs[watchdog]));
+}
+
+/*! \brief Transition callback, starts the WAIT_OK watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_wait_ok(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_WAIT_OK);
+}
+
+/*! \brief Transition callback, starts the AIRN_CHECK watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_airn_check(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_AIRN_CHECK);
+}
+
+/*! \brief Transition callback, starts the PRECHARGE_CHECK watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_precharge_check(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK);
+}
+
+/*! \brief Transition callback, starts the AIRP_CHECK watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_airp_check(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_AIRP_CHECK);
+}
+
+/*! \brief Transition callback, starts the DISCHARGE_TS watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_discharge_ts(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS);
+}
+
 struct Transition init_transitions[] = {
     { MAINBOARD_FSM_STATE_IDLE,  NULL },
     { MAINBOARD_FSM_STATE_FATAL, NULL },
 };
 
 struct Transition idle_transitions[] = {
-    { MAINBOARD_FSM_STATE_WAIT_OK,        NULL },
-    { MAINBOARD_FSM_STATE_BALANCING_READ, NULL },
-    { MAINBOARD_FSM_STATE_FLASH,          NULL },
-    { MAINBOARD_FSM_STATE_FATAL,          NULL },
+    { MAINBOARD_FSM_STATE_WAIT_OK,        prv_mainboard_fsm_enter_wait_ok },
+    { MAINBOARD_FSM_STATE_BALANCING_READ, NULL                            },
+    { MAINBOARD_FSM_STATE_FLASH,          NULL                            },
+    { MAINBOARD_FSM_STATE_FATAL,          NULL                            },
 };
 
 struct Transition wait_ok_transitions[] = {
-    { MAINBOARD_FSM_STATE_DISCHARGE_TS, NULL },
-    { MAINBOARD_FSM_STATE_FATAL,        NULL },
-    { MAINBOARD_FSM_STATE_AIRN_CHECK,   NULL },
+    { MAINBOARD_FSM_STATE_DISCHARGE_TS, prv_mainboard_fsm_enter_discharge_ts },
+    { MAINBOARD_FSM_STATE_FATAL,        NULL                                 },
+    { MAINBOARD_FSM_STATE_AIRN_CHECK,   prv_mainboard_fsm_enter_airn_check   },
 };
 
 struct Transition airn_check_transitions[] = {
-    { MAINBOARD_FSM_STATE_DISCHARGE_TS,    NULL },
-    { MAINBOARD_FSM_STATE_FATAL,           NULL },
-    { MAINBOARD_FSM_STATE_PRECHARGE_CHECK, NULL },
+    { MAINBOARD_FSM_STATE_DISCHARGE_TS,    prv_mainboard_fsm_enter_discharge_ts    },
+    { MAINBOARD_FSM_STATE_FATAL,           NULL                                    },
+    { MAINBOARD_FSM_STATE_PRECHARGE_CHECK, prv_mainboard_fsm_enter_precharge_check },
 };
 
 struct Transition precharge_check_transitions[] = {
-    { MAINBOARD_FSM_STATE_DISCHARGE_TS, NULL },
-    { MAINBOARD_FSM_STATE_FATAL,        NULL },
-    { MAINBOARD_FSM_STATE_AIRP_CHECK,   NULL }
+    { MAINBOARD_FSM_STATE_DISCHARGE_TS, prv_mainboard_fsm_enter_discharge_ts },
+    { MAINBOARD_FSM_STATE_FATAL,        NULL                                 },
+    { MAINBOARD_FSM_STATE_AIRP_CHECK,   prv_mainboard_fsm_enter_airp_check   }
 };
 
 struct Transition airp_check_transitions[] = {
-    { MAINBOARD_FSM_STATE_DISCHARGE_TS, NULL },
-    { MAINBOARD_FSM_STATE_FATAL,        NULL },
-    { MAINBOARD_FSM_STATE_TS_ON,        NULL }
+    { MAINBOARD_FSM_STATE_DISCHARGE_TS, prv_mainboard_fsm_enter_discharge_ts },
+    { MAINBOARD_FSM_STATE_FATAL,        NULL                                 },
+    { MAINBOARD_FSM_STATE_TS_ON,        prv_mainboard_fsm_reset_watchdogs    }
 };
 
 struct Transition ts_on_transitions[] = {
-    { MAINBOARD_FSM_STATE_DISCHARGE_TS, NULL },
-    { MAINBOARD_FSM_STATE_FATAL,        NULL },
+    { MAINBOARD_FSM_STATE_DISCHARGE_TS, prv_mainboard_fsm_enter_discharge_ts },
+    { MAINBOARD_FSM_STATE_FATAL,        NULL                                 },
 };
 
 struct Transition discharge_ts_transitions[] = {
-    { MAINBOARD_FSM_STATE_IDLE,  NULL },
-    { MAINBOARD_FSM_STATE_FATAL, NULL },
+    { MAINBOARD_FSM_STATE_IDLE,  prv_mainboard_fsm_reset_watchdogs },
+    { MAINBOARD_FSM_STATE_FATAL, NULL                              },
 };
 
 struct Transition balancing_read_transitions[] = {
@@ -168,7 +266,23 @@ struct Transition flash_transitions[] = {
 };
 
 EAGLETRT_STATIC void mainboard_fsm_state_init(void *data) {
-    // run post, check the return code, transition either to IDLE or to fatal
+    EAGLETRT_API_UNUSED(data);
+
+    // A failure latches the watchdogs fault in the wrapper, caught by the safety check below
+    for (size_t i = 0U; i < MAINBOARD_FSM_WATCHDOG_COUNT; ++i) {
+        EAGLETRT_API_UNUSED(mainboard_watchdogs_api_init_watchdog(&mainboard_fsm_watchdogs[i],
+                                                                  mainboard_fsm_watchdog_timeouts[i],
+                                                                  prv_mainboard_fsm_watchdog_timeout,
+                                                                  NULL));
+    }
+
+    // TODO: run the POST, it sets MAINBOARD_STATUS_FAULT_POST_FAILED when it fails
+
+    if (mainboard_status_api_has_faults()) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return;
+    }
+    prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
@@ -177,7 +291,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
     // Actively do nothing (:
 
     // If the FSM is unsafe in a safe state then transition to FATAL
-    if (!mainboard_control_is_safe()) {
+    if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
@@ -190,6 +304,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
     // If a FLASHING message has been heard then transition to FLASHING state
     if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_FLASH)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FLASH);
+        return;
     }
     // If a BALANCING message has been heard then transition to BALANCING state
     if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING)) {
@@ -199,42 +314,147 @@ EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
 
 EAGLETRT_STATIC void mainboard_fsm_state_wait_ok(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (prv_mainboard_fsm_check_ts_abort()) {
+        return;
+    }
+
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_WAIT_OK)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+        return;
+    }
+
+    if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_KEEP_TS_ON)) {
+        prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_WAIT_OK);
+    }
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_airn_check(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (prv_mainboard_fsm_check_ts_abort() || prv_mainboard_fsm_check_sd_end()) {
+        return;
+    }
+
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_AIRN_CHECK)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+        return;
+    }
+
+    EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_AIRN_CHECK));
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_precharge_check(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (prv_mainboard_fsm_check_ts_abort() || prv_mainboard_fsm_check_sd_end()) {
+        return;
+    }
+
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+        return;
+    }
+
+    EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_PRECHARGE_CHECK));
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_airp_check(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (prv_mainboard_fsm_check_ts_abort() || prv_mainboard_fsm_check_sd_end()) {
+        return;
+    }
+
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_AIRP_CHECK)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+        return;
+    }
+
+    EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_AIRP_CHECK));
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_ts_on(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (prv_mainboard_fsm_check_ts_abort()) {
+        return;
+    }
+
+    // The conditions must keep matching, the SD end is part of them
+    if (!prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_TS_ON)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
+    }
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_discharge_ts(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (mainboard_status_api_has_faults()) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return;
+    }
+
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return;
+    }
+
+    // Go back to IDLE only once every relay is open and the TS is below 60V
+    EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_DISCHARGE_TS));
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (mainboard_status_api_has_faults()) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return;
+    }
+    // Balancing is not requested anymore or the PHC says the pack is balanced
+    if (!mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING) ||
+        mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_PACK_BALANCED)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
+        return;
+    }
+
+    // TODO: wait for the cell voltages read with the discharge off before discharging again
+    prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_DISCHARGE);
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (mainboard_status_api_has_faults()) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return;
+    }
+    // BALANCING_READ handles the stop and goes back to IDLE
+    if (!mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_READ);
+        return;
+    }
+
+    // TODO: go back to BALANCING_READ when the discharge time elapses
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    if (mainboard_status_api_has_faults()) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
+        return;
+    }
+    // The request is dropped by a none target or by the flash-control message timeout
+    if (!mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_FLASH)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
+    }
 }
 
 EAGLETRT_STATIC void mainboard_fsm_state_fatal(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    // Nothing to check: faults are never cleared and FATAL has no way out
 }
 
 /*! \brief Mainboard FSM states, indexed by \ref MainboardFsmStateID */
