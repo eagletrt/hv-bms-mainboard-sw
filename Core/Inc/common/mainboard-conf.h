@@ -333,6 +333,18 @@
  */
 #define MAINBOARD_FSM_DISCHARGE_TIMEOUT_MS (5000U)
 
+/*!
+ * \brief The time that the mainboard gives to the cells to settle
+ * after a discharge cycle before reading the voltages again, in ms
+ */
+#define MAINBOARD_FSM_BALANCING_READ_TIMEOUT_MS (2000U)
+
+/*!
+ * \brief The time that the mainboard gives to the cells to discharge
+ * before reading the voltages again, in ms
+ */
+#define MAINBOARD_FSM_BALANCING_DISCHARGE_TIMEOUT_MS (10000U)
+
 /*! \} */
 
 #endif // MAINBOARD_CONF_H

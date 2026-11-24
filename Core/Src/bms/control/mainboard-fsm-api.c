@@ -7,9 +7,11 @@
  */
 
 #include "mainboard-fsm-api.h"
+#include "bal-control-api.h"
 #include "eagletrt-fsm-api.h"
 #include "eagletrt-fsm.h"
 #include <string.h>
+#include "mainboard-fsm.h"
 #include "mainboard-watchdogs-api.h"
 #include "pcu-api.h"
 #include "pcu.h"
@@ -30,6 +32,8 @@ EAGLETRT_STATIC const milliseconds mainboard_fsm_watchdog_timeouts[MAINBOARD_FSM
     [MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK] = MAINBOARD_FSM_PRECHARGE_TIMEOUT_MS,
     [MAINBOARD_FSM_WATCHDOG_AIRP_CHECK] = MAINBOARD_FSM_AIRP_TIMEOUT_MS,
     [MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS] = MAINBOARD_FSM_DISCHARGE_TIMEOUT_MS,
+    [MAINBOARD_FSM_WATCHDOG_BALANCING_READ] = MAINBOARD_FSM_BALANCING_READ_TIMEOUT_MS,
+    [MAINBOARD_FSM_WATCHDOG_BALANCING_DISCHARGE] = MAINBOARD_FSM_BALANCING_DISCHARGE_TIMEOUT_MS,
 };
 
 /*! \brief The FSM watchdogs, indexed by \ref MainboardFsmWatchdog */
@@ -205,16 +209,28 @@ EAGLETRT_STATIC void prv_mainboard_fsm_enter_discharge_ts(void *data) {
     prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS);
 }
 
+/*! \brief Transition callback, starts the BALANCING_READ watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_balancing_read(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_BALANCING_READ);
+}
+
+/*! \brief Transition callback, starts the BALANCING_DISCHARGE watchdog */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_balancing_discharge(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_BALANCING_DISCHARGE);
+}
+
 struct Transition init_transitions[] = {
     { MAINBOARD_FSM_STATE_IDLE,  NULL },
     { MAINBOARD_FSM_STATE_FATAL, NULL },
 };
 
 struct Transition idle_transitions[] = {
-    { MAINBOARD_FSM_STATE_WAIT_OK,        prv_mainboard_fsm_enter_wait_ok },
-    { MAINBOARD_FSM_STATE_BALANCING_READ, NULL                            },
-    { MAINBOARD_FSM_STATE_FLASH,          NULL                            },
-    { MAINBOARD_FSM_STATE_FATAL,          NULL                            },
+    { MAINBOARD_FSM_STATE_WAIT_OK,        prv_mainboard_fsm_enter_wait_ok        },
+    { MAINBOARD_FSM_STATE_BALANCING_READ, prv_mainboard_fsm_enter_balancing_read },
+    { MAINBOARD_FSM_STATE_FLASH,          NULL                                   },
+    { MAINBOARD_FSM_STATE_FATAL,          NULL                                   },
 };
 
 struct Transition wait_ok_transitions[] = {
@@ -252,14 +268,14 @@ struct Transition discharge_ts_transitions[] = {
 };
 
 struct Transition balancing_read_transitions[] = {
-    { MAINBOARD_FSM_STATE_IDLE,                NULL },
-    { MAINBOARD_FSM_STATE_BALANCING_DISCHARGE, NULL },
-    { MAINBOARD_FSM_STATE_FATAL,               NULL },
+    { MAINBOARD_FSM_STATE_IDLE,                prv_mainboard_fsm_reset_watchdogs           },
+    { MAINBOARD_FSM_STATE_BALANCING_DISCHARGE, prv_mainboard_fsm_enter_balancing_discharge },
+    { MAINBOARD_FSM_STATE_FATAL,               NULL                                        },
 };
 
 struct Transition balancing_discharge_transitions[] = {
-    { MAINBOARD_FSM_STATE_BALANCING_READ, NULL },
-    { MAINBOARD_FSM_STATE_FATAL,          NULL },
+    { MAINBOARD_FSM_STATE_BALANCING_READ, prv_mainboard_fsm_enter_balancing_read },
+    { MAINBOARD_FSM_STATE_FATAL,          NULL                                   },
 };
 
 struct Transition flash_transitions[] = {
@@ -315,9 +331,11 @@ EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FLASH);
         return;
     }
-    // If a BALANCING message has been heard then transition to BALANCING state
+    // If a BALANCING message has been heard then transition to BALANCING state if pack is not balanced
     if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING)) {
-        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_READ);
+        if (!mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_PACK_BALANCED)) {
+            prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_READ);
+        }
     }
 }
 
@@ -488,6 +506,10 @@ EAGLETRT_STATIC void mainboard_fsm_state_discharge_ts(void *data) {
 EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    bal_control_api_stop_discharge();
+
+    bal_control_api_update_target();
+
     // Transition logic:
 
     // If there are faults go to FAULT
@@ -495,15 +517,19 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
-    // Balancing is not requested anymore or the PHC says the pack is balanced
-    if (!mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING) ||
-        mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_PACK_BALANCED)) {
+    // Balancing is not requested anymore
+    if (!mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
         return;
     }
-
-    // TODO: wait for the cell voltages read with the discharge off before discharging again
-    prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_DISCHARGE);
+    // If after settling time the pack is balanced then go to IDLE else go to discharge
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_BALANCING_READ)) {
+        if (mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_PACK_BALANCED)) {
+            prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
+            return;
+        }
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_DISCHARGE);
+    }
 }
 
 /*!
@@ -511,6 +537,8 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
  */
 EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    bal_control_api_start_discharge();
 
     // Transition logic:
 
@@ -524,8 +552,10 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_READ);
         return;
     }
-
-    // TODO: go back to BALANCING_READ when the discharge time elapses
+    // Once the time interval has passed transition to read
+    if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_BALANCING_DISCHARGE)) {
+        prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_READ);
+    }
 }
 
 /*!
@@ -549,6 +579,10 @@ EAGLETRT_STATIC void mainboard_fsm_state_flash(void *data) {
 
 EAGLETRT_STATIC void mainboard_fsm_state_fatal(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    bal_control_api_stop_discharge();
+    pcu_api_open_all();
+    pcu_api_ams_activate();
 
     // Nothing to check: faults are never cleared and FATAL has no way out
 }

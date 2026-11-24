@@ -349,7 +349,7 @@ enum SerializerReturnCode serializer_api_get_balancing_set_message(struct Serial
     message->id = CAN_BMS_MESSAGE_FRAME_ID_TSACMAINBOARDBALANCINGSET;
 
     struct CanBmsTsacmainboardbalancingset *payload = &message->payload.tsacmainboardbalancingset;
-    payload->start = bal_control_api_is_balancing_active() ? 1U : 0U;
+    payload->start = bal_control_api_is_discharging() ? 1U : 0U;
     payload->target = bal_control_api_get_target_voltage();
     payload->threshold = bal_control_api_get_threshold();
     return SERIALIZER_RC_OK;

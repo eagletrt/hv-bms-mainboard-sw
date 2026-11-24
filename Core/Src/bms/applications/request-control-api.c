@@ -58,9 +58,9 @@ enum RequestControlReturnCode request_control_api_handle_request(struct RequestC
 
         case REQUEST_CONTROL_REQUEST_BALANCING:
 
-            if (bal_control_api_set_parameters(data.balancing_request_data) == BAL_CONTROL_RC_OK) {
+            if (bal_control_api_set_parameters(data.balancing_request_data.parameters) == BAL_CONTROL_RC_OK) {
                 // Set the bit only AFTER the module validated the data
-                mainboard_status_api_set_request(MAINBOARD_STATUS_REQUEST_BALANCING, data.balancing_request_data.balancing_request_state);
+                mainboard_status_api_set_request(MAINBOARD_STATUS_REQUEST_BALANCING, data.balancing_request_data.start);
 
                 return REQUEST_CONTROL_RC_OK;
             }

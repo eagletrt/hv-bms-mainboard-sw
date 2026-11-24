@@ -218,8 +218,8 @@ EAGLETRT_STATIC void prv_handle_primary_message_fatal(const struct CanCommunicat
 
         case CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET:
             request.request_type = REQUEST_CONTROL_REQUEST_BALANCING;
-            request.request_data.balancing_request_data.balancing_request_state = false;
-            request.request_data.balancing_request_data.threshold = bal_control_api_get_threshold();
+            request.request_data.balancing_request_data.start = false;
+            request.request_data.balancing_request_data.parameters.threshold = bal_control_api_get_threshold();
             break;
 
         default:

@@ -36,12 +36,20 @@ enum RequestControlTSRequestState {
 };
 
 /*!
+ * \brief Data of the balancing request
+ */
+struct RequestControlBalancingRequest {
+    bool start;                                   /*!< Whether the balancing is requested */
+    struct BalancingControlParameters parameters; /*!< The parameters given to the balancing control */
+};
+
+/*!
  * \brief Data for the request control
  */
 union RequestControlData {
-    enum RequestControlTSRequestState ts_request_state;       /*!< The state of the TS request */
-    enum FlashControlRequestState flash_request_state;        /*!< The state of the flash request */
-    struct BalancingControlParameters balancing_request_data; /*!< The data for the balancing request*/
+    enum RequestControlTSRequestState ts_request_state;           /*!< The state of the TS request */
+    enum FlashControlRequestState flash_request_state;            /*!< The state of the flash request */
+    struct RequestControlBalancingRequest balancing_request_data; /*!< The data for the balancing request*/
 };
 
 struct RequestControlRequest {

@@ -4,8 +4,17 @@
  * \author Alessandro Giustina [giustinalessandro@gmail.com]
  * \author Antonio Gelain [antonio.gelain2@gmail.com]
  *
- * \brief Cellboard balancing control: starts the balancing, keeps track of the
- *        voltage delta and stops safely when done
+ * \brief Cellboard balancing control: holds the balancing parameters, the discharge
+ *        target and the balancing status reported by the cellboards
+ *
+ * \details The module only holds the state, the FSM decides when to read and when to discharge:
+ *          - BALANCING_READ stops the discharge, waits for the voltages to settle and updates the target
+ *          - BALANCING_DISCHARGE starts the discharge for a fixed time
+ *
+ *          The balancing set message is sent periodically by the serializer tasks with the
+ *          values of \ref bal_control_api_is_discharging, \ref bal_control_api_get_target_voltage
+ *          and \ref bal_control_api_get_threshold, so starting or stopping the discharge only
+ *          changes the next message sent
  */
 
 #ifndef BAL_CONTROL_API_H
@@ -14,46 +23,25 @@
 #include "bal-control.h"
 
 /*!
- * \brief Sets the parameters for the balancing control
- *
- * \param parameters The parameters to set
- * 
- * \retval BAL_CONTROL_RC_OK if the parameters were set successfully
- * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the parameters are invalid
- */
-enum BalancingControlReturnCode bal_control_api_set_parameters(struct BalancingControlParameters parameters);
-
-/*!
  * \brief Initializes the balancing control
+ *
+ * \details The parameters are invalid and the discharge is stopped
  *
  * \retval BAL_CONTROL_RC_OK if the initialization was successful
  */
 enum BalancingControlReturnCode bal_control_api_init(void);
 
 /*!
- * \brief Starts the balancing procedure
+ * \brief Sets the parameters for the balancing control
  *
- * \retval BAL_CONTROL_RC_OK if the balancing was started successfully
+ * \details Valid parameters are stored even while the balancing is not requested
+ *
+ * \param parameters The parameters to set
+ *
+ * \retval BAL_CONTROL_RC_OK if the parameters were set successfully
  * \retval BAL_CONTROL_RC_INVALID_PARAMETERS if the parameters are invalid
- * \retval BAL_CONTROL_RC_BALANCING_ALREADY_STARTED if the balancing is already started
  */
-enum BalancingControlReturnCode bal_control_api_start_balancing(void);
-
-/*!
- * \brief Routine to be called periodically to check the balancing status
- *
- * \retval BAL_CONTROL_RC_OK if the routine executed successfully
- * \retval BAL_CONTROL_RC_BALANCING_NOT_STARTED if the balancing has not been started
- */
-enum BalancingControlReturnCode bal_control_api_routine(void);
-
-/*!
- * \brief Stops the balancing procedure
- *
- * \retval BAL_CONTROL_RC_OK if the balancing was stopped successfully
- * \retval BAL_CONTROL_RC_BALANCING_NOT_STARTED if the balancing has not been started
- */
-enum BalancingControlReturnCode bal_control_api_stop_balancing(void);
+enum BalancingControlReturnCode bal_control_api_set_parameters(struct BalancingControlParameters parameters);
 
 /*!
  * \brief Checks if the balancing control has valid parameters
@@ -62,6 +50,37 @@ enum BalancingControlReturnCode bal_control_api_stop_balancing(void);
  * \retval false if the parameters are invalid
  */
 bool bal_control_api_has_valid_parameters(void);
+
+/*!
+ * \brief Sets the discharge target to the current minimum cell voltage of the pack
+ *
+ * \attention Must be called with the discharge stopped and the voltages settled,
+ *            otherwise the minimum is lower than the real one
+ */
+void bal_control_api_update_target(void);
+
+/*!
+ * \brief Tells the cellboards to discharge the cells above the target
+ *
+ * \details Does nothing if the parameters are invalid, calling it while already
+ *          discharging has no effect
+ */
+void bal_control_api_start_discharge(void);
+
+/*!
+ * \brief Tells the cellboards to stop discharging
+ *
+ * \details Always succeeds, calling it while not discharging has no effect
+ */
+void bal_control_api_stop_discharge(void);
+
+/*!
+ * \brief Checks if the cellboards are told to discharge
+ *
+ * \retval true if the discharge was started and not stopped yet
+ * \retval false otherwise
+ */
+bool bal_control_api_is_discharging(void);
 
 /*!
  * \brief Checks if the pack is balanced according to the set threshold
@@ -74,7 +93,7 @@ bool bal_control_api_is_pack_balanced(void);
 /*!
  * \brief Gets the target voltage for balancing
  *
- * \returns The target voltage for balancing
+ * \returns The target voltage set by the last \ref bal_control_api_update_target
  */
 volt bal_control_api_get_target_voltage(void);
 
@@ -84,14 +103,6 @@ volt bal_control_api_get_target_voltage(void);
  * \returns The threshold below which the pack is considered balanced
  */
 volt bal_control_api_get_threshold(void);
-
-/*!
- * \brief Checks if the balancing is currently active
- *
- * \retval true if the balancing was started and not stopped yet
- * \retval false otherwise
- */
-bool bal_control_api_is_balancing_active(void);
 
 /*!
  * \brief Sets the balancing status for a specific cellboard
