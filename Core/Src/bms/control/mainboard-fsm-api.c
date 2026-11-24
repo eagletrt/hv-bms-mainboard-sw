@@ -299,7 +299,7 @@ struct Transition flash_transitions[] = {
 /*!
  * \brief Initialize all of the modules
  */
-EAGLETRT_STATIC void mainboard_fsm_state_init(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_init(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     // A failure latches the watchdogs fault in the wrapper, caught by the safety check below
@@ -322,7 +322,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_init(void *data) {
 /*!
  * \brief Idle state of the mainboard FSM, does nothing but wait for requests
  */
-EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     // Actively do nothing (:
@@ -356,7 +356,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
  * \brief Double door mechanism for ts-on procedure, waits for the ECU to send a keep ts-on message after the ts-on request so that
  * internal ts-off requests don't trigger a loop
  */
-EAGLETRT_STATIC void mainboard_fsm_state_wait_ok(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_wait_ok(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     // Wait for the keep ts-on message to continue the ts-on procedure
@@ -383,7 +383,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_wait_ok(void *data) {
 /*!
  * \brief Check if the air- relay closed
  */
-EAGLETRT_STATIC void mainboard_fsm_state_airn_check(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_airn_check(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     pcu_api_close(PCU_RELAY_AIR_NEGATIVE);
@@ -411,7 +411,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_airn_check(void *data) {
 /*!
  * \brief Check if the precharge is complete
  */
-EAGLETRT_STATIC void mainboard_fsm_state_precharge_check(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_precharge_check(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     pcu_api_close(PCU_RELAY_PRECHARGE);
@@ -439,7 +439,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_precharge_check(void *data) {
 /*!
  * \brief Check if the air+ relay closed
  */
-EAGLETRT_STATIC void mainboard_fsm_state_airp_check(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_airp_check(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     pcu_api_close(PCU_RELAY_AIR_POSITIVE);
@@ -467,7 +467,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_airp_check(void *data) {
 /*!
  * \brief Stay in a active supplying state of ts-on
  */
-EAGLETRT_STATIC void mainboard_fsm_state_ts_on(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_ts_on(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     // Enjoy 600V (:
@@ -488,7 +488,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_ts_on(void *data) {
 /*!
  * \brief Return to a safe state from any "dangerous" state of the ts
  */
-EAGLETRT_STATIC void mainboard_fsm_state_discharge_ts(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_discharge_ts(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     // Open all of the relays
@@ -516,7 +516,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_discharge_ts(void *data) {
 /*!
  * \brief Read the minimum pack tension
  */
-EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_balancing_read(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     bal_control_api_stop_discharge();
@@ -548,7 +548,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
 /*!
  * \brief Discharge the cells that are over the treshold read in the read state
  */
-EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_balancing_discharge(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     bal_control_api_start_discharge();
@@ -574,7 +574,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
 /*!
  * \brief A board is being flashed
  */
-EAGLETRT_STATIC void mainboard_fsm_state_flash(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     flash_control_api_routine();
@@ -592,7 +592,7 @@ EAGLETRT_STATIC void mainboard_fsm_state_flash(void *data) {
     }
 }
 
-EAGLETRT_STATIC void mainboard_fsm_state_fatal(void *data) {
+EAGLETRT_STATIC void prv_mainboard_fsm_state_fatal(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     bal_control_api_stop_discharge();
@@ -606,84 +606,84 @@ EAGLETRT_STATIC void mainboard_fsm_state_fatal(void *data) {
 EAGLETRT_STATIC const struct State mainboard_fsm_states[MAINBOARD_FSM_STATE_COUNT] = {
     [MAINBOARD_FSM_STATE_INIT] = {
                                   .id = MAINBOARD_FSM_STATE_INIT,
-                                  .function = mainboard_fsm_state_init,
+                                  .function = prv_mainboard_fsm_state_init,
                                   .next_default = MAINBOARD_FSM_STATE_INIT,
                                   .transitions = init_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(init_transitions),
                                   },
     [MAINBOARD_FSM_STATE_IDLE] = {
                                   .id = MAINBOARD_FSM_STATE_IDLE,
-                                  .function = mainboard_fsm_state_idle,
+                                  .function = prv_mainboard_fsm_state_idle,
                                   .next_default = MAINBOARD_FSM_STATE_IDLE,
                                   .transitions = idle_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(idle_transitions),
                                   },
     [MAINBOARD_FSM_STATE_WAIT_OK] = {
                                   .id = MAINBOARD_FSM_STATE_WAIT_OK,
-                                  .function = mainboard_fsm_state_wait_ok,
+                                  .function = prv_mainboard_fsm_state_wait_ok,
                                   .next_default = MAINBOARD_FSM_STATE_WAIT_OK,
                                   .transitions = wait_ok_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(wait_ok_transitions),
                                   },
     [MAINBOARD_FSM_STATE_AIRN_CHECK] = {
                                   .id = MAINBOARD_FSM_STATE_AIRN_CHECK,
-                                  .function = mainboard_fsm_state_airn_check,
+                                  .function = prv_mainboard_fsm_state_airn_check,
                                   .next_default = MAINBOARD_FSM_STATE_AIRN_CHECK,
                                   .transitions = airn_check_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(airn_check_transitions),
                                   },
     [MAINBOARD_FSM_STATE_PRECHARGE_CHECK] = {
                                   .id = MAINBOARD_FSM_STATE_PRECHARGE_CHECK,
-                                  .function = mainboard_fsm_state_precharge_check,
+                                  .function = prv_mainboard_fsm_state_precharge_check,
                                   .next_default = MAINBOARD_FSM_STATE_PRECHARGE_CHECK,
                                   .transitions = precharge_check_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(precharge_check_transitions),
                                   },
     [MAINBOARD_FSM_STATE_AIRP_CHECK] = {
                                   .id = MAINBOARD_FSM_STATE_AIRP_CHECK,
-                                  .function = mainboard_fsm_state_airp_check,
+                                  .function = prv_mainboard_fsm_state_airp_check,
                                   .next_default = MAINBOARD_FSM_STATE_AIRP_CHECK,
                                   .transitions = airp_check_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(airp_check_transitions),
                                   },
     [MAINBOARD_FSM_STATE_TS_ON] = {
                                   .id = MAINBOARD_FSM_STATE_TS_ON,
-                                  .function = mainboard_fsm_state_ts_on,
+                                  .function = prv_mainboard_fsm_state_ts_on,
                                   .next_default = MAINBOARD_FSM_STATE_TS_ON,
                                   .transitions = ts_on_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(ts_on_transitions),
                                   },
     [MAINBOARD_FSM_STATE_DISCHARGE_TS] = {
                                   .id = MAINBOARD_FSM_STATE_DISCHARGE_TS,
-                                  .function = mainboard_fsm_state_discharge_ts,
+                                  .function = prv_mainboard_fsm_state_discharge_ts,
                                   .next_default = MAINBOARD_FSM_STATE_DISCHARGE_TS,
                                   .transitions = discharge_ts_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(discharge_ts_transitions),
                                   },
     [MAINBOARD_FSM_STATE_BALANCING_READ] = {
                                   .id = MAINBOARD_FSM_STATE_BALANCING_READ,
-                                  .function = mainboard_fsm_state_balancing_read,
+                                  .function = prv_mainboard_fsm_state_balancing_read,
                                   .next_default = MAINBOARD_FSM_STATE_BALANCING_READ,
                                   .transitions = balancing_read_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(balancing_read_transitions),
                                   },
     [MAINBOARD_FSM_STATE_BALANCING_DISCHARGE] = {
                                   .id = MAINBOARD_FSM_STATE_BALANCING_DISCHARGE,
-                                  .function = mainboard_fsm_state_balancing_discharge,
+                                  .function = prv_mainboard_fsm_state_balancing_discharge,
                                   .next_default = MAINBOARD_FSM_STATE_BALANCING_DISCHARGE,
                                   .transitions = balancing_discharge_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(balancing_discharge_transitions),
                                   },
     [MAINBOARD_FSM_STATE_FLASH] = {
                                   .id = MAINBOARD_FSM_STATE_FLASH,
-                                  .function = mainboard_fsm_state_flash,
+                                  .function = prv_mainboard_fsm_state_flash,
                                   .next_default = MAINBOARD_FSM_STATE_FLASH,
                                   .transitions = flash_transitions,
                                   .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(flash_transitions),
                                   },
     [MAINBOARD_FSM_STATE_FATAL] = {
                                   .id = MAINBOARD_FSM_STATE_FATAL,
-                                  .function = mainboard_fsm_state_fatal,
+                                  .function = prv_mainboard_fsm_state_fatal,
                                   .next_default = MAINBOARD_FSM_STATE_FATAL,
                                   .transitions = NULL,
                                   .num_transitions = 0U,
