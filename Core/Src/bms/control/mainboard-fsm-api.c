@@ -11,6 +11,7 @@
 #include "eagletrt-fsm-api.h"
 #include "eagletrt-fsm.h"
 #include <string.h>
+#include "flash-control-api.h"
 #include "mainboard-fsm.h"
 #include "mainboard-watchdogs-api.h"
 #include "pcu-api.h"
@@ -221,6 +222,18 @@ EAGLETRT_STATIC void prv_mainboard_fsm_enter_balancing_discharge(void *data) {
     prv_mainboard_fsm_start_watchdog(MAINBOARD_FSM_WATCHDOG_BALANCING_DISCHARGE);
 }
 
+/*! \brief Transition callback, starts the flashing protocol */
+EAGLETRT_STATIC void prv_mainboard_fsm_enter_flash(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    flash_control_api_start_flash();
+}
+
+/*! \brief Transition callback, stops the flashing protocol */
+EAGLETRT_STATIC void prv_mainboard_fsm_exit_flash(void *data) {
+    EAGLETRT_API_UNUSED(data);
+    flash_control_api_stop_flash();
+}
+
 struct Transition init_transitions[] = {
     { MAINBOARD_FSM_STATE_IDLE,  NULL },
     { MAINBOARD_FSM_STATE_FATAL, NULL },
@@ -229,7 +242,7 @@ struct Transition init_transitions[] = {
 struct Transition idle_transitions[] = {
     { MAINBOARD_FSM_STATE_WAIT_OK,        prv_mainboard_fsm_enter_wait_ok        },
     { MAINBOARD_FSM_STATE_BALANCING_READ, prv_mainboard_fsm_enter_balancing_read },
-    { MAINBOARD_FSM_STATE_FLASH,          NULL                                   },
+    { MAINBOARD_FSM_STATE_FLASH,          prv_mainboard_fsm_enter_flash          },
     { MAINBOARD_FSM_STATE_FATAL,          NULL                                   },
 };
 
@@ -279,8 +292,8 @@ struct Transition balancing_discharge_transitions[] = {
 };
 
 struct Transition flash_transitions[] = {
-    { MAINBOARD_FSM_STATE_IDLE,  NULL },
-    { MAINBOARD_FSM_STATE_FATAL, NULL },
+    { MAINBOARD_FSM_STATE_IDLE,  prv_mainboard_fsm_exit_flash },
+    { MAINBOARD_FSM_STATE_FATAL, prv_mainboard_fsm_exit_flash },
 };
 
 /*!
@@ -563,6 +576,8 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
  */
 EAGLETRT_STATIC void mainboard_fsm_state_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
+
+    flash_control_api_routine();
 
     // Transition logic:
 
