@@ -11,6 +11,8 @@
 #include "eagletrt-fsm.h"
 #include <string.h>
 #include "mainboard-watchdogs-api.h"
+#include "pcu-api.h"
+#include "pcu.h"
 #include "watchdogs.h"
 #include "mainboard-conf.h"
 
@@ -72,7 +74,7 @@ EAGLETRT_STATIC const struct MainboardFsmStepCheck mainboard_fsm_steps[MAINBOARD
  * \returns nothing, as this function is only called within states if the transition fails then
  * there are way bigger problems to worry about
  */
-void prv_mainboard_fsm_transition_to(enum MainboardFsmStateID state) {
+EAGLETRT_STATIC void prv_mainboard_fsm_transition_to(enum MainboardFsmStateID state) {
     fsm_api_transition_to(&mainboard_fsm_handler, state);
 }
 
@@ -265,6 +267,9 @@ struct Transition flash_transitions[] = {
     { MAINBOARD_FSM_STATE_FATAL, NULL },
 };
 
+/*!
+ * \brief Initialize all of the modules
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_init(void *data) {
     EAGLETRT_API_UNUSED(data);
 
@@ -285,17 +290,21 @@ EAGLETRT_STATIC void mainboard_fsm_state_init(void *data) {
     prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
 }
 
+/*!
+ * \brief Idle state of the mainboard FSM, does nothing but wait for requests
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
 
     // Actively do nothing (:
 
-    // If the FSM is unsafe in a safe state then transition to FATAL
+    // Transition logic:
+
+    // If the FSM is unsafe in a safe state (IDLE) then transition to FATAL
     if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
-
     // If a TS-ON request has been called then start the TS-ON procedure
     if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_TS_ON)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_WAIT_OK);
@@ -312,71 +321,129 @@ EAGLETRT_STATIC void mainboard_fsm_state_idle(void *data) {
     }
 }
 
+/*!
+ * \brief Double door mechanism for ts-on procedure, waits for the ECU to send a keep ts-on message after the ts-on request so that
+ * internal ts-off requests don't trigger a loop
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_wait_ok(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    // Wait for the keep ts-on message to continue the ts-on procedure
+
+    // Transition logic:
+
+    // If there are faults go to FAULT or if ts-off is requested go to discharge
     if (prv_mainboard_fsm_check_ts_abort()) {
         return;
     }
 
+    // If there has been no keep ts-on request then go back to idle
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_WAIT_OK)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
 
+    // If the request changed to keep ts-on then continue the procedure
     if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_KEEP_TS_ON)) {
         prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_WAIT_OK);
     }
 }
 
+/*!
+ * \brief Check if the air- relay closed
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_airn_check(void *data) {
     EAGLETRT_API_UNUSED(data);
 
-    if (prv_mainboard_fsm_check_ts_abort() || prv_mainboard_fsm_check_sd_end()) {
+    pcu_api_close(PCU_RELAY_AIR_NEGATIVE);
+
+    // Transition logic:
+
+    // If there are faults go to FAULT or if ts-off is requested go to discharge
+    if (prv_mainboard_fsm_check_ts_abort()) {
         return;
     }
-
+    // Open the TS if the shutdown circuit is open
+    if (prv_mainboard_fsm_check_sd_end()) {
+        return;
+    }
+    // If the relay doesn't close discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_AIRN_CHECK)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
 
+    // If the relay is confirmed closed go to precharge
     EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_AIRN_CHECK));
 }
 
+/*!
+ * \brief Check if the precharge is complete
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_precharge_check(void *data) {
     EAGLETRT_API_UNUSED(data);
 
-    if (prv_mainboard_fsm_check_ts_abort() || prv_mainboard_fsm_check_sd_end()) {
+    pcu_api_close(PCU_RELAY_PRECHARGE);
+
+    // Transition logic:
+
+    // If there are faults go to FAULT or if ts-off is requested go to discharge
+    if (prv_mainboard_fsm_check_ts_abort()) {
         return;
     }
-
+    // Open the TS if the shutdown circuit is open
+    if (prv_mainboard_fsm_check_sd_end()) {
+        return;
+    }
+    // If the relay doesn't close or the precharge takes too long then discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
 
+    // If the ts voltage is >60V then close the air+
     EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_PRECHARGE_CHECK));
 }
 
+/*!
+ * \brief Check if the air+ relay closed
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_airp_check(void *data) {
     EAGLETRT_API_UNUSED(data);
 
-    if (prv_mainboard_fsm_check_ts_abort() || prv_mainboard_fsm_check_sd_end()) {
+    pcu_api_close(PCU_RELAY_AIR_POSITIVE);
+
+    // Transition logic:
+
+    // If there are faults go to FAULT or if ts-off is requested go to discharge
+    if (prv_mainboard_fsm_check_ts_abort()) {
         return;
     }
-
+    // Open the TS if the shutdown circuit is open
+    if (prv_mainboard_fsm_check_sd_end()) {
+        return;
+    }
+    // If the relay doesn't close discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_AIRP_CHECK)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
 
+    // If the relay is confirmed closed go in ts-on
     EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_AIRP_CHECK));
 }
 
+/*!
+ * \brief Stay in a active supplying state of ts-on
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_ts_on(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    // Enjoy 600V (:
+
+    // Transition logic:
+
+    // If there are faults go to FAULT or if ts-off is requested go to discharge
     if (prv_mainboard_fsm_check_ts_abort()) {
         return;
     }
@@ -387,14 +454,25 @@ EAGLETRT_STATIC void mainboard_fsm_state_ts_on(void *data) {
     }
 }
 
+/*!
+ * \brief Return to a safe state from any "dangerous" state of the ts
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_discharge_ts(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    // Open all of the relays
+    pcu_api_open(PCU_RELAY_AIR_NEGATIVE);
+    pcu_api_open(PCU_RELAY_AIR_POSITIVE);
+    pcu_api_open(PCU_RELAY_PRECHARGE);
+
+    // Transition logic:
+
+    // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
-
+    // If a relay gets stuck and doesn't open then go to fatal
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
@@ -404,9 +482,15 @@ EAGLETRT_STATIC void mainboard_fsm_state_discharge_ts(void *data) {
     EAGLETRT_API_UNUSED(prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_DISCHARGE_TS));
 }
 
+/*!
+ * \brief Read the minimum pack tension
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    // Transition logic:
+
+    // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
@@ -422,9 +506,15 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_read(void *data) {
     prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_DISCHARGE);
 }
 
+/*!
+ * \brief Discharge the cells that are over the treshold read in the read state
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    // Transition logic:
+
+    // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
@@ -438,9 +528,15 @@ EAGLETRT_STATIC void mainboard_fsm_state_balancing_discharge(void *data) {
     // TODO: go back to BALANCING_READ when the discharge time elapses
 }
 
+/*!
+ * \brief A board is being flashed
+ */
 EAGLETRT_STATIC void mainboard_fsm_state_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
 
+    // Transition logic:
+
+    // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
