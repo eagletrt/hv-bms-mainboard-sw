@@ -39,6 +39,7 @@
 #include "post-api.h"
 #include "post.h"
 #include "serializer-tasks-api.h"
+#include "logger-api.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
