@@ -347,4 +347,38 @@
 
 /*! \} */
 
+/*!* ######################### TASKS ##################################### *!*/
+
+/*!
+ * \defgroup tasks-conf
+ * \brief Configuration of the mainboard tasks
+ * \{
+ */
+
+/*!
+ * \brief Period in ms of the mainboard FSM run
+ *
+ * \details Adds to the resolution of every FSM timeout
+ */
+#define MAINBOARD_TASKS_FSM_PERIOD_MS (1U)
+
+/*!
+ * \brief Period in ms of the processing of the CAN TX and RX queues
+ *
+ * \warning Must be smaller than the shortest cycle time (CAN_IVT_CYCLE_TIME_MS)
+ */
+#define MAINBOARD_TASKS_CAN_PERIOD_MS (1U)
+
+/*!
+ * \brief Period in ms of every PHC check
+ *
+ * \warning Must be smaller than PHC_MAX_CHECK_INTERVAL_MS
+ */
+#define MAINBOARD_TASKS_PHC_PERIOD_MS (10U)
+
+static_assert(MAINBOARD_TASKS_CAN_PERIOD_MS < CAN_IVT_CYCLE_TIME_MS, "The CAN queues must be processed faster than the shortest cycle time");
+static_assert(MAINBOARD_TASKS_PHC_PERIOD_MS < PHC_MAX_CHECK_INTERVAL_MS, "The PHC checks must run within PHC_MAX_CHECK_INTERVAL_MS");
+
+/*! \} */
+
 #endif // MAINBOARD_CONF_H
