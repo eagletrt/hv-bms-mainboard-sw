@@ -29,21 +29,16 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include <stdbool.h>
-#include <stdint.h>
+#include "stm32f4xx_it.h"
 
-#include "arena-allocator-api.h"
 #include "eagletrt-api.h"
-#include "eagletrt.h"
-#include "logger-api.h"
-#include "pal-api.h"
 
-#include "feedback-api.h"
-#include "internal-temperatures-api.h"
-#include "internal-voltages-api.h"
-#include "mainboard-status-api.h"
+#include "mainboard-tasks-api.h"
+#include "mainboard-watchdogs-api.h"
 #include "pcu-api.h"
-#include "sensing-api.h"
+#include "post-api.h"
+#include "post.h"
+#include "serializer-tasks-api.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,14 +48,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LOGGER_ENABLED (true)           /*!< Logger status: true to enable active logging, false to mute entirely. */
-#define LOGGER_RX_CAPACITY (1U)         /*!< Receive queue depth. Set to 1 because the logger is transmit-only but needs to be > 0 because of arena allocator. */
-#define LOGGER_TX_CAPACITY (10U)        /*!< Maximum number of log message packets allowed to sit in the outbound transmission queue. */
-#define LOGGER_UART_MAX_MSG_SIZE (128U) /*!< Maximum allocation allowed for an individual log string. */
 
-// TODO: Move the periods to the mainboard tasks module once it is implemented
-#define MAIN_SENSING_PERIOD_MS (1U)      /*!< Period of the sensing acquisition and of the feedback filtering */
-#define MAIN_HEARTBEAT_PERIOD_MS (1000U) /*!< Period of the heartbeat LED and of the error reports */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -71,8 +59,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-EAGLETRT_STATIC struct ArenaAllocatorHandler arena_allocator_handler;
-EAGLETRT_STATIC struct PalHandler logger_pal_handler;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -144,18 +131,42 @@ int main(void) {
         Error_Handler();
     }
 
+    const struct PostInitData init_data = {
+        .send_primary = can_send_primary,
+        .send_bms = can_send_bms,
+        .cs_enter = it_cs_enter,
+        .cs_exit = it_cs_exit,
+        .led_set = gpio_led_set_state,
+        .led_toggle = gpio_led_toggle_state,
+        .display_set = gpio_display_segment_set_state,
+        .display_toggle = gpio_display_segment_toggle_state,
+        .get_tick = HAL_GetTick,
+        .sensing = {
+                    .gpio_read = gpio_sensing_read,
+                    .adc_start = adc_sensing_start,
+                    .imd_start = tim_start_pwm_imd,
+                    .spi_send = spi_send,
+                    .spi_send_receive = spi_send_receive,
+                    },
+    };
+
+    EAGLETRT_API_UNUSED(post_api_run(&init_data));
+
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-
-    uint32_t last_sensing_tick = HAL_GetTick();
 
     while (1) {
 
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        EAGLETRT_API_UNUSED(serializer_tasks_api_routine());
+        EAGLETRT_API_UNUSED(mainboard_tasks_api_routine());
+
+        // Outside of the tasks so that the timeouts do not depend on the scheduler, an error latches the watchdogs fault
+        EAGLETRT_API_UNUSED(mainboard_watchdogs_api_routine());
     }
     /* USER CODE END 3 */
 }

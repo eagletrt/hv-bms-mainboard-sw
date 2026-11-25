@@ -30,7 +30,6 @@
 
 #include "sensing-api.h"
 #include "stm32f4xx_hal_tim.h"
-#include "timebase.h"
 
 /* USER CODE END 0 */
 
@@ -542,33 +541,6 @@ void tim_start_pwm_imd(void) {
     HAL_TIM_IC_Start_IT(&HTIM_IMD, TIM_CHANNEL_1);
     // Start indirect channel (used for the frequency and duty cycle calculations)
     HAL_TIM_IC_Start(&HTIM_IMD, TIM_CHANNEL_2);
-}
-
-void tim_update_error_timer(const uint32_t timestamp, const uint16_t timeout) {
-    HAL_TIM_Base_Stop_IT(&HTIM_ERROR);
-
-    // Calculate the delta between the current time and the expected expiration time
-    const int32_t t = HAL_GetTick();
-    // Negative value are clamped to 0
-    const int32_t dt = EAGLETRT_API_MAX(0, ((int32_t)timestamp - t) + (int32_t)timeout);
-
-    // Set timer to expire after the calculated delta time
-    __HAL_TIM_SET_COUNTER(&HTIM_ERROR, 0);
-    __HAL_TIM_SET_AUTORELOAD(&HTIM_ERROR, TIM_MS_TO_TICKS(&HTIM_ERROR, dt));
-    __HAL_TIM_CLEAR_FLAG(&HTIM_ERROR, TIM_IT_CC1);
-    HAL_TIM_Base_Start_IT(&HTIM_ERROR);
-}
-
-void tim_stop_error_timer(void) {
-    HAL_TIM_Base_Stop_IT(&HTIM_ERROR);
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == HTIM_ERROR.Instance) {
-        // error_handler_error_expire();
-    } else if (htim->Instance == HTIM_TIMEBASE.Instance) {
-        timebase_inc_tick();
-    }
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
