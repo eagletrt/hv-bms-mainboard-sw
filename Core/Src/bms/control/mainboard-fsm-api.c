@@ -310,7 +310,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_init(void *data) {
                                                                   NULL));
     }
 
-    // TODO: run the POST, it sets MAINBOARD_STATUS_FAULT_POST_FAILED when it fails
+    // The POST runs before the FSM is started, it sets MAINBOARD_STATUS_FAULT_POST_FAILED when it fails
 
     if (mainboard_status_api_has_faults()) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
