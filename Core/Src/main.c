@@ -39,7 +39,7 @@
 #include "post-api.h"
 #include "post.h"
 #include "serializer-tasks-api.h"
-#include "logger-api.h"
+#include "mainboard-logger-api.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,6 +119,11 @@ int main(void) {
     MX_TIM7_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
+
+    // First so that every following initialization can be logged
+    if (mainboard_logger_api_init(usart_send, HAL_GetTick, LOGGER_ENABLE_ALL) != LOGGER_RC_OK) {
+        Error_Handler();
+    }
 
     // Configure and start CAN given if the handcart is connected or not
     // The handcart charger uses 250K baud rate, the vehicle 1M
