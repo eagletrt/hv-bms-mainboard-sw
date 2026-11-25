@@ -356,6 +356,19 @@
  */
 
 /*!
+ * \brief Period in ms of the sensing acquisition
+ *
+ * \warning Must be smaller than SENSING_MAX_ADC_CONVERSION_TIME_MS and
+ *          SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS
+ */
+#define MAINBOARD_TASKS_SENSING_PERIOD_MS (1U)
+
+/*!
+ * \brief Period in ms of the update of the conditions from the feedbacks
+ */
+#define MAINBOARD_TASKS_FEEDBACK_PERIOD_MS (1U)
+
+/*!
  * \brief Period in ms of the mainboard FSM run
  *
  * \details Adds to the resolution of every FSM timeout
@@ -376,6 +389,26 @@
  */
 #define MAINBOARD_TASKS_PHC_PERIOD_MS (10U)
 
+/*!
+ * \brief Period in ms of the heartbeat LED toggle
+ */
+#define MAINBOARD_TASKS_HEARTBEAT_PERIOD_MS (1000U)
+
+/*!
+ * \brief Period in ms of the display update
+ *
+ * \warning Must be smaller than MAINBOARD_TASKS_DISPLAY_FRAME_MS, or frames are skipped
+ */
+#define MAINBOARD_TASKS_DISPLAY_PERIOD_MS (10U)
+
+/*!
+ * \brief Duration in ms of a single frame of the display animations
+ */
+#define MAINBOARD_TASKS_DISPLAY_FRAME_MS (100U)
+
+static_assert(MAINBOARD_TASKS_SENSING_PERIOD_MS < SENSING_MAX_ADC_CONVERSION_TIME_MS, "The ADCs must be handled within SENSING_MAX_ADC_CONVERSION_TIME_MS");
+static_assert(MAINBOARD_TASKS_SENSING_PERIOD_MS < SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS, "The external ADC must be read within SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS");
+static_assert(MAINBOARD_TASKS_DISPLAY_PERIOD_MS < MAINBOARD_TASKS_DISPLAY_FRAME_MS, "The display must be updated at least once per frame");
 static_assert(MAINBOARD_TASKS_CAN_PERIOD_MS < CAN_IVT_CYCLE_TIME_MS, "The CAN queues must be processed faster than the shortest cycle time");
 static_assert(MAINBOARD_TASKS_PHC_PERIOD_MS < PHC_MAX_CHECK_INTERVAL_MS, "The PHC checks must run within PHC_MAX_CHECK_INTERVAL_MS");
 

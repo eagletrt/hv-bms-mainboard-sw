@@ -18,8 +18,12 @@
  *          so they can be used directly as indices of the task list
  */
 enum MainboardTasksID : uint8_t {
+    // Sensing
+    MAINBOARD_TASKS_SENSING_RUN = 0, /*!< Acquire the GPIOs, ADCs and external ADC values */
+    MAINBOARD_TASKS_FEEDBACK_RUN,    /*!< Update the mainboard status conditions from the filtered feedbacks */
+
     // FSM
-    MAINBOARD_TASKS_FSM_RUN = 0, /*!< Run the mainboard FSM */
+    MAINBOARD_TASKS_FSM_RUN, /*!< Run the mainboard FSM */
 
     // CAN
     MAINBOARD_TASKS_CAN_TX_PRIMARY, /*!< Process the TX queue of the primary network */
@@ -45,6 +49,10 @@ enum MainboardTasksID : uint8_t {
     // PHC conditions
     MAINBOARD_TASKS_PHC_PACK_BALANCED,      /*!< Update the pack balanced condition */
     MAINBOARD_TASKS_PHC_PRECHARGE_COMPLETE, /*!< Update the precharge complete condition */
+
+    // User interface
+    MAINBOARD_TASKS_LED_HEARTBEAT,  /*!< Toggle the heartbeat LED */
+    MAINBOARD_TASKS_DISPLAY_UPDATE, /*!< Show the FSM state on the 7-segment display */
 
     MAINBOARD_TASKS_COUNT /*!< Number of mainboard tasks */
 };

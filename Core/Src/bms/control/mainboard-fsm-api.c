@@ -368,7 +368,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_wait_ok(void *data) {
         return;
     }
 
-    // If there has been no keep ts-on request then go back to idle
+    // If there has been no keep ts-on request then discharge, which goes back to idle once the TS is safe
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_WAIT_OK)) {
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
