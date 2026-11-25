@@ -10,5 +10,22 @@
 #define MAINBOARD_TASKS_API_H
 
 #include "mainboard-tasks.h"
+#include "tasks.h"
+
+/*!
+ * \brief Initialize the mainboard control tasks
+ *
+ * \param tick_callback The function that returns the current tick in milliseconds, it must be monotonic
+ *
+ * \returns The return code of the tasks module initialization, TASKS_RC_OK on success
+ */
+enum TasksReturnCode mainboard_tasks_api_init(task_tick_callback tick_callback);
+
+/*!
+ * \brief Run every control task that is due
+ *
+ * \returns The return code of the tasks module routine, TASKS_RC_OK on success
+ */
+enum TasksReturnCode mainboard_tasks_api_routine(void);
 
 #endif // MAINBOARD_TASKS_API_H

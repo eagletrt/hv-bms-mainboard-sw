@@ -49,8 +49,6 @@ extern TIM_HandleTypeDef htim7;
 /** @brief Aliases for the timer handler */
 #define HTIM_IMD htim4
 #define HTIM_FAN htim5
-#define HTIM_TIMEBASE htim6
-#define HTIM_ERROR htim7
 
 #define _M_GET_TIM_APB_PLACEMENT(__HANDLE__) (((__HANDLE__)->Instance < (TIM_TypeDef *)APB2PERIPH_BASE) ? 1U : 0U)
 
@@ -81,19 +79,6 @@ uint32_t TIM_GetInternalClkFreq(TIM_HandleTypeDef *htim);
  * @brief Starts the timer with PWM for the IMD
  */
 void tim_start_pwm_imd(void);
-
-/**
- * @brief Function used to update the error timer
- *
- * @param timestamp The time in which the error was set
- * @param timeout The time after which the error should expire after it was set
- */
-void tim_update_error_timer(const uint32_t timestamp, const uint16_t timeout);
-
-/**
- * @brief Function used to stop the error timer
- */
-void tim_stop_error_timer(void);
 
 /* USER CODE END Prototypes */
 

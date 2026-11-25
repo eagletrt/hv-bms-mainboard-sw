@@ -54,6 +54,8 @@
 #include "feedback-api.h"
 #include "internal-temperatures-api.h"
 #include "internal-voltages-api.h"
+#include "mainboard-fsm-api.h"
+#include "mainboard-fsm.h"
 #include "mainboard-status-api.h"
 #include "sensing-api.h"
 #include "temperatures-api.h"
@@ -266,6 +268,44 @@ EAGLETRT_STATIC enum CanPrimaryTsacmainboardimdStatus prv_imd_status_to_can(enum
 }
 
 /*!
+ * \brief Convert the state of the mainboard FSM to its CAN signal value
+ *
+ * \details WAIT_OK and DISCHARGE_TS have no CAN value and are sent as IDLE, as the
+ *          old FSM did: it waited for the ECU and opened the relays in IDLE
+ *
+ * \param[in] state The mainboard FSM state
+ *
+ * \return The CAN signal value, CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_ERROR if the state is unknown
+ */
+EAGLETRT_STATIC enum CanPrimaryTsacstatusMainboardstatus prv_mainboard_state_to_can(enum MainboardFsmStateID state) {
+    //TODO: Change this with new canlib
+    switch (state) {
+        case MAINBOARD_FSM_STATE_INIT:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_INIT;
+        case MAINBOARD_FSM_STATE_IDLE:
+        case MAINBOARD_FSM_STATE_WAIT_OK:
+        case MAINBOARD_FSM_STATE_DISCHARGE_TS:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_IDLE;
+        case MAINBOARD_FSM_STATE_AIRN_CHECK:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_AIRN_CHECK;
+        case MAINBOARD_FSM_STATE_PRECHARGE_CHECK:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_PRECHARGE;
+        case MAINBOARD_FSM_STATE_AIRP_CHECK:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_AIRP_CHECK;
+        case MAINBOARD_FSM_STATE_TS_ON:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_TS_ON;
+        case MAINBOARD_FSM_STATE_BALANCING_READ:
+        case MAINBOARD_FSM_STATE_BALANCING_DISCHARGE:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_BALANCING;
+        case MAINBOARD_FSM_STATE_FLASH:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_FLASH;
+        case MAINBOARD_FSM_STATE_FATAL:
+        default:
+            return CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_ERROR;
+    }
+}
+
+/*!
  * \brief Convert the state of a cellboard to its CAN signal value
  *
  * \details The six cellboard status enums of the TsacStatus message share the same values,
@@ -327,8 +367,7 @@ enum SerializerReturnCode serializer_api_get_status_message(struct SerializerMes
     prv_reset_message(message, CAN_PRIMARY_MESSAGE_FRAME_ID_TSACSTATUS);
 
     struct CanPrimaryTsacstatus *payload = &message->payload.tsacstatus;
-    // TODO: send the mainboard FSM state once the mainboard FSM exposes it
-    payload->mainboardstatus = CAN_PRIMARY_TSACSTATUS_MAINBOARDSTATUS_INIT;
+    payload->mainboardstatus = prv_mainboard_state_to_can(mainboard_fsm_api_get_state());
     payload->cellboard1status = prv_cellboard_state_to_can(cellboards_monitor_api_get_state(CELLBOARD_ID_0));
     payload->cellboard2status = prv_cellboard_state_to_can(cellboards_monitor_api_get_state(CELLBOARD_ID_1));
     payload->cellboard3status = prv_cellboard_state_to_can(cellboards_monitor_api_get_state(CELLBOARD_ID_2));
