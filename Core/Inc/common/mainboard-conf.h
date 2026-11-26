@@ -51,7 +51,7 @@
  * \details The filter works on the whole buffer, so the filtered values (and
  *          every check made on them) are available only after this many samples
  */
-#define FEEDBACK_BUFFER_SIZE (8U)
+#define FEEDBACK_BUFFER_SIZE (30U)
 
 /*!
  * \brief Thresholds for the analog feedback in V
@@ -59,8 +59,8 @@
  * \details Above HIGH the feedback is logically high, below LOW it is logically
  *          low, in between it is in an implausible (error) state
  */
-#define FEEDBACK_THRESHOLD_HIGH_V (1.9F)
-#define FEEDBACK_THRESHOLD_LOW_V (0.7F)
+#define FEEDBACK_THRESHOLD_HIGH_V (1.0F)
+#define FEEDBACK_THRESHOLD_LOW_V (0.8F)
 
 /*!
  * \brief Low threshold of the AIRs and IMD feedback in V
@@ -86,6 +86,16 @@
  *          so the voltage at the pin is lower
  */
 #define FEEDBACK_THRESHOLD_HIGH_HANDCART_V (1.0F)
+
+/*!
+ * \brief Time in ms an analog feedback can stay in error before the fault is set
+ *
+ * \details A feedback crosses the error band at every edge (e.g. the SD closing
+ *          or sagging when the AIRs close), only an error that lasts longer is a fault.
+ *          The status turns to error after the majority of FEEDBACK_BUFFER_SIZE samples,
+ *          so the total delay is about half the buffer plus this time
+ */
+#define FEEDBACK_MAX_ERROR_TIME_MS (100U)
 
 /*! \} */
 
@@ -335,7 +345,7 @@
 #define CELLBOARD_LIBCAN_VERSION_INFO_ENABLE_WATCHDOGS (0)
 
 /*! \brief TS request from the primary network, the TS off request is applied when dropped */
-#define PRIMARY_BMS_SET_ENABLE_WATCHDOGS (1)
+#define PRIMARY_BMS_SET_ENABLE_WATCHDOGS (0)
 
 /*! \brief Balancing request from the primary network, the balancing stop request is applied when dropped */
 #define PRIMARY_BALANCING_SET_ENABLE_WATCHDOGS (1)
@@ -498,6 +508,21 @@
 #define MAINBOARD_TASKS_CAN_PERIOD_MS (1U)
 
 /*!
+ * \brief Period in ms of the CAN transceivers monitor, which logs their state changes and errors
+ *
+ * \details The bus errors are sampled at this period, a shorter one sees more of them
+ */
+#define MAINBOARD_TASKS_CAN_MONITOR_PERIOD_MS (10U)
+
+/*!
+ * \brief Minimum time in ms between two logs of the bus state of a CAN network
+ *
+ * \details A transceiver that keeps going bus-off and recovering changes state every few ms,
+ *          the changes that come too close to the last log are summarized at the next one
+ */
+#define MAINBOARD_TASKS_CAN_STATE_LOG_INTERVAL_MS (1000U)
+
+/*!
  * \brief Period in ms of every PHC check
  *
  * \warning Must be smaller than PHC_MAX_CHECK_INTERVAL_MS
@@ -508,11 +533,6 @@
  * \brief Period in ms of the heartbeat LED toggle
  */
 #define MAINBOARD_TASKS_HEARTBEAT_PERIOD_MS (1000U)
-
-/*!
- * \brief Period in ms of the log of the dropped task executions
- */
-#define MAINBOARD_TASKS_DROPPED_LOG_PERIOD_MS (5000U)
 
 /*!
  * \brief Period in ms of the display update
@@ -526,11 +546,70 @@
  */
 #define MAINBOARD_TASKS_DISPLAY_FRAME_MS (100U)
 
+/*!
+ * \brief Period in ms of the logger console (commands and reports)
+ *
+ * \details At most MAINBOARD_LOGGER_REPORT_LINES_PER_RUN report lines are sent per run
+ */
+#define MAINBOARD_TASKS_LOGGER_PERIOD_MS (5U)
+
 static_assert(MAINBOARD_TASKS_SENSING_PERIOD_MS < SENSING_MAX_ADC_CONVERSION_TIME_MS, "The ADCs must be handled within SENSING_MAX_ADC_CONVERSION_TIME_MS");
 static_assert(MAINBOARD_TASKS_SENSING_PERIOD_MS < SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS, "The external ADC must be read within SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS");
 static_assert(MAINBOARD_TASKS_DISPLAY_PERIOD_MS < MAINBOARD_TASKS_DISPLAY_FRAME_MS, "The display must be updated at least once per frame");
+static_assert(MAINBOARD_TASKS_CAN_STATE_LOG_INTERVAL_MS % MAINBOARD_TASKS_CAN_MONITOR_PERIOD_MS == 0U, "The CAN state log interval must be a multiple of the monitor period");
 static_assert(MAINBOARD_TASKS_CAN_PERIOD_MS < CAN_IVT_CYCLE_TIME_MS, "The CAN queues must be processed faster than the shortest cycle time");
 static_assert(MAINBOARD_TASKS_PHC_PERIOD_MS < PHC_MAX_CHECK_INTERVAL_MS, "The PHC checks must run within PHC_MAX_CHECK_INTERVAL_MS");
+static_assert(MAINBOARD_TASKS_FEEDBACK_PERIOD_MS < FEEDBACK_MAX_ERROR_TIME_MS, "The feedback errors must be checked within FEEDBACK_MAX_ERROR_TIME_MS");
+
+/*! \} */
+
+/*!* ######################### LOGGER #################################### *!*/
+
+/*!
+ * \defgroup logger-conf
+ * \brief Configuration of the logger and of its serial console
+ * \{
+ */
+
+/*!
+ * \brief Enable the console commands that act on the car (TS on/off, balancing, reset)
+ *
+ * \details They go through the request control like the CAN requests, so the FSM
+ *          checks still apply. Set to 0 to have a read-only console
+ */
+#define MAINBOARD_LOGGER_ENABLE_ACTIONS (1)
+
+/*!
+ * \brief Space in bytes left free in the UART TX buffer while printing a report
+ *
+ * \details The reports are paced line by line so that the live logs are never
+ *          dropped because a report filled the buffer
+ */
+#define MAINBOARD_LOGGER_REPORT_TX_HEADROOM (256U)
+
+/*!
+ * \brief Maximum number of report lines sent in a single run of the console
+ */
+#define MAINBOARD_LOGGER_REPORT_LINES_PER_RUN (4U)
+
+/*!
+ * \brief Balancing threshold in V requested by the balancing console command
+ *
+ * \details Clamped by the balancing control between BAL_CONTROL_THRESHOLD_MIN_V and BAL_CONTROL_THRESHOLD_MAX_V
+ */
+#define MAINBOARD_LOGGER_BALANCING_THRESHOLD_V (BAL_CONTROL_THRESHOLD_MIN_V)
+
+/*!
+ * \brief Time in ms within which the reset key must be pressed again to confirm the reset
+ */
+#define MAINBOARD_LOGGER_RESET_CONFIRM_MS (3000U)
+
+/*!
+ * \brief Delay in ms between the confirmed reset and the actual reset
+ *
+ * \details Leaves the time to send the last logs over the UART
+ */
+#define MAINBOARD_LOGGER_RESET_DELAY_MS (100U)
 
 /*! \} */
 

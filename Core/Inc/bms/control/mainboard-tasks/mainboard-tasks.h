@@ -30,6 +30,7 @@ enum MainboardTasksID : uint8_t {
     MAINBOARD_TASKS_CAN_TX_BMS,     /*!< Process the TX queue of the BMS network */
     MAINBOARD_TASKS_CAN_RX_PRIMARY, /*!< Process the RX queue of the primary network */
     MAINBOARD_TASKS_CAN_RX_BMS,     /*!< Process the RX queue of the BMS network */
+    MAINBOARD_TASKS_CAN_MONITOR,    /*!< Log the state changes and the errors of the CAN transceivers */
 
     // PHC faults
     MAINBOARD_TASKS_PHC_CELL_UNDER_VOLTAGE,             /*!< Check for cell under voltage */
@@ -55,7 +56,7 @@ enum MainboardTasksID : uint8_t {
     MAINBOARD_TASKS_DISPLAY_UPDATE, /*!< Show the FSM state on the 7-segment display */
 
     // Diagnostics
-    MAINBOARD_TASKS_LOG_DROPPED, /*!< Log the dropped task executions */
+    MAINBOARD_TASKS_LOGGER_RUN, /*!< Read the console commands and print the reports */
 
     MAINBOARD_TASKS_COUNT /*!< Number of mainboard tasks */
 };

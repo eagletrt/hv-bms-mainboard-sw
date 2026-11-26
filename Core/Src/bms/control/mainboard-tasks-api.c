@@ -29,7 +29,6 @@
 #include "mainboard-tasks.h"
 #include "phc-api.h"
 #include "sensing-api.h"
-#include "serializer-tasks-api.h"
 #include "tasks.h"
 #include "tasks-api.h"
 
@@ -160,6 +159,18 @@ EAGLETRT_STATIC void prv_mainboard_tasks_can_rx(uint8_t task_id) {
 }
 
 /*!
+ * \brief Log the state changes and the errors of the transceivers of every network
+ *
+ * \param[in] task_id Unused
+ */
+EAGLETRT_STATIC void prv_mainboard_tasks_can_monitor(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
+    for (enum CanNetwork network = 0; network < CAN_NETWORK_COUNT; ++network) {
+        EAGLETRT_API_UNUSED(can_communication_api_monitor(network));
+    }
+}
+
+/*!
  * \brief Run the PHC control of the task
  *
  * \details A check that does not run (data not received yet) is caught by the PHC watchdogs
@@ -263,15 +274,13 @@ EAGLETRT_STATIC void prv_mainboard_tasks_display_update(uint8_t task_id) {
 }
 
 /*!
- * \brief Log the task executions dropped since init by the mainboard and serializer tasks
+ * \brief Run the logger console: read the commands and send the next report lines
  *
  * \param[in] task_id Unused
  */
-EAGLETRT_STATIC void prv_mainboard_tasks_log_dropped(uint8_t task_id) {
+EAGLETRT_STATIC void prv_mainboard_tasks_logger_run(uint8_t task_id) {
     EAGLETRT_API_UNUSED(task_id);
-    MAINBOARD_LOGGER_INFO("Tasks: dropped executions: mainboard %u, serializer %u",
-                          (unsigned)tasks_api_get_dropped_task_executions(&mainboard_tasks_handler),
-                          (unsigned)serializer_tasks_api_get_dropped_task_executions());
+    mainboard_logger_api_routine();
 }
 
 /*!
@@ -302,6 +311,7 @@ EAGLETRT_STATIC TaskList mainboard_control_tasks = {
     TASK(MAINBOARD_TASKS_CAN_TX_BMS, MAINBOARD_TASKS_CAN_PERIOD_MS, prv_mainboard_tasks_can_tx),
     TASK(MAINBOARD_TASKS_CAN_RX_PRIMARY, MAINBOARD_TASKS_CAN_PERIOD_MS, prv_mainboard_tasks_can_rx),
     TASK(MAINBOARD_TASKS_CAN_RX_BMS, MAINBOARD_TASKS_CAN_PERIOD_MS, prv_mainboard_tasks_can_rx),
+    TASK(MAINBOARD_TASKS_CAN_MONITOR, MAINBOARD_TASKS_CAN_MONITOR_PERIOD_MS, prv_mainboard_tasks_can_monitor),
 
     // PHC faults
     TASK(MAINBOARD_TASKS_PHC_CELL_UNDER_VOLTAGE, MAINBOARD_TASKS_PHC_PERIOD_MS, prv_mainboard_tasks_phc_check),
@@ -327,7 +337,7 @@ EAGLETRT_STATIC TaskList mainboard_control_tasks = {
     TASK(MAINBOARD_TASKS_DISPLAY_UPDATE, MAINBOARD_TASKS_DISPLAY_PERIOD_MS, prv_mainboard_tasks_display_update),
 
     // Diagnostics
-    TASK(MAINBOARD_TASKS_LOG_DROPPED, MAINBOARD_TASKS_DROPPED_LOG_PERIOD_MS, prv_mainboard_tasks_log_dropped),
+    TASK(MAINBOARD_TASKS_LOGGER_RUN, MAINBOARD_TASKS_LOGGER_PERIOD_MS, prv_mainboard_tasks_logger_run),
 };
 
 #undef TASK
