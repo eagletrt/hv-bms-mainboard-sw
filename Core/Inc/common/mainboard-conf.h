@@ -406,6 +406,16 @@
 #define MAINBOARD_FSM_WAIT_OK_TIMEOUT_MS (1000U)
 
 /*!
+ * \brief TEMPORARY: let WAIT_OK continue on the TS on request instead of waiting for keep TS on
+ *
+ * \details The BmsSet message of libcan only carries on/off, so the keep TS on
+ *          request is never received and WAIT_OK always times out. With this
+ *          enabled WAIT_OK only checks the conditions, like the old firmware did
+ *          in IDLE. Set to 0 once libcan has the keep state
+ */
+#define MAINBOARD_FSM_WAIT_OK_ACCEPT_TS_ON (1)
+
+/*!
  * \brief Maximum time in ms allowed for the AIR- to close
  *
  * \details Counted from the entry in AIRN_CHECK. If the AIR- is not closed

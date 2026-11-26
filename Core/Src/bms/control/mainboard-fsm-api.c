@@ -430,12 +430,19 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_wait_ok(void *data) {
     // If there has been no keep ts-on request then discharge, which goes back to idle once the TS is safe
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_WAIT_OK)) {
         MAINBOARD_LOGGER_WARNING("FSM: no keep TS on within %" PRIu32 " ms", (uint32_t)MAINBOARD_FSM_WAIT_OK_TIMEOUT_MS);
+        prv_mainboard_fsm_log_mismatches(MAINBOARD_FSM_STEP_WAIT_OK);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
 
+    bool keep_ts_on = mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_KEEP_TS_ON);
+#if MAINBOARD_FSM_WAIT_OK_ACCEPT_TS_ON
+    // TEMPORARY: the BmsSet message has no keep state yet, the TS on request (repeated by the ECU) is accepted instead
+    keep_ts_on = (bool)(keep_ts_on || mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_TS_ON));
+#endif
+
     // If the request changed to keep ts-on then continue the procedure
-    if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_KEEP_TS_ON)) {
+    if (keep_ts_on) {
         prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_WAIT_OK);
     }
 }
