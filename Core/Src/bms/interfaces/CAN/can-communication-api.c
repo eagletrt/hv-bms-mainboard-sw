@@ -14,6 +14,7 @@
 
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "mainboard-conf.h"
 #include "mainboard-logger-api.h"
 #include "pal-api.h"
 #include "arena-allocator-api.h"
@@ -24,6 +25,26 @@ EAGLETRT_STATIC struct CanCommunicationHandler handler;
 EAGLETRT_STATIC const char *const can_communication_network_names[CAN_NETWORK_COUNT] = {
     [CAN_NETWORK_PRIMARY] = "primary",
     [CAN_NETWORK_BMS] = "BMS",
+};
+
+/*! \brief Name of every bus state, used by the logs */
+EAGLETRT_STATIC const char *const can_communication_bus_state_names[CAN_COMMUNICATION_BUS_STATE_COUNT] = {
+    [CAN_COMMUNICATION_BUS_STATE_ERROR_ACTIVE] = "error active",
+    [CAN_COMMUNICATION_BUS_STATE_ERROR_WARNING] = "error warning",
+    [CAN_COMMUNICATION_BUS_STATE_ERROR_PASSIVE] = "error passive",
+    [CAN_COMMUNICATION_BUS_STATE_BUS_OFF] = "bus-off",
+    [CAN_COMMUNICATION_BUS_STATE_STOPPED] = "stopped",
+};
+
+/*! \brief Name of every bus error, used by the logs */
+EAGLETRT_STATIC const char *const can_communication_bus_error_names[CAN_COMMUNICATION_BUS_ERROR_COUNT] = {
+    [CAN_COMMUNICATION_BUS_ERROR_NONE] = "none",
+    [CAN_COMMUNICATION_BUS_ERROR_STUFF] = "stuff",
+    [CAN_COMMUNICATION_BUS_ERROR_FORM] = "form",
+    [CAN_COMMUNICATION_BUS_ERROR_ACK] = "ACK",
+    [CAN_COMMUNICATION_BUS_ERROR_BIT_RECESSIVE] = "bit recessive",
+    [CAN_COMMUNICATION_BUS_ERROR_BIT_DOMINANT] = "bit dominant",
+    [CAN_COMMUNICATION_BUS_ERROR_CRC] = "CRC",
 };
 
 /*!
@@ -42,6 +63,28 @@ EAGLETRT_STATIC bool prv_count_and_check_log(uint32_t *const counter) {
         ++(*counter);
     }
     return (*counter & (*counter - 1U)) == 0U;
+}
+
+/*!
+ * \brief Tell if a counter that can grow by more than one at a time must be logged
+ *
+ * \details Same rule as prv_count_and_check_log: the counter is logged when it
+ *          reaches or passes 1, 2, 4, 8, ...
+ *
+ * \param[in] previous The value at the last check
+ * \param[in] current The value now
+ *
+ * \return true if a power of two was reached since the last check, false otherwise
+ */
+EAGLETRT_STATIC bool prv_crossed_power_of_two(const uint32_t previous, const uint32_t current) {
+    if (current <= previous) {
+        return false;
+    }
+    if (previous == 0U) {
+        return true;
+    }
+    // Index of the highest bit set: a new power of two was reached if it grew (counts leading zeros)
+    return __builtin_clz(current) < __builtin_clz(previous);
 }
 
 /*!
@@ -113,6 +156,8 @@ EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_communication_api_init_n
 
     handler.networks[network].send = config.send;
     handler.networks[network].on_receive = config.on_receive;
+    handler.networks[network].get_status = config.get_status;
+    handler.networks[network].tx_ready = config.tx_ready;
 
     if (pal_api_init(
             &handler.networks[network].pal,
@@ -189,10 +234,10 @@ enum CanCommunicationReturnCode can_communication_api_add_to_tx(enum CanNetwork 
     const enum CanCommunicationReturnCode return_code = prv_enqueue(network, frame, true);
 
     // A full queue is checked after the arguments, so network and frame are valid here
-    if (return_code == CAN_COMMUNICATION_RC_QUEUE_FULL && prv_count_and_check_log(&handler.networks[network].tx_dropped)) {
+    if (return_code == CAN_COMMUNICATION_RC_QUEUE_FULL && prv_count_and_check_log(&handler.networks[network].counters.tx_dropped)) {
         MAINBOARD_LOGGER_WARNING("CAN %s: TX queue full, %" PRIu32 " frames dropped (last 0x%03" PRIX32 ")",
                                  can_communication_network_names[network],
-                                 handler.networks[network].tx_dropped,
+                                 handler.networks[network].counters.tx_dropped,
                                  frame->id);
     }
     return return_code;
@@ -208,23 +253,28 @@ enum CanCommunicationReturnCode can_communication_api_process_tx(enum CanNetwork
         return CAN_COMMUNICATION_RC_INVALID_NETWORK;
     }
 
+    struct CanCommunicationNetworkState *const state = &handler.networks[network];
     enum CanCommunicationReturnCode result = CAN_COMMUNICATION_RC_OK;
-    enum PalReturnCode return_code;
+    enum PalReturnCode return_code = PAL_RC_OK;
 
-    do {
-        return_code = pal_api_process_tx(&handler.networks[network].pal);
+    // PAL removes a frame from the queue before sending it, so the queue is drained only while the
+    // hardware can take a frame: the others wait for the next run instead of failing and being lost
+    while (state->tx_ready == NULL || state->tx_ready()) {
+        return_code = pal_api_process_tx(&state->pal);
 
         if (return_code == PAL_RC_IO_ERROR) {
             result = CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
-            if (prv_count_and_check_log(&handler.networks[network].tx_failed)) {
+            if (prv_count_and_check_log(&state->counters.tx_failed)) {
                 MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames failed to send",
                                          can_communication_network_names[network],
-                                         handler.networks[network].tx_failed);
+                                         state->counters.tx_failed);
             }
+        } else if (return_code != PAL_RC_OK) {
+            break;
         }
-    } while (return_code == PAL_RC_OK || return_code == PAL_RC_IO_ERROR);
+    }
 
-    if (return_code != PAL_RC_OK && return_code != PAL_RC_QUEUE_EMPTY) {
+    if (return_code != PAL_RC_OK && return_code != PAL_RC_QUEUE_EMPTY && return_code != PAL_RC_IO_ERROR) {
         MAINBOARD_LOGGER_ERROR("CAN %s: TX processing error %d", can_communication_network_names[network], (int)return_code);
         return CAN_COMMUNICATION_RC_ERROR;
     }
@@ -249,10 +299,10 @@ enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanNetwork
             const enum CanCommunicationReturnCode dispatch_code = dispatch(&frame);
             if (dispatch_code != CAN_COMMUNICATION_RC_OK) {
                 result = CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR;
-                if (prv_count_and_check_log(&handler.networks[network].rx_rejected)) {
+                if (prv_count_and_check_log(&handler.networks[network].counters.rx_rejected)) {
                     MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames rejected (last 0x%03" PRIX32 ", rc %d)",
                                              can_communication_network_names[network],
-                                             handler.networks[network].rx_rejected,
+                                             handler.networks[network].counters.rx_rejected,
                                              frame.id,
                                              (int)dispatch_code);
                 }
@@ -266,4 +316,178 @@ enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanNetwork
     }
 
     return result;
+}
+
+/*!
+ * \brief Log a change of the bus state, with a level that matches the new state
+ *
+ * \param[in] network The network
+ * \param[in] status The new status
+ */
+EAGLETRT_STATIC void prv_log_bus_state(enum CanNetwork network, const struct CanCommunicationTransceiverStatus *const status) {
+    const char *const name = can_communication_network_names[network];
+    const char *const state = can_communication_api_get_bus_state_name(status->state);
+
+    switch (status->state) {
+        case CAN_COMMUNICATION_BUS_STATE_ERROR_ACTIVE: // NOLINT(bugprone-branch-clone): the log macros differ only in their arguments
+            MAINBOARD_LOGGER_INFO("CAN %s: %s (TEC %u, REC %u)", name, state, status->tx_error_counter, status->rx_error_counter);
+            break;
+        case CAN_COMMUNICATION_BUS_STATE_BUS_OFF:
+            // The peripheral recovers by itself after 128 sequences of 11 recessive bits
+            MAINBOARD_LOGGER_ERROR("CAN %s: bus-off (TEC %u), recovering", name, status->tx_error_counter);
+            break;
+        case CAN_COMMUNICATION_BUS_STATE_ERROR_WARNING:
+        case CAN_COMMUNICATION_BUS_STATE_ERROR_PASSIVE:
+        case CAN_COMMUNICATION_BUS_STATE_STOPPED:
+        default:
+            MAINBOARD_LOGGER_WARNING("CAN %s: %s (TEC %u, REC %u, last error %s)",
+                                     name,
+                                     state,
+                                     status->tx_error_counter,
+                                     status->rx_error_counter,
+                                     can_communication_api_get_bus_error_name(status->last_error));
+            break;
+    }
+}
+
+/*!
+ * \brief Log the error counters of the transceiver that reached a power of two since the last run
+ *
+ * \param[in] network The network
+ * \param[in] previous The status of the last run
+ * \param[in] current The status now
+ */
+EAGLETRT_STATIC void prv_log_transceiver_counters(enum CanNetwork network,
+                                                  const struct CanCommunicationTransceiverStatus *const previous,
+                                                  const struct CanCommunicationTransceiverStatus *const current) {
+    const char *const name = can_communication_network_names[network];
+
+    if (prv_crossed_power_of_two(previous->bus_off_count, current->bus_off_count)) {
+        MAINBOARD_LOGGER_ERROR("CAN %s: went bus-off %" PRIu32 " times, last error %s",
+                               name,
+                               current->bus_off_count,
+                               can_communication_api_get_bus_error_name(current->last_error));
+    }
+    if (prv_crossed_power_of_two(previous->bus_errors, current->bus_errors)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " bus errors, last %s (TEC %u, REC %u)",
+                                 name,
+                                 current->bus_errors,
+                                 can_communication_api_get_bus_error_name(current->last_error),
+                                 current->tx_error_counter,
+                                 current->rx_error_counter);
+    }
+    if (prv_crossed_power_of_two(previous->tx_errors, current->tx_errors)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames aborted after a bus error, last %s",
+                                 name,
+                                 current->tx_errors,
+                                 can_communication_api_get_bus_error_name(current->last_error));
+    }
+    if (prv_crossed_power_of_two(previous->tx_arbitration_lost, current->tx_arbitration_lost)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames aborted after losing arbitration", name, current->tx_arbitration_lost);
+    }
+    if (prv_crossed_power_of_two(previous->tx_mailboxes_busy, current->tx_mailboxes_busy)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames found every TX mailbox busy", name, current->tx_mailboxes_busy);
+    }
+    if (prv_crossed_power_of_two(previous->rx_fifo_overruns, current->rx_fifo_overruns)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: RX FIFO overrun %" PRIu32 " times, frames lost", name, current->rx_fifo_overruns);
+    }
+    if (prv_crossed_power_of_two(previous->rx_queue_full, current->rx_queue_full)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: RX queue full, %" PRIu32 " frames lost", name, current->rx_queue_full);
+    }
+}
+
+enum CanCommunicationReturnCode can_communication_api_monitor(enum CanNetwork network) {
+    if (network >= CAN_NETWORK_COUNT) {
+        return CAN_COMMUNICATION_RC_INVALID_NETWORK;
+    }
+    struct CanCommunicationNetworkState *const state = &handler.networks[network];
+    if (state->get_status == NULL) {
+        return CAN_COMMUNICATION_RC_OK;
+    }
+
+    constexpr uint32_t state_log_interval_runs = MAINBOARD_TASKS_CAN_STATE_LOG_INTERVAL_MS / MAINBOARD_TASKS_CAN_MONITOR_PERIOD_MS;
+
+    struct CanCommunicationTransceiverStatus status;
+    if (state->get_status(&status) != CAN_COMMUNICATION_RC_OK) {
+        return CAN_COMMUNICATION_RC_ERROR;
+    }
+
+    if (!state->monitored) {
+        MAINBOARD_LOGGER_INFO("CAN %s: %" PRIu32 " kbit/s, %s, TEC %u, REC %u",
+                              can_communication_network_names[network],
+                              status.bitrate / 1000U,
+                              can_communication_api_get_bus_state_name(status.state),
+                              status.tx_error_counter,
+                              status.rx_error_counter);
+        if (status.rx_filter_entries > 0U) { // NOLINT(bugprone-branch-clone): the log macros differ only in their arguments
+            MAINBOARD_LOGGER_INFO("CAN %s: RX filter of %u entries", can_communication_network_names[network], (unsigned)status.rx_filter_entries);
+        } else {
+            MAINBOARD_LOGGER_INFO("CAN %s: no RX filter, every frame is received", can_communication_network_names[network]);
+        }
+        // Log the errors already seen before the first run
+        const struct CanCommunicationTransceiverStatus none = { 0 };
+        prv_log_transceiver_counters(network, &none, &status);
+        // The first change is logged right away
+        state->runs_since_state_log = state_log_interval_runs;
+    } else {
+        if (state->runs_since_state_log < UINT32_MAX) {
+            ++state->runs_since_state_log;
+        }
+        if (status.state != state->last_status.state) {
+            if (state->unlogged_state_changes < UINT32_MAX) {
+                ++state->unlogged_state_changes;
+            }
+        }
+        if (state->unlogged_state_changes > 0U && state->runs_since_state_log >= state_log_interval_runs) {
+            prv_log_bus_state(network, &status);
+            if (state->unlogged_state_changes > 1U) {
+                MAINBOARD_LOGGER_WARNING("CAN %s: bus state changed %" PRIu32 " times in %u ms",
+                                         can_communication_network_names[network],
+                                         state->unlogged_state_changes,
+                                         (unsigned)(state->runs_since_state_log * MAINBOARD_TASKS_CAN_MONITOR_PERIOD_MS));
+            }
+            state->unlogged_state_changes = 0U;
+            state->runs_since_state_log = 0U;
+        }
+        if (status.bitrate != state->last_status.bitrate) {
+            MAINBOARD_LOGGER_INFO("CAN %s: bitrate changed to %" PRIu32 " kbit/s", can_communication_network_names[network], status.bitrate / 1000U);
+        }
+        prv_log_transceiver_counters(network, &state->last_status, &status);
+    }
+
+    state->last_status = status;
+    state->monitored = true;
+    return CAN_COMMUNICATION_RC_OK;
+}
+
+enum CanCommunicationReturnCode can_communication_api_get_status(enum CanNetwork network, struct CanCommunicationTransceiverStatus *status) {
+    if (status == NULL) {
+        return CAN_COMMUNICATION_RC_NULL_POINTER;
+    }
+    if (network >= CAN_NETWORK_COUNT) {
+        return CAN_COMMUNICATION_RC_INVALID_NETWORK;
+    }
+    if (handler.networks[network].get_status == NULL) {
+        return CAN_COMMUNICATION_RC_NULL_POINTER;
+    }
+    return (handler.networks[network].get_status(status) == CAN_COMMUNICATION_RC_OK) ? CAN_COMMUNICATION_RC_OK : CAN_COMMUNICATION_RC_ERROR;
+}
+
+struct CanCommunicationQueueCounters can_communication_api_get_queue_counters(enum CanNetwork network) {
+    if (network >= CAN_NETWORK_COUNT) {
+        return (struct CanCommunicationQueueCounters){ 0 };
+    }
+    return handler.networks[network].counters;
+}
+
+const char *can_communication_api_get_network_name(enum CanNetwork network) {
+    return (network < CAN_NETWORK_COUNT) ? can_communication_network_names[network] : "?";
+}
+
+const char *can_communication_api_get_bus_state_name(enum CanCommunicationBusState state) {
+    return (state < CAN_COMMUNICATION_BUS_STATE_COUNT) ? can_communication_bus_state_names[state] : "?";
+}
+
+const char *can_communication_api_get_bus_error_name(enum CanCommunicationBusError error) {
+    return (error < CAN_COMMUNICATION_BUS_ERROR_COUNT) ? can_communication_bus_error_names[error] : "?";
 }

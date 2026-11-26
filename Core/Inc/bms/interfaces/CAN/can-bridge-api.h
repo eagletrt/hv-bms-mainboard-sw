@@ -43,6 +43,13 @@ void can_bridge_api_enable_bridge(void);
 void can_bridge_api_disable_bridge(void);
 
 /*!
+ * \brief Tell if the bridge forwards the frames that have a route
+ *
+ * \return true if the bridge is enabled, false otherwise
+ */
+bool can_bridge_api_is_enabled(void);
+
+/*!
  * \brief Receive callback of the primary network
  *
  * \param[in] frame The received frame

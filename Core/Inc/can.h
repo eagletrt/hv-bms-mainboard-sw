@@ -42,7 +42,6 @@ extern CAN_HandleTypeDef hcan2;
 
 #define HCAN_PRIMARY hcan1
 #define HCAN_BMS hcan2
-#define CAN_TX_MAILBOX_FREE_TIMEOUT_MS (2U)
 
 /* USER CODE END Private defines */
 
@@ -64,7 +63,7 @@ void MX_CAN1_Init_1M(void);
  * \retval CAN_COMMUNICATION_RC_OK if the frame was sent successfully.
  * \retval CAN_COMMUNICATION_RC_NULL_POINTER if the frame pointer was NULL.
  * \retval CAN_COMMUNICATION_RC_INVALID_LENGTH if the frame length exceeds CAN_COMMUNICATION_FRAME_DATA_SIZE.
- * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the underlying HAL call reported a failure.
+ * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if every TX mailbox is busy or the HAL call reported a failure.
  */
 enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame *frame);
 
@@ -76,9 +75,45 @@ enum CanCommunicationReturnCode can_send_bms(const struct CanCommunicationFrame 
  * \retval CAN_COMMUNICATION_RC_OK if the frame was sent successfully.
  * \retval CAN_COMMUNICATION_RC_NULL_POINTER if the frame pointer was NULL.
  * \retval CAN_COMMUNICATION_RC_INVALID_LENGTH if the frame length exceeds CAN_COMMUNICATION_FRAME_DATA_SIZE.
- * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if the underlying HAL call reported a failure.
+ * \retval CAN_COMMUNICATION_RC_TRANSMISSION_ERROR if every TX mailbox is busy or the HAL call reported a failure.
  */
 enum CanCommunicationReturnCode can_send_primary(const struct CanCommunicationFrame *frame);
+
+/*!
+ * \brief Tell if the primary network has a free TX mailbox, so that a frame can be sent right away
+ *
+ * \return true if a mailbox is free, false otherwise
+ */
+bool can_tx_ready_primary(void);
+
+/*!
+ * \brief Tell if the BMS network has a free TX mailbox, so that a frame can be sent right away
+ *
+ * \return true if a mailbox is free, false otherwise
+ */
+bool can_tx_ready_bms(void);
+
+/*!
+ * \brief Read the state of the primary network transceiver and its counters
+ *
+ * \details Main loop only, the reading also accounts the TX mailboxes and the last bus error
+ *
+ * \param[out] status The status to fill
+ *
+ * \retval CAN_COMMUNICATION_RC_OK on success
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if \p status is \c NULL
+ */
+enum CanCommunicationReturnCode can_get_status_primary(struct CanCommunicationTransceiverStatus *status);
+
+/*!
+ * \brief Read the state of the BMS network transceiver and its counters, see \ref can_get_status_primary
+ *
+ * \param[out] status The status to fill
+ *
+ * \retval CAN_COMMUNICATION_RC_OK on success
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if \p status is \c NULL
+ */
+enum CanCommunicationReturnCode can_get_status_bms(struct CanCommunicationTransceiverStatus *status);
 
 /*!
  * \brief Configure the can primary to use 250K baudrate if the handcart is connected or 1M otherwise

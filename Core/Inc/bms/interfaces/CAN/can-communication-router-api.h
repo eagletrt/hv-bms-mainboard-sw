@@ -9,6 +9,8 @@
 #ifndef CAN_COMMUNICATION_ROUTER_API_H
 #define CAN_COMMUNICATION_ROUTER_API_H
 
+#include <stddef.h>
+
 #include "can-communication.h"
 
 /*!
@@ -43,5 +45,17 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
  * \retval CAN_COMMUNICATION_RC_OK otherwise
  */
 enum CanCommunicationReturnCode can_communication_router_api_receive_primary(struct CanCommunicationFrame *frame);
+
+/*!
+ * \brief Get the ID ranges handled on the primary network, used to configure its hardware filter
+ *
+ * \details They include the frames the CAN bridge forwards from the primary network,
+ *          which are cellboard flashing messages
+ *
+ * \param[out] count The number of ranges
+ *
+ * \return The ranges, \c NULL with \p count 0 if \p count is \c NULL
+ */
+const struct CanCommunicationIdRange *can_communication_router_api_get_primary_rx_ranges(size_t *count);
 
 #endif // CAN_COMMUNICATION_ROUTER_API_H

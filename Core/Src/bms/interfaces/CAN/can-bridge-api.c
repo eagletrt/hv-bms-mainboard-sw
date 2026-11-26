@@ -118,6 +118,10 @@ void can_bridge_api_disable_bridge(void) {
     can_bridge_handler.enabled = false;
 }
 
+bool can_bridge_api_is_enabled(void) {
+    return can_bridge_handler.enabled;
+}
+
 enum CanCommunicationReturnCode can_bridge_api_receive_primary(struct CanCommunicationFrame *frame) {
     if (frame == NULL) {
         return CAN_COMMUNICATION_RC_NULL_POINTER;

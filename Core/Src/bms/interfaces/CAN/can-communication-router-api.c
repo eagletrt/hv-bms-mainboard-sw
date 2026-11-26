@@ -538,6 +538,28 @@ enum CanCommunicationReturnCode can_communication_router_api_receive_bms(struct 
     return CAN_COMMUNICATION_RC_OK;
 }
 
+/*!
+ * \brief IDs handled by can_communication_router_api_receive_primary
+ *
+ * \warning Keep in sync with the switch of can_communication_router_api_receive_primary:
+ *          an ID missing here is dropped by the hardware filters
+ */
+EAGLETRT_STATIC const struct CanCommunicationIdRange primary_rx_ranges[] = {
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDFLASHINGRX,   CAN_PRIMARY_MESSAGE_FRAME_ID_TSACMAINBOARDFLASHINGRX   },
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET,                    CAN_PRIMARY_MESSAGE_FRAME_ID_BMSSET                    },
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET, CAN_PRIMARY_MESSAGE_FRAME_ID_RASPBERRYTSACBALANCINGSET },
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD1FLASHINGTX,  CAN_PRIMARY_MESSAGE_FRAME_ID_TSACCELLBOARD6FLASHINGRX  },
+    { CAN_PRIMARY_MESSAGE_FRAME_ID_ECUFLASHINGTX,             CAN_PRIMARY_MESSAGE_FRAME_ID_STEERINGBOARDFLASHINGRX   },
+};
+
+const struct CanCommunicationIdRange *can_communication_router_api_get_primary_rx_ranges(size_t *count) {
+    if (count == nullptr) {
+        return nullptr;
+    }
+    *count = sizeof(primary_rx_ranges) / sizeof(primary_rx_ranges[0]);
+    return primary_rx_ranges;
+}
+
 enum CanCommunicationReturnCode can_communication_router_api_receive_primary(struct CanCommunicationFrame *frame) {
     if (frame == nullptr) {
         return CAN_COMMUNICATION_RC_NULL_POINTER;

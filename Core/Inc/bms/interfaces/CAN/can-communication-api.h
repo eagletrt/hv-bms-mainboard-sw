@@ -84,4 +84,70 @@ enum CanCommunicationReturnCode can_communication_api_process_tx(enum CanNetwork
  */
 enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanNetwork network);
 
+/*!
+ * \brief Read the transceiver status of a network and log what changed since the last run
+ *
+ * \details The first run logs the bitrate and the state, then the changes of the bus
+ *          state are logged at most once per MAINBOARD_TASKS_CAN_STATE_LOG_INTERVAL_MS
+ *          (the ones in between are counted) and every error counter is logged when it
+ *          reaches 1, 2, 4, 8, ... so that a broken bus does not flood the output.
+ *          Call it every MAINBOARD_TASKS_CAN_MONITOR_PERIOD_MS, never from an interrupt
+ *
+ * \param[in] network The network to monitor
+ *
+ * \retval CAN_COMMUNICATION_RC_OK on success, also if the network has no status callback
+ * \retval CAN_COMMUNICATION_RC_INVALID_NETWORK if \p network is out of range
+ * \retval CAN_COMMUNICATION_RC_ERROR if the status callback failed
+ */
+enum CanCommunicationReturnCode can_communication_api_monitor(enum CanNetwork network);
+
+/*!
+ * \brief Read the current transceiver status of a network
+ *
+ * \param[in] network The network
+ * \param[out] status The status to fill
+ *
+ * \retval CAN_COMMUNICATION_RC_OK on success
+ * \retval CAN_COMMUNICATION_RC_NULL_POINTER if \p status is \c NULL or the network has no status callback
+ * \retval CAN_COMMUNICATION_RC_INVALID_NETWORK if \p network is out of range
+ * \retval CAN_COMMUNICATION_RC_ERROR if the status callback failed
+ */
+enum CanCommunicationReturnCode can_communication_api_get_status(enum CanNetwork network, struct CanCommunicationTransceiverStatus *status);
+
+/*!
+ * \brief Get the error counters of the queues of a network
+ *
+ * \param[in] network The network
+ *
+ * \return The counters, all zero if \p network is out of range
+ */
+struct CanCommunicationQueueCounters can_communication_api_get_queue_counters(enum CanNetwork network);
+
+/*!
+ * \brief Get the name of a network
+ *
+ * \param[in] network The network
+ *
+ * \return The name, "?" if \p network is out of range
+ */
+const char *can_communication_api_get_network_name(enum CanNetwork network);
+
+/*!
+ * \brief Get the name of a bus state
+ *
+ * \param[in] state The bus state
+ *
+ * \return The name, "?" if \p state is out of range
+ */
+const char *can_communication_api_get_bus_state_name(enum CanCommunicationBusState state);
+
+/*!
+ * \brief Get the name of a bus error
+ *
+ * \param[in] error The bus error
+ *
+ * \return The name, "?" if \p error is out of range
+ */
+const char *can_communication_api_get_bus_error_name(enum CanCommunicationBusError error);
+
 #endif // CAN_COMMUNICATION_API_H
