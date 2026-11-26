@@ -107,7 +107,8 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_under_temperature(void) {
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_over_temperature(void) {
+// Disabled in phc_checks: the cellboards do not send the discharge temperatures yet
+[[maybe_unused]] EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_over_temperature(void) {
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -121,7 +122,8 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_over_temperature(voi
     return PHC_CHECK_RESULT_OK;
 }
 
-EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_under_temperature(void) {
+// Disabled in phc_checks: the cellboards do not send the discharge temperatures yet
+[[maybe_unused]] EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_under_temperature(void) {
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
@@ -306,7 +308,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_precharge_complete(void) {
     if (!internal_voltages_api_is_voltages_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (internal_voltages_api_get_value(INTERNAL_VOLTAGES_INDEX_TS) < PHC_PRECHARGE_VOLTAGE_V) {
+    const volt ts = internal_voltages_api_get_value(INTERNAL_VOLTAGES_INDEX_TS);
+    const volt pack = internal_voltages_api_get_value(INTERNAL_VOLTAGES_INDEX_PACK);
+
+    // Without a pack voltage any TS voltage would pass the ratio
+    if (pack <= 0.F || ts < (pack * PHC_PRECHARGE_THRESHOLD_RATIO)) {
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -317,8 +323,8 @@ EAGLETRT_STATIC const struct PHCCheck phc_checks[] = {
     { PHC_CONTROL_CELL_OVER_VOLTAGE,              PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE },              prv_phc_check_cell_over_voltage              },
     { PHC_CONTROL_CELL_UNDER_TEMPERATURE,         PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE },         prv_phc_check_cell_under_temperature         },
     { PHC_CONTROL_CELL_OVER_TEMPERATURE,          PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE },          prv_phc_check_cell_over_temperature          },
-    { PHC_CONTROL_DISCHARGE_UNDER_TEMPERATURE,    PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_DISCHARGE_UNDER_TEMPERATURE },    prv_phc_check_discharge_under_temperature    },
-    { PHC_CONTROL_DISCHARGE_OVER_TEMPERATURE,     PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_DISCHARGE_OVER_TEMPERATURE },     prv_phc_check_discharge_over_temperature     },
+    // { PHC_CONTROL_DISCHARGE_UNDER_TEMPERATURE,    PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_DISCHARGE_UNDER_TEMPERATURE },    prv_phc_check_discharge_under_temperature    },
+    // { PHC_CONTROL_DISCHARGE_OVER_TEMPERATURE,     PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_DISCHARGE_OVER_TEMPERATURE },     prv_phc_check_discharge_over_temperature     },
     { PHC_CONTROL_OVER_CURRENT,                   PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_OVER_CURRENT },                   prv_phc_check_over_current                   },
     { PHC_CONTROL_OVER_POWER,                     PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_OVER_POWER },                     prv_phc_check_over_power                     },
     { PHC_CONTROL_COOLING_UNDER_TEMPERATURE,      PHC_CHECK_KIND_FAULT,     { .fault = MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE },      prv_phc_check_cooling_under_temperature      },
@@ -330,8 +336,9 @@ EAGLETRT_STATIC const struct PHCCheck phc_checks[] = {
     { PHC_CONTROL_PRECHARGE_COMPLETE,             PHC_CHECK_KIND_CONDITION, { .condition = MAINBOARD_STATUS_CONDITION_PRECHARGE_COMPLETE },     prv_phc_check_precharge_complete             },
 };
 
-// Every control needs exactly one entry; the entries are looked up by control, so their order does not matter
-static_assert(sizeof(phc_checks) / sizeof(phc_checks[0]) == PHC_CONTROL_COUNT, "Every PHC control needs exactly one check");
+// Every control has at most one entry, a control without one is disabled (its task does nothing and the
+// startup check skips it). The entries are looked up by control, so their order does not matter
+static_assert(sizeof(phc_checks) / sizeof(phc_checks[0]) <= PHC_CONTROL_COUNT, "Every PHC control needs at most one check");
 
 /*!
  * \brief Find the check of a control in \ref phc_checks
@@ -375,6 +382,10 @@ EAGLETRT_STATIC void prv_phc_handle_startup_timeout(void *context) {
     EAGLETRT_API_UNUSED(context);
 
     for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
+        // A control without a check in the table is disabled, it never runs
+        if (prv_phc_find_check(control) == NULL) {
+            continue;
+        }
         struct Watchdog *const watchdog = &phc_handler.check_watchdogs[control];
         if (!mainboard_watchdogs_api_is_running(watchdog) && !mainboard_watchdogs_api_is_timed_out(watchdog)) {
             MAINBOARD_LOGGER_ERROR("PHC check %u never run within %" PRIu32 " ms", (unsigned)control, (uint32_t)PHC_MAX_STARTUP_INTERVAL_MS);

@@ -32,32 +32,26 @@
 #define SENSING_ADC_RESOLUTION (12U)
 
 /*!
- * \brief Gain (Vout / Vin) of a resistive voltage divider
- *
- * \param r_top    Resistor between the input and the output node
- * \param r_bottom Resistor between the output node and ground
- */
-#define SENSING_DIVIDER_GAIN(r_top, r_bottom) ((r_bottom) / ((r_top) + (r_bottom)))
-
-/*!
- * \brief HV dividers in front of the external ADC
+ * \brief Gain (Vout / Vin) of the HV dividers in front of the external ADC
  *        (schematic: Analog sensing -> HV Voltage sensing)
+ *
+ * \details Same as INTERNAL_VOLTAGE_DIVIDER_RATIO of the old firmware, for both
+ *          channels: the calibration below was fitted on top of this value, so
+ *          it must not be changed without fitting the calibration again.
+ *          The nominal gains from the resistors (TS: R58 10 MOhm, R62 30 kOhm,
+ *          0.002991; pack: R63 10 MOhm, R64 29.4 kOhm, 0.002931) read 2.6% and
+ *          0.6% lower than the calibrated values
  */
-#define SENSING_TS_DIVIDER_R_TOP_OHM (10.0e6F)    /*!< R58, 10 MOhm 1% */
-#define SENSING_TS_DIVIDER_R_BOTTOM_OHM (30.0e3F) /*!< R62, 30 kOhm 1% */
-#define SENSING_TS_DIVIDER_GAIN \
-    SENSING_DIVIDER_GAIN(SENSING_TS_DIVIDER_R_TOP_OHM, SENSING_TS_DIVIDER_R_BOTTOM_OHM)
-
-#define SENSING_PACK_DIVIDER_R_TOP_OHM (10.0e6F)    /*!< R63, 10 MOhm 0.5% */
-#define SENSING_PACK_DIVIDER_R_BOTTOM_OHM (29.4e3F) /*!< R64, 29.4 kOhm 0.1% */
-#define SENSING_PACK_DIVIDER_GAIN \
-    SENSING_DIVIDER_GAIN(SENSING_PACK_DIVIDER_R_TOP_OHM, SENSING_PACK_DIVIDER_R_BOTTOM_OHM)
+#define SENSING_HV_DIVIDER_GAIN (0.002914F)
+#define SENSING_TS_DIVIDER_GAIN (SENSING_HV_DIVIDER_GAIN)
+#define SENSING_PACK_DIVIDER_GAIN (SENSING_HV_DIVIDER_GAIN)
 
 /*!
- * \brief Empirical correction applied on top of the nominal divider gain
+ * \brief Empirical correction applied on top of the divider gain
  *
  * \details volt = max(0, adc / GAIN * MULTIPLIER - OFFSET)
- *          Fitted against <reference meter> on <board / date> TODO
+ *          Same as INTERNAL_VOLTAGE_CORRECTION_MULTIPLIER and
+ *          INTERNAL_VOLTAGE_CORRECTION_OFFSET of the old firmware
  */
 #define SENSING_HV_CALIBRATION_MULTIPLIER (1.0273F)
 #define SENSING_HV_CALIBRATION_OFFSET_V (2.19F)

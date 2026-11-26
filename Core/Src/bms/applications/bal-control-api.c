@@ -12,6 +12,7 @@
 #include "bal-control.h"
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "mainboard-conf.h"
 #include "mainboard-def.h"
 #include "mainboard-logger-api.h"
 #include "voltages-api.h"
@@ -30,11 +31,16 @@ enum BalancingControlReturnCode bal_control_api_set_parameters(const struct Bala
         MAINBOARD_LOGGER_WARNING("Balancing: invalid threshold %.3f V", (double)parameters.threshold);
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
     }
+    constexpr volt threshold_min = BAL_CONTROL_THRESHOLD_MIN_V;
+    constexpr volt threshold_max = BAL_CONTROL_THRESHOLD_MAX_V;
+    struct BalancingControlParameters clamped = parameters;
+    clamped.threshold = EAGLETRT_API_CLAMP(parameters.threshold, threshold_min, threshold_max);
+
     // The parameters come with every balancing message, only the change is logged
-    if (!bal_control_handler.valid_parameters || parameters.threshold != bal_control_handler.parameters.threshold) {
-        MAINBOARD_LOGGER_INFO("Balancing: threshold %.3f V", (double)parameters.threshold);
+    if (!bal_control_handler.valid_parameters || clamped.threshold != bal_control_handler.parameters.threshold) {
+        MAINBOARD_LOGGER_INFO("Balancing: threshold %.3f V (requested %.3f V)", (double)clamped.threshold, (double)parameters.threshold);
     }
-    bal_control_handler.parameters = parameters;
+    bal_control_handler.parameters = clamped;
     bal_control_handler.valid_parameters = true;
     return BAL_CONTROL_RC_OK;
 }
@@ -44,7 +50,10 @@ bool bal_control_api_has_valid_parameters(void) {
 }
 
 void bal_control_api_update_target(void) {
-    const volt target = voltages_api_get_pack_info().min;
+    // No cell is discharged below BAL_CONTROL_TARGET_MIN_V, even if the pack minimum is lower
+    constexpr volt target_min = BAL_CONTROL_TARGET_MIN_V;
+    constexpr volt target_max = BAL_CONTROL_TARGET_MAX_V;
+    const volt target = EAGLETRT_API_CLAMP(voltages_api_get_pack_info().min, target_min, target_max);
     // Updated at every run of BALANCING_READ, only the change is logged
     if (target != bal_control_handler.target) {
         MAINBOARD_LOGGER_DEBUG("Balancing: target %.3f V", (double)target);

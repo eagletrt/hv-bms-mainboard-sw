@@ -105,50 +105,70 @@
 
 /*!
  * \brief Thresholds for the temperatures PHC checks
+ *
+ * \details Same as TEMP_MIN_C and TEMP_MAX_C of the old firmware
  */
-#define PHC_MIN_CELL_TEMPERATURE_C (0)
-#define PHC_MAX_CELL_TEMPERATURE_C (0)
+#define PHC_MIN_CELL_TEMPERATURE_C (-10.F)
+#define PHC_MAX_CELL_TEMPERATURE_C (56.F)
 
 /*!
  * \brief Thresholds for the discharge resistor temperature PHC checks
+ *
+ * \todo No reference value: the old firmware and the cellboards never checked
+ *       these temperatures. Confirm the maximum with the cellboard hardware
  */
-#define PHC_MIN_DISCHARGE_TEMPERATURE_C (0)
-#define PHC_MAX_DISCHARGE_TEMPERATURE_C (0)
+#define PHC_MIN_DISCHARGE_TEMPERATURE_C (-10.F)
+#define PHC_MAX_DISCHARGE_TEMPERATURE_C (100.F)
 
 /*!
  * \brief Thresholds for the cooling system temperature PHC checks
+ *
+ * \details Same as COOLING_TEMP_MIN_C and COOLING_TEMP_MAX_C of the old firmware
+ *          (where the check was disabled). An unplugged NTC reads about -12.6 C
+ *          and a shorted one about 163 C, so both latch the fault
  */
-#define PHC_MIN_COOLING_TEMPERATURE_C (0)
-#define PHC_MAX_COOLING_TEMPERATURE_C (0)
+#define PHC_MIN_COOLING_TEMPERATURE_C (-10.F)
+#define PHC_MAX_COOLING_TEMPERATURE_C (60.F)
 
 /*!
  * \brief Thresholds for the linear regulator temperature PHC checks
+ *
+ * \todo No reference value, and the sensing conversion is still a placeholder
+ *       (SENSING_LINEAR_REGULATOR_TEMP_GAIN_C_PER_V), so the check is not effective yet
  */
-#define PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C (0)
-#define PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C (0)
+#define PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C (-10.F)
+#define PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C (100.F)
 
 /*!
  * \brief Thresholds for the precharge temperature PHC checks
+ *
+ * \todo No reference value, and the sensing conversion is still a placeholder
+ *       (SENSING_PRECHARGE_TEMP_GAIN_C_PER_V), so the check is not effective yet
  */
-#define PHC_MIN_PRECHARGE_TEMPERATURE_C (0)
-#define PHC_MAX_PRECHARGE_TEMPERATURE_C (0)
+#define PHC_MIN_PRECHARGE_TEMPERATURE_C (-10.F)
+#define PHC_MAX_PRECHARGE_TEMPERATURE_C (100.F)
 
 /*!
  * \brief Thresholds for the current PHC checks
- * \details The current is signed, the minimum is the limit in the opposite direction
+ * \details The current is signed, the minimum is the limit in the opposite direction.
+ *          Same as CURRENT_MIN_A and CURRENT_MAX_A of the old firmware
  */
-#define PHC_MIN_CURRENT_A (0)
-#define PHC_MAX_CURRENT_A (0)
+#define PHC_MIN_CURRENT_A (-22.F)
+#define PHC_MAX_CURRENT_A (130.F)
 
 /*!
  * \brief Thresholds for the power PHC checks, in kW like internal_voltages_api_get_power
+ *
+ * \details Rules limit, same as CURRENT_MAX_POWER_KW of the old firmware
  */
-#define PHC_MAX_POWER_KW (0)
+#define PHC_MAX_POWER_KW (80.F)
 
-/*! 
- * \brief Thresholds for the precharge complete PHC check
+/*!
+ * \brief Threshold for the precharge complete PHC check, as a ratio of TS voltage over pack voltage
+ *
+ * \details Same as PCU_PRECHARGE_THRESHOLD_PERCENT of the old firmware
  */
-#define PHC_PRECHARGE_VOLTAGE_V (0)
+#define PHC_PRECHARGE_THRESHOLD_RATIO (0.95F)
 
 /*!
  * \brief Maximum interval between two consecutive runs of a PHC check in ms
@@ -162,9 +182,10 @@
  * \brief Time from the PHC init within which every PHC check must have run once, in ms
  *
  * \details If a check has not run within this time (e.g. its data never arrived),
- *          the PHC fault is set
+ *          the PHC fault is set. Must cover the boot of the cellboards and of the
+ *          IVT plus the slowest cycle time of the data the checks need (500 ms)
  */
-#define PHC_MAX_STARTUP_INTERVAL_MS (500U)
+#define PHC_MAX_STARTUP_INTERVAL_MS (2000U)
 
 /*! \} */
 
@@ -229,8 +250,10 @@
  *          primary network
  */
 #define CAN_MAX_CELLBOARD_DROPPED (3U)
-#define CAN_MAX_IVT_DROPPED (3U)
-#define CAN_MAX_PRIMARY_DROPPED (3U)
+/*! \brief 50 * 10 ms = 500 ms, same as CURRENT_SENSOR_COMMUNICATION_TIMEOUT_MS of the old firmware */
+#define CAN_MAX_IVT_DROPPED (50U)
+/*! \brief 6 * 500 ms = 3 s for the balancing message, same as BAL_TIMEOUT_MS of the old firmware */
+#define CAN_MAX_PRIMARY_DROPPED (6U)
 
 /*!
  * \brief Maximum number of system critical messages that can be dropped consecutively
@@ -261,6 +284,88 @@
  * \brief Length in ms of the timeframe over which the dropped messages are counted
  */
 #define CAN_TIMEFRAME (1000U)
+
+/*! \} */
+
+/*!* ######################### CAN WATCHDOGS ############################# *!*/
+
+/*!
+ * \defgroup can-watchdogs-conf
+ * \brief Enable the monitoring of the dropped messages, one switch per message group
+ *
+ * \details 1 to monitor the group, 0 to skip it. A monitored message is timed
+ *          from its first reception: after the maximum number of consecutive
+ *          drops its fault is set (BMS network) or its request is cleared
+ *          (primary network). A group that is never sent must be disabled,
+ *          or its fault would be set as soon as it is dropped
+ * \{
+ */
+
+/*! \brief IVT current, sets STALE_CURRENT */
+#define IVT_CURRENT_ENABLE_WATCHDOGS (1)
+
+/*! \brief Cellboard cell voltages and their info, set STALE_CELL_VOLTAGES */
+#define CELLBOARD_VOLTAGES_ENABLE_WATCHDOGS (1)
+#define CELLBOARD_VOLTAGES_INFO_ENABLE_WATCHDOGS (1)
+
+/*! \brief Cellboard cell temperatures and their info, set STALE_CELL_TEMPERATURES */
+#define CELLBOARD_TEMPERATURES_ENABLE_WATCHDOGS (1)
+#define CELLBOARD_TEMPERATURES_INFO_ENABLE_WATCHDOGS (1)
+
+/*!
+ * \brief Cellboard discharge resistor temperatures (BALANCINGTEMPERATURE), set STALE_CELL_TEMPERATURES
+ *
+ * \details Disabled: not sent by the cellboard firmware yet
+ */
+#define CELLBOARD_DISCHARGE_TEMPERATURES_ENABLE_WATCHDOGS (0)
+
+/*! \brief Cellboard balancing status, FSM state and errors, set STALE_CELLBOARD_STATUS */
+#define CELLBOARD_BALANCING_STATUS_ENABLE_WATCHDOGS (1)
+#define CELLBOARD_FSM_ENABLE_WATCHDOGS (1)
+#define CELLBOARD_ERRORS_ENABLE_WATCHDOGS (1)
+
+/*!
+ * \brief Cellboard firmware and libcan versions, set STALE_CELLBOARD_STATUS
+ *
+ * \details Disabled: not sent by the cellboard firmware yet
+ */
+#define CELLBOARD_VERSION_ENABLE_WATCHDOGS (0)
+#define CELLBOARD_VERSION_INFO_ENABLE_WATCHDOGS (0)
+#define CELLBOARD_LIBCAN_VERSION_ENABLE_WATCHDOGS (0)
+#define CELLBOARD_LIBCAN_VERSION_INFO_ENABLE_WATCHDOGS (0)
+
+/*! \brief TS request from the primary network, the TS off request is applied when dropped */
+#define PRIMARY_BMS_SET_ENABLE_WATCHDOGS (1)
+
+/*! \brief Balancing request from the primary network, the balancing stop request is applied when dropped */
+#define PRIMARY_BALANCING_SET_ENABLE_WATCHDOGS (1)
+
+/*! \} */
+
+/*!* ######################### BALANCING ################################# *!*/
+
+/*!
+ * \defgroup bal-control-conf
+ * \brief Configuration of the balancing control
+ * \{
+ */
+
+/*!
+ * \brief Range in V the requested balancing threshold is clamped to
+ *
+ * \details Same as BAL_THRESHOLD_MIN_V and BAL_THRESHOLD_MAX_V of the old firmware
+ */
+#define BAL_CONTROL_THRESHOLD_MIN_V (0.005F)
+#define BAL_CONTROL_THRESHOLD_MAX_V (0.200F)
+
+/*!
+ * \brief Range in V the balancing target (minimum cell voltage) is clamped to
+ *
+ * \details No cell is discharged below the minimum, same as BAL_TARGET_MIN_V
+ *          and BAL_TARGET_MAX_V of the old firmware
+ */
+#define BAL_CONTROL_TARGET_MIN_V (2.8F)
+#define BAL_CONTROL_TARGET_MAX_V (4.2F)
 
 /*! \} */
 
