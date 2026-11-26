@@ -391,10 +391,7 @@ enum FeedbackReturnCode feedback_api_routine(void) {
         bool condition_met = (feedback->status == FEEDBACK_ANALOG_STATUS_HIGH);
 
         /*
-         * The watchdog runs only while the feedback is in error, so it times out only if the
-         * error lasts. The return codes are ignored on purpose: starting a running or a timed
-         * out watchdog (BUSY, TIMED_OUT) and stopping an idle or a timed out one (NOT_RUNNING,
-         * TIMED_OUT) are expected, the real errors are latched by the wrapper
+         * The watchdog runs only while the feedback is in error, so it times out only if the error lasts.
          */
         struct Watchdog *const watchdog = &feedback_handler.error_watchdogs[i];
         if (feedback->status == FEEDBACK_ANALOG_STATUS_ERROR) {

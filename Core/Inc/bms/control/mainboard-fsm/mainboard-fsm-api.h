@@ -60,4 +60,13 @@ enum FSMReturnCode mainboard_fsm_api_run(void *context);
  */
 enum MainboardFsmStateID mainboard_fsm_api_get_state(void);
 
+/*!
+ * \brief Get the name of a state of the mainboard FSM
+ *
+ * \param state The state
+ *
+ * \returns The name of the state, "UNKNOWN" if it is out of range
+ */
+const char *mainboard_fsm_api_get_state_name(enum MainboardFsmStateID state);
+
 #endif // MAINBOARD_FSM_API_H

@@ -65,7 +65,7 @@ enum MainboardStatusFault {
 
     /* Hardware */
     MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT,                /*!< A cellboard reported an error or went in its fatal state (owner: PHC) */
-    MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR,                 /*!< An analog signal is in error state (owner: feedback) */
+    MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR,                 /*!< An analog signal stayed in error state for FEEDBACK_MAX_ERROR_TIME_MS (owner: feedback) */
     MAINBOARD_STATUS_FAULT_IMD_FAULT,                      /*!< The IMD detected an insulation fault (owner: PHC) */
     MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED, /*!< The TS voltage indicator is not connected (owner: PHC) */
 

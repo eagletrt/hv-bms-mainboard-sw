@@ -805,3 +805,7 @@ enum FSMReturnCode mainboard_fsm_api_run(void *context) {
 enum MainboardFsmStateID mainboard_fsm_api_get_state(void) {
     return fsm_api_get_state(&mainboard_fsm_handler);
 }
+
+const char *mainboard_fsm_api_get_state_name(const enum MainboardFsmStateID state) {
+    return prv_mainboard_fsm_state_name(state);
+}
