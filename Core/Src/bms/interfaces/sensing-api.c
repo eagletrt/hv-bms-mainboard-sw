@@ -8,6 +8,7 @@
 
 #include "sensing-api.h"
 
+#include <inttypes.h>
 #include <string.h>
 
 #include "eagletrt-api.h"
@@ -16,6 +17,7 @@
 #include "internal-temperatures-api.h"
 #include "internal-voltages-api.h"
 #include "ir1553204-api.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 #include "mainboard-watchdogs-api.h"
@@ -210,9 +212,20 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_handle_adcs(void) {
             // Set before starting, the complete interrupt can fire before the callback returns
             sensing_handler.adc_state[adc] = SENSING_ADC_STATE_CONVERTING;
 
-            if (!sensing_handler.adc_start(adc, sensing_handler.adc_samples[adc], sensing_adcs[adc].count)) {
+            const bool started = sensing_handler.adc_start(adc, sensing_handler.adc_samples[adc], sensing_adcs[adc].count);
+            if (!started) {
                 sensing_handler.adc_state[adc] = SENSING_ADC_STATE_IDLE;
                 result = SENSING_RC_HARDWARE_ERROR;
+            }
+
+            // Retried at every routine, only the change is logged
+            if (started == sensing_handler.adc_start_failed[adc]) {
+                if (started) {
+                    MAINBOARD_LOGGER_INFO("Sensing: ADC %u conversion started again", (unsigned)adc);
+                } else {
+                    MAINBOARD_LOGGER_WARNING("Sensing: ADC %u conversion start failed", (unsigned)adc);
+                }
+                sensing_handler.adc_start_failed[adc] = !started;
             }
         }
     }
@@ -228,8 +241,17 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_handle_adcs(void) {
 EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
     volt values[SENSING_EXT_ADC_CHANNEL_COUNT] = { 0 };
 
+    // Read at every routine, only the change is logged
     if (max22530_api_read_channels_all(&sensing_handler.max22530, true, values, NULL) != MAX22530_RC_OK) {
+        if (!sensing_handler.external_adc_failed) {
+            MAINBOARD_LOGGER_WARNING("Sensing: external ADC read failed");
+            sensing_handler.external_adc_failed = true;
+        }
         return SENSING_RC_HARDWARE_ERROR;
+    }
+    if (sensing_handler.external_adc_failed) {
+        MAINBOARD_LOGGER_INFO("Sensing: external ADC read again");
+        sensing_handler.external_adc_failed = false;
     }
 
     EAGLETRT_API_UNUSED(internal_voltages_api_set_value(
@@ -258,6 +280,7 @@ EAGLETRT_STATIC enum SensingReturnCode prv_sensing_read_external_adc(void) {
  */
 EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
     EAGLETRT_API_UNUSED(context);
+    MAINBOARD_LOGGER_ERROR("Sensing: no ADC conversion within %" PRIu32 " ms", (uint32_t)SENSING_MAX_ADC_CONVERSION_TIME_MS);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_ADC));
 }
 
@@ -268,6 +291,7 @@ EAGLETRT_STATIC void prv_internal_adc_stale_callback(void *context) {
  */
 EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
     EAGLETRT_API_UNUSED(context);
+    MAINBOARD_LOGGER_ERROR("Sensing: no external ADC read within %" PRIu32 " ms", (uint32_t)SENSING_MAX_EXTERNAL_ADC_READ_INTERVAL_MS);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_EXTERNAL_ADC));
 }
 
@@ -278,6 +302,7 @@ EAGLETRT_STATIC void prv_external_adc_stale_callback(void *context) {
  */
 EAGLETRT_STATIC void prv_imd_stale_callback(void *context) {
     EAGLETRT_API_UNUSED(context);
+    MAINBOARD_LOGGER_ERROR("Sensing: no IMD capture within %" PRIu32 " ms", (uint32_t)SENSING_MAX_IMD_UPDATE_MS);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_STALE_IMD));
 }
 
@@ -334,6 +359,16 @@ EAGLETRT_STATIC void prv_sensing_handle_imd_capture(void) {
     if (sensing_handler.imd_captured) {
         sensing_handler.imd_captured = false;
 
+        // Logged here since the capture interrupt can not log
+        const enum Ir1553204Status status = ir1553204_api_get_status(&sensing_handler.ir1553204);
+        if (status != sensing_handler.imd_status) {
+            MAINBOARD_LOGGER_INFO("Sensing: IMD status %d -> %d (%.1f Hz)",
+                                  (int)sensing_handler.imd_status,
+                                  (int)status,
+                                  (double)ir1553204_api_get_frequency(&sensing_handler.ir1553204));
+            sensing_handler.imd_status = status;
+        }
+
         if (mainboard_watchdogs_api_pet(&sensing_handler.imd_capture_watchdog) == WATCHDOG_RC_NOT_RUNNING) {
             EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(&sensing_handler.imd_capture_watchdog));
         }
@@ -343,6 +378,7 @@ EAGLETRT_STATIC void prv_sensing_handle_imd_capture(void) {
 enum SensingReturnCode sensing_api_init(const struct SensingInitData *const data) {
     // Zeroing the handler would corrupt the watchdog pool, which still holds the running watchdogs
     if (sensing_handler.is_initialized) {
+        MAINBOARD_LOGGER_ERROR("Sensing: already initialized");
         return SENSING_RC_ERROR;
     }
 
@@ -352,6 +388,7 @@ enum SensingReturnCode sensing_api_init(const struct SensingInitData *const data
         data->imd_start == NULL ||
         data->spi_send == NULL ||
         data->spi_send_receive == NULL) {
+        MAINBOARD_LOGGER_ERROR("Sensing: NULL init data");
         return SENSING_RC_NULL_POINTER;
     }
 
@@ -360,14 +397,20 @@ enum SensingReturnCode sensing_api_init(const struct SensingInitData *const data
     sensing_handler.gpio_read = data->gpio_read;
     sensing_handler.adc_start = data->adc_start;
 
+    // The IMD reads as unknown until its first capture
+    sensing_handler.imd_status = IR1553204_STATUS_UNKNOWN;
+
     if (prv_sensing_init_watchdogs() != SENSING_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("Sensing: watchdogs init failed");
         return SENSING_RC_ERROR;
     }
 
     if (max22530_api_init(&sensing_handler.max22530, data->spi_send, data->spi_send_receive) != MAX22530_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("Sensing: external ADC init failed");
         return SENSING_RC_HARDWARE_ERROR;
     }
     if (ir1553204_api_init(&sensing_handler.ir1553204) != IR1553204_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("Sensing: IMD init failed");
         return SENSING_RC_HARDWARE_ERROR;
     }
 
@@ -383,6 +426,7 @@ enum SensingReturnCode sensing_api_routine(void) {
     }
 
     if (!sensing_handler.watchdogs_started) {
+        MAINBOARD_LOGGER_INFO("Sensing: first routine, starting the watchdogs");
         prv_sensing_start_watchdogs();
         sensing_handler.watchdogs_started = true;
     }
@@ -401,6 +445,7 @@ enum SensingReturnCode sensing_api_routine(void) {
     return (adc_rc != SENSING_RC_OK) ? adc_rc : ext_adc_rc;
 }
 
+// Interrupt context: never log here
 enum SensingReturnCode sensing_api_adc_conversion_complete(const enum SensingAdc adc) {
     if (adc >= SENSING_ADC_COUNT) {
         return SENSING_RC_INVALID_INDEX;
@@ -413,6 +458,7 @@ enum SensingReturnCode sensing_api_adc_conversion_complete(const enum SensingAdc
     return SENSING_RC_OK;
 }
 
+// Interrupt context: never log here
 enum SensingReturnCode sensing_api_imd_capture(const ticks source_frequency, const ticks period_count, const ticks high_count) {
     /*
      * Signal:

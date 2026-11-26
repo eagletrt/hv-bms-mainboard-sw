@@ -13,6 +13,7 @@
 #include "eagletrt.h"
 #include "eagletrt-api.h"
 #include "mainboard-def.h"
+#include "mainboard-logger-api.h"
 #include "voltages-api.h"
 #include <stdint.h>
 #include <string.h>
@@ -26,7 +27,12 @@ enum BalancingControlReturnCode bal_control_api_init(void) {
 
 enum BalancingControlReturnCode bal_control_api_set_parameters(const struct BalancingControlParameters parameters) {
     if (parameters.threshold < 0.0F) {
+        MAINBOARD_LOGGER_WARNING("Balancing: invalid threshold %.3f V", (double)parameters.threshold);
         return BAL_CONTROL_RC_INVALID_PARAMETERS;
+    }
+    // The parameters come with every balancing message, only the change is logged
+    if (!bal_control_handler.valid_parameters || parameters.threshold != bal_control_handler.parameters.threshold) {
+        MAINBOARD_LOGGER_INFO("Balancing: threshold %.3f V", (double)parameters.threshold);
     }
     bal_control_handler.parameters = parameters;
     bal_control_handler.valid_parameters = true;
@@ -38,17 +44,28 @@ bool bal_control_api_has_valid_parameters(void) {
 }
 
 void bal_control_api_update_target(void) {
-    bal_control_handler.target = voltages_api_get_pack_info().min;
+    const volt target = voltages_api_get_pack_info().min;
+    // Updated at every run of BALANCING_READ, only the change is logged
+    if (target != bal_control_handler.target) {
+        MAINBOARD_LOGGER_DEBUG("Balancing: target %.3f V", (double)target);
+    }
+    bal_control_handler.target = target;
 }
 
 void bal_control_api_start_discharge(void) {
     if (!bal_control_handler.valid_parameters) {
         return;
     }
+    if (!bal_control_handler.discharging) {
+        MAINBOARD_LOGGER_INFO("Balancing: discharge started, target %.3f V", (double)bal_control_handler.target);
+    }
     bal_control_handler.discharging = true;
 }
 
 void bal_control_api_stop_discharge(void) {
+    if (bal_control_handler.discharging) {
+        MAINBOARD_LOGGER_INFO("Balancing: discharge stopped");
+    }
     bal_control_handler.discharging = false;
 }
 

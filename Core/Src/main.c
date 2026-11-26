@@ -125,6 +125,8 @@ int main(void) {
         Error_Handler();
     }
 
+    MAINBOARD_LOGGER_INFO("Logger initialized, running POST");
+
     // Configure and start CAN given if the handcart is connected or not
     // The handcart charger uses 250K baud rate, the vehicle 1M
     can_configure_and_start_primary(gpio_read_hc_connected());
@@ -157,6 +159,8 @@ int main(void) {
     };
 
     EAGLETRT_API_UNUSED(post_api_run(&init_data));
+
+    MAINBOARD_LOGGER_INFO("POST ran, starting main application");
 
     /* USER CODE END 2 */
 

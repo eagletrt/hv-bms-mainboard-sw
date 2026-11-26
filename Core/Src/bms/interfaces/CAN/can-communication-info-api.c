@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <inttypes.h>
 #include <stdint.h>
 
 #include "bal-control-api.h"
@@ -23,6 +24,7 @@
 #include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "mainboard-conf.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "mainboard-watchdogs-api.h"
 #include "request-control-api.h"
@@ -192,6 +194,10 @@ struct CanCommunicationInfoHandler {
  * \param[in] message The message that dropped out
  */
 EAGLETRT_STATIC void prv_handle_bms_message_fatal(const struct CanCommunicationInfoMessage *message) {
+    // Many messages carry the same data (e.g. a cellboard unplugged): only the one that sets the fault is logged
+    if (!mainboard_status_api_is_fault_set(message->fault)) {
+        MAINBOARD_LOGGER_ERROR("CAN BMS: 0x%03" PRIX32 " dropped %u times in a row", (uint32_t)message->id, (unsigned)message->max_dropped);
+    }
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(message->fault));
 }
 
@@ -226,6 +232,9 @@ EAGLETRT_STATIC void prv_handle_primary_message_fatal(const struct CanCommunicat
             return;
     }
 
+    MAINBOARD_LOGGER_WARNING("CAN primary: 0x%03" PRIX32 " dropped %u times in a row, request cleared",
+                             (uint32_t)message->id,
+                             (unsigned)message->max_dropped);
     EAGLETRT_API_UNUSED(request_control_api_handle_request(request));
 }
 
@@ -418,6 +427,12 @@ enum CanCommunicationInfoReturnCode can_communication_info_handle_message(enum C
 
     EAGLETRT_API_UNUSED(mainboard_watchdogs_api_stop(&state->leeway_watchdog));
     EAGLETRT_API_UNUSED(mainboard_watchdogs_api_restart(&state->cycle_watchdog));
+
+    // Debug level: a whole cellboard coming back logs all of its messages
+    const struct CanCommunicationInfoMessage *const message = &info_networks[network].messages[state->index];
+    if (state->consecutive_drops >= message->max_dropped) {
+        MAINBOARD_LOGGER_DEBUG("CAN: 0x%03" PRIX32 " back after %u drops", (uint32_t)message_id, (unsigned)state->consecutive_drops);
+    }
     state->consecutive_drops = 0U;
     return CAN_COMMUNICATION_INFO_RC_OK;
 }

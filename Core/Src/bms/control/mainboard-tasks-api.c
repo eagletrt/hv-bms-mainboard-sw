@@ -25,9 +25,11 @@
 #include "mainboard-def.h"
 #include "mainboard-fsm-api.h"
 #include "mainboard-fsm.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-tasks.h"
 #include "phc-api.h"
 #include "sensing-api.h"
+#include "serializer-tasks-api.h"
 #include "tasks.h"
 #include "tasks-api.h"
 
@@ -35,6 +37,9 @@ EAGLETRT_STATIC struct TasksHandler mainboard_tasks_handler;
 
 /*! \brief Current time used by the display animations */
 EAGLETRT_STATIC task_tick_callback mainboard_tasks_get_tick;
+
+/*! \brief Return code of the last routine, used to log only its changes */
+EAGLETRT_STATIC enum TasksReturnCode mainboard_tasks_last_routine_rc;
 
 // Every task needs a slot in the tasks module
 static_assert(MAINBOARD_TASKS_COUNT <= TASKS_MAX_COUNT, "Increase TASKS_MAX_COUNT");
@@ -258,6 +263,18 @@ EAGLETRT_STATIC void prv_mainboard_tasks_display_update(uint8_t task_id) {
 }
 
 /*!
+ * \brief Log the task executions dropped since init by the mainboard and serializer tasks
+ *
+ * \param[in] task_id Unused
+ */
+EAGLETRT_STATIC void prv_mainboard_tasks_log_dropped(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
+    MAINBOARD_LOGGER_INFO("Tasks: dropped executions: mainboard %u, serializer %u",
+                          (unsigned)tasks_api_get_dropped_task_executions(&mainboard_tasks_handler),
+                          (unsigned)serializer_tasks_api_get_dropped_task_executions());
+}
+
+/*!
  * \brief Task initializer, repeats 0 means the task runs forever
  *
  * \details The start spreads the first executions over consecutive ticks
@@ -308,18 +325,39 @@ EAGLETRT_STATIC TaskList mainboard_control_tasks = {
     // User interface
     TASK(MAINBOARD_TASKS_LED_HEARTBEAT, MAINBOARD_TASKS_HEARTBEAT_PERIOD_MS, prv_mainboard_tasks_led_heartbeat),
     TASK(MAINBOARD_TASKS_DISPLAY_UPDATE, MAINBOARD_TASKS_DISPLAY_PERIOD_MS, prv_mainboard_tasks_display_update),
+
+    // Diagnostics
+    TASK(MAINBOARD_TASKS_LOG_DROPPED, MAINBOARD_TASKS_DROPPED_LOG_PERIOD_MS, prv_mainboard_tasks_log_dropped),
 };
 
 #undef TASK
 
 enum TasksReturnCode mainboard_tasks_api_init(task_tick_callback tick_callback) {
     if (tick_callback == NULL) {
+        MAINBOARD_LOGGER_ERROR("Tasks: NULL tick callback");
         return TASKS_RC_NULL_POINTER;
     }
     mainboard_tasks_get_tick = tick_callback;
-    return tasks_api_init(&mainboard_tasks_handler, mainboard_control_tasks, MAINBOARD_TASKS_COUNT, tick_callback);
+    mainboard_tasks_last_routine_rc = TASKS_RC_OK;
+
+    const enum TasksReturnCode return_code = tasks_api_init(&mainboard_tasks_handler, mainboard_control_tasks, MAINBOARD_TASKS_COUNT, tick_callback);
+    if (return_code != TASKS_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("Tasks: init failed (%d)", (int)return_code);
+    }
+    return return_code;
 }
 
 enum TasksReturnCode mainboard_tasks_api_routine(void) {
-    return tasks_api_routine(&mainboard_tasks_handler);
+    const enum TasksReturnCode return_code = tasks_api_routine(&mainboard_tasks_handler);
+
+    // Run at every main loop iteration, only the change is logged
+    if (return_code != mainboard_tasks_last_routine_rc) {
+        if (return_code != TASKS_RC_OK) {
+            MAINBOARD_LOGGER_ERROR("Tasks: routine failed (%d)", (int)return_code);
+        } else {
+            MAINBOARD_LOGGER_INFO("Tasks: routine back to normal");
+        }
+        mainboard_tasks_last_routine_rc = return_code;
+    }
+    return return_code;
 }

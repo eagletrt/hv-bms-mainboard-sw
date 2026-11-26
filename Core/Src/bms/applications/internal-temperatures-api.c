@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 
 /*!
  * \brief The global internal temperatures handler
@@ -27,7 +28,13 @@ enum InternalTemperaturesReturnCode internal_temperatures_api_set_value(enum Int
     }
 
     internal_temperatures_handler.temperatures[index] = temperature;
-    internal_temperatures_handler.is_received_temperatures[index] = true;
+
+    if (!internal_temperatures_handler.is_received_temperatures[index]) {
+        internal_temperatures_handler.is_received_temperatures[index] = true;
+        if (internal_temperatures_api_is_ready()) {
+            MAINBOARD_LOGGER_INFO("Internal temperatures ready");
+        }
+    }
 
     return INTERNAL_TEMPERATURES_RC_OK;
 }

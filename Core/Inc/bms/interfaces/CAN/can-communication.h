@@ -103,6 +103,9 @@ struct CanCommunicationNetworkState {
     struct PalHandler pal;                         /*!< Local PAL tracking instance allocated for this network's queues */
     can_communication_send_callback send;          /*!< Buffered reference pointing to driver transmitter */
     can_communication_receive_callback on_receive; /*!< Buffered reference pointing to deserializer */
+    uint32_t tx_dropped;                           /*!< Frames dropped because the TX queue was full, used by the logs */
+    uint32_t tx_failed;                            /*!< Frames the send callback failed to send, used by the logs */
+    uint32_t rx_rejected;                          /*!< Received frames rejected by the receive callback, used by the logs */
 };
 
 /*!

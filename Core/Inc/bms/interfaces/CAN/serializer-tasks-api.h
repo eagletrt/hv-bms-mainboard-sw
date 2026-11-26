@@ -55,4 +55,11 @@ enum SerializerTasksReturnCode serializer_tasks_api_routine(void);
  */
 enum SerializerTasksReturnCode serializer_tasks_api_suppress_comms(enum SerializerTasksPriority priority, bool suppress);
 
+/*!
+ * \brief Get the number of task executions dropped by the serializer tasks
+ *
+ * \returns The number of dropped executions since init, saturated at UINT16_MAX
+ */
+uint16_t serializer_tasks_api_get_dropped_task_executions(void);
+
 #endif // SERIALIZER_TASKS_API_H

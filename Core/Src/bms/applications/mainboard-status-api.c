@@ -13,6 +13,7 @@
 
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "mainboard-logger-api.h"
 
 EAGLETRT_STATIC struct MainboardStatusHandler mainboard_status_handler;
 
@@ -113,6 +114,10 @@ enum MainboardStatusReturnCode mainboard_status_api_set_fault(const enum Mainboa
     if (fault >= MAINBOARD_STATUS_FAULT_COUNT) {
         return MAINBOARD_STATUS_RC_INVALID_FAULT;
     }
+    // Faults are never cleared, so only the first time a fault is set is logged
+    if (!mainboard_status_handler.faults[fault]) {
+        MAINBOARD_LOGGER_ERROR("Fault set: %s", fault_names[fault]);
+    }
     mainboard_status_handler.faults[fault] = true;
     return MAINBOARD_STATUS_RC_OK;
 }
@@ -145,6 +150,9 @@ enum MainboardStatusReturnCode mainboard_status_api_set_request(const enum Mainb
     if (request >= MAINBOARD_STATUS_REQUEST_COUNT) {
         return MAINBOARD_STATUS_RC_INVALID_REQUEST;
     }
+    if (mainboard_status_handler.requests[request] != active) {
+        MAINBOARD_LOGGER_INFO("Request %s: %s", request_names[request], active ? "set" : "cleared");
+    }
     mainboard_status_handler.requests[request] = active;
     return MAINBOARD_STATUS_RC_OK;
 }
@@ -172,6 +180,10 @@ const char *mainboard_status_api_get_request_name(const enum MainboardStatusRequ
 enum MainboardStatusReturnCode mainboard_status_api_set_condition(const enum MainboardStatusCondition condition, const bool value) {
     if (condition >= MAINBOARD_STATUS_CONDITION_COUNT) {
         return MAINBOARD_STATUS_RC_INVALID_CONDITION;
+    }
+    // Debug level: the raw feedback conditions can bounce
+    if (mainboard_status_handler.conditions[condition] != value) {
+        MAINBOARD_LOGGER_DEBUG("Condition %s: %s", condition_names[condition], value ? "true" : "false");
     }
     mainboard_status_handler.conditions[condition] = value;
     return MAINBOARD_STATUS_RC_OK;

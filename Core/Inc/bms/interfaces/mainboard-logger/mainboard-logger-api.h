@@ -11,14 +11,16 @@
  *
  *          Output format:
  *          \code
- *          [      1.234] [INFO ] @POST:42 >> message
+ *          [      1.234] [INFO ] @pcu-api.c:42 >> message
  *          \endcode
  *
  *          Usage:
  *          \code
- *          #define MODULE_TAG "PCU"
- *          MAINBOARD_LOGGER_INFO(MODULE_TAG, "precharge started, Vbus=%u", vbus);
+ *          MAINBOARD_LOGGER_INFO("precharge started, Vbus=%u", vbus);
  *          \endcode
+ *
+ * \note The source file name is taken from __FILE_NAME__ (GCC >= 12, clang),
+ *       so the logs of a function defined in a header show the header name
  *
  * \attention liblog formats every message in a single static buffer, so the
  *            macros must never be called from an interrupt
@@ -37,16 +39,17 @@
 /*!
  * \defgroup mainboard_logger_macros Log a message with the given level
  *
- * \param tag A non-empty string identifying the module
+ * \details The message is tagged with the name and line of the calling source file
+ *
  * \param fmt The printf-like format string, followed by its arguments
  *
  * \returns The liblog return code, it can be ignored
  * \{
  */
-#define MAINBOARD_LOGGER_INFO(tag, fmt, ...) LOGGER_API_INFO(NULL, (tag), fmt, ##__VA_ARGS__)
-#define MAINBOARD_LOGGER_WARNING(tag, fmt, ...) LOGGER_API_WARNING(NULL, (tag), fmt, ##__VA_ARGS__)
-#define MAINBOARD_LOGGER_ERROR(tag, fmt, ...) LOGGER_API_ERROR(NULL, (tag), fmt, ##__VA_ARGS__)
-#define MAINBOARD_LOGGER_DEBUG(tag, fmt, ...) LOGGER_API_DEBUG(NULL, (tag), fmt, ##__VA_ARGS__)
+#define MAINBOARD_LOGGER_INFO(fmt, ...) LOGGER_API_INFO(NULL, __FILE_NAME__, fmt, ##__VA_ARGS__)
+#define MAINBOARD_LOGGER_WARNING(fmt, ...) LOGGER_API_WARNING(NULL, __FILE_NAME__, fmt, ##__VA_ARGS__)
+#define MAINBOARD_LOGGER_ERROR(fmt, ...) LOGGER_API_ERROR(NULL, __FILE_NAME__, fmt, ##__VA_ARGS__)
+#define MAINBOARD_LOGGER_DEBUG(fmt, ...) LOGGER_API_DEBUG(NULL, __FILE_NAME__, fmt, ##__VA_ARGS__)
 /*! \} */
 
 /*!

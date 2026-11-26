@@ -16,6 +16,7 @@
 #include "can-communication-router-api.h"
 #include "can-primary.h"
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 
 EAGLETRT_STATIC struct CanBridgeHandler can_bridge_handler;
 
@@ -104,10 +105,16 @@ enum CanCommunicationReturnCode can_bridge_api_init(const can_communication_send
 }
 
 void can_bridge_api_enable_bridge(void) {
+    if (!can_bridge_handler.enabled) {
+        MAINBOARD_LOGGER_INFO("CAN bridge enabled");
+    }
     can_bridge_handler.enabled = true;
 }
 
 void can_bridge_api_disable_bridge(void) {
+    if (can_bridge_handler.enabled) {
+        MAINBOARD_LOGGER_INFO("CAN bridge disabled");
+    }
     can_bridge_handler.enabled = false;
 }
 

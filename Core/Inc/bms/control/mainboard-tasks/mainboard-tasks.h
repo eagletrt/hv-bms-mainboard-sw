@@ -54,6 +54,9 @@ enum MainboardTasksID : uint8_t {
     MAINBOARD_TASKS_LED_HEARTBEAT,  /*!< Toggle the heartbeat LED */
     MAINBOARD_TASKS_DISPLAY_UPDATE, /*!< Show the FSM state on the 7-segment display */
 
+    // Diagnostics
+    MAINBOARD_TASKS_LOG_DROPPED, /*!< Log the dropped task executions */
+
     MAINBOARD_TASKS_COUNT /*!< Number of mainboard tasks */
 };
 

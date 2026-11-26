@@ -10,6 +10,7 @@
 
 #include "eagletrt-api.h"
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "watchdogs-api.h"
 
@@ -39,6 +40,11 @@ EAGLETRT_STATIC enum WatchdogReturnCode prv_check(const enum WatchdogReturnCode 
         case WATCHDOG_RC_TEMPORAL_DISCONTINUITY:
         case WATCHDOG_RC_ERROR:
         default:
+            // Only the first error is logged, a broken pool would fail at every routine.
+            // Never called from an interrupt: the watchdog pool is only used by the main loop
+            if (!mainboard_status_api_is_fault_set(MAINBOARD_STATUS_FAULT_WATCHDOGS)) {
+                MAINBOARD_LOGGER_ERROR("Watchdogs: error %d", (int)return_code);
+            }
             EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_WATCHDOGS));
             break;
     }

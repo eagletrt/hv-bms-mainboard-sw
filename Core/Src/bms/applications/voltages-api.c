@@ -11,6 +11,8 @@
 
 #include <string.h>
 
+#include "mainboard-logger-api.h"
+
 /*!
  * \brief The global voltage handler
  */
@@ -48,7 +50,13 @@ enum VoltagesReturnCode voltages_api_set_cellboard_voltage_info(
     voltages_handler.cellboard_info[cellboard].max = max;
     voltages_handler.cellboard_info[cellboard].average = average;
     voltages_handler.cellboard_info[cellboard].sum = sum;
-    voltages_handler.is_received_info[cellboard] = true;
+
+    if (!voltages_handler.is_received_info[cellboard]) {
+        voltages_handler.is_received_info[cellboard] = true;
+        if (voltages_api_is_ready()) {
+            MAINBOARD_LOGGER_INFO("Cell voltages received from every cellboard");
+        }
+    }
 
     return VOLTAGES_RC_OK;
 }

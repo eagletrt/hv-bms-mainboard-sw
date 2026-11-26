@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 
 /*!
  * \brief The global internal voltages handler
@@ -28,13 +29,23 @@ enum InternalVoltagesReturnCode internal_voltages_api_set_value(enum InternalVol
     }
 
     internal_voltages_handler.voltages[index] = voltage;
-    internal_voltages_handler.is_received_voltages[index] = true;
+
+    if (!internal_voltages_handler.is_received_voltages[index]) {
+        internal_voltages_handler.is_received_voltages[index] = true;
+        if (internal_voltages_api_is_voltages_ready()) {
+            MAINBOARD_LOGGER_INFO("TS and pack voltages ready");
+        }
+    }
 
     return INTERNAL_VOLTAGES_RC_OK;
 }
 
 void internal_voltages_api_set_current(ampere current) {
     internal_voltages_handler.current = current;
+
+    if (!internal_voltages_handler.is_received_current) {
+        MAINBOARD_LOGGER_INFO("Current ready");
+    }
     internal_voltages_handler.is_received_current = true;
 }
 

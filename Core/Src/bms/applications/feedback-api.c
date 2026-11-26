@@ -13,6 +13,7 @@
 
 #include "eagletrt.h"
 #include "mainboard-conf.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "feedback.h"
 #include "mainboard-status.h"
@@ -317,6 +318,9 @@ enum FeedbackReturnCode feedback_api_routine(void) {
 
     bool module_ready = true;
 
+    // The fault is never cleared, only the feedback in error when it is set are logged
+    const bool log_errors = !mainboard_status_api_is_fault_set(MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR);
+
     for (size_t i = 0; i < FEEDBACK_DIGITAL_INDEX_COUNT; i++) {
         struct FeedbackDigitalValue *feedback = &feedback_handler.digital[i];
 
@@ -345,6 +349,11 @@ enum FeedbackReturnCode feedback_api_routine(void) {
         bool condition_met = (feedback->status == FEEDBACK_ANALOG_STATUS_HIGH);
 
         if (feedback->status == FEEDBACK_ANALOG_STATUS_ERROR) {
+            if (log_errors) {
+                MAINBOARD_LOGGER_ERROR("Feedback '%s' in error: %.2f V",
+                                       mainboard_status_api_get_condition_name(feedback_analog_conditions[i]),
+                                       (double)feedback->filtered);
+            }
             mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR);
         }
 
@@ -355,6 +364,9 @@ enum FeedbackReturnCode feedback_api_routine(void) {
         mainboard_status_api_set_condition(feedback_analog_conditions[i], condition_met);
     }
 
+    if (module_ready && !feedback_handler.is_ready) {
+        MAINBOARD_LOGGER_INFO("Feedback ready");
+    }
     feedback_handler.is_ready = module_ready;
 
     return FEEDBACK_RC_OK;

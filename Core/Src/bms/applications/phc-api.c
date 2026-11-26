@@ -21,6 +21,7 @@
 #include "internal-voltages.h"
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 #include "mainboard-watchdogs-api.h"
@@ -30,17 +31,35 @@
 #include "temperatures-api.h"
 #include "watchdogs.h"
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
 
 EAGLETRT_STATIC struct PHCHandler phc_handler;
 
+/*!
+ * \brief Check if the failure of a check must be logged
+ *
+ * \details The checks keep running once their fault is latched: only the
+ *          failure that sets the fault is logged
+ *
+ * \param[in] fault The fault set by the check
+ *
+ * \return true if the fault is not set yet, false otherwise
+ */
+EAGLETRT_STATIC bool prv_phc_is_first_failure(const enum MainboardStatusFault fault) {
+    return !mainboard_status_api_is_fault_set(fault);
+}
+
 EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_under_voltage(void) {
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (voltages_api_get_pack_info().min <= PHC_MIN_CELL_VOLTAGE_V) {
-        EAGLETRT_API_NOP();
+    const volt min = voltages_api_get_pack_info().min;
+    if (min <= PHC_MIN_CELL_VOLTAGE_V) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_CELL_UNDER_VOLTAGE)) {
+            MAINBOARD_LOGGER_ERROR("Cell under voltage: %.3f V <= %.3f V", (double)min, (double)PHC_MIN_CELL_VOLTAGE_V);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -50,8 +69,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_over_voltage(void) {
     if (!voltages_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (voltages_api_get_pack_info().max >= PHC_MAX_CELL_VOLTAGE_V) {
-        EAGLETRT_API_NOP();
+    const volt max = voltages_api_get_pack_info().max;
+    if (max >= PHC_MAX_CELL_VOLTAGE_V) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_CELL_OVER_VOLTAGE)) {
+            MAINBOARD_LOGGER_ERROR("Cell over voltage: %.3f V >= %.3f V", (double)max, (double)PHC_MAX_CELL_VOLTAGE_V);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -61,8 +83,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_over_temperature(void) {
     if (!temperatures_api_is_cell_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_cell_temperatures_info().max >= PHC_MAX_CELL_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius max = temperatures_api_get_pack_cell_temperatures_info().max;
+    if (max >= PHC_MAX_CELL_TEMPERATURE_C) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_CELL_OVER_TEMPERATURE)) {
+            MAINBOARD_LOGGER_ERROR("Cell over temperature: %.1f C >= %.1f C", (double)max, (double)PHC_MAX_CELL_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -72,8 +97,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cell_under_temperature(void) {
     if (!temperatures_api_is_cell_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_cell_temperatures_info().min <= PHC_MIN_CELL_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius min = temperatures_api_get_pack_cell_temperatures_info().min;
+    if (min <= PHC_MIN_CELL_TEMPERATURE_C) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_CELL_UNDER_TEMPERATURE)) {
+            MAINBOARD_LOGGER_ERROR("Cell under temperature: %.1f C <= %.1f C", (double)min, (double)PHC_MIN_CELL_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -83,8 +111,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_over_temperature(voi
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_discharge_temperatures_info().max >= PHC_MAX_DISCHARGE_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius max = temperatures_api_get_pack_discharge_temperatures_info().max;
+    if (max >= PHC_MAX_DISCHARGE_TEMPERATURE_C) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_DISCHARGE_OVER_TEMPERATURE)) {
+            MAINBOARD_LOGGER_ERROR("Discharge over temperature: %.1f C >= %.1f C", (double)max, (double)PHC_MAX_DISCHARGE_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -94,8 +125,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_discharge_under_temperature(vo
     if (!temperatures_api_is_discharge_temperatures_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (temperatures_api_get_pack_discharge_temperatures_info().min <= PHC_MIN_DISCHARGE_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius min = temperatures_api_get_pack_discharge_temperatures_info().min;
+    if (min <= PHC_MIN_DISCHARGE_TEMPERATURE_C) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_DISCHARGE_UNDER_TEMPERATURE)) {
+            MAINBOARD_LOGGER_ERROR("Discharge under temperature: %.1f C <= %.1f C", (double)min, (double)PHC_MIN_DISCHARGE_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -105,18 +139,29 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cooling_over_temperature(void)
     if (!internal_temperatures_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
+    const bool log = prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE);
+
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
-        if (internal_temperatures_api_get_value(index) >= PHC_MAX_COOLING_TEMPERATURE_C) {
-            EAGLETRT_API_NOP();
+        const celsius value = internal_temperatures_api_get_value(index);
+        if (value >= PHC_MAX_COOLING_TEMPERATURE_C) {
+            if (log) {
+                MAINBOARD_LOGGER_ERROR("Cooling %u over temperature: %.1f C >= %.1f C", (unsigned)index, (double)value, (double)PHC_MAX_COOLING_TEMPERATURE_C);
+            }
             return PHC_CHECK_RESULT_FAILED;
         }
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) >= PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius regulator = internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR);
+    if (regulator >= PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C) {
+        if (log) {
+            MAINBOARD_LOGGER_ERROR("Regulator over temperature: %.1f C >= %.1f C", (double)regulator, (double)PHC_MAX_LINEAR_REGULATOR_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) >= PHC_MAX_PRECHARGE_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius precharge = internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE);
+    if (precharge >= PHC_MAX_PRECHARGE_TEMPERATURE_C) {
+        if (log) {
+            MAINBOARD_LOGGER_ERROR("Precharge over temperature: %.1f C >= %.1f C", (double)precharge, (double)PHC_MAX_PRECHARGE_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -126,18 +171,29 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cooling_under_temperature(void
     if (!internal_temperatures_api_is_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
+    const bool log = prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE);
+
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
-        if (internal_temperatures_api_get_value(index) <= PHC_MIN_COOLING_TEMPERATURE_C) {
-            EAGLETRT_API_NOP();
+        const celsius value = internal_temperatures_api_get_value(index);
+        if (value <= PHC_MIN_COOLING_TEMPERATURE_C) {
+            if (log) {
+                MAINBOARD_LOGGER_ERROR("Cooling %u under temperature: %.1f C <= %.1f C", (unsigned)index, (double)value, (double)PHC_MIN_COOLING_TEMPERATURE_C);
+            }
             return PHC_CHECK_RESULT_FAILED;
         }
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR) <= PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius regulator = internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_LINEAR_REGULATOR);
+    if (regulator <= PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C) {
+        if (log) {
+            MAINBOARD_LOGGER_ERROR("Regulator under temperature: %.1f C <= %.1f C", (double)regulator, (double)PHC_MIN_LINEAR_REGULATOR_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
-    if (internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE) <= PHC_MIN_PRECHARGE_TEMPERATURE_C) {
-        EAGLETRT_API_NOP();
+    const celsius precharge = internal_temperatures_api_get_value(INTERNAL_TEMPERATURES_INDEX_PRECHARGE);
+    if (precharge <= PHC_MIN_PRECHARGE_TEMPERATURE_C) {
+        if (log) {
+            MAINBOARD_LOGGER_ERROR("Precharge under temperature: %.1f C <= %.1f C", (double)precharge, (double)PHC_MIN_PRECHARGE_TEMPERATURE_C);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -149,7 +205,9 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_over_current(void) {
     }
     const ampere current = internal_voltages_api_get_current();
     if (current >= PHC_MAX_CURRENT_A || current <= PHC_MIN_CURRENT_A) {
-        EAGLETRT_API_NOP();
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_OVER_CURRENT)) {
+            MAINBOARD_LOGGER_ERROR("Current %.2f A outside [%.2f, %.2f] A", (double)current, (double)PHC_MIN_CURRENT_A, (double)PHC_MAX_CURRENT_A);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -160,8 +218,11 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_over_power(void) {
     if (!internal_voltages_api_is_current_ready() || !internal_voltages_api_is_voltages_ready()) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
-    if (internal_voltages_api_get_power() >= PHC_MAX_POWER_KW) {
-        EAGLETRT_API_NOP();
+    const kilowatt power = internal_voltages_api_get_power();
+    if (power >= PHC_MAX_POWER_KW) {
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_OVER_POWER)) {
+            MAINBOARD_LOGGER_ERROR("Over power: %.2f kW >= %.2f kW", (double)power, (double)PHC_MAX_POWER_KW);
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -173,41 +234,25 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cellboard_fault(void) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
 
+    const bool log = prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_CELLBOARD_FAULT);
     bool all_ok = true;
 
     for (uint8_t i = 0; i < CELLBOARD_COUNT; i++) {
-        uint32_t errors = cellboards_monitor_api_get_errors(i);
-        if (errors != 0) {
-            all_ok = false;
+        const uint32_t errors = cellboards_monitor_api_get_errors(i);
+        const uint32_t open_wires = cellboards_monitor_api_get_open_wires(i);
+        const enum CellboardsMonitorState state = cellboards_monitor_api_get_state(i);
+
+        if (errors == 0U && open_wires == 0U && state != CELLBOARDS_MONITOR_STATE_ERROR) {
+            continue;
         }
+        all_ok = false;
 
-        uint8_t error_idx = 0;
-
-        while (errors != 0) {
-            if (errors & 0x1) {
-                EAGLETRT_API_NOP();
-            }
-            errors >>= 1;
-            error_idx++;
-        }
-
-        uint32_t open_wires = cellboards_monitor_api_get_open_wires(i);
-        if (open_wires != 0) {
-            all_ok = false;
-        }
-
-        uint8_t open_wire_idx = 0;
-
-        while (open_wires != 0) {
-            if (open_wires & 0x1) {
-                EAGLETRT_API_NOP();
-            }
-            open_wires >>= 1;
-            open_wire_idx++;
-        }
-
-        if (cellboards_monitor_api_get_state(i) == CELLBOARDS_MONITOR_STATE_ERROR) {
-            all_ok = false;
+        if (log) {
+            MAINBOARD_LOGGER_ERROR("Cellboard %u: state %u, errors 0x%04" PRIX32 ", open wires 0x%04" PRIX32,
+                                   (unsigned)i,
+                                   (unsigned)state,
+                                   errors,
+                                   open_wires);
         }
     }
 
@@ -223,7 +268,9 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_imd_fault(void) {
         return PHC_CHECK_RESULT_NOT_READY;
     }
     if (!mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_IMD_OK)) {
-        EAGLETRT_API_NOP();
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_IMD_FAULT)) {
+            MAINBOARD_LOGGER_ERROR("IMD feedback not OK");
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -235,7 +282,9 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_voltage_indicator_disconnected
         return PHC_CHECK_RESULT_NOT_READY;
     }
     if (!mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_VOLTAGE_INDICATOR_CONNECTED)) {
-        EAGLETRT_API_NOP();
+        if (prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_VOLTAGE_INDICATOR_DISCONNECTED)) {
+            MAINBOARD_LOGGER_ERROR("Voltage indicator disconnected");
+        }
         return PHC_CHECK_RESULT_FAILED;
     }
     return PHC_CHECK_RESULT_OK;
@@ -306,10 +355,11 @@ EAGLETRT_STATIC const struct PHCCheck *prv_phc_find_check(enum PHCControl contro
  * \details The watchdog is left timed out: the fault is never cleared, so it
  *          does not need to fire again
  *
- * \param[in] context Unused
+ * \param[in] context The control of the check, as an integer
  */
 EAGLETRT_STATIC void prv_phc_handle_check_timeout(void *context) {
-    EAGLETRT_API_UNUSED(context);
+    const enum PHCControl control = (enum PHCControl)(uintptr_t)context;
+    MAINBOARD_LOGGER_ERROR("PHC check %u not run within %" PRIu32 " ms", (unsigned)control, (uint32_t)PHC_MAX_CHECK_INTERVAL_MS);
     EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
 }
 
@@ -327,6 +377,7 @@ EAGLETRT_STATIC void prv_phc_handle_startup_timeout(void *context) {
     for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
         struct Watchdog *const watchdog = &phc_handler.check_watchdogs[control];
         if (!mainboard_watchdogs_api_is_running(watchdog) && !mainboard_watchdogs_api_is_timed_out(watchdog)) {
+            MAINBOARD_LOGGER_ERROR("PHC check %u never run within %" PRIu32 " ms", (unsigned)control, (uint32_t)PHC_MAX_STARTUP_INTERVAL_MS);
             EAGLETRT_API_UNUSED(mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_PHC_FAULT));
             return;
         }
@@ -342,7 +393,7 @@ enum PHCReturnCode phc_api_init(void) {
     memset(&phc_handler, 0, sizeof(phc_handler));
 
     for (enum PHCControl control = 0; control < PHC_CONTROL_COUNT; ++control) {
-        if (mainboard_watchdogs_api_init_watchdog(&phc_handler.check_watchdogs[control], PHC_MAX_CHECK_INTERVAL_MS, prv_phc_handle_check_timeout, NULL) != WATCHDOG_RC_OK) {
+        if (mainboard_watchdogs_api_init_watchdog(&phc_handler.check_watchdogs[control], PHC_MAX_CHECK_INTERVAL_MS, prv_phc_handle_check_timeout, (void *)(uintptr_t)control) != WATCHDOG_RC_OK) {
             return PHC_RC_ERROR;
         }
     }

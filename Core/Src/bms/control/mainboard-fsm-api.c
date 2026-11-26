@@ -10,6 +10,7 @@
 #include "bal-control-api.h"
 #include "eagletrt-fsm-api.h"
 #include "eagletrt-fsm.h"
+#include <inttypes.h>
 #include <string.h>
 #include "flash-control-api.h"
 #include "mainboard-fsm.h"
@@ -21,10 +22,41 @@
 
 #include "eagletrt-api.h"
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 
 EAGLETRT_STATIC struct FSMHandler mainboard_fsm_handler;
+
+/*! \brief Name of every state, used by the logs */
+EAGLETRT_STATIC const char *const mainboard_fsm_state_names[MAINBOARD_FSM_STATE_COUNT] = {
+    [MAINBOARD_FSM_STATE_INIT] = "INIT",
+    [MAINBOARD_FSM_STATE_IDLE] = "IDLE",
+    [MAINBOARD_FSM_STATE_WAIT_OK] = "WAIT_OK",
+    [MAINBOARD_FSM_STATE_AIRN_CHECK] = "AIRN_CHECK",
+    [MAINBOARD_FSM_STATE_PRECHARGE_CHECK] = "PRECHARGE_CHECK",
+    [MAINBOARD_FSM_STATE_AIRP_CHECK] = "AIRP_CHECK",
+    [MAINBOARD_FSM_STATE_TS_ON] = "TS_ON",
+    [MAINBOARD_FSM_STATE_DISCHARGE_TS] = "DISCHARGE_TS",
+    [MAINBOARD_FSM_STATE_BALANCING_READ] = "BALANCING_READ",
+    [MAINBOARD_FSM_STATE_BALANCING_DISCHARGE] = "BALANCING_DISCHARGE",
+    [MAINBOARD_FSM_STATE_FLASH] = "FLASH",
+    [MAINBOARD_FSM_STATE_FATAL] = "FATAL",
+};
+
+/*!
+ * \brief Get the name of a state
+ *
+ * \param state The state
+ *
+ * \returns The name of the state, "UNKNOWN" if it is out of range
+ */
+EAGLETRT_STATIC const char *prv_mainboard_fsm_state_name(const enum MainboardFsmStateID state) {
+    if (state >= MAINBOARD_FSM_STATE_COUNT) {
+        return "UNKNOWN";
+    }
+    return mainboard_fsm_state_names[state];
+}
 
 /*! \brief Timeout of each FSM watchdog, indexed by \ref MainboardFsmWatchdog */
 EAGLETRT_STATIC const milliseconds mainboard_fsm_watchdog_timeouts[MAINBOARD_FSM_WATCHDOG_COUNT] = {
@@ -80,7 +112,29 @@ EAGLETRT_STATIC const struct MainboardFsmStepCheck mainboard_fsm_steps[MAINBOARD
  * there are way bigger problems to worry about
  */
 EAGLETRT_STATIC void prv_mainboard_fsm_transition_to(enum MainboardFsmStateID state) {
-    fsm_api_transition_to(&mainboard_fsm_handler, state);
+    if (fsm_api_transition_to(&mainboard_fsm_handler, state) != FSM_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("FSM: transition %s -> %s rejected",
+                               prv_mainboard_fsm_state_name(mainboard_fsm_api_get_state()),
+                               prv_mainboard_fsm_state_name(state));
+    }
+}
+
+/*!
+ * \brief Log the conditions of a step that do not match, used when its watchdog times out
+ *
+ * \param step The step whose conditions are checked
+ */
+EAGLETRT_STATIC void prv_mainboard_fsm_log_mismatches(const enum MainboardFsmStep step) {
+    const struct MainboardFsmStepCheck *const check = &mainboard_fsm_steps[step];
+    bit_flag32 mismatches = 0U;
+
+    EAGLETRT_API_UNUSED(mainboard_status_api_check_conditions(check->mask, check->expected, &mismatches));
+    for (size_t i = 0U; i < MAINBOARD_STATUS_CONDITION_COUNT; ++i) {
+        if (EAGLETRT_API_BIT_GET(mismatches, i)) {
+            MAINBOARD_LOGGER_WARNING("FSM: condition '%s' not met",
+                                     mainboard_status_api_get_condition_name((enum MainboardStatusCondition)i));
+        }
+    }
 }
 
 /*!
@@ -92,10 +146,12 @@ EAGLETRT_STATIC void prv_mainboard_fsm_transition_to(enum MainboardFsmStateID st
  */
 EAGLETRT_STATIC bool prv_mainboard_fsm_check_ts_abort(void) {
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: TS on procedure aborted by a fault");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return true;
     }
     if (mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_TS_OFF)) {
+        MAINBOARD_LOGGER_INFO("FSM: TS off requested");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return true;
     }
@@ -129,6 +185,7 @@ EAGLETRT_STATIC bool prv_mainboard_fsm_check_sd_end(void) {
     if (mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_SD_END_CLOSED)) {
         return false;
     }
+    MAINBOARD_LOGGER_WARNING("FSM: shutdown circuit open, opening the TS");
     prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
     return true;
 }
@@ -313,6 +370,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_init(void *data) {
     // The POST runs before the FSM is started, it sets MAINBOARD_STATUS_FAULT_POST_FAILED when it fails
 
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: faults set at init (0x%08" PRIX32 ")", mainboard_status_api_get_faults());
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
@@ -331,6 +389,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_idle(void *data) {
 
     // If the FSM is unsafe in a safe state (IDLE) then transition to FATAL
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: fault while idle");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
@@ -370,6 +429,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_wait_ok(void *data) {
 
     // If there has been no keep ts-on request then discharge, which goes back to idle once the TS is safe
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_WAIT_OK)) {
+        MAINBOARD_LOGGER_WARNING("FSM: no keep TS on within %" PRIu32 " ms", (uint32_t)MAINBOARD_FSM_WAIT_OK_TIMEOUT_MS);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
@@ -400,6 +460,8 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_airn_check(void *data) {
     }
     // If the relay doesn't close discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_AIRN_CHECK)) {
+        MAINBOARD_LOGGER_WARNING("FSM: AIR- check timed out");
+        prv_mainboard_fsm_log_mismatches(MAINBOARD_FSM_STEP_AIRN_CHECK);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
@@ -428,6 +490,8 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_precharge_check(void *data) {
     }
     // If the relay doesn't close or the precharge takes too long then discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_PRECHARGE_CHECK)) {
+        MAINBOARD_LOGGER_WARNING("FSM: precharge check timed out");
+        prv_mainboard_fsm_log_mismatches(MAINBOARD_FSM_STEP_PRECHARGE_CHECK);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
@@ -456,6 +520,8 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_airp_check(void *data) {
     }
     // If the relay doesn't close discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_AIRP_CHECK)) {
+        MAINBOARD_LOGGER_WARNING("FSM: AIR+ check timed out");
+        prv_mainboard_fsm_log_mismatches(MAINBOARD_FSM_STEP_AIRP_CHECK);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
         return;
     }
@@ -481,6 +547,8 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_ts_on(void *data) {
 
     // The conditions must keep matching, the SD end is part of them
     if (!prv_mainboard_fsm_check_step(MAINBOARD_FSM_STEP_TS_ON)) {
+        MAINBOARD_LOGGER_WARNING("FSM: TS on conditions lost");
+        prv_mainboard_fsm_log_mismatches(MAINBOARD_FSM_STEP_TS_ON);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_DISCHARGE_TS);
     }
 }
@@ -500,11 +568,14 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_discharge_ts(void *data) {
 
     // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: fault while discharging the TS");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
     // If a relay gets stuck and doesn't open then go to fatal
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_DISCHARGE_TS)) {
+        MAINBOARD_LOGGER_ERROR("FSM: TS discharge timed out");
+        prv_mainboard_fsm_log_mismatches(MAINBOARD_FSM_STEP_DISCHARGE_TS);
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
@@ -527,20 +598,24 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_balancing_read(void *data) {
 
     // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: fault while balancing");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
     // Balancing is not requested anymore
     if (!mainboard_status_api_is_request_set(MAINBOARD_STATUS_REQUEST_BALANCING)) {
+        MAINBOARD_LOGGER_INFO("FSM: balancing stopped by request");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
         return;
     }
     // If after settling time the pack is balanced then go to IDLE else go to discharge
     if (prv_mainboard_fsm_is_timed_out(MAINBOARD_FSM_WATCHDOG_BALANCING_READ)) {
         if (mainboard_status_api_get_condition(MAINBOARD_STATUS_CONDITION_PACK_BALANCED)) {
+            MAINBOARD_LOGGER_INFO("FSM: pack balanced");
             prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_IDLE);
             return;
         }
+        MAINBOARD_LOGGER_DEBUG("FSM: discharging to target %.3f V", bal_control_api_get_target_voltage());
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_BALANCING_DISCHARGE);
     }
 }
@@ -557,6 +632,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_balancing_discharge(void *data) {
 
     // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: fault while balancing");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
@@ -583,6 +659,7 @@ EAGLETRT_STATIC void prv_mainboard_fsm_state_flash(void *data) {
 
     // If there are faults go to FAULT
     if (mainboard_status_api_has_faults()) {
+        MAINBOARD_LOGGER_ERROR("FSM: fault while flashing");
         prv_mainboard_fsm_transition_to(MAINBOARD_FSM_STATE_FATAL);
         return;
     }
@@ -691,11 +768,31 @@ EAGLETRT_STATIC const struct State mainboard_fsm_states[MAINBOARD_FSM_STATE_COUN
 };
 
 enum FSMReturnCode mainboard_fsm_api_init(void) {
-    return fsm_api_init(&mainboard_fsm_handler, mainboard_fsm_states, MAINBOARD_FSM_STATE_COUNT, MAINBOARD_FSM_STATE_INIT);
+    const enum FSMReturnCode return_code = fsm_api_init(&mainboard_fsm_handler, mainboard_fsm_states, MAINBOARD_FSM_STATE_COUNT, MAINBOARD_FSM_STATE_INIT);
+    if (return_code != FSM_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("FSM: init failed (%d)", (int)return_code);
+    }
+    return return_code;
 }
 
 enum FSMReturnCode mainboard_fsm_api_run(void *context) {
-    return fsm_api_run_state(&mainboard_fsm_handler, context);
+    const enum MainboardFsmStateID previous = mainboard_fsm_api_get_state();
+    const enum FSMReturnCode return_code = fsm_api_run_state(&mainboard_fsm_handler, context);
+    const enum MainboardFsmStateID current = mainboard_fsm_api_get_state();
+
+    if (return_code != FSM_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("FSM: run of %s failed (%d)", prv_mainboard_fsm_state_name(previous), (int)return_code);
+    }
+    if (current != previous) {
+        if (current == MAINBOARD_FSM_STATE_FATAL) {
+            MAINBOARD_LOGGER_ERROR("FSM: %s -> FATAL, faults 0x%08" PRIX32,
+                                   prv_mainboard_fsm_state_name(previous),
+                                   mainboard_status_api_get_faults());
+        } else {
+            MAINBOARD_LOGGER_INFO("FSM: %s -> %s", prv_mainboard_fsm_state_name(previous), prv_mainboard_fsm_state_name(current));
+        }
+    }
+    return return_code;
 }
 
 enum MainboardFsmStateID mainboard_fsm_api_get_state(void) {

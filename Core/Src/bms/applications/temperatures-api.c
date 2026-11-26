@@ -9,6 +9,7 @@
 
 #include "temperatures-api.h"
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 
 #include <string.h>
 
@@ -73,7 +74,13 @@ enum TemperaturesReturnCode temperatures_api_set_cell_temperatures_info(
     temperatures_handler.cell_temperatures_info[cellboard].min = min;
     temperatures_handler.cell_temperatures_info[cellboard].max = max;
     temperatures_handler.cell_temperatures_info[cellboard].average = average;
-    temperatures_handler.is_received_cell_temperatures_info[cellboard] = true;
+
+    if (!temperatures_handler.is_received_cell_temperatures_info[cellboard]) {
+        temperatures_handler.is_received_cell_temperatures_info[cellboard] = true;
+        if (temperatures_api_is_cell_temperatures_ready()) {
+            MAINBOARD_LOGGER_INFO("Cell temperatures received from every cellboard");
+        }
+    }
 
     return TEMPERATURES_RC_OK;
 }
@@ -133,7 +140,13 @@ enum TemperaturesReturnCode temperatures_api_set_discharge_temperature(enum Cell
     }
 
     temperatures_handler.discharge_temperatures[cellboard][index] = temperature;
-    temperatures_handler.is_received_discharge_temperatures[cellboard][index] = true;
+
+    if (!temperatures_handler.is_received_discharge_temperatures[cellboard][index]) {
+        temperatures_handler.is_received_discharge_temperatures[cellboard][index] = true;
+        if (temperatures_api_is_discharge_temperatures_ready()) {
+            MAINBOARD_LOGGER_INFO("Discharge temperatures received from every cellboard");
+        }
+    }
 
     return TEMPERATURES_RC_OK;
 }

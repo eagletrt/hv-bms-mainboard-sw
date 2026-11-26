@@ -13,15 +13,25 @@
 #include "eagletrt-api.h"
 #include "eagletrt.h"
 #include "mainboard-conf.h"
+#include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 #include "mainboard-watchdogs-api.h"
 #include "pcu-api.h"
 #include "serializer-tasks-api.h"
 #include "watchdogs.h"
+#include <inttypes.h>
 #include <string.h>
 
 EAGLETRT_STATIC struct FlashControlHandler flash_control_handler;
+
+/*! \brief Name of every flash target, used by the logs */
+EAGLETRT_STATIC const char *const flash_control_target_names[FLASH_CONTROL_REQUEST_COUNT] = {
+    [FLASH_CONTROL_REQUEST_MAINBOARD] = "mainboard",
+    [FLASH_CONTROL_REQUEST_CELLBOARD] = "cellboard",
+    [FLASH_CONTROL_REQUEST_GENERAL] = "other board",
+    [FLASH_CONTROL_REQUEST_NONE] = "none",
+};
 
 /*!
  * \brief Called when no flashing message is received within FLASH_CONTROL_MAX_MESSAGE_INTERVAL_MS
@@ -35,6 +45,7 @@ EAGLETRT_STATIC struct FlashControlHandler flash_control_handler;
 EAGLETRT_STATIC void prv_flash_control_handle_message_timeout(void *context) {
     EAGLETRT_API_UNUSED(context);
 
+    MAINBOARD_LOGGER_WARNING("Flash: no message within %" PRIu32 " ms, request dropped", (uint32_t)FLASH_CONTROL_MAX_MESSAGE_INTERVAL_MS);
     flash_control_handler.target = FLASH_CONTROL_REQUEST_NONE;
     flash_control_handler.valid_parameters = false;
     EAGLETRT_API_UNUSED(mainboard_status_api_set_request(MAINBOARD_STATUS_REQUEST_FLASH, false));
@@ -68,6 +79,10 @@ enum FlashControlReturnCode flash_control_api_set_target(const enum FlashControl
     if (target >= FLASH_CONTROL_REQUEST_COUNT) {
         return FLASH_CONTROL_RC_INVALID_PARAMETERS;
     }
+    // Every flashing message sets the target, only the change is logged
+    if (target != flash_control_handler.target) {
+        MAINBOARD_LOGGER_INFO("Flash: target %s", flash_control_target_names[target]);
+    }
 
     if (target == FLASH_CONTROL_REQUEST_NONE) {
         // Reset instead of stop, since the watchdog may be idle or timed out. A failure latches the watchdogs fault in the wrapper
@@ -94,6 +109,7 @@ enum FlashControlReturnCode flash_control_api_start_flash(void) {
     if (flash_control_handler.flash_active) {
         return FLASH_CONTROL_RC_FLASH_ALREADY_STARTED;
     }
+    MAINBOARD_LOGGER_INFO("Flash: started, target %s", flash_control_target_names[flash_control_handler.target]);
 
     if (flash_control_handler.target == FLASH_CONTROL_REQUEST_MAINBOARD) {
         pcu_api_reset_microcontroller();
@@ -125,6 +141,7 @@ enum FlashControlReturnCode flash_control_api_stop_flash(void) {
         return FLASH_CONTROL_RC_FLASH_NOT_STARTED;
     }
 
+    MAINBOARD_LOGGER_INFO("Flash: stopped");
     EAGLETRT_API_UNUSED(serializer_tasks_api_suppress_comms(SERIALIZER_TASKS_PRIORITY_LOW, false));
 
     can_bridge_api_disable_bridge();

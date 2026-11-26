@@ -11,6 +11,7 @@
 
 #include "serializer-tasks-api.h"
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -19,6 +20,7 @@
 #include "can-primary-api.h"
 #include "eagletrt-api.h"
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 #include "serializer-api.h"
 #include "tasks-api.h"
 
@@ -27,6 +29,9 @@ static_assert(SERIALIZER_TASKS_COUNT <= TASKS_MAX_COUNT, "Increase TASKS_MAX_COU
 static_assert(SERIALIZER_TASKS_COUNT <= UINT8_MAX, "Too many serializer tasks");
 
 EAGLETRT_STATIC struct TasksHandler serializer_tasks_handler;
+
+/*! \brief Return code of the last routine, used to log only its changes */
+EAGLETRT_STATIC enum SerializerTasksReturnCode serializer_tasks_last_routine_rc;
 
 /*! \brief Shorthands to keep the table readable */
 #define HIGH (SERIALIZER_TASKS_PRIORITY_HIGH)
@@ -168,6 +173,8 @@ EAGLETRT_STATIC void prv_serializer_tasks_send_primary(struct SerializerMessage 
     struct CanCommunicationFrame frame = { .id = (uint32_t)message->id };
     const int length = can_primary_api_serialize_from_id(message->id, &message->payload, frame.data);
     if (length < 0 || length > (int)CAN_COMMUNICATION_FRAME_DATA_SIZE) {
+        // A libcan bug, not a runtime condition: the message is in the task table
+        MAINBOARD_LOGGER_ERROR("Serializer: 0x%03" PRIX32 " serialization failed (%d)", (uint32_t)message->id, length);
         return;
     }
     frame.length = (uint8_t)length;
@@ -185,6 +192,8 @@ EAGLETRT_STATIC void prv_serializer_tasks_send_bms(struct SerializerBmsMessage *
     struct CanCommunicationFrame frame = { .id = (uint32_t)message->id };
     const int length = can_bms_api_serialize_from_id(message->id, &message->payload, frame.data);
     if (length < 0 || length > (int)CAN_COMMUNICATION_FRAME_DATA_SIZE) {
+        // A libcan bug, not a runtime condition: the message is in the task table
+        MAINBOARD_LOGGER_ERROR("Serializer: 0x%03" PRIX32 " serialization failed (%d)", (uint32_t)message->id, length);
         return;
     }
     frame.length = (uint8_t)length;
@@ -237,6 +246,7 @@ enum SerializerTasksReturnCode serializer_tasks_api_init(task_tick_callback get_
     if (get_tick == NULL) {
         return SERIALIZER_TASKS_RC_NULL_POINTER;
     }
+    serializer_tasks_last_routine_rc = SERIALIZER_TASKS_RC_OK;
 
     memset(&serializer_tasks_handler, 0, sizeof(serializer_tasks_handler));
 
@@ -244,11 +254,13 @@ enum SerializerTasksReturnCode serializer_tasks_api_init(task_tick_callback get_
     for (uint8_t i = 0U; i < SERIALIZER_TASKS_COUNT; ++i) {
         // Every member of the union is a function pointer, so checking one of them is enough
         if (serializer_tasks[i].function.task_function == NULL) {
+            MAINBOARD_LOGGER_ERROR("Serializer tasks: task %u has no function", (unsigned)i);
             return SERIALIZER_TASKS_RC_NULL_POINTER;
         }
 
         const uint32_t period_ms = serializer_tasks[i].period_ms;
         if (period_ms == 0U || period_ms > UINT16_MAX) {
+            MAINBOARD_LOGGER_ERROR("Serializer tasks: task %u invalid period %" PRIu32 " ms", (unsigned)i, period_ms);
             return SERIALIZER_TASKS_RC_INVALID_PERIOD;
         }
 
@@ -261,16 +273,27 @@ enum SerializerTasksReturnCode serializer_tasks_api_init(task_tick_callback get_
     }
 
     if (tasks_api_init(&serializer_tasks_handler, tasks_list, (uint8_t)SERIALIZER_TASKS_COUNT, get_tick) != TASKS_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("Serializer tasks: init failed");
         return SERIALIZER_TASKS_RC_ERROR;
     }
     return SERIALIZER_TASKS_RC_OK;
 }
 
 enum SerializerTasksReturnCode serializer_tasks_api_routine(void) {
-    if (tasks_api_routine(&serializer_tasks_handler) != TASKS_RC_OK) {
-        return SERIALIZER_TASKS_RC_ERROR;
+    const enum SerializerTasksReturnCode return_code = (tasks_api_routine(&serializer_tasks_handler) == TASKS_RC_OK)
+                                                           ? SERIALIZER_TASKS_RC_OK
+                                                           : SERIALIZER_TASKS_RC_ERROR;
+
+    // Run at every main loop iteration, only the change is logged
+    if (return_code != serializer_tasks_last_routine_rc) {
+        if (return_code != SERIALIZER_TASKS_RC_OK) {
+            MAINBOARD_LOGGER_ERROR("Serializer tasks: routine failed");
+        } else {
+            MAINBOARD_LOGGER_INFO("Serializer tasks: routine back to normal");
+        }
+        serializer_tasks_last_routine_rc = return_code;
     }
-    return SERIALIZER_TASKS_RC_OK;
+    return return_code;
 }
 
 enum SerializerTasksReturnCode serializer_tasks_api_suppress_comms(enum SerializerTasksPriority priority, bool suppress) {
@@ -284,8 +307,17 @@ enum SerializerTasksReturnCode serializer_tasks_api_suppress_comms(enum Serializ
         const enum TasksReturnCode rc = suppress ? tasks_api_disable_task(&serializer_tasks_handler, i)
                                                  : tasks_api_enable_task(&serializer_tasks_handler, i);
         if (rc != TASKS_RC_OK) {
+            MAINBOARD_LOGGER_ERROR("Serializer tasks: task %u %s failed", (unsigned)i, suppress ? "disable" : "enable");
             ret = SERIALIZER_TASKS_RC_ERROR;
         }
     }
+
+    MAINBOARD_LOGGER_INFO("Serializer tasks: %s priority messages %s",
+                          (priority == SERIALIZER_TASKS_PRIORITY_HIGH) ? "high" : "low",
+                          suppress ? "suppressed" : "resumed");
     return ret;
+}
+
+uint16_t serializer_tasks_api_get_dropped_task_executions(void) {
+    return tasks_api_get_dropped_task_executions(&serializer_tasks_handler);
 }

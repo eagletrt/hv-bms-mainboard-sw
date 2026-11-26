@@ -14,6 +14,7 @@
 #include "flash-control-api.h"
 #include "bal-control-api.h"
 #include "eagletrt.h"
+#include "mainboard-logger-api.h"
 
 /*!
  * \brief Set a TS request, this ensures that only one of the flags is enabled at once.
@@ -54,6 +55,7 @@ enum RequestControlReturnCode request_control_api_handle_request(struct RequestC
 
                 return REQUEST_CONTROL_RC_OK;
             }
+            MAINBOARD_LOGGER_WARNING("Flash request rejected");
             break;
 
         case REQUEST_CONTROL_REQUEST_BALANCING:
@@ -64,6 +66,8 @@ enum RequestControlReturnCode request_control_api_handle_request(struct RequestC
 
                 return REQUEST_CONTROL_RC_OK;
             }
+            MAINBOARD_LOGGER_WARNING("Balancing request rejected, threshold %.3f V",
+                                     (double)data.balancing_request_data.parameters.threshold);
             break;
         default:
             return REQUEST_CONTROL_RC_INVALID_REQUEST;

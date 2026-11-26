@@ -79,6 +79,7 @@ struct PcuHandler {
     system_reset_callback reset_mcu; /*!< The callback used to reset the microcontroller */
 
     bool closed[PCU_RELAY_COUNT]; /*!< Whether each relay is commanded closed */
+    bool ams_active;              /*!< Whether the AMS output has been activated, used by the logs */
 };
 
 #endif // PCU_H

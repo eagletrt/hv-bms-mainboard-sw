@@ -395,6 +395,11 @@
 #define MAINBOARD_TASKS_HEARTBEAT_PERIOD_MS (1000U)
 
 /*!
+ * \brief Period in ms of the log of the dropped task executions
+ */
+#define MAINBOARD_TASKS_DROPPED_LOG_PERIOD_MS (5000U)
+
+/*!
  * \brief Period in ms of the display update
  *
  * \warning Must be smaller than MAINBOARD_TASKS_DISPLAY_FRAME_MS, or frames are skipped

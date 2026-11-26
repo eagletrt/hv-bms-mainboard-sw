@@ -8,15 +8,27 @@
 
 #include "cellboards-monitor-api.h"
 
+#include <inttypes.h>
 #include <string.h>
 
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "mainboard-logger-api.h"
 
 /*!
  * \brief The global cellboards monitor handler
  */
 EAGLETRT_STATIC struct CellboardsMonitorHandler cellboards_monitor_handler;
+
+/*! \brief Name of every cellboard state, used by the logs */
+EAGLETRT_STATIC const char *const cellboards_monitor_state_names[CELLBOARDS_MONITOR_STATE_COUNT] = {
+    [CELLBOARDS_MONITOR_STATE_INIT] = "INIT",
+    [CELLBOARDS_MONITOR_STATE_IDLE] = "IDLE",
+    [CELLBOARDS_MONITOR_STATE_ERROR] = "ERROR",
+    [CELLBOARDS_MONITOR_STATE_FLASH] = "FLASH",
+    [CELLBOARDS_MONITOR_STATE_DISCHARGE] = "DISCHARGE",
+    [CELLBOARDS_MONITOR_STATE_COOLDOWN] = "COOLDOWN",
+};
 
 /*!
  * \brief Mask of the valid bits of the errors flag
@@ -46,6 +58,20 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_state(enum Cellboard
         return CELLBOARDS_MONITOR_RC_INVALID_STATE;
     }
 
+    const enum CellboardsMonitorState previous = cellboards_monitor_handler.states[cellboard];
+    if (!cellboards_monitor_handler.is_received_state[cellboard]) {
+        MAINBOARD_LOGGER_INFO("Cellboard %u: online, state %s", (unsigned)cellboard, cellboards_monitor_state_names[state]);
+    } else if (state != previous) {
+        if (state == CELLBOARDS_MONITOR_STATE_ERROR) {
+            MAINBOARD_LOGGER_ERROR("Cellboard %u: %s -> ERROR", (unsigned)cellboard, cellboards_monitor_state_names[previous]);
+        } else {
+            MAINBOARD_LOGGER_INFO("Cellboard %u: %s -> %s",
+                                  (unsigned)cellboard,
+                                  cellboards_monitor_state_names[previous],
+                                  cellboards_monitor_state_names[state]);
+        }
+    }
+
     cellboards_monitor_handler.states[cellboard] = state;
     cellboards_monitor_handler.is_received_state[cellboard] = true;
 
@@ -58,8 +84,20 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_errors(enum Cellboar
     }
 
     // Drop the bits that do not correspond to any error so they cannot report a fault
-    cellboards_monitor_handler.errors[cellboard] = errors & CELLBOARDS_MONITOR_ERRORS_MASK;
-    cellboards_monitor_handler.open_wires[cellboard] = open_wires & CELLBOARDS_MONITOR_OPEN_WIRES_MASK;
+    const bit_flag16 masked_errors = errors & CELLBOARDS_MONITOR_ERRORS_MASK;
+    const bit_flag16 masked_open_wires = open_wires & CELLBOARDS_MONITOR_OPEN_WIRES_MASK;
+
+    // The errors come with every error message, only the change is logged
+    if (masked_errors != cellboards_monitor_handler.errors[cellboard] ||
+        masked_open_wires != cellboards_monitor_handler.open_wires[cellboard]) {
+        MAINBOARD_LOGGER_WARNING("Cellboard %u: errors 0x%04" PRIX32 ", open wires 0x%04" PRIX32,
+                                 (unsigned)cellboard,
+                                 (uint32_t)masked_errors,
+                                 (uint32_t)masked_open_wires);
+    }
+
+    cellboards_monitor_handler.errors[cellboard] = masked_errors;
+    cellboards_monitor_handler.open_wires[cellboard] = masked_open_wires;
     cellboards_monitor_handler.is_received_errors[cellboard] = true;
 
     return CELLBOARDS_MONITOR_RC_OK;
@@ -79,6 +117,17 @@ enum CellboardsMonitorReturnCode cellboards_monitor_api_set_version(
     }
 
     struct CellboardsMonitorVersion *version = &cellboards_monitor_handler.versions[cellboard][kind];
+
+    // The version comes with every version message, only the change is logged
+    if (version->major != major || version->minor != minor || version->patch != patch) {
+        MAINBOARD_LOGGER_INFO("Cellboard %u: %s v%u.%u.%u",
+                              (unsigned)cellboard,
+                              (kind == CELLBOARDS_MONITOR_VERSION_FIRMWARE) ? "firmware" : "libcan",
+                              (unsigned)major,
+                              (unsigned)minor,
+                              (unsigned)patch);
+    }
+
     version->major = major;
     version->minor = minor;
     version->patch = patch;

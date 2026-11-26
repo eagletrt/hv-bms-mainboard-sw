@@ -299,6 +299,10 @@ struct SensingHandler {
     volatile bool imd_captured;                                /*!< Set by the IMD capture interrupt, consumed by the routine */
     bool watchdogs_started;                                    /*!< True once the routine has started the watchdogs */
 
+    bool adc_start_failed[SENSING_ADC_COUNT]; /*!< True while the conversions of an MCU ADC fail to start, used by the logs */
+    bool external_adc_failed;                 /*!< True while the external ADC fails to be read, used by the logs */
+    enum Ir1553204Status imd_status;          /*!< Last IMD status seen by the routine, used by the logs */
+
     bool is_initialized; /*!< True once the module has been initialized */
 };
 

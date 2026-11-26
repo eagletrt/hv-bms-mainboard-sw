@@ -9,14 +9,40 @@
 
 #include "can-communication-api.h"
 
+#include <inttypes.h>
 #include <string.h>
 
 #include "eagletrt.h"
 #include "eagletrt-api.h"
+#include "mainboard-logger-api.h"
 #include "pal-api.h"
 #include "arena-allocator-api.h"
 
 EAGLETRT_STATIC struct CanCommunicationHandler handler;
+
+/*! \brief Name of every network, used by the logs */
+EAGLETRT_STATIC const char *const can_communication_network_names[CAN_NETWORK_COUNT] = {
+    [CAN_NETWORK_PRIMARY] = "primary",
+    [CAN_NETWORK_BMS] = "BMS",
+};
+
+/*!
+ * \brief Increment an error counter and tell if the new count must be logged
+ *
+ * \details The errors can happen at every task run, so they are logged at the
+ *          1st, 2nd, 4th, 8th, ... occurrence: the logs grow with the logarithm
+ *          of the errors while the count stays visible. The counter saturates
+ *
+ * \param[in,out] counter The error counter
+ *
+ * \return true if the new count is a power of two, false otherwise
+ */
+EAGLETRT_STATIC bool prv_count_and_check_log(uint32_t *const counter) {
+    if (*counter < UINT32_MAX) {
+        ++(*counter);
+    }
+    return (*counter & (*counter - 1U)) == 0U;
+}
 
 /*!
  * \brief Shared body of the per-network PAL sending message.
@@ -98,6 +124,7 @@ EAGLETRT_STATIC enum CanCommunicationReturnCode prv_can_communication_api_init_n
             config.cs_enter,
             config.cs_exit,
             &handler.arena) != PAL_RC_OK) {
+        MAINBOARD_LOGGER_ERROR("CAN %s: PAL init failed", can_communication_network_names[network]);
         return CAN_COMMUNICATION_RC_ERROR;
     }
 
@@ -159,9 +186,19 @@ enum CanCommunicationReturnCode can_communication_api_init(const struct CanCommu
 }
 
 enum CanCommunicationReturnCode can_communication_api_add_to_tx(enum CanNetwork network, const struct CanCommunicationFrame *frame) {
-    return prv_enqueue(network, frame, true);
+    const enum CanCommunicationReturnCode return_code = prv_enqueue(network, frame, true);
+
+    // A full queue is checked after the arguments, so network and frame are valid here
+    if (return_code == CAN_COMMUNICATION_RC_QUEUE_FULL && prv_count_and_check_log(&handler.networks[network].tx_dropped)) {
+        MAINBOARD_LOGGER_WARNING("CAN %s: TX queue full, %" PRIu32 " frames dropped (last 0x%03" PRIX32 ")",
+                                 can_communication_network_names[network],
+                                 handler.networks[network].tx_dropped,
+                                 frame->id);
+    }
+    return return_code;
 }
 
+// Interrupt context: never log here
 enum CanCommunicationReturnCode can_communication_api_add_to_rx(enum CanNetwork network, const struct CanCommunicationFrame *frame) {
     return prv_enqueue(network, frame, false);
 }
@@ -179,10 +216,16 @@ enum CanCommunicationReturnCode can_communication_api_process_tx(enum CanNetwork
 
         if (return_code == PAL_RC_IO_ERROR) {
             result = CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
+            if (prv_count_and_check_log(&handler.networks[network].tx_failed)) {
+                MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames failed to send",
+                                         can_communication_network_names[network],
+                                         handler.networks[network].tx_failed);
+            }
         }
     } while (return_code == PAL_RC_OK || return_code == PAL_RC_IO_ERROR);
 
     if (return_code != PAL_RC_OK && return_code != PAL_RC_QUEUE_EMPTY) {
+        MAINBOARD_LOGGER_ERROR("CAN %s: TX processing error %d", can_communication_network_names[network], (int)return_code);
         return CAN_COMMUNICATION_RC_ERROR;
     }
 
@@ -203,13 +246,22 @@ enum CanCommunicationReturnCode can_communication_api_process_rx(enum CanNetwork
         return_code = pal_api_process_rx(&handler.networks[network].pal, &frame);
 
         if (return_code == PAL_RC_OK) {
-            if (dispatch(&frame) != CAN_COMMUNICATION_RC_OK) {
+            const enum CanCommunicationReturnCode dispatch_code = dispatch(&frame);
+            if (dispatch_code != CAN_COMMUNICATION_RC_OK) {
                 result = CAN_COMMUNICATION_RC_RECEIVE_HANDLER_ERROR;
+                if (prv_count_and_check_log(&handler.networks[network].rx_rejected)) {
+                    MAINBOARD_LOGGER_WARNING("CAN %s: %" PRIu32 " frames rejected (last 0x%03" PRIX32 ", rc %d)",
+                                             can_communication_network_names[network],
+                                             handler.networks[network].rx_rejected,
+                                             frame.id,
+                                             (int)dispatch_code);
+                }
             }
         }
     } while (return_code == PAL_RC_OK);
 
     if (return_code != PAL_RC_OK && return_code != PAL_RC_QUEUE_EMPTY) {
+        MAINBOARD_LOGGER_ERROR("CAN %s: RX processing error %d", can_communication_network_names[network], (int)return_code);
         return CAN_COMMUNICATION_RC_ERROR;
     }
 
