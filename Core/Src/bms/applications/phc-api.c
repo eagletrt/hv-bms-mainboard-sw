@@ -144,6 +144,12 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cooling_over_temperature(void)
     const bool log = prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_COOLING_OVER_TEMPERATURE);
 
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
+
+        // TODO: remove or understand what it is
+        if (index == INTERNAL_TEMPERATURES_INDEX_COOLING_INLET) {
+            continue;
+        }
+
         const celsius value = internal_temperatures_api_get_value(index);
         if (value >= PHC_MAX_COOLING_TEMPERATURE_C) {
             if (log) {
@@ -176,6 +182,12 @@ EAGLETRT_STATIC enum PhcCheckResult prv_phc_check_cooling_under_temperature(void
     const bool log = prv_phc_is_first_failure(MAINBOARD_STATUS_FAULT_COOLING_UNDER_TEMPERATURE);
 
     for (enum InternalTemperaturesIndex index = INTERNAL_TEMPERATURES_INDEX_COOLING_INLET; index < INTERNAL_TEMPERATURES_INDEX_COUNT; index++) {
+
+        // TODO: remove or understand what it is
+        if (index == INTERNAL_TEMPERATURES_INDEX_COOLING_INLET) {
+            continue;
+        }
+
         const celsius value = internal_temperatures_api_get_value(index);
         if (value <= PHC_MIN_COOLING_TEMPERATURE_C) {
             if (log) {
