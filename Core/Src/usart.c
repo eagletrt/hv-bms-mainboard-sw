@@ -282,6 +282,14 @@ int usart_send(const char *const data, const size_t size) {
     return (int)size;
 }
 
+size_t usart_get_tx_free_space(void) {
+    // Both indices are read at once so that the result is consistent
+    const uint32_t primask = prv_usart_cs_enter();
+    const size_t free_space = (prv_usart_tx_tail + USART_TX_BUFFER_SIZE - prv_usart_tx_head - 1U) % USART_TX_BUFFER_SIZE;
+    prv_usart_cs_exit(primask);
+    return free_space;
+}
+
 bool usart_is_data_received(void) {
     return prv_usart_rx_flag;
 }

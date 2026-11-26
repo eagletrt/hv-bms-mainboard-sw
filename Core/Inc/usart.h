@@ -40,7 +40,8 @@ extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN Private defines */
 
 // Size of the TX ring buffer, at most (USART_TX_BUFFER_SIZE - 1) bytes can be queued
-#define USART_TX_BUFFER_SIZE (1024U)
+// About 30 log lines, so that the bursts (e.g. at boot) are not dropped
+#define USART_TX_BUFFER_SIZE (4096U)
 // Size of the circular RX DMA buffer
 #define USART_RX_BUFFER_SIZE (256U)
 
@@ -67,6 +68,13 @@ void MX_USART1_UART_Init(void);
  *          there is not enough free space in the buffer (nothing is queued)
  */
 int usart_send(const char *data, size_t size);
+
+/*!
+ * \brief Get the free space in the TX ring buffer
+ *
+ * \returns The maximum number of bytes that usart_send can queue right now
+ */
+size_t usart_get_tx_free_space(void);
 
 /*!
  * \brief Check if new data was received via the UART

@@ -33,6 +33,10 @@ enum PostReturnCode : uint8_t {
 struct PostInitData {
     can_communication_send_callback send_primary;         /*!< Immediately send a frame on the primary network */
     can_communication_send_callback send_bms;             /*!< Immediately send a frame on the BMS network */
+    can_communication_status_callback status_primary;     /*!< Read the transceiver state of the primary network, may be NULL */
+    can_communication_status_callback status_bms;         /*!< Read the transceiver state of the BMS network, may be NULL */
+    can_communication_tx_ready_callback tx_ready_primary; /*!< Tell if the primary network can take a frame, may be NULL */
+    can_communication_tx_ready_callback tx_ready_bms;     /*!< Tell if the BMS network can take a frame, may be NULL */
     can_communication_critical_section_callback cs_enter; /*!< Enter the CAN critical section */
     can_communication_critical_section_callback cs_exit;  /*!< Exit the CAN critical section */
     led_set_state_callback led_set;                       /*!< Set the state of the LED */

@@ -121,7 +121,15 @@ int main(void) {
     /* USER CODE BEGIN 2 */
 
     // First so that every following initialization can be logged
-    if (mainboard_logger_api_init(usart_send, HAL_GetTick, LOGGER_ENABLE_ALL) != LOGGER_RC_OK) {
+    const struct MainboardLoggerInitData logger_data = {
+        .write = usart_send,
+        .read = usart_receive,
+        .free_space = usart_get_tx_free_space,
+        .get_tick = HAL_GetTick,
+        .reset = system_reset,
+        .verbosity = LOGGER_ENABLE_ALL,
+    };
+    if (mainboard_logger_api_init(&logger_data) != LOGGER_RC_OK) {
         Error_Handler();
     }
 
@@ -142,6 +150,10 @@ int main(void) {
     const struct PostInitData init_data = {
         .send_primary = can_send_primary,
         .send_bms = can_send_bms,
+        .tx_ready_primary = can_tx_ready_primary,
+        .tx_ready_bms = can_tx_ready_bms,
+        .status_primary = can_get_status_primary,
+        .status_bms = can_get_status_bms,
         .cs_enter = it_cs_enter,
         .cs_exit = it_cs_exit,
         .led_set = gpio_led_set_state,
@@ -160,7 +172,7 @@ int main(void) {
 
     EAGLETRT_API_UNUSED(post_api_run(&init_data));
 
-    MAINBOARD_LOGGER_INFO("POST ran, starting main application");
+    MAINBOARD_LOGGER_INFO("POST ran, starting main application, press h for the console commands");
 
     /* USER CODE END 2 */
 

@@ -75,12 +75,16 @@ enum PostReturnCode post_api_run(const struct PostInitData *data) {
                                  .on_receive = can_bridge_api_receive_primary,
                                  .cs_enter = data->cs_enter,
                                  .cs_exit = data->cs_exit,
+                                 .get_status = data->status_primary,
+                                 .tx_ready = data->tx_ready_primary,
                                  },
         [CAN_NETWORK_BMS] = {
                                  .send = data->send_bms,
                                  .on_receive = can_bridge_api_receive_bms,
                                  .cs_enter = data->cs_enter,
                                  .cs_exit = data->cs_exit,
+                                 .get_status = data->status_bms,
+                                 .tx_ready = data->tx_ready_bms,
                                  },
     };
     prv_post_check(can_communication_api_init(config) == CAN_COMMUNICATION_RC_OK, "CAN communication");
@@ -94,7 +98,7 @@ enum PostReturnCode post_api_run(const struct PostInitData *data) {
     temperatures_api_init();
     internal_voltages_api_init();
     internal_temperatures_api_init();
-    feedback_api_init();
+    prv_post_check(feedback_api_init() == FEEDBACK_RC_OK, "feedback");
     prv_post_check(bal_control_api_init() == BAL_CONTROL_RC_OK, "bal control");
     prv_post_check(flash_control_api_init() == FLASH_CONTROL_RC_OK, "flash control");
     prv_post_check(phc_api_init() == PHC_RC_OK, "PHC");
