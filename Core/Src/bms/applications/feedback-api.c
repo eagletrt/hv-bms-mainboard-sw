@@ -8,6 +8,7 @@
 
 #include "feedback-api.h"
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -15,8 +16,10 @@
 #include "mainboard-conf.h"
 #include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
+#include "mainboard-watchdogs-api.h"
 #include "feedback.h"
 #include "mainboard-status.h"
+#include "watchdogs.h"
 
 EAGLETRT_STATIC struct FeedbackHandler feedback_handler;
 
@@ -238,8 +241,39 @@ EAGLETRT_STATIC volt prv_feedback_analog_mean_filter(const volatile volt *buffer
     return sum / (volt)FEEDBACK_BUFFER_SIZE;
 }
 
-void feedback_api_init(void) {
+/*!
+ * \brief Called when an analog feedback stayed in error for FEEDBACK_MAX_ERROR_TIME_MS
+ *
+ * \details The watchdog is left timed out: the fault is never cleared, so it
+ *          is not started again and the error is logged once per feedback
+ *
+ * \param[in] context The index of the analog feedback, as an integer
+ */
+EAGLETRT_STATIC void prv_feedback_handle_error_timeout(void *context) {
+    const enum FeedbackAnalogIndex index = (enum FeedbackAnalogIndex)(uintptr_t)context;
+    MAINBOARD_LOGGER_ERROR("Feedback '%s' in error for %" PRIu32 " ms: %.2f V",
+                           mainboard_status_api_get_condition_name(feedback_analog_conditions[index]),
+                           (uint32_t)FEEDBACK_MAX_ERROR_TIME_MS,
+                           (double)feedback_handler.analog[index].filtered);
+    mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR);
+}
+
+enum FeedbackReturnCode feedback_api_init(void) {
+    // Zeroing the handler would corrupt the watchdog pool, which may still hold running watchdogs
+    if (feedback_handler.initialized) {
+        return FEEDBACK_RC_ERROR;
+    }
+
     memset(&feedback_handler, 0, sizeof(feedback_handler));
+
+    for (size_t i = 0; i < FEEDBACK_ANALOG_INDEX_COUNT; i++) {
+        if (mainboard_watchdogs_api_init_watchdog(&feedback_handler.error_watchdogs[i], FEEDBACK_MAX_ERROR_TIME_MS, prv_feedback_handle_error_timeout, (void *)(uintptr_t)i) != WATCHDOG_RC_OK) {
+            return FEEDBACK_RC_ERROR;
+        }
+    }
+
+    feedback_handler.initialized = true;
+    return FEEDBACK_RC_OK;
 }
 
 enum FeedbackReturnCode feedback_api_set_digital_value(enum FeedbackDigitalIndex index, bool value) {
@@ -310,16 +344,24 @@ volt feedback_api_get_analog_value(enum FeedbackAnalogIndex index) {
     return feedback_handler.analog[index].filtered;
 }
 
+enum FeedbackAnalogStatus feedback_api_get_analog_status(enum FeedbackAnalogIndex index) {
+    if (index >= FEEDBACK_ANALOG_INDEX_COUNT || !feedback_handler.analog[index].ready) {
+        return FEEDBACK_ANALOG_STATUS_COUNT;
+    }
+    return feedback_handler.analog[index].status;
+}
+
 bool feedback_api_is_ready(void) {
     return feedback_handler.is_ready;
 }
 
 enum FeedbackReturnCode feedback_api_routine(void) {
+    // The watchdogs are not initialized yet: touching them would latch the watchdogs fault
+    if (!feedback_handler.initialized) {
+        return FEEDBACK_RC_ERROR;
+    }
 
     bool module_ready = true;
-
-    // The fault is never cleared, only the feedback in error when it is set are logged
-    const bool log_errors = !mainboard_status_api_is_fault_set(MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR);
 
     for (size_t i = 0; i < FEEDBACK_DIGITAL_INDEX_COUNT; i++) {
         struct FeedbackDigitalValue *feedback = &feedback_handler.digital[i];
@@ -348,13 +390,17 @@ enum FeedbackReturnCode feedback_api_routine(void) {
 
         bool condition_met = (feedback->status == FEEDBACK_ANALOG_STATUS_HIGH);
 
+        /*
+         * The watchdog runs only while the feedback is in error, so it times out only if the
+         * error lasts. The return codes are ignored on purpose: starting a running or a timed
+         * out watchdog (BUSY, TIMED_OUT) and stopping an idle or a timed out one (NOT_RUNNING,
+         * TIMED_OUT) are expected, the real errors are latched by the wrapper
+         */
+        struct Watchdog *const watchdog = &feedback_handler.error_watchdogs[i];
         if (feedback->status == FEEDBACK_ANALOG_STATUS_ERROR) {
-            if (log_errors) {
-                MAINBOARD_LOGGER_ERROR("Feedback '%s' in error: %.2f V",
-                                       mainboard_status_api_get_condition_name(feedback_analog_conditions[i]),
-                                       (double)feedback->filtered);
-            }
-            mainboard_status_api_set_fault(MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR);
+            EAGLETRT_API_UNUSED(mainboard_watchdogs_api_start(watchdog));
+        } else {
+            EAGLETRT_API_UNUSED(mainboard_watchdogs_api_stop(watchdog));
         }
 
         if (feedback_analog_inverted[i]) {

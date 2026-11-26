@@ -20,6 +20,7 @@
 
 #include "mainboard-conf.h"
 #include "mainboard-def.h"
+#include "watchdogs.h"
 
 /*! \brief Voltage reference of the MCU ADC in V */
 #define FEEDBACK_VREF (3.3f)
@@ -154,7 +155,10 @@ struct FeedbackHandler {
     struct FeedbackDigitalValue digital[FEEDBACK_DIGITAL_INDEX_COUNT]; /*!< The digital feedback */
     struct FeedbackAnalogValue analog[FEEDBACK_ANALOG_INDEX_COUNT];    /*!< The analog feedback */
 
-    bool is_ready; /*!< True once every feedback buffer is full, the filtered values are meaningful only then */
+    struct Watchdog error_watchdogs[FEEDBACK_ANALOG_INDEX_COUNT]; /*!< One per analog feedback, running while it is in error */
+
+    bool is_ready;    /*!< True once every feedback buffer is full, the filtered values are meaningful only then */
+    bool initialized; /*!< True once the watchdogs are initialized */
 };
 
 #endif // FEEDBACK_H

@@ -10,6 +10,10 @@
  *          a circular buffer per feedback, then \ref feedback_api_routine filters
  *          them, checks the filtered values and updates the mainboard status
  *          (conditions and faults owned by this module)
+ *
+ *          An analog feedback in error starts its watchdog, which is stopped as
+ *          soon as the feedback is back to a valid level: only an error lasting
+ *          FEEDBACK_MAX_ERROR_TIME_MS sets MAINBOARD_STATUS_FAULT_FEEDBACK_ERROR
  */
 
 #ifndef FEEDBACK_API_H
@@ -21,9 +25,14 @@
 #include "mainboard-def.h"
 
 /*!
- * \brief Initialize the feedback API
+ * \brief Initialize the feedback API and the watchdogs of the analog feedback
+ *
+ * \attention The watchdog pool must be initialized first, the module can be initialized only once
+ *
+ * \retval FEEDBACK_RC_ERROR if the module is already initialized or a watchdog could not be initialized
+ * \retval FEEDBACK_RC_OK otherwise
  */
-void feedback_api_init(void);
+enum FeedbackReturnCode feedback_api_init(void);
 
 /*!
  * \brief Set the value of a digital feedback
@@ -67,6 +76,15 @@ bool feedback_api_get_digital_value(enum FeedbackDigitalIndex index);
  * \returns The filtered voltage, 0 if the index is invalid or the feedback is not ready
  */
 volt feedback_api_get_analog_value(enum FeedbackAnalogIndex index);
+
+/*!
+ * \brief Get the logical status of an analog feedback
+ *
+ * \param index The index of the analog feedback
+ * \returns The status of the filtered voltage, FEEDBACK_ANALOG_STATUS_COUNT if
+ *          the index is invalid or the feedback is not ready
+ */
+enum FeedbackAnalogStatus feedback_api_get_analog_status(enum FeedbackAnalogIndex index);
 
 /*!
  * \brief Return the readyness of the module
