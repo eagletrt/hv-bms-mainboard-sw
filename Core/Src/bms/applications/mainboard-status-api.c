@@ -181,10 +181,6 @@ enum MainboardStatusReturnCode mainboard_status_api_set_condition(const enum Mai
     if (condition >= MAINBOARD_STATUS_CONDITION_COUNT) {
         return MAINBOARD_STATUS_RC_INVALID_CONDITION;
     }
-    // Debug level: the raw feedback conditions can bounce
-    if (mainboard_status_handler.conditions[condition] != value) {
-        MAINBOARD_LOGGER_DEBUG("Condition %s: %s", condition_names[condition], value ? "true" : "false");
-    }
     mainboard_status_handler.conditions[condition] = value;
     return MAINBOARD_STATUS_RC_OK;
 }
