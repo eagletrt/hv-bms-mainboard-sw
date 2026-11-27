@@ -127,7 +127,7 @@ enum MainboardStatusCondition {
     MAINBOARD_STATUS_CONDITION_TS_BELOW_60V,                /*!< The TS voltage is below 60V (old: TS_LESS_THAN_60V) (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_TSAL_GREEN,                  /*!< The TSAL shows green (old: TSAL_GREEN) (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_VOLTAGE_INDICATOR_CONNECTED, /*!< The TS voltage indicator is connected (old: INDICATOR_CONNECTED) (owner: feedback) */
-    MAINBOARD_STATUS_CONDITION_PRECHARGE_COMPLETE,          /*!< The TS voltage reached the precharge threshold (owner: internal-voltages) */
+    MAINBOARD_STATUS_CONDITION_PRECHARGE_COMPLETE,          /*!< The TS voltage reached the precharge threshold (owner: PHC) */
 
     /* Hardware plausibility check (owner: feedback) */
     MAINBOARD_STATUS_CONDITION_PLAUSIBLE_STATE,           /*!< The plausibility check passes, raw value (old: PLAUSIBLE_STATE) */

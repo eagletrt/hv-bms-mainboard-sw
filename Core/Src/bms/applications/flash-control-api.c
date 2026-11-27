@@ -12,12 +12,15 @@
 #include "can-bridge-api.h"
 #include "eagletrt-api.h"
 #include "eagletrt.h"
+#include "flash-control.h"
 #include "mainboard-conf.h"
 #include "mainboard-logger-api.h"
 #include "mainboard-status-api.h"
 #include "mainboard-status.h"
 #include "mainboard-watchdogs-api.h"
 #include "pcu-api.h"
+#include "request-control-api.h"
+#include "request-control.h"
 #include "serializer-tasks-api.h"
 #include "watchdogs.h"
 #include <inttypes.h>
@@ -48,7 +51,12 @@ EAGLETRT_STATIC void prv_flash_control_handle_message_timeout(void *context) {
     MAINBOARD_LOGGER_WARNING("Flash: no message within %" PRIu32 " ms, request dropped", (uint32_t)FLASH_CONTROL_MAX_MESSAGE_INTERVAL_MS);
     flash_control_handler.target = FLASH_CONTROL_REQUEST_NONE;
     flash_control_handler.valid_parameters = false;
-    EAGLETRT_API_UNUSED(mainboard_status_api_set_request(MAINBOARD_STATUS_REQUEST_FLASH, false));
+
+    struct RequestControlRequest request = {
+        .request_data.flash_request_state = FLASH_CONTROL_REQUEST_NONE,
+        .request_type = REQUEST_CONTROL_REQUEST_FLASH,
+    };
+    request_control_api_handle_request(request);
 }
 
 enum FlashControlReturnCode flash_control_api_init(void) {
